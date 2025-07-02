@@ -11,19 +11,19 @@ class Config {
     const DB_HOST = 'localhost';										//MySQL Host
     const DB_NAME = 'server_management';								//MySQL DB Name
     const DB_USER = 'root';												//MySQL User
-    const DB_PASS = 'System225!';										//MySQL Password
+    const DB_PASS = 'pass';										//MySQL Password
     
-    const PROXMOX_HOST = 'https://sv01.orga-consult.eu:8006';			//ProxmoxServer
-    const PROXMOX_USER = 'ispuser@pve';									//Proxmox User (@pam or @pve)
-    const PROXMOX_PASSWORD = 'System225!';								//Proxmox Password
+    const PROXMOX_HOST = 'https://server:8006';			//ProxmoxServer
+    const PROXMOX_USER = 'user@pve';									//Proxmox User (@pam or @pve)
+    const PROXMOX_PASSWORD = 'pass';								//Proxmox Password
     
-    const ISPCONFIG_HOST = 'https://zkm.orga-consult.eu:8080';			//ISPConfig 3 Server
-    const ISPCONFIG_USER = 'nodes';										//ISPConfig 3 User
-    const ISPCONFIG_PASSWORD = 'System225!';							//ISPConfig 3 Password
+    const ISPCONFIG_HOST = 'https://server:8080';			//ISPConfig 3 Server
+    const ISPCONFIG_USER = 'user';										//ISPConfig 3 User
+    const ISPCONFIG_PASSWORD = 'pass';							//ISPConfig 3 Password
     
-    const OVH_APPLICATION_KEY = 'f7c2f9481b5e90b8';						//OVH Application Key
-    const OVH_APPLICATION_SECRET = 'ad357ed850e16b75e08e9ae4f8173429';	//OVH Application Secret
-    const OVH_CONSUMER_KEY = '9953ba3f346ff21d8d4559707ebe2841';		//OVH Costumer key
+    const OVH_APPLICATION_KEY = '';						//OVH Application Key
+    const OVH_APPLICATION_SECRET = '';	//OVH Application Secret
+    const OVH_CONSUMER_KEY = '';		//OVH Costumer key
     const OVH_ENDPOINT = 'ovh-eu';										//OVH API Server (ovh-eu, ovh-us, ovh-ca)
 }
 
