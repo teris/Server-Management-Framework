@@ -12,15 +12,15 @@ class Config {
     const DB_NAME = 'server_management';								//MySQL DB Name
     const DB_USER = 'root';												//MySQL User
     const DB_PASS = 'pass';										//MySQL Password
-    
+
     const PROXMOX_HOST = 'https://server:8006';			//ProxmoxServer
     const PROXMOX_USER = 'user@pve';									//Proxmox User (@pam or @pve)
     const PROXMOX_PASSWORD = 'pass';								//Proxmox Password
-    
+
     const ISPCONFIG_HOST = 'https://server:8080';			//ISPConfig 3 Server
     const ISPCONFIG_USER = 'user';										//ISPConfig 3 User
     const ISPCONFIG_PASSWORD = 'pass';							//ISPConfig 3 Password
-    
+
     const OVH_APPLICATION_KEY = '';						//OVH Application Key
     const OVH_APPLICATION_SECRET = '';	//OVH Application Secret
     const OVH_CONSUMER_KEY = '';		//OVH Costumer key
@@ -33,7 +33,7 @@ class Config {
 class Database {
     private static $instance = null;
     private $connection;
-    
+
     private function __construct() {
         try {
             $this->connection = new PDO(
@@ -46,23 +46,23 @@ class Database {
             throw new Exception("Datenbankverbindung fehlgeschlagen: " . $e->getMessage());
         }
     }
-    
+
     public static function getInstance() {
         if (self::$instance === null) {
             self::$instance = new self();
         }
         return self::$instance;
     }
-    
+
     public function getConnection() {
         return $this->connection;
     }
-    
+
     public function logAction($action, $details, $status) {
         $stmt = $this->connection->prepare("INSERT INTO activity_log (action, details, status, created_at) VALUES (?, ?, ?, NOW())");
         return $stmt->execute([$action, $details, $status]);
     }
-    
+
     public function getActivityLog($limit = 50) {
         $stmt = $this->connection->prepare("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT ?");
         $stmt->execute([$limit]);
@@ -88,7 +88,7 @@ class VM {
     public $cpu_usage;
     public $memory_usage;
     public $created_at;
-    
+
     public function __construct($data = []) {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
@@ -96,7 +96,39 @@ class VM {
             }
         }
     }
-    
+
+    public function toArray() {
+        return get_object_vars($this);
+    }
+}
+
+class FailoverIP {
+    public $ip;
+    public $block;
+    public $routedTo;
+    public $type;
+    public $geo;
+    public $canBeTerminated;
+    public $description;
+    public $country;
+
+    public function __construct($data = []) {
+        $this->ip = $data['ip'] ?? null;
+        $this->block = $data['block'] ?? null;
+        $this->routedTo = $data['routedTo'] ?? null;
+        $this->type = $data['type'] ?? null;
+        $this->geo = $data['geo'] ?? null;
+        $this->canBeTerminated = $data['canBeTerminated'] ?? false;
+        $this->description = $data['description'] ?? null;
+        $this->country = $data['country'] ?? null;
+
+        foreach ($data as $key => $value) {
+            if (!property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
+    }
+
     public function toArray() {
         return get_object_vars($this);
     }
@@ -114,7 +146,7 @@ class Website {
     public $document_root;
     public $ssl_enabled;
     public $created_at;
-    
+
     public function __construct($data = []) {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
@@ -122,7 +154,7 @@ class Website {
             }
         }
     }
-    
+
     public function toArray() {
         return get_object_vars($this);
     }
@@ -138,7 +170,7 @@ class Database_Entry {
     public $charset;
     public $remote_access;
     public $created_at;
-    
+
     public function __construct($data = []) {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
@@ -146,7 +178,7 @@ class Database_Entry {
             }
         }
     }
-    
+
     public function toArray() {
         return get_object_vars($this);
     }
@@ -163,7 +195,7 @@ class EmailAccount {
     public $autoresponder;
     public $forward_to;
     public $created_at;
-    
+
     public function __construct($data = []) {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
@@ -171,7 +203,7 @@ class EmailAccount {
             }
         }
     }
-    
+
     public function toArray() {
         return get_object_vars($this);
     }
@@ -186,7 +218,7 @@ class Domain {
     public $dnssec;
     public $registrar;
     public $created_at;
-    
+
     public function __construct($data = []) {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
@@ -194,7 +226,7 @@ class Domain {
             }
         }
     }
-    
+
     public function toArray() {
         return get_object_vars($this);
     }
@@ -211,7 +243,7 @@ class VPS {
     public $cpu;
     public $model;
     public $zone;
-    
+
     public function __construct($data = []) {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
@@ -219,7 +251,7 @@ class VPS {
             }
         }
     }
-    
+
     public function toArray() {
         return get_object_vars($this);
     }
@@ -229,7 +261,7 @@ class VPS {
 // DATA MAPPER CLASS
 // =============================================================================
 class DataMapper {
-    
+
     public static function mapToVM($data) {
         return new VM([
             'vmid' => $data['vmid'] ?? null,
@@ -244,7 +276,7 @@ class DataMapper {
             'memory_usage' => $data['mem'] ?? null
         ]);
     }
-    
+
     public static function mapToWebsite($data) {
         return new Website([
             'domain_id' => $data['domain_id'] ?? null,
@@ -259,7 +291,7 @@ class DataMapper {
             'ssl_enabled' => $data['ssl'] ?? 'n'
         ]);
     }
-    
+
     public static function mapToDatabase($data) {
         return new Database_Entry([
             'database_id' => $data['database_id'] ?? null,
@@ -272,7 +304,7 @@ class DataMapper {
             'remote_access' => $data['remote_access'] ?? 'n'
         ]);
     }
-    
+
     public static function mapToEmailAccount($data) {
         return new EmailAccount([
             'mailuser_id' => $data['mailuser_id'] ?? null,
@@ -286,7 +318,7 @@ class DataMapper {
             'forward_to' => $data['cc'] ?? null
         ]);
     }
-    
+
     public static function mapToDomain($data) {
         return new Domain([
             'domain' => $data['domain'] ?? null,
@@ -298,7 +330,7 @@ class DataMapper {
             'registrar' => 'OVH'
         ]);
     }
-    
+
     public static function mapToVPS($data) {
         return new VPS([
             'name' => $data['name'] ?? null,
@@ -313,6 +345,12 @@ class DataMapper {
             'zone' => $data['zone'] ?? null
         ]);
     }
+
+    public static function mapToFailoverIP($data) {
+        // The $data here is expected to be the associative array
+        // returned by OVHGet::getFailoverIPDetails()
+        return new FailoverIP($data);
+    }
 }
 
 // =============================================================================
@@ -322,10 +360,10 @@ abstract class BaseAPI {
     protected $host;
     protected $user;
     protected $password;
-    
+
     abstract protected function authenticate();
     abstract protected function makeRequest($method, $url, $data = null);
-    
+
     protected function logRequest($endpoint, $method, $success) {
         $db = Database::getInstance();
         $db->logAction(
@@ -342,44 +380,44 @@ abstract class BaseAPI {
 class ProxmoxGet extends BaseAPI {
     private $ticket;
     private $csrf_token;
-    
+
     public function __construct() {
         $this->host = Config::PROXMOX_HOST;
         $this->user = Config::PROXMOX_USER;
         $this->password = Config::PROXMOX_PASSWORD;
         $this->authenticate();
     }
-    
+
     protected function authenticate() {
         $url = $this->host . "/api2/json/access/ticket";
         $data = [
             'username' => $this->user,
             'password' => $this->password
         ];
-        
+
         $response = $this->makeRequest('POST', $url, $data);
         if ($response && isset($response['data'])) {
             $this->ticket = $response['data']['ticket'];
             $this->csrf_token = $response['data']['CSRFPreventionToken'];
         }
     }
-    
+
     public function getNodes() {
         $url = $this->host . "/api2/json/nodes";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest('/nodes', 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : [];
     }
-    
+
     public function getVMs($node = null) {
         $vms = [];
         $nodes = $node ? [$node] : $this->getNodes();
-        
+
         foreach ($nodes as $nodeData) {
             $nodeName = is_array($nodeData) ? $nodeData['node'] : $nodeData;
             $url = $this->host . "/api2/json/nodes/$nodeName/qemu";
             $response = $this->makeRequest('GET', $url);
-            
+
             if ($response && isset($response['data'])) {
                 foreach ($response['data'] as $vmData) {
                     $vmData['node'] = $nodeName;
@@ -387,59 +425,59 @@ class ProxmoxGet extends BaseAPI {
                 }
             }
         }
-        
+
         $this->logRequest('/nodes/*/qemu', 'GET', !empty($vms));
         return $vms;
     }
-    
+
     public function getVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/config";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/nodes/$node/qemu/$vmid/config", 'GET', $response !== false);
-        
+
         if ($response && isset($response['data'])) {
             $vmData = $response['data'];
             $vmData['node'] = $node;
             $vmData['vmid'] = $vmid;
             return DataMapper::mapToVM($vmData);
         }
-        
+
         return null;
     }
-    
+
     public function getVMStatus($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/current";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/nodes/$node/qemu/$vmid/status/current", 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : null;
     }
-    
+
     public function getVMConfig($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/config";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/nodes/$node/qemu/$vmid/config", 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : null;
     }
-    
+
     public function getStorages($node = null) {
-        $url = $node ? 
-            $this->host . "/api2/json/nodes/$node/storage" : 
+        $url = $node ?
+            $this->host . "/api2/json/nodes/$node/storage" :
             $this->host . "/api2/json/storage";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest('/storage', 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : [];
     }
-    
+
     public function getNetworks($node) {
         $url = $this->host . "/api2/json/nodes/$node/network";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/nodes/$node/network", 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : [];
     }
-    
+
     protected function makeRequest($method, $url, $data = null) {
         $ch = curl_init();
-        
+
         $headers = [];
         if ($this->ticket) {
             $headers[] = "Cookie: PVEAuthCookie=" . $this->ticket;
@@ -447,7 +485,7 @@ class ProxmoxGet extends BaseAPI {
         if ($this->csrf_token) {
             $headers[] = "CSRFPreventionToken: " . $this->csrf_token;
         }
-        
+
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
@@ -456,19 +494,19 @@ class ProxmoxGet extends BaseAPI {
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_TIMEOUT => 30
         ]);
-        
+
         if ($data && in_array($method, ['POST', 'PUT', 'PATCH'])) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         }
-        
+
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        
+
         if ($httpCode >= 200 && $httpCode < 300) {
             return json_decode($response, true);
         }
-        
+
         return false;
     }
 }
@@ -477,83 +515,83 @@ class ProxmoxGet extends BaseAPI {
 // PROXMOX POST CLASS
 // =============================================================================
 class ProxmoxPost extends ProxmoxGet {
-    
+
     public function createVM($vmData) {
         $url = $this->host . "/api2/json/nodes/" . $vmData['node'] . "/qemu";
-        
+
         $data = [
             'vmid' => $vmData['vmid'],
             'name' => $vmData['name'],
             'memory' => $vmData['memory'],
             'cores' => $vmData['cores'],
-            'net0' => 'virtio,bridge=' . $vmData['bridge'] . 
+            'net0' => 'virtio,bridge=' . $vmData['bridge'] .
                      ($vmData['mac'] ? ',macaddr=' . $vmData['mac'] : ''),
             'scsi0' => $vmData['storage'] . ':' . $vmData['disk'],
             'ostype' => 'l26',
             'ide2' => $vmData['iso']
         ];
-        
+
         $response = $this->makeRequest('POST', $url, $data);
         $this->logRequest("/nodes/{$vmData['node']}/qemu", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function editVM($node, $vmid, $vmData) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/config";
         $response = $this->makeRequest('PUT', $url, $vmData);
         $this->logRequest("/nodes/$node/qemu/$vmid/config", 'PUT', $response !== false);
         return $response;
     }
-    
+
     public function deleteVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid";
         $response = $this->makeRequest('DELETE', $url);
         $this->logRequest("/nodes/$node/qemu/$vmid", 'DELETE', $response !== false);
         return $response;
     }
-    
+
     public function startVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/start";
         $response = $this->makeRequest('POST', $url);
         $this->logRequest("/nodes/$node/qemu/$vmid/status/start", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function stopVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/stop";
         $response = $this->makeRequest('POST', $url);
         $this->logRequest("/nodes/$node/qemu/$vmid/status/stop", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function resetVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/reset";
         $response = $this->makeRequest('POST', $url);
         $this->logRequest("/nodes/$node/qemu/$vmid/status/reset", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function suspendVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/suspend";
         $response = $this->makeRequest('POST', $url);
         $this->logRequest("/nodes/$node/qemu/$vmid/status/suspend", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function resumeVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/resume";
         $response = $this->makeRequest('POST', $url);
         $this->logRequest("/nodes/$node/qemu/$vmid/status/resume", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function cloneVM($node, $vmid, $newVmid, $name = null) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/clone";
         $data = [
             'newid' => $newVmid,
             'name' => $name ?: "clone-of-$vmid"
         ];
-        
+
         $response = $this->makeRequest('POST', $url, $data);
         $this->logRequest("/nodes/$node/qemu/$vmid/clone", 'POST', $response !== false);
         return $response;
@@ -566,14 +604,14 @@ class ProxmoxPost extends ProxmoxGet {
 class ISPConfigGet extends BaseAPI {
     private $session_id;
     private $client;
-    
+
     public function __construct() {
         $this->host = Config::ISPCONFIG_HOST;
         $this->user = Config::ISPCONFIG_USER;
         $this->password = Config::ISPCONFIG_PASSWORD;
         $this->authenticate();
     }
-    
+
     protected function authenticate() {
         try {
             $this->client = new SoapClient(null, [
@@ -582,116 +620,116 @@ class ISPConfigGet extends BaseAPI {
                 'trace' => 1,
                 'exceptions' => 1
             ]);
-            
+
             $this->session_id = $this->client->login($this->user, $this->password);
             $this->logRequest('/remote/login', 'POST', $this->session_id !== false);
         } catch (Exception $e) {
             error_log('ISPConfig Login fehlgeschlagen: ' . $e->getMessage());
         }
     }
-    
+
     public function getWebsites($filter = []) {
         try {
             $websites = $this->client->sites_web_domain_get($this->session_id, $filter);
             $this->logRequest('/sites/web_domain/get', 'GET', $websites !== false);
-            
+
             if ($websites) {
                 return array_map(function($site) {
                     return DataMapper::mapToWebsite($site);
                 }, $websites);
             }
-            
+
             return [];
         } catch (Exception $e) {
             error_log('Error getting websites: ' . $e->getMessage());
             return [];
         }
     }
-    
+
     public function getWebsite($domainId) {
         try {
             $website = $this->client->sites_web_domain_get($this->session_id, ['domain_id' => $domainId]);
             $this->logRequest("/sites/web_domain/$domainId", 'GET', $website !== false);
-            
+
             if ($website && isset($website[0])) {
                 return DataMapper::mapToWebsite($website[0]);
             }
-            
+
             return null;
         } catch (Exception $e) {
             error_log('Error getting website: ' . $e->getMessage());
             return null;
         }
     }
-    
+
     public function getDatabases($filter = []) {
         try {
             $databases = $this->client->sites_database_get($this->session_id, $filter);
             $this->logRequest('/sites/database/get', 'GET', $databases !== false);
-            
+
             if ($databases) {
                 return array_map(function($db) {
                     return DataMapper::mapToDatabase($db);
                 }, $databases);
             }
-            
+
             return [];
         } catch (Exception $e) {
             error_log('Error getting databases: ' . $e->getMessage());
             return [];
         }
     }
-    
+
     public function getDatabase($databaseId) {
         try {
             $database = $this->client->sites_database_get($this->session_id, ['database_id' => $databaseId]);
             $this->logRequest("/sites/database/$databaseId", 'GET', $database !== false);
-            
+
             if ($database && isset($database[0])) {
                 return DataMapper::mapToDatabase($database[0]);
             }
-            
+
             return null;
         } catch (Exception $e) {
             error_log('Error getting database: ' . $e->getMessage());
             return null;
         }
     }
-    
+
     public function getEmailAccounts($filter = []) {
         try {
             $emails = $this->client->mail_user_get($this->session_id, $filter);
             $this->logRequest('/mail/user/get', 'GET', $emails !== false);
-            
+
             if ($emails) {
                 return array_map(function($email) {
                     return DataMapper::mapToEmailAccount($email);
                 }, $emails);
             }
-            
+
             return [];
         } catch (Exception $e) {
             error_log('Error getting emails: ' . $e->getMessage());
             return [];
         }
     }
-    
+
     public function getEmailAccount($mailuserId) {
         try {
             $email = $this->client->mail_user_get($this->session_id, ['mailuser_id' => $mailuserId]);
             $this->logRequest("/mail/user/$mailuserId", 'GET', $email !== false);
-            
+
             if ($email && isset($email[0])) {
                 return DataMapper::mapToEmailAccount($email[0]);
             }
-            
+
             return null;
         } catch (Exception $e) {
             error_log('Error getting email: ' . $e->getMessage());
             return null;
         }
     }
-    
+
     public function getClients($filter = []) {
         try {
             $clients = $this->client->client_get($this->session_id, $filter);
@@ -702,7 +740,7 @@ class ISPConfigGet extends BaseAPI {
             return [];
         }
     }
-    
+
     public function getServerConfig() {
         try {
             $config = $this->client->server_get($this->session_id, 1);
@@ -713,7 +751,7 @@ class ISPConfigGet extends BaseAPI {
             return [];
         }
     }
-    
+
     protected function makeRequest($method, $url, $data = null) {
         // ISPConfig uses SOAP, so this is handled in the specific methods above
         return true;
@@ -724,7 +762,7 @@ class ISPConfigGet extends BaseAPI {
 // ISPCONFIG POST CLASS
 // =============================================================================
 class ISPConfigPost extends ISPConfigGet {
-    
+
     public function createWebsite($websiteData) {
         try {
             $params = [
@@ -749,7 +787,7 @@ class ISPConfigPost extends ISPConfigGet {
                 'errordocs' => 1,
                 'is_subdomainwww' => 1
             ];
-            
+
             $result = $this->client->sites_web_domain_add($this->session_id, 1, $params);
             $this->logRequest('/sites/web_domain/add', 'POST', $result !== false);
             return $result;
@@ -758,7 +796,7 @@ class ISPConfigPost extends ISPConfigGet {
             return false;
         }
     }
-    
+
     public function editWebsite($domainId, $websiteData) {
         try {
             $result = $this->client->sites_web_domain_update($this->session_id, 1, $domainId, $websiteData);
@@ -769,7 +807,7 @@ class ISPConfigPost extends ISPConfigGet {
             return false;
         }
     }
-    
+
     public function deleteWebsite($domainId) {
         try {
             $result = $this->client->sites_web_domain_delete($this->session_id, $domainId);
@@ -780,7 +818,7 @@ class ISPConfigPost extends ISPConfigGet {
             return false;
         }
     }
-    
+
     public function createDatabase($dbData) {
         try {
             $params = [
@@ -794,7 +832,7 @@ class ISPConfigPost extends ISPConfigGet {
                 'remote_ips' => '',
                 'active' => 'y'
             ];
-            
+
             $result = $this->client->sites_database_add($this->session_id, 1, $params);
             $this->logRequest('/sites/database/add', 'POST', $result !== false);
             return $result;
@@ -803,7 +841,7 @@ class ISPConfigPost extends ISPConfigGet {
             return false;
         }
     }
-    
+
     public function editDatabase($databaseId, $dbData) {
         try {
             $result = $this->client->sites_database_update($this->session_id, 1, $databaseId, $dbData);
@@ -814,7 +852,7 @@ class ISPConfigPost extends ISPConfigGet {
             return false;
         }
     }
-    
+
     public function deleteDatabase($databaseId) {
         try {
             $result = $this->client->sites_database_delete($this->session_id, $databaseId);
@@ -825,7 +863,7 @@ class ISPConfigPost extends ISPConfigGet {
             return false;
         }
     }
-    
+
     public function createEmailAccount($emailData) {
         try {
             $params = [
@@ -848,7 +886,7 @@ class ISPConfigPost extends ISPConfigGet {
                 'disabledeliver' => 'n',
                 'disablesmtp' => 'n'
             ];
-            
+
             $result = $this->client->mail_user_add($this->session_id, 1, $params);
             $this->logRequest('/mail/user/add', 'POST', $result !== false);
             return $result;
@@ -857,7 +895,7 @@ class ISPConfigPost extends ISPConfigGet {
             return false;
         }
     }
-    
+
     public function editEmailAccount($mailuserId, $emailData) {
         try {
             $result = $this->client->mail_user_update($this->session_id, 1, $mailuserId, $emailData);
@@ -868,7 +906,7 @@ class ISPConfigPost extends ISPConfigGet {
             return false;
         }
     }
-    
+
     public function deleteEmailAccount($mailuserId) {
         try {
             $result = $this->client->mail_user_delete($this->session_id, $mailuserId);
@@ -889,23 +927,23 @@ class OVHGet extends BaseAPI {
     private $application_secret;
     private $consumer_key;
     private $endpoint;
-    
+
     public function __construct() {
         $this->application_key = Config::OVH_APPLICATION_KEY;
         $this->application_secret = Config::OVH_APPLICATION_SECRET;
         $this->consumer_key = Config::OVH_CONSUMER_KEY;
         $this->endpoint = Config::OVH_ENDPOINT;
     }
-    
+
     protected function authenticate() {
         // OVH authentication is handled in makeRequest with signatures
         return true;
     }
-    
+
     public function getDomains() {
         $domains = $this->makeRequest('GET', 'https://eu.api.ovh.com/1.0/domain');
         $domainDetails = [];
-        
+
         if ($domains && is_array($domains)) {
             foreach ($domains as $domain) {
                 $details = $this->getDomain($domain);
@@ -914,41 +952,41 @@ class OVHGet extends BaseAPI {
                 }
             }
         }
-        
+
         $this->logRequest('/domain', 'GET', !empty($domainDetails));
         return $domainDetails;
     }
-    
+
     public function getDomain($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/$domain";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/domain/$domain", 'GET', $response !== false);
-        
+
         if ($response) {
             return DataMapper::mapToDomain($response);
         }
-        
+
         return null;
     }
-    
+
     public function getDomainZone($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/domain/zone/$domain", 'GET', $response !== false);
         return $response;
     }
-    
+
     public function getDomainZoneRecords($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/record";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/domain/zone/$domain/record", 'GET', $response !== false);
         return $response ?: [];
     }
-    
+
     public function getVPSList() {
         $vpsList = $this->makeRequest('GET', 'https://eu.api.ovh.com/1.0/vps');
         $vpsDetails = [];
-        
+
         if ($vpsList && is_array($vpsList)) {
             foreach ($vpsList as $vps) {
                 $details = $this->getVPS($vps);
@@ -957,21 +995,21 @@ class OVHGet extends BaseAPI {
                 }
             }
         }
-        
+
         $this->logRequest('/vps', 'GET', !empty($vpsDetails));
         return $vpsDetails;
     }
-    
+
     public function getVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName";
         $details = $this->makeRequest('GET', $url);
-        
+
         if ($details) {
             // IP-Adressen abrufen
             $ipsUrl = "https://eu.api.ovh.com/1.0/vps/$vpsName/ips";
             $ips = $this->makeRequest('GET', $ipsUrl);
             $details['ips'] = $ips ?: [];
-            
+
             // MAC-Adresse für jede IP abrufen
             $macAddresses = [];
             if ($ips) {
@@ -983,46 +1021,62 @@ class OVHGet extends BaseAPI {
                 }
             }
             $details['mac_addresses'] = $macAddresses;
-            
+
             $this->logRequest("/vps/$vpsName", 'GET', true);
             return DataMapper::mapToVPS($details);
         }
-        
+
         $this->logRequest("/vps/$vpsName", 'GET', false);
         return null;
     }
-    
+
     public function getVPSIPs($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/ips";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/vps/$vpsName/ips", 'GET', $response !== false);
         return $response ?: [];
     }
-    
+
     public function getVPSIPDetails($vpsName, $ip) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/ips/$ip";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/vps/$vpsName/ips/$ip", 'GET', $response !== false);
         return $response;
     }
-    
+
     public function getDedicatedServers() {
         $servers = $this->makeRequest('GET', 'https://eu.api.ovh.com/1.0/dedicated/server');
         $this->logRequest('/dedicated/server', 'GET', $servers !== false);
         return $servers ?: [];
     }
-    
+
     public function getDedicatedServer($serverName) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serverName";
         $response = $this->makeRequest('GET', $url);
         $this->logRequest("/dedicated/server/$serverName", 'GET', $response !== false);
         return $response;
     }
-    
+
+    public function getFailoverIPs() {
+        $url = "https://eu.api.ovh.com/1.0/ip";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/ip", 'GET', $response !== false);
+        return $response ?: [];
+    }
+
+    public function getFailoverIPDetails($ip) {
+        // URL-encode the IP address to handle special characters like '/'
+        $encodedIp = urlencode($ip);
+        $url = "https://eu.api.ovh.com/1.0/ip/{$encodedIp}";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/ip/{$ip}", 'GET', $response !== false);
+        return $response ?: null;
+    }
+
     protected function makeRequest($method, $url, $data = null) {
         $timestamp = time();
         $body = $data ? json_encode($data) : '';
-        
+
         $signature = '$1$' . sha1(
             $this->application_secret . '+' .
             $this->consumer_key . '+' .
@@ -1031,7 +1085,7 @@ class OVHGet extends BaseAPI {
             $body . '+' .
             $timestamp
         );
-        
+
         $headers = [
             'X-Ovh-Application: ' . $this->application_key,
             'X-Ovh-Consumer: ' . $this->consumer_key,
@@ -1039,7 +1093,7 @@ class OVHGet extends BaseAPI {
             'X-Ovh-Timestamp: ' . $timestamp,
             'Content-Type: application/json'
         ];
-        
+
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
@@ -1048,19 +1102,19 @@ class OVHGet extends BaseAPI {
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_TIMEOUT => 30
         ]);
-        
+
         if ($data && in_array($method, ['POST', 'PUT', 'PATCH'])) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
         }
-        
+
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        
+
         if ($httpCode >= 200 && $httpCode < 300) {
             return json_decode($response, true);
         }
-        
+
         return false;
     }
 }
@@ -1069,75 +1123,75 @@ class OVHGet extends BaseAPI {
 // OVH POST CLASS
 // =============================================================================
 class OVHPost extends OVHGet {
-    
+
     public function orderDomain($domain, $duration = 1) {
         $url = "https://eu.api.ovh.com/1.0/order/domain/zone/$domain";
-        
+
         $data = [
             'duration' => "P{$duration}Y"
         ];
-        
+
         $response = $this->makeRequest('POST', $url, $data);
         $this->logRequest("/order/domain/zone/$domain", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function editDomain($domain, $domainData) {
         $url = "https://eu.api.ovh.com/1.0/domain/$domain";
         $response = $this->makeRequest('PUT', $url, $domainData);
         $this->logRequest("/domain/$domain", 'PUT', $response !== false);
         return $response;
     }
-    
+
     public function deleteDomain($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/$domain";
         $response = $this->makeRequest('DELETE', $url);
         $this->logRequest("/domain/$domain", 'DELETE', $response !== false);
         return $response;
     }
-    
+
     public function createDNSRecord($domain, $recordData) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/record";
         $response = $this->makeRequest('POST', $url, $recordData);
         $this->logRequest("/domain/zone/$domain/record", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function editDNSRecord($domain, $recordId, $recordData) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/record/$recordId";
         $response = $this->makeRequest('PUT', $url, $recordData);
         $this->logRequest("/domain/zone/$domain/record/$recordId", 'PUT', $response !== false);
         return $response;
     }
-    
+
     public function deleteDNSRecord($domain, $recordId) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/record/$recordId";
         $response = $this->makeRequest('DELETE', $url);
         $this->logRequest("/domain/zone/$domain/record/$recordId", 'DELETE', $response !== false);
         return $response;
     }
-    
+
     public function refreshDNSZone($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/refresh";
         $response = $this->makeRequest('POST', $url);
         $this->logRequest("/domain/zone/$domain/refresh", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function rebootVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/reboot";
         $response = $this->makeRequest('POST', $url);
         $this->logRequest("/vps/$vpsName/reboot", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function stopVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/stop";
         $response = $this->makeRequest('POST', $url);
         $this->logRequest("/vps/$vpsName/stop", 'POST', $response !== false);
         return $response;
     }
-    
+
     public function startVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/start";
         $response = $this->makeRequest('POST', $url);
@@ -1156,7 +1210,7 @@ class ServiceManager {
     private $ispconfigPost;
     private $ovhGet;
     private $ovhPost;
-    
+
     public function __construct() {
         $this->proxmoxGet = new ProxmoxGet();
         $this->proxmoxPost = new ProxmoxPost();
@@ -1165,16 +1219,16 @@ class ServiceManager {
         $this->ovhGet = new OVHGet();
         $this->ovhPost = new OVHPost();
     }
-    
+
     // Proxmox Methods
     public function getProxmoxVMs() {
         return $this->proxmoxGet->getVMs();
     }
-    
+
     public function createProxmoxVM($vmData) {
         return $this->proxmoxPost->createVM($vmData);
     }
-    
+
     public function controlProxmoxVM($node, $vmid, $action) {
         switch ($action) {
             case 'start':
@@ -1191,61 +1245,81 @@ class ServiceManager {
                 return false;
         }
     }
-    
+
     public function deleteProxmoxVM($node, $vmid) {
         return $this->proxmoxPost->deleteVM($node, $vmid);
     }
-    
+
     // ISPConfig Methods
     public function getISPConfigWebsites() {
         return $this->ispconfigGet->getWebsites(['active' => 'y']);
     }
-    
+
     public function createISPConfigWebsite($websiteData) {
         return $this->ispconfigPost->createWebsite($websiteData);
     }
-    
+
     public function deleteISPConfigWebsite($domainId) {
         return $this->ispconfigPost->deleteWebsite($domainId);
     }
-    
+
     public function getISPConfigDatabases() {
         return $this->ispconfigGet->getDatabases(['active' => 'y']);
     }
-    
+
     public function createISPConfigDatabase($dbData) {
         return $this->ispconfigPost->createDatabase($dbData);
     }
-    
+
     public function deleteISPConfigDatabase($databaseId) {
         return $this->ispconfigPost->deleteDatabase($databaseId);
     }
-    
+
     public function getISPConfigEmails() {
         return $this->ispconfigGet->getEmailAccounts(['active' => 'y']);
     }
-    
+
     public function createISPConfigEmail($emailData) {
         return $this->ispconfigPost->createEmailAccount($emailData);
     }
-    
+
     public function deleteISPConfigEmail($mailuserId) {
         return $this->ispconfigPost->deleteEmailAccount($mailuserId);
     }
-    
+
     // OVH Methods
     public function getOVHDomains() {
         return $this->ovhGet->getDomains();
     }
-    
+
     public function orderOVHDomain($domain, $duration) {
         return $this->ovhPost->orderDomain($domain, $duration);
     }
-    
+
     public function getOVHVPS() {
         return $this->ovhGet->getVPSList();
     }
-    
+
+    public function getOVHFailoverIPs() {
+        $failoverIPs = $this->ovhGet->getFailoverIPs();
+        $detailedIPs = [];
+
+        if (!empty($failoverIPs)) {
+            foreach ($failoverIPs as $ip) {
+                // The getFailoverIPs method returns a list of IP strings.
+                // Each string can be a single IP or a block (e.g., x.x.x.x/32).
+                // We pass this string directly to getFailoverIPDetails.
+                $details = $this->ovhGet->getFailoverIPDetails($ip);
+                if ($details) {
+                    // Assuming $details is already in a suitable format (e.g., an associative array or an object)
+                    // Map the raw details to a FailoverIP object.
+                    $detailedIPs[] = DataMapper::mapToFailoverIP($details);
+                }
+            }
+        }
+        return $detailedIPs;
+    }
+
     public function getOVHVPSMacAddress($vpsName) {
         $vps = $this->ovhGet->getVPS($vpsName);
         if ($vps && !empty($vps->ips) && !empty($vps->mac_addresses)) {
