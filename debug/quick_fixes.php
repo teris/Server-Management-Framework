@@ -57,7 +57,7 @@ echo "</div>";
 
 // 3. Dateiberechtigungen prüfen
 echo "<div class='fix'><h3>3. Dateiberechtigungen prüfen</h3>";
-$files = ['framework.php', 'auth_handler.php', 'index.php', 'login.php'];
+$files = ['../framework.php', '../auth_handler.php', '../index.php', '../login.php'];
 foreach ($files as $file) {
     if (file_exists($file)) {
         $perms = substr(sprintf('%o', fileperms($file)), -4);
@@ -83,7 +83,7 @@ echo "</div>";
 
 // 5. Include-Path testen
 echo "<div class='fix'><h3>5. Include-Path testen</h3>";
-$includes = ['framework.php', 'auth_handler.php'];
+$includes = ['../framework.php', '../auth_handler.php'];
 foreach ($includes as $include) {
     if (file_exists($include)) {
         echo "✅ $include: Gefunden<br>";

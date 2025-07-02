@@ -48,7 +48,7 @@ try {
         throw new Exception('framework.php nicht gefunden');
     }
     
-    require_once 'framework.php';
+    require_once '../framework.php';
     $response['debug']['framework_loaded'] = true;
     
     // Auth Handler laden
