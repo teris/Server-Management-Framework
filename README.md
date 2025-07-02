@@ -172,10 +172,12 @@ $serviceManager->orderOVHDomain('example.com', 1);
 
 ## 📚 Dokumentation
 
-- **[API Dokumentation](docs/API.md)** - Vollständige API-Referenz
-- **[Installation Guide](docs/INSTALL.md)** - Detaillierte Installation
-- **[Beispiele](docs/EXAMPLES.md)** - Code-Beispiele
-- **[FAQ](docs/FAQ.md)** - Häufige Fragen
+- **[API Dokumentation](docs/API.md)** - Vollständige API-Referenz (in workprogress)
+- **[Installation Guide](how to use.md)** - Detaillierte Installation
+
+![Screenshot](assets/main.png)
+![Screenshot](assets/endpoints.png)
+![Screenshot](assets/add-server.png)
 
 ## 🤝 Contributing
 
