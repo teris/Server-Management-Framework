@@ -20,3 +20,8 @@ try {
 } catch (Exception $e) {
     echo "Exception: " . $e->getMessage();
 }
+
+
+echo "<hr>";
+$serviceManager = new ServiceManager();
+print_r($serviceManager->getISPConfigEmails());
