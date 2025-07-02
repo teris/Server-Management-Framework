@@ -71,6 +71,7 @@ include("handler.php");
             <button class="tab" onclick="showTab('proxmox', this)">🖥️ Proxmox VM</button>
             <button class="tab" onclick="showTab('ispconfig', this)">🌐 ISPConfig Website</button>
             <button class="tab" onclick="showTab('ovh', this)">🔗 OVH Domain</button>
+            <button class="tab" onclick="showTab('ovh_failover', this)">📡 OVH Failover IP</button> <!-- Neuer Tab -->
             <button class="tab" onclick="showTab('network', this)">🔧 Netzwerk Config</button>
             <button class="tab" onclick="showTab('database', this)">🗄️ Datenbank</button>
             <button class="tab" onclick="showTab('email', this)">📧 E-Mail</button>
@@ -369,6 +370,33 @@ include("handler.php");
             
             <!-- Existing tabs (Proxmox, ISPConfig, etc.) -->
             <!-- [Previous form content remains the same] -->
+
+            <!-- OVH Failover IP Tab -->
+            <div id="ovh_failover" class="tab-content hidden">
+                <h2>📡 OVH Failover IPs verwalten</h2>
+                <div class="search-box">
+                    <input type="text" id="failover-ip-search" placeholder="Failover IPs durchsuchen..." onkeyup="filterTable('failover-ips-table', this.value)">
+                    <button class="btn" onclick="loadOVHFailoverIPs()">🔄 Aktualisieren</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="failover-ips-table">
+                        <thead>
+                            <tr>
+                                <th>IP Adresse</th>
+                                <th>Block</th>
+                                <th>Geroutet zu</th>
+                                <th>Typ</th>
+                                <th>Geo</th>
+                                <th>MAC-Adresse</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="failover-ips-tbody">
+                            <tr><td colspan="7" style="text-align: center;">Lade Failover IPs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             
             <!-- Proxmox VM Tab -->
             <div id="proxmox" class="tab-content hidden">

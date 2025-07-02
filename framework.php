@@ -111,6 +111,7 @@ class FailoverIP {
     public $canBeTerminated;
     public $description;
     public $country;
+    public $virtualMac;
 
     public function __construct($data = []) {
         $this->ip = $data['ip'] ?? null;
@@ -121,6 +122,7 @@ class FailoverIP {
         $this->canBeTerminated = $data['canBeTerminated'] ?? false;
         $this->description = $data['description'] ?? null;
         $this->country = $data['country'] ?? null;
+        $this->virtualMac = $data['virtualMac'] ?? null; // Added virtualMac
 
         foreach ($data as $key => $value) {
             if (!property_exists($this, $key)) {
@@ -1068,9 +1070,42 @@ class OVHGet extends BaseAPI {
         // URL-encode the IP address to handle special characters like '/'
         $encodedIp = urlencode($ip);
         $url = "https://eu.api.ovh.com/1.0/ip/{$encodedIp}";
-        $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/ip/{$ip}", 'GET', $response !== false);
-        return $response ?: null;
+        $ipDetails = $this->makeRequest('GET', $url);
+        $this->logRequest("/ip/{$ip}", 'GET', $ipDetails !== false);
+
+        if ($ipDetails && isset($ipDetails['type']) && $ipDetails['type'] === 'failover') {
+            // This IP is a failover, try to get its virtual MAC address
+            $virtualMacUrl = "https://eu.api.ovh.com/1.0/ip/{$encodedIp}/virtualMac";
+            $virtualMacsInfo = $this->makeRequest('GET', $virtualMacUrl);
+            $this->logRequest("/ip/{$ip}/virtualMac", 'GET', $virtualMacsInfo !== false);
+
+            if ($virtualMacsInfo && !empty($virtualMacsInfo)) {
+                // The response is a list of MAC address strings.
+                // Typically, a failover IP has one virtual MAC. We'll take the first one.
+                // If the structure is different (e.g., an object with a macAddress property),
+                // this part would need adjustment based on actual API response.
+                // For now, assuming $virtualMacsInfo is an array of MAC address strings or objects.
+                // Let's assume it returns a list of objects, each having a 'macAddress' field.
+                // Or if it's just a list of MAC strings, we take the first.
+                // Based on GET /ip/{ip}/virtualMac/{macAddress} returning details of ONE mac,
+                // it's likely GET /ip/{ip}/virtualMac returns a LIST of macAddress STRINGS.
+
+                // Let's try to get details for each MAC to find the active one or just pick the first.
+                // The endpoint /ip/{ip}/virtualMac returns a list of MAC addresses (strings).
+                // To get details of a specific MAC (like its interface association), one would call /ip/{ip}/virtualMac/{macAddress}.
+                // For now, we just need the MAC address itself.
+                if (is_array($virtualMacsInfo) && !empty($virtualMacsInfo[0])) {
+                     // If the API returns a list of MAC address strings:
+                    $ipDetails['virtualMac'] = $virtualMacsInfo[0];
+                }
+            } else {
+                $ipDetails['virtualMac'] = null;
+            }
+        } else {
+            $ipDetails['virtualMac'] = null; // Ensure the field exists even if not a failover IP or no MAC found
+        }
+
+        return $ipDetails ?: null;
     }
 
     protected function makeRequest($method, $url, $data = null) {

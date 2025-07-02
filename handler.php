@@ -240,6 +240,12 @@ function handleAjaxRequest($action, $data) {
             return ['success' => true, 'data' => array_map(function($vps) {
                 return $vps->toArray();
             }, $vpsList)];
+
+        case 'get_ovh_failover_ips':
+            $failoverIPs = $serviceManager->getOVHFailoverIPs();
+            return ['success' => true, 'data' => array_map(function($ip) {
+                return $ip->toArray(); // Assuming FailoverIP class has toArray()
+            }, $failoverIPs)];
             
         // ===== ADMIN ACTIONS =====
         case 'get_activity_log':

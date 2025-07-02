@@ -783,3 +783,50 @@
         window.addEventListener('beforeunload', function() {
             stopSessionHeartbeat();
         });
+
+        async function loadOVHFailoverIPs() {
+            try {
+                const result = await makeRequest('get_ovh_failover_ips');
+                if (result.success && result.data) {
+                    currentData.failoverips = result.data; // Store for potential filtering
+                    displayOVHFailoverIPs(result.data);
+                } else {
+                    showNotification('Fehler beim Laden der OVH Failover IPs: ' + (result.error || 'Keine Daten'), 'error');
+                    document.getElementById('failover-ips-tbody').innerHTML = '<tr><td colspan="7" style="text-align: center;">Fehler beim Laden oder keine IPs gefunden.</td></tr>';
+                }
+            } catch (error) {
+                showNotification('Netzwerkfehler beim Laden der OVH Failover IPs: ' + error.message, 'error');
+                document.getElementById('failover-ips-tbody').innerHTML = '<tr><td colspan="7" style="text-align: center;">Netzwerkfehler.</td></tr>';
+            }
+        }
+
+        function displayOVHFailoverIPs(failoverIPs) {
+            const tbody = document.getElementById('failover-ips-tbody');
+            if (!failoverIPs || failoverIPs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Keine OVH Failover IPs gefunden.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = failoverIPs.map(ip => `
+                <tr>
+                    <td>${ip.ip || 'N/A'}</td>
+                    <td>${ip.block || 'N/A'}</td>
+                    <td>${ip.routedTo ? (ip.routedTo.serviceName || ip.routedTo) : 'N/A'}</td>
+                    <td>${ip.type || 'N/A'}</td>
+                    <td>${ip.country || ip.geo || 'N/A'}</td>
+                    <td>${ip.virtualMac || 'Nicht vorhanden'}</td>
+                    <td class="action-buttons">
+                        ${!ip.virtualMac ? '<button class="btn btn-secondary btn-small" onclick="generateMacAddress(\'' + ip.ip + '\')">Macadresse Erzeugen</button>' : ''}
+                        <!-- Weitere Aktionen können hier hinzugefügt werden -->
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Placeholder for future functionality
+        function generateMacAddress(ipAddress) {
+            showNotification(`Funktion "Macadresse Erzeugen" für ${ipAddress} ist noch nicht implementiert.`, 'info');
+            // Hier käme später der API Aufruf POST /ip/{ip}/virtualMac
+            // Beispiel: await makeRequest('create_ovh_virtual_mac', { ip: ipAddress });
+            // Dann loadOVHFailoverIPs() neu laden.
+        }
