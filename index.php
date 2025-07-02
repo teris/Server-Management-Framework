@@ -31,6 +31,8 @@ include("handler.php");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Management Interface</title>
     <link rel="stylesheet" type="text/css" href="assets/main.css">
+	
+	
 </head>
 <body>
     <div class="container">
@@ -172,10 +174,153 @@ include("handler.php");
                     </div>
                 </div>
                 
-                <!-- Weitere Admin-Tabs... [Rest der ursprünglichen Tabs] -->
+                <!-- Websites Management -->
+                <div id="admin-websites" class="admin-tab-content hidden">
+                    <div class="search-box">
+                        <input type="text" id="website-search" placeholder="Websites durchsuchen..." onkeyup="filterTable('websites-table', this.value)">
+                        <button class="btn" onclick="loadWebsites()">🔄 Aktualisieren</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="websites-table">
+                            <thead>
+                                <tr>
+                                    <th>Domain</th>
+                                    <th>IP Adresse</th>
+                                    <th>System User</th>
+                                    <th>Status</th>
+                                    <th>Quota (MB)</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="websites-tbody">
+                                <tr><td colspan="6" style="text-align: center;">Lade Websites...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Databases Management -->
+                <div id="admin-databases" class="admin-tab-content hidden">
+                    <div class="search-box">
+                        <input type="text" id="database-search" placeholder="Datenbanken durchsuchen..." onkeyup="filterTable('databases-table', this.value)">
+                        <button class="btn" onclick="loadDatabases()">🔄 Aktualisieren</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="databases-table">
+                            <thead>
+                                <tr>
+                                    <th>Datenbank Name</th>
+                                    <th>User</th>
+                                    <th>Typ</th>
+                                    <th>Status</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="databases-tbody">
+                                <tr><td colspan="5" style="text-align: center;">Lade Datenbanken...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Emails Management -->
+                <div id="admin-emails" class="admin-tab-content hidden">
+                    <div class="search-box">
+                        <input type="text" id="email-search" placeholder="E-Mails durchsuchen..." onkeyup="filterTable('emails-table', this.value)">
+                        <button class="btn" onclick="loadEmails()">🔄 Aktualisieren</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="emails-table">
+                            <thead>
+                                <tr>
+                                    <th>E-Mail Adresse</th>
+                                    <th>Name</th>
+                                    <th>Quota (MB)</th>
+                                    <th>Status</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="emails-tbody">
+                                <tr><td colspan="5" style="text-align: center;">Lade E-Mail Accounts...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Domains Management -->
+                <div id="admin-domains" class="admin-tab-content hidden">
+                    <div class="search-box">
+                        <input type="text" id="domain-search" placeholder="Domains durchsuchen..." onkeyup="filterTable('domains-table', this.value)">
+                        <button class="btn" onclick="loadDomains()">🔄 Aktualisieren</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="domains-table">
+                            <thead>
+                                <tr>
+                                    <th>Domain</th>
+                                    <th>Ablaufdatum</th>
+                                    <th>Auto-Renewal</th>
+                                    <th>Status</th>
+                                    <th>Nameserver</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="domains-tbody">
+                                <tr><td colspan="6" style="text-align: center;">Lade Domains...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- VPS Management -->
+                <div id="admin-vps-list" class="admin-tab-content hidden">
+                    <div class="search-box">
+                        <input type="text" id="vps-search" placeholder="VPS durchsuchen..." onkeyup="filterTable('vps-table', this.value)">
+                        <button class="btn" onclick="loadVPSList()">🔄 Aktualisieren</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="vps-table">
+                            <thead>
+                                <tr>
+                                    <th>VPS Name</th>
+                                    <th>IP Adressen</th>
+                                    <th>MAC Adressen</th>
+                                    <th>Status</th>
+                                    <th>Cluster</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vps-tbody">
+                                <tr><td colspan="6" style="text-align: center;">Lade VPS...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Activity Log -->
+                <div id="admin-logs" class="admin-tab-content hidden">
+                    <div class="search-box">
+                        <input type="text" id="log-search" placeholder="Logs durchsuchen..." onkeyup="filterTable('logs-table', this.value)">
+                        <button class="btn" onclick="loadActivityLog()">🔄 Aktualisieren</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="logs-table">
+                            <thead>
+                                <tr>
+                                    <th>Zeitpunkt</th>
+                                    <th>Aktion</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-tbody">
+                                <tr><td colspan="4" style="text-align: center;">Lade Activity Log...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             
-            <!-- API Endpoints Tab -->
             <div id="endpoints" class="tab-content hidden">
                 <h2>🔌 API Endpoints Tester</h2>
                 <p>Testen Sie einzelne API-Endpunkte der verschiedenen Services</p>
@@ -192,6 +337,29 @@ include("handler.php");
                     </div>
                 </div>
                 
+                <!-- ISPConfig Endpoints -->
+                <div class="endpoint-section">
+                    <h3>🌐 ISPConfig API Endpoints</h3>
+                    <div class="endpoint-buttons">
+                        <button class="btn" onclick="testEndpoint('get_ispconfig_clients')">👥 Clients laden</button>
+                        <button class="btn" onclick="testEndpoint('get_ispconfig_server_config')">⚙️ Server Config</button>
+                    </div>
+                </div>
+                
+                <!-- OVH Endpoints -->
+                <div class="endpoint-section">
+                    <h3>🔗 OVH API Endpoints</h3>
+                    <div class="endpoint-buttons">
+                        <button class="btn" onclick="testEndpointWithParam('get_ovh_domain_zone', 'domain', 'example.com')">🌐 Domain Zone</button>
+                        <button class="btn" onclick="testEndpointWithParam('get_ovh_dns_records', 'domain', 'example.com')">📝 DNS Records</button>
+                        <button class="btn" onclick="testEndpointWithParam('get_vps_ips', 'vps_name', 'vpsXXXXX.ovh.net')">🌐 VPS IPs</button>
+                        <button class="btn" onclick="testEndpointWithParams('get_vps_ip_details', {vps_name: 'vpsXXXXX.ovh.net', ip: '1.2.3.4'})">📊 IP Details</button>
+                        <button class="btn" onclick="testEndpointWithParams('control_ovh_vps', {vps_name: 'vpsXXXXX.ovh.net', vps_action: 'reboot'})">🔄 VPS Control</button>
+                        <button class="btn" onclick="testEndpointWithParams('create_dns_record', {domain: 'example.com', type: 'A', subdomain: 'test', target: '1.2.3.4'})">➕ DNS Record</button>
+                        <button class="btn" onclick="testEndpointWithParam('refresh_dns_zone', 'domain', 'example.com')">🔄 DNS Refresh</button>
+                    </div>
+                </div>
+                
                 <!-- Result Display -->
                 <div id="endpoint-result" class="result-box hidden">
                     <h4>🔍 Endpoint Response:</h4>
@@ -199,7 +367,8 @@ include("handler.php");
                 </div>
             </div>
             
-            <!-- [Alle anderen Tab-Inhalte aus der ursprünglichen index.php übernehmen] -->
+            <!-- Existing tabs (Proxmox, ISPConfig, etc.) -->
+            <!-- [Previous form content remains the same] -->
             
             <!-- Proxmox VM Tab -->
             <div id="proxmox" class="tab-content hidden">
@@ -277,7 +446,195 @@ include("handler.php");
                 </form>
             </div>
             
-            <!-- [Weitere Tabs aus der ursprünglichen index.php...] -->
+            <!-- ISPConfig Website Tab -->
+            <div id="ispconfig" class="tab-content hidden">
+                <h2>🌐 Website in ISPConfig erstellen</h2>
+                <form onsubmit="createWebsite(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="website_domain">Domain</label>
+                            <input type="text" id="website_domain" name="domain" required placeholder="example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="website_ip">IP Adresse</label>
+                            <input type="text" id="website_ip" name="ip" required placeholder="192.168.1.100">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="website_user">System User</label>
+                            <input type="text" id="website_user" name="user" required placeholder="web1">
+                        </div>
+                        <div class="form-group">
+                            <label for="website_group">System Group</label>
+                            <input type="text" id="website_group" name="group" required placeholder="client1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="website_quota">HD Quota (MB)</label>
+                            <input type="number" id="website_quota" name="quota" value="1000" required min="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="website_traffic">Traffic Quota (MB)</label>
+                            <input type="number" id="website_traffic" name="traffic" value="10000" required min="1000">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <span class="loading hidden"></span>
+                        Website erstellen
+                    </button>
+                </form>
+            </div>
+            
+            <!-- OVH Domain Tab -->
+            <div id="ovh" class="tab-content hidden">
+                <h2>🔗 Domain bei OVH bestellen</h2>
+                <form onsubmit="orderDomain(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="domain_name">Domain Name</label>
+                            <input type="text" id="domain_name" name="domain" required placeholder="example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="domain_duration">Laufzeit (Jahre)</label>
+                            <select id="domain_duration" name="duration">
+                                <option value="1" selected>1 Jahr</option>
+                                <option value="2">2 Jahre</option>
+                                <option value="3">3 Jahre</option>
+                                <option value="5">5 Jahre</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <span class="loading hidden"></span>
+                        Domain bestellen
+                    </button>
+                </form>
+                
+                <hr>
+                
+                <h3>🔍 VPS Informationen abrufen</h3>
+                <form onsubmit="getVPSInfo(event)" style="margin-top: 20px;">
+                    <div class="form-group">
+                        <label for="vps_name">VPS Name</label>
+                        <input type="text" id="vps_name" name="vps_name" required placeholder="vpsXXXXX.ovh.net">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-secondary">
+                        <span class="loading hidden"></span>
+                        VPS Info abrufen
+                    </button>
+                </form>
+                
+                <div id="vps_result" class="result-box hidden">
+                    <h4>VPS Informationen:</h4>
+                    <p><strong>IP Adresse:</strong> <span id="vps_ip"></span></p>
+                    <p><strong>MAC Adresse:</strong> <span id="vps_mac"></span></p>
+                </div>
+            </div>
+            
+            <!-- Network Configuration Tab -->
+            <div id="network" class="tab-content hidden">
+                <h2>🔧 VM Netzwerk Konfiguration</h2>
+                <form onsubmit="updateVMNetwork(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="net_vmid">VM ID</label>
+                            <input type="number" id="net_vmid" name="vmid" required placeholder="100" min="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="net_mac">MAC Adresse</label>
+                            <input type="text" id="net_mac" name="mac" required placeholder="aa:bb:cc:dd:ee:ff" pattern="[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="net_ip">IP Adresse</label>
+                        <input type="text" id="net_ip" name="ip" required placeholder="192.168.1.100">
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <span class="loading hidden"></span>
+                        Netzwerk aktualisieren
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Database Tab -->
+            <div id="database" class="tab-content hidden">
+                <h2>🗄️ Datenbank anlegen</h2>
+                <form onsubmit="createDatabase(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="db_name">Datenbank Name</label>
+                            <input type="text" id="db_name" name="name" required placeholder="my_database">
+                        </div>
+                        <div class="form-group">
+                            <label for="db_user">Datenbank User</label>
+                            <input type="text" id="db_user" name="user" required placeholder="db_user">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="db_password">Passwort</label>
+                        <input type="password" id="db_password" name="password" required minlength="6">
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <span class="loading hidden"></span>
+                        Datenbank erstellen
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Email Tab -->
+            <div id="email" class="tab-content hidden">
+                <h2>📧 E-Mail Adresse anlegen</h2>
+                <form onsubmit="createEmail(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email_address">E-Mail Adresse</label>
+                            <input type="email" id="email_address" name="email" required placeholder="user@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="email_login">Login Name</label>
+                            <input type="text" id="email_login" name="login" required placeholder="user">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email_password">Passwort</label>
+                            <input type="password" id="email_password" name="password" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="email_quota">Quota (MB)</label>
+                            <input type="number" id="email_quota" name="quota" value="1000" required min="100">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email_name">Vollständiger Name</label>
+                            <input type="text" id="email_name" name="name" placeholder="Max Mustermann">
+                        </div>
+                        <div class="form-group">
+                            <label for="email_domain">Domain</label>
+                            <input type="text" id="email_domain" name="domain" required placeholder="example.com">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <span class="loading hidden"></span>
+                        E-Mail Adresse erstellen
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -296,7 +653,22 @@ include("handler.php");
         </div>
     </div>
 
-	<script data-cfasync="false" type="text/javascript" src="assets/session.js"></script>
+
+<script data-cfasync="false" type="text/javascript" src="assets/session.js"></script>
+    <script data-cfasync="false" type="text/javascript" src="assets/lazy-loading-main.js"></script>
+    
+    <script>
+        // Session-Timer beim Laden der Seite starten
+        document.addEventListener('DOMContentLoaded', function() {
+            initSessionTimer();
+            
+            // Lazy Loading: Keine Daten beim Start laden
+            // Die Daten werden erst geladen wenn auf die jeweiligen Tabs geklickt wird
+        });
+    </script>
+
+
+	<!--<script data-cfasync="false" type="text/javascript" src="assets/session.js"></script>
     <script data-cfasync="false" type="text/javascript" src="assets/main.js"></script>
     
     <script>
@@ -308,7 +680,7 @@ include("handler.php");
                 loadAllData();
             }
         });
-    </script>
+    </script>-->
 
 </body>
 </html>
