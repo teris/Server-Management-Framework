@@ -293,7 +293,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             // $_SESSION['install_step'] = $step; // Diese Zeile wird nicht mehr benötigt, da oben explizit gesetzt.
-        } elseif ($action === 'delete_installer') {
+            }
+            } elseif ($action === 'delete_installer') {
             log_install_action("Versuche Installationsdatei zu löschen.");
             if (unlink(__FILE__)) {
                 $success_message = "Installationsdatei erfolgreich gelöscht. Sie werden weitergeleitet...";
