@@ -1,0 +1,253 @@
+/* assets/install.css */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Oben ausrichten für längere Inhalte */
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 25px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 700px; /* Etwas breiter für mehr Inhalt */
+    text-align: left;
+}
+
+h1 {
+    color: #1877f2; /* Facebook Blau als Akzent */
+    font-size: 2em;
+    margin-bottom: 0.5em;
+    text-align: center;
+}
+h2 {
+    color: #333;
+    font-size: 1.5em;
+    margin-top: 1.5em;
+    margin-bottom: 1em;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5em;
+}
+
+p {
+    margin-bottom: 1em;
+    color: #555;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #444;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group input[type="email"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus,
+.form-group input[type="email"]:focus {
+    border-color: #1877f2;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #1877f2;
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #166fe5;
+    box-shadow: 0 2px 8px rgba(24, 119, 242, 0.3);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+}
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+.btn-warning:hover {
+    background-color: #e0a800;
+}
+
+
+.alert {
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 0.95rem;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.steps {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-around;
+    padding: 0;
+    list-style: none;
+}
+
+.step {
+    padding: 0.75rem 1.25rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    color: #666;
+    background-color: #f8f9fa;
+    font-weight: 500;
+    text-align: center;
+    flex-grow: 1;
+    margin: 0 5px;
+}
+.step:first-child { margin-left: 0; }
+.step:last-child { margin-right: 0; }
+
+
+.step.active {
+    background-color: #1877f2;
+    color: white;
+    border-color: #1877f2;
+    font-weight: bold;
+}
+
+.progress-bar {
+    width: 100%;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    margin-bottom: 2rem;
+    height: 24px;
+    overflow: hidden; /* Stellt sicher, dass der innere Balken nicht überläuft */
+}
+
+.progress-bar-inner {
+    height: 100%;
+    width: 0%; /* Startet bei 0% */
+    background-color: #1877f2; /* Gleiche Farbe wie aktive Schritte */
+    border-radius: 6px; /* Abgerundete Ecken auch für den Fortschrittsbalken */
+    text-align: center;
+    color: white;
+    line-height: 24px; /* Vertikal zentrieren */
+    font-weight: bold;
+    font-size: 0.9em;
+    transition: width 0.4s ease; /* Sanfter Übergang für den Fortschritt */
+}
+
+ul {
+    margin-left: 20px;
+    margin-bottom: 1em;
+}
+ul li {
+    margin-bottom: 0.5em;
+}
+
+/* Spezifische Anpassungen für den Abschluss-Schritt */
+#summary p {
+    font-size: 1.05em;
+}
+#summary .btn {
+    margin-top: 0.5em;
+}
+
+/* Responsivität */
+@media (max-width: 600px) {
+    .container {
+        margin: 1rem;
+        padding: 20px;
+    }
+    h1 {
+        font-size: 1.8em;
+    }
+    .steps {
+        flex-direction: column;
+    }
+    .step {
+        margin: 5px 0;
+    }
+    .btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.95rem;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 0.5rem;
+    }
+    .btn:last-child {
+        margin-bottom: 0;
+    }
+    form[style*="display: inline-block"] {
+        display: block !important;
+        margin-left: 0 !important;
+    }
+}
