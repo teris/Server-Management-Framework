@@ -25,7 +25,7 @@ git clone https://github.com/teris/server-management-framework.git
 cd server-management-framework
 
 # Konfiguration anpassen
-nano framework.php
+nano config/config.inc.php
 
 # Datenbank einrichten
 mysql -u root -p < database-structure.sql
@@ -58,7 +58,7 @@ php -S localhost:8000
 
 3. **Konfiguration:**
    ```bash
-   nano framework.php
+   nano config/config.inc.php
    # Editieren Sie framework.php mit Ihren API-Credentials
    ```
 
@@ -78,14 +78,14 @@ php -S localhost:8000
 6. **Permissions setzen:**
    ```bash
    chmod 755 public/
-   chmod 644 framework.php
+   chmod 644 config/config.inc.php
    ```
 
 ## 🔧 Konfiguration
 
 ### API-Credentials
 
-Tragen Sie Ihre API-Credentials in `framework.php` ein:
+Tragen Sie Ihre API-Credentials in `config/config.inc.php` ein:
 
 ```php
 // Proxmox Configuration
@@ -203,7 +203,7 @@ Bitte verwenden Sie die [GitHub Issues](https://github.com/teris/server-manageme
 ## 📋 Roadmap
 
 - [ ] **v2.0** - REST API für externe Integration
-- [ ] **v2.1** - Backup & Restore Funktionen
+- [X] **v2.1** - Backup & Restore Funktionen
 - [ ] **v2.2** - Monitoring & Alerting
 - [ ] **v2.3** - Multi-User Support mit Rollen
 - [ ] **v2.4** - CLI Tools
