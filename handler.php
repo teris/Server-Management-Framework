@@ -240,6 +240,12 @@ function handleAjaxRequest($action, $data) {
             return ['success' => true, 'data' => array_map(function($vps) {
                 return $vps->toArray();
             }, $vpsList)];
+
+        case 'get_ovh_failover_ips':
+            $failoverIPs = $serviceManager->getOVHFailoverIPs();
+            return ['success' => true, 'data' => array_map(function($ip) {
+                return $ip->toArray(); // Assuming FailoverIP class has toArray()
+            }, $failoverIPs)];
             
         // ===== ADMIN ACTIONS =====
         case 'get_activity_log':
@@ -408,7 +414,269 @@ function handleAjaxRequest($action, $data) {
             $auth = new AuthenticationHandler();
             $users = $auth->getAllUsers();
             return ['success' => true, 'data' => $users];
-            
+        // ===== VIRTUAL MAC ACTIONS =====
+		case 'get_all_virtual_macs':
+			try {
+				$virtualMacs = $serviceManager->getVirtualMacAddresses();
+				$formattedMacs = [];
+				
+				// Formatiere die Daten für die Ausgabe
+				foreach ($virtualMacs as $serverName => $macs) {
+					foreach ($macs as $mac) {
+						$formattedMacs[] = $mac->toArray();
+					}
+				}
+				
+				return ['success' => true, 'data' => $formattedMacs];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Laden der Virtual MACs: ' . $e->getMessage()];
+			}
+			
+		case 'get_virtual_mac_details':
+			$serviceName = $data['service_name'] ?? '';
+			$macAddress = $data['mac_address'] ?? null;
+			
+			if (empty($serviceName)) {
+				return ['success' => false, 'error' => 'Service Name erforderlich'];
+			}
+			
+			try {
+				if ($macAddress) {
+					// Einzelne MAC Details
+					$details = $serviceManager->getVirtualMacDetails($serviceName, $macAddress);
+					return ['success' => true, 'data' => $details ? $details->toArray() : null];
+				} else {
+					// Alle MACs für Service
+					$macs = $serviceManager->getVirtualMacAddresses($serviceName);
+					return ['success' => true, 'data' => array_map(function($mac) {
+						return $mac->toArray();
+					}, $macs)];
+				}
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Laden der Virtual MAC Details: ' . $e->getMessage()];
+			}
+			
+		case 'create_virtual_mac':
+			if (!SessionManager::isAdmin()) {
+				return ['success' => false, 'error' => 'Admin-Rechte erforderlich'];
+			}
+			
+			$serviceName = $data['service_name'] ?? '';
+			$virtualNetworkInterface = $data['virtual_network_interface'] ?? '';
+			$type = $data['type'] ?? 'ovh';
+			
+			if (empty($serviceName) || empty($virtualNetworkInterface)) {
+				return ['success' => false, 'error' => 'Service Name und Virtual Network Interface erforderlich'];
+			}
+			
+			try {
+				$result = $serviceManager->createVirtualMac($serviceName, $virtualNetworkInterface, $type);
+				
+				$db->logAction(
+					'Virtual MAC erstellt', 
+					"Service: $serviceName, Interface: $virtualNetworkInterface, Type: $type (User: " . SessionManager::getUserInfo()['username'] . ")", 
+					$result ? 'success' : 'error'
+				);
+				
+				return ['success' => $result !== false, 'data' => $result];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Erstellen der Virtual MAC: ' . $e->getMessage()];
+			}
+			
+		case 'delete_virtual_mac':
+			if (!SessionManager::isAdmin()) {
+				return ['success' => false, 'error' => 'Admin-Rechte erforderlich'];
+			}
+			
+			$serviceName = $data['service_name'] ?? '';
+			$macAddress = $data['mac_address'] ?? '';
+			
+			if (empty($serviceName) || empty($macAddress)) {
+				return ['success' => false, 'error' => 'Service Name und MAC-Adresse erforderlich'];
+			}
+			
+			try {
+				$result = $serviceManager->deleteVirtualMac($serviceName, $macAddress);
+				
+				$db->logAction(
+					'Virtual MAC gelöscht', 
+					"MAC: $macAddress auf Service: $serviceName (User: " . SessionManager::getUserInfo()['username'] . ")", 
+					$result ? 'success' : 'error'
+				);
+				
+				return ['success' => $result !== false, 'data' => $result];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Löschen der Virtual MAC: ' . $e->getMessage()];
+			}
+			
+		case 'assign_ip_to_virtual_mac':
+			if (!SessionManager::isAdmin()) {
+				return ['success' => false, 'error' => 'Admin-Rechte erforderlich'];
+			}
+			
+			$serviceName = $data['service_name'] ?? '';
+			$macAddress = $data['mac_address'] ?? '';
+			$ipAddress = $data['ip_address'] ?? '';
+			$virtualMachineName = $data['virtual_machine_name'] ?? $data['virtual_network_interface'] ?? 'eth0';
+			
+			if (empty($serviceName) || empty($macAddress) || empty($ipAddress)) {
+				return ['success' => false, 'error' => 'Service Name, MAC-Adresse und IP-Adresse erforderlich'];
+			}
+			
+			try {
+				$result = $serviceManager->addIPToVirtualMac($serviceName, $macAddress, $ipAddress, $virtualMachineName);
+				
+				$db->logAction(
+					'IP zu Virtual MAC zugewiesen', 
+					"IP: $ipAddress zu MAC: $macAddress auf Service: $serviceName (User: " . SessionManager::getUserInfo()['username'] . ")", 
+					$result ? 'success' : 'error'
+				);
+				
+				return ['success' => $result !== false, 'data' => $result];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Zuweisen der IP: ' . $e->getMessage()];
+			}
+			
+		case 'remove_ip_from_virtual_mac':
+			if (!SessionManager::isAdmin()) {
+				return ['success' => false, 'error' => 'Admin-Rechte erforderlich'];
+			}
+			
+			$serviceName = $data['service_name'] ?? '';
+			$macAddress = $data['mac_address'] ?? '';
+			$ipAddress = $data['ip_address'] ?? '';
+			
+			if (empty($serviceName) || empty($macAddress) || empty($ipAddress)) {
+				return ['success' => false, 'error' => 'Service Name, MAC-Adresse und IP-Adresse erforderlich'];
+			}
+			
+			try {
+				$result = $serviceManager->removeIPFromVirtualMac($serviceName, $macAddress, $ipAddress);
+				
+				$db->logAction(
+					'IP von Virtual MAC entfernt', 
+					"IP: $ipAddress von MAC: $macAddress auf Service: $serviceName (User: " . SessionManager::getUserInfo()['username'] . ")", 
+					$result ? 'success' : 'error'
+				);
+				
+				return ['success' => $result !== false, 'data' => $result];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Entfernen der IP: ' . $e->getMessage()];
+			}
+			
+		case 'create_reverse_dns':
+			if (!SessionManager::isAdmin()) {
+				return ['success' => false, 'error' => 'Admin-Rechte erforderlich'];
+			}
+			
+			$ipAddress = $data['ip_address'] ?? '';
+			$reverse = $data['reverse'] ?? '';
+			
+			if (empty($ipAddress) || empty($reverse)) {
+				return ['success' => false, 'error' => 'IP-Adresse und Reverse DNS erforderlich'];
+			}
+			
+			try {
+				$result = $serviceManager->createIPReverse($ipAddress, $reverse);
+				
+				$db->logAction(
+					'Reverse DNS erstellt', 
+					"IP: $ipAddress -> $reverse (User: " . SessionManager::getUserInfo()['username'] . ")", 
+					$result ? 'success' : 'error'
+				);
+				
+				return ['success' => $result !== false, 'data' => $result];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Erstellen des Reverse DNS: ' . $e->getMessage()];
+			}
+			
+		case 'query_reverse_dns':
+			$ipAddress = $data['ip_address'] ?? '';
+			
+			if (empty($ipAddress)) {
+				return ['success' => false, 'error' => 'IP-Adresse erforderlich'];
+			}
+			
+			try {
+				$reverseEntries = $serviceManager->getIPReverse($ipAddress);
+				return ['success' => true, 'data' => $reverseEntries];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Abfragen des Reverse DNS: ' . $e->getMessage()];
+			}
+			
+		case 'update_reverse_dns':
+			if (!SessionManager::isAdmin()) {
+				return ['success' => false, 'error' => 'Admin-Rechte erforderlich'];
+			}
+			
+			$ipAddress = $data['ip_address'] ?? '';
+			$reverseIP = $data['reverse_ip'] ?? '';
+			$newReverse = $data['new_reverse'] ?? '';
+			
+			if (empty($ipAddress) || empty($reverseIP) || empty($newReverse)) {
+				return ['success' => false, 'error' => 'Alle Felder erforderlich'];
+			}
+			
+			try {
+				$result = $serviceManager->updateIPReverse($ipAddress, $reverseIP, $newReverse);
+				
+				$db->logAction(
+					'Reverse DNS aktualisiert', 
+					"IP: $ipAddress, Reverse: $reverseIP -> $newReverse (User: " . SessionManager::getUserInfo()['username'] . ")", 
+					$result ? 'success' : 'error'
+				);
+				
+				return ['success' => $result !== false, 'data' => $result];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Aktualisieren des Reverse DNS: ' . $e->getMessage()];
+			}
+			
+		case 'delete_reverse_dns':
+			if (!SessionManager::isAdmin()) {
+				return ['success' => false, 'error' => 'Admin-Rechte erforderlich'];
+			}
+			
+			$ipAddress = $data['ip_address'] ?? '';
+			$reverseIP = $data['reverse_ip'] ?? '';
+			
+			if (empty($ipAddress) || empty($reverseIP)) {
+				return ['success' => false, 'error' => 'IP-Adresse und Reverse IP erforderlich'];
+			}
+			
+			try {
+				$result = $serviceManager->deleteIPReverse($ipAddress, $reverseIP);
+				
+				$db->logAction(
+					'Reverse DNS gelöscht', 
+					"IP: $ipAddress, Reverse: $reverseIP (User: " . SessionManager::getUserInfo()['username'] . ")", 
+					$result ? 'success' : 'error'
+				);
+				
+				return ['success' => $result !== false, 'data' => $result];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Löschen des Reverse DNS: ' . $e->getMessage()];
+			}
+			
+		case 'get_dedicated_servers':
+			try {
+				$ovhGet = new OVHGet();
+				$servers = $ovhGet->getDedicatedServers();
+				return ['success' => true, 'data' => $servers];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Laden der Dedicated Server: ' . $e->getMessage()];
+			}
+			
+		case 'get_failover_ips':
+			try {
+				$failoverIPs = $serviceManager->getOVHFailoverIPs();
+				return ['success' => true, 'data' => array_map(function($ip) {
+					return $ip->toArray();
+				}, $failoverIPs)];
+			} catch (Exception $e) {
+				return ['success' => false, 'error' => 'Fehler beim Laden der Failover IPs: ' . $e->getMessage()];
+			}
+			
+		// ===== ENDE VIRTUAL MAC ACTIONS =====    
         default:
             return ['success' => false, 'error' => 'Unbekannte Aktion: ' . $action];
     }

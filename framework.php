@@ -2,31 +2,9 @@
 /**
  * Server Management Framework
  * Modulares Framework für Proxmox, ISPConfig und OVH API-Integration
+ * Erweitert um Virtual MAC Support
  */
-
-// =============================================================================
-// CONFIG CLASS
-// =============================================================================
-class Config {
-    const DB_HOST = 'localhost';										//MySQL Host
-    const DB_NAME = 'server_management';								//MySQL DB Name
-    const DB_USER = 'root';												//MySQL User
-    const DB_PASS = 'pass';										//MySQL Password
-
-    const PROXMOX_HOST = 'https://server:8006';			//ProxmoxServer
-    const PROXMOX_USER = 'user@pve';									//Proxmox User (@pam or @pve)
-    const PROXMOX_PASSWORD = 'pass';								//Proxmox Password
-
-    const ISPCONFIG_HOST = 'https://server:8080';			//ISPConfig 3 Server
-    const ISPCONFIG_USER = 'user';										//ISPConfig 3 User
-    const ISPCONFIG_PASSWORD = 'pass';							//ISPConfig 3 Password
-
-    const OVH_APPLICATION_KEY = '';						//OVH Application Key
-    const OVH_APPLICATION_SECRET = '';	//OVH Application Secret
-    const OVH_CONSUMER_KEY = '';		//OVH Costumer key
-    const OVH_ENDPOINT = 'ovh-eu';										//OVH API Server (ovh-eu, ovh-us, ovh-ca)
-}
-
+ require_once 'config/config.inc.php';
 // =============================================================================
 // DATABASE CLASS
 // =============================================================================
@@ -40,8 +18,12 @@ class Database {
                 "mysql:host=" . Config::DB_HOST . ";dbname=" . Config::DB_NAME,
                 Config::DB_USER,
                 Config::DB_PASS,
-                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-            );
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"
+                ]
+             );
         } catch(PDOException $e) {
             throw new Exception("Datenbankverbindung fehlgeschlagen: " . $e->getMessage());
         }
@@ -59,14 +41,60 @@ class Database {
     }
 
     public function logAction($action, $details, $status) {
-        $stmt = $this->connection->prepare("INSERT INTO activity_log (action, details, status, created_at) VALUES (?, ?, ?, NOW())");
-        return $stmt->execute([$action, $details, $status]);
+        try {
+            $stmt = $this->connection->prepare("INSERT INTO activity_log (action, details, status, created_at) VALUES (?, ?, ?, NOW())");
+            return $stmt->execute([$action, $details, $status]);
+        } catch (PDOException $e) {
+            error_log("Database logAction error: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function getActivityLog($limit = 50) {
-        $stmt = $this->connection->prepare("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT ?");
-        $stmt->execute([$limit]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            // Limit als Integer validieren und direkt in Query einbauen
+            $limit = (int) $limit;
+            if ($limit <= 0) $limit = 50;
+            if ($limit > 1000) $limit = 1000; // Max. Limit für Performance
+            
+            // Query ohne Platzhalter für LIMIT
+            $sql = "SELECT id, action, details, status, created_at 
+                    FROM activity_log 
+                    ORDER BY created_at DESC 
+                    LIMIT " . $limit;
+            
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute();
+            
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Sicherstellen dass created_at im richtigen Format ist
+            foreach ($results as &$row) {
+                if (isset($row['created_at'])) {
+                    // Timestamp zu deutschem Format konvertieren falls nötig
+                    $row['created_at_formatted'] = date('d.m.Y H:i:s', strtotime($row['created_at']));
+                }
+            }
+            
+            return $results;
+            
+        } catch (PDOException $e) {
+            error_log("Database getActivityLog error: " . $e->getMessage());
+            
+            // Fallback: Versuche ohne LIMIT
+            try {
+                $stmt = $this->connection->prepare("SELECT id, action, details, status, created_at FROM activity_log ORDER BY created_at DESC");
+                $stmt->execute();
+                $all_results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Manuell limitieren
+                return array_slice($all_results, 0, $limit);
+                
+            } catch (PDOException $e2) {
+                error_log("Database fallback error: " . $e2->getMessage());
+                return [];
+            }
+        }
     }
 }
 
@@ -92,6 +120,44 @@ class VM {
     public function __construct($data = []) {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
+    }
+
+    public function toArray() {
+        return get_object_vars($this);
+    }
+}
+
+// =============================================================================
+// VIRTUAL MAC DATA MODEL
+// =============================================================================
+class VirtualMac {
+    public $macAddress;
+    public $serviceName;
+    public $ipAddress;
+    public $virtualNetworkInterface;
+    public $type;
+    public $reverse;
+    public $created_at;
+    public $ips;
+    public $reverseEntries;
+
+    public function __construct($data = []) {
+        $this->macAddress = $data['macAddress'] ?? null;
+        $this->serviceName = $data['serviceName'] ?? null;
+        $this->ipAddress = $data['ipAddress'] ?? null;
+        $this->virtualNetworkInterface = $data['virtualNetworkInterface'] ?? null;
+        $this->type = $data['type'] ?? null;
+        $this->reverse = $data['reverse'] ?? null;
+        $this->created_at = $data['created_at'] ?? null;
+        $this->ips = $data['ips'] ?? [];
+        $this->reverseEntries = $data['reverseEntries'] ?? [];
+
+        // Alle anderen Properties dynamisch hinzufügen
+        foreach ($data as $key => $value) {
+            if (!property_exists($this, $key)) {
                 $this->$key = $value;
             }
         }
@@ -274,6 +340,20 @@ class DataMapper {
             'uptime' => $data['uptime'] ?? null,
             'cpu_usage' => $data['cpu'] ?? null,
             'memory_usage' => $data['mem'] ?? null
+        ]);
+    }
+
+	public static function mapToVirtualMac($data, $serviceName = null, $macAddress = null) {
+        return new VirtualMac([
+            'macAddress' => $macAddress ?? $data['macAddress'] ?? null,
+            'serviceName' => $serviceName ?? $data['serviceName'] ?? null,
+            'ipAddress' => $data['ipAddress'] ?? null,
+            'virtualNetworkInterface' => $data['virtualNetworkInterface'] ?? null,
+            'type' => $data['type'] ?? null,
+            'reverse' => $data['reverse'] ?? null,
+            'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s'),
+            'ips' => $data['ips'] ?? [],
+            'reverseEntries' => $data['reverseEntries'] ?? []
         ]);
     }
 
@@ -1057,6 +1137,147 @@ class OVHGet extends BaseAPI {
         return $response;
     }
 
+    // =============================================================================
+    // VIRTUAL MAC METHODS
+    // =============================================================================
+
+    /**
+     * Holt alle Virtual MAC-Adressen für einen bestimmten Dedicated Server
+     */
+    public function getVirtualMacAddresses($serviceName) {
+        $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/dedicated/server/$serviceName/virtualMac", 'GET', $response !== false);
+        return $response ?: [];
+    }
+
+    /**
+     * Holt Details zu einer bestimmten Virtual MAC-Adresse
+     */
+    public function getVirtualMacDetails($serviceName, $macAddress) {
+        $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress", 'GET', $response !== false);
+        
+        if ($response) {
+            return DataMapper::mapToVirtualMac($response, $serviceName, $macAddress);
+        }
+        return null;
+    }
+
+    /**
+     * Holt alle Virtual MAC-Adressen mit Details für einen Service
+     */
+    public function getAllVirtualMacDetails($serviceName) {
+        $macAddresses = $this->getVirtualMacAddresses($serviceName);
+        $detailedMacs = [];
+
+        if (!empty($macAddresses)) {
+            foreach ($macAddresses as $macAddress) {
+                $details = $this->getVirtualMacDetails($serviceName, $macAddress);
+                if ($details) {
+                    $detailedMacs[] = $details;
+                }
+            }
+        }
+
+        return $detailedMacs;
+    }
+
+    /**
+     * Holt alle IPs für eine Virtual MAC-Adresse
+     */
+    public function getVirtualMacIPs($serviceName, $macAddress) {
+        $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress", 'GET', $response !== false);
+        return $response ?: [];
+    }
+
+    /**
+     * Holt Details zu einer bestimmten IP einer Virtual MAC
+     */
+    public function getVirtualMacIPDetails($serviceName, $macAddress, $ipAddress) {
+        $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress", 'GET', $response !== false);
+        return $response;
+    }
+
+    /**
+     * Holt Reverse-DNS Informationen für eine IP-Adresse
+     */
+    public function getIPReverse($ipAddress) {
+        $encodedIp = urlencode($ipAddress);
+        $url = "https://eu.api.ovh.com/1.0/ip/$encodedIp/reverse";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/ip/$ipAddress/reverse", 'GET', $response !== false);
+        return $response ?: [];
+    }
+
+    /**
+     * Holt Details zu einem bestimmten Reverse-DNS Eintrag
+     */
+    public function getIPReverseDetails($ipAddress, $reverseIP) {
+        $encodedIp = urlencode($ipAddress);
+        $encodedReverse = urlencode($reverseIP);
+        $url = "https://eu.api.ovh.com/1.0/ip/$encodedIp/reverse/$encodedReverse";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/ip/$ipAddress/reverse/$reverseIP", 'GET', $response !== false);
+        return $response;
+    }
+
+    /**
+     * Holt alle Virtual MAC-Adressen für alle Dedicated Server
+     */
+    public function getAllVirtualMacAddresses() {
+        $servers = $this->getDedicatedServers();
+        $allVirtualMacs = [];
+
+        if (!empty($servers)) {
+            foreach ($servers as $serverName) {
+                $virtualMacs = $this->getAllVirtualMacDetailsWithIPs($serverName);
+                if (!empty($virtualMacs)) {
+                    $allVirtualMacs[$serverName] = $virtualMacs;
+                }
+            }
+        }
+
+        return $allVirtualMacs;
+    }
+
+    /**
+     * Holt alle Virtual MAC-Adressen mit ihren IPs und Reverse-DNS für einen Service
+     */
+    public function getAllVirtualMacDetailsWithIPs($serviceName) {
+        $virtualMacs = $this->getAllVirtualMacDetails($serviceName);
+        
+        foreach ($virtualMacs as &$virtualMac) {
+            // IPs für diese MAC-Adresse holen
+            $ips = $this->getVirtualMacIPs($serviceName, $virtualMac->macAddress);
+            $virtualMac->ips = [];
+            $virtualMac->reverseEntries = [];
+
+            if (!empty($ips)) {
+                foreach ($ips as $ip) {
+                    // IP Details holen
+                    $ipDetails = $this->getVirtualMacIPDetails($serviceName, $virtualMac->macAddress, $ip);
+                    if ($ipDetails) {
+                        $virtualMac->ips[] = $ipDetails;
+                    }
+
+                    // Reverse-DNS für diese IP holen
+                    $reverseEntries = $this->getIPReverse($ip);
+                    if (!empty($reverseEntries)) {
+                        $virtualMac->reverseEntries[$ip] = $reverseEntries;
+                    }
+                }
+            }
+        }
+
+        return $virtualMacs;
+    }
+
     public function getFailoverIPs() {
         $url = "https://eu.api.ovh.com/1.0/ip";
         $response = $this->makeRequest('GET', $url);
@@ -1120,7 +1341,7 @@ class OVHGet extends BaseAPI {
 }
 
 // =============================================================================
-// OVH POST CLASS
+// OVH POST CLASS - ERWEITERT FÜR VIRTUAL MAC
 // =============================================================================
 class OVHPost extends OVHGet {
 
@@ -1198,10 +1419,112 @@ class OVHPost extends OVHGet {
         $this->logRequest("/vps/$vpsName/start", 'POST', $response !== false);
         return $response;
     }
+
+    // =============================================================================
+    // VIRTUAL MAC POST METHODS
+    // =============================================================================
+
+    /**
+     * Erstellt eine neue Virtual MAC-Adresse
+     */
+    public function createVirtualMac($serviceName, $virtualNetworkInterface, $type = 'ovh') {
+        $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac";
+        
+        $data = [
+            'virtualNetworkInterface' => $virtualNetworkInterface,
+            'type' => $type
+        ];
+
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("/dedicated/server/$serviceName/virtualMac", 'POST', $response !== false);
+        return $response;
+    }
+
+    /**
+     * Löscht eine Virtual MAC-Adresse
+     */
+    public function deleteVirtualMac($serviceName, $macAddress) {
+        $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress";
+        $response = $this->makeRequest('DELETE', $url);
+        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress", 'DELETE', $response !== false);
+        return $response;
+    }
+
+    /**
+     * Fügt eine IP-Adresse zu einer Virtual MAC hinzu
+     */
+    public function addVirtualMacIP($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface) {
+        $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress";
+        
+        $data = [
+            'ipAddress' => $ipAddress,
+            'virtualNetworkInterface' => $virtualNetworkInterface
+        ];
+
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress", 'POST', $response !== false);
+        return $response;
+    }
+
+    /**
+     * Entfernt eine IP-Adresse von einer Virtual MAC
+     */
+    public function removeVirtualMacIP($serviceName, $macAddress, $ipAddress) {
+        $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress";
+        $response = $this->makeRequest('DELETE', $url);
+        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress", 'DELETE', $response !== false);
+        return $response;
+    }
+
+    /**
+     * Erstellt einen Reverse-DNS Eintrag
+     */
+    public function createIPReverse($ipAddress, $reverse) {
+        $encodedIp = urlencode($ipAddress);
+        $url = "https://eu.api.ovh.com/1.0/ip/$encodedIp/reverse";
+        
+        $data = [
+            'ipReverse' => $ipAddress,
+            'reverse' => $reverse
+        ];
+
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("/ip/$ipAddress/reverse", 'POST', $response !== false);
+        return $response;
+    }
+
+    /**
+     * Aktualisiert einen Reverse-DNS Eintrag
+     */
+    public function updateIPReverse($ipAddress, $reverseIP, $newReverse) {
+        $encodedIp = urlencode($ipAddress);
+        $encodedReverse = urlencode($reverseIP);
+        $url = "https://eu.api.ovh.com/1.0/ip/$encodedIp/reverse/$encodedReverse";
+        
+        $data = [
+            'reverse' => $newReverse
+        ];
+
+        $response = $this->makeRequest('PUT', $url, $data);
+        $this->logRequest("/ip/$ipAddress/reverse/$reverseIP", 'PUT', $response !== false);
+        return $response;
+    }
+
+    /**
+     * Löscht einen Reverse-DNS Eintrag
+     */
+    public function deleteIPReverse($ipAddress, $reverseIP) {
+        $encodedIp = urlencode($ipAddress);
+        $encodedReverse = urlencode($reverseIP);
+        $url = "https://eu.api.ovh.com/1.0/ip/$encodedIp/reverse/$encodedReverse";
+        $response = $this->makeRequest('DELETE', $url);
+        $this->logRequest("/ip/$ipAddress/reverse/$reverseIP", 'DELETE', $response !== false);
+        return $response;
+    }
 }
 
 // =============================================================================
-// SERVICE MANAGER CLASS
+// SERVICE MANAGER CLASS - ERWEITERT
 // =============================================================================
 class ServiceManager {
     private $proxmoxGet;
@@ -1330,6 +1653,105 @@ class ServiceManager {
             ];
         }
         return null;
+    }
+
+    // =============================================================================
+    // VIRTUAL MAC METHODS
+    // =============================================================================
+
+    /**
+     * Holt alle Virtual MAC-Adressen für einen bestimmten Service
+     */
+    public function getVirtualMacAddresses($serviceName = null) {
+        if ($serviceName) {
+            return $this->ovhGet->getAllVirtualMacDetailsWithIPs($serviceName);
+        } else {
+            return $this->ovhGet->getAllVirtualMacAddresses();
+        }
+    }
+
+    /**
+     * Holt Details zu einer Virtual MAC-Adresse
+     */
+    public function getVirtualMacDetails($serviceName, $macAddress) {
+        return $this->ovhGet->getVirtualMacDetails($serviceName, $macAddress);
+    }
+
+    /**
+     * Erstellt eine neue Virtual MAC-Adresse
+     */
+    public function createVirtualMac($serviceName, $virtualNetworkInterface, $type = 'ovh') {
+        return $this->ovhPost->createVirtualMac($serviceName, $virtualNetworkInterface, $type);
+    }
+
+    /**
+     * Löscht eine Virtual MAC-Adresse
+     */
+    public function deleteVirtualMac($serviceName, $macAddress) {
+        return $this->ovhPost->deleteVirtualMac($serviceName, $macAddress);
+    }
+
+    /**
+     * Fügt IP zu Virtual MAC hinzu
+     */
+    public function addIPToVirtualMac($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface) {
+        return $this->ovhPost->addVirtualMacIP($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface);
+    }
+
+    /**
+     * Entfernt IP von Virtual MAC
+     */
+    public function removeIPFromVirtualMac($serviceName, $macAddress, $ipAddress) {
+        return $this->ovhPost->removeVirtualMacIP($serviceName, $macAddress, $ipAddress);
+    }
+
+    // Reverse DNS Methods
+    public function getIPReverse($ipAddress) {
+        return $this->ovhGet->getIPReverse($ipAddress);
+    }
+
+    public function createIPReverse($ipAddress, $reverse) {
+        return $this->ovhPost->createIPReverse($ipAddress, $reverse);
+    }
+
+    public function updateIPReverse($ipAddress, $reverseIP, $newReverse) {
+        return $this->ovhPost->updateIPReverse($ipAddress, $reverseIP, $newReverse);
+    }
+
+    public function deleteIPReverse($ipAddress, $reverseIP) {
+        return $this->ovhPost->deleteIPReverse($ipAddress, $reverseIP);
+    }
+
+    // Convenience Methods
+    public function getCompleteVirtualMacInfo($serviceName = null) {
+        $result = [];
+        
+        if ($serviceName) {
+            $servers = [$serviceName];
+        } else {
+            $servers = $this->ovhGet->getDedicatedServers();
+        }
+
+        foreach ($servers as $server) {
+            $virtualMacs = $this->getVirtualMacAddresses($server);
+            if (!empty($virtualMacs)) {
+                $result[$server] = [
+                    'server' => $server,
+                    'virtualMacs' => $virtualMacs,
+                    'totalMacs' => count($virtualMacs),
+                    'totalIPs' => 0
+                ];
+
+                // IPs zählen
+                foreach ($virtualMacs as $mac) {
+                    if (isset($mac->ips)) {
+                        $result[$server]['totalIPs'] += count($mac->ips);
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 }
 
