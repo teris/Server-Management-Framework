@@ -206,8 +206,9 @@ Bitte verwenden Sie die [GitHub Issues](https://github.com/teris/server-manageme
 - [X] **v2.1** - Backup & Restore Funktionen
 - [ ] **v2.2** - Monitoring & Alerting
 - [ ] **v2.3** - Multi-User Support mit Rollen
-- [ ] **v2.4** - CLI Tools
+- [x] **v2.4** - CLI Tools (update.php)
 - [ ] **v2.5** - Plugin System
+- [X] **v2.6** - Use Framework as Singel without Interface
 
 ## 🔒 Sicherheit
 
