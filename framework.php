@@ -437,14 +437,14 @@ class DataMapper {
 // BASE API CLASS
 // =============================================================================
 abstract class BaseAPI {
-    protected $host;
-    protected $user;
-    protected $password;
+    public $host;
+    public $user;
+    public $password;
 
     abstract protected function authenticate();
     abstract protected function makeRequest($method, $url, $data = null);
 
-    protected function logRequest($endpoint, $method, $success) {
+    public function logRequest($endpoint, $method, $success) {
         $db = Database::getInstance();
         $db->logAction(
             "API Request: " . static::class,
@@ -468,7 +468,7 @@ class ProxmoxGet extends BaseAPI {
         $this->authenticate();
     }
 
-    protected function authenticate() {
+    public function authenticate() {
         $url = $this->host . "/api2/json/access/ticket";
         $data = [
             'username' => $this->user,
@@ -555,7 +555,7 @@ class ProxmoxGet extends BaseAPI {
         return $response && isset($response['data']) ? $response['data'] : [];
     }
 
-    protected function makeRequest($method, $url, $data = null) {
+    public function makeRequest($method, $url, $data = null) {
         $ch = curl_init();
 
         $headers = [];
@@ -682,8 +682,8 @@ class ProxmoxPost extends ProxmoxGet {
 // ISPCONFIG GET CLASS
 // =============================================================================
 class ISPConfigGet extends BaseAPI {
-    private $session_id;
-    private $client;
+    public $session_id;
+    public $client;
 
     public function __construct() {
         $this->host = Config::ISPCONFIG_HOST;
@@ -692,7 +692,7 @@ class ISPConfigGet extends BaseAPI {
         $this->authenticate();
     }
 
-    protected function authenticate() {
+    public function authenticate() {
         try {
             $this->client = new SoapClient(null, [
                 'location' => $this->host . '/remote/index.php',
@@ -832,7 +832,7 @@ class ISPConfigGet extends BaseAPI {
         }
     }
 
-    protected function makeRequest($method, $url, $data = null) {
+    public function makeRequest($method, $url, $data = null) {
         // ISPConfig uses SOAP, so this is handled in the specific methods above
         return true;
     }
@@ -1294,7 +1294,7 @@ class OVHGet extends BaseAPI {
         return $response ?: null;
     }
 
-    protected function makeRequest($method, $url, $data = null) {
+    public function makeRequest($method, $url, $data = null) {
         $timestamp = time();
         $body = $data ? json_encode($data) : '';
 
@@ -1541,6 +1541,197 @@ class ServiceManager {
         $this->ispconfigPost = new ISPConfigPost();
         $this->ovhGet = new OVHGet();
         $this->ovhPost = new OVHPost();
+    }
+	
+	// =============================================================================
+    // GENERISCHE API FUNKTIONEN
+    // =============================================================================
+    /**
+     * Generische Proxmox API Funktion
+     * @param string $type HTTP-Methode (get, post, delete, put)
+     * @param string $url API-Pfad (z.B. "/nodes/pve/qemu/100/status/start")
+     * @param mixed $code Optionale Daten für POST/PUT Requests
+     * @return mixed API Response oder false bei Fehler
+     * 
+     * Beispiele:
+     * $serviceManager->ProxmoxAPI('get', '/nodes');
+     * $serviceManager->ProxmoxAPI('get', '/nodes/pve/qemu/100/config');
+     * $serviceManager->ProxmoxAPI('post', '/nodes/pve/qemu', ['vmid' => 101, 'name' => 'test-vm']);
+     * $serviceManager->ProxmoxAPI('delete', '/nodes/pve/qemu/100');
+     */
+    public function ProxmoxAPI($type, $url, $code = null) {
+		$this->host = Config::PROXMOX_HOST;
+        try {
+            $type = strtoupper($type);
+            $fullUrl = $this->proxmoxGet->host . "/api2/json" . $url;
+            
+            // Verwende die makeRequest Methode der Proxmox Klasse
+            $response = $this->proxmoxGet->makeRequest($type, $fullUrl, $code);
+            
+            // Logging
+            $this->proxmoxGet->logRequest($url, $type, $response !== false);
+            
+            return $response;
+        } catch (Exception $e) {
+            error_log("ProxmoxAPI Error: " . $e->getMessage());
+            return false;
+        }
+    }    
+    /**
+     * Generische OVH API Funktion
+     * @param string $type HTTP-Methode (get, post, delete, put)
+     * @param string $url API-Pfad (z.B. "/domain/zone/example.com/record")
+     * @param mixed $code Optionale Daten für POST/PUT Requests
+     * @return mixed API Response oder false bei Fehler
+     * 
+     * Beispiele:
+     * $serviceManager->OvhAPI('get', '/domain');
+     * $serviceManager->OvhAPI('get', '/domain/zone/example.com/record');
+     * $serviceManager->OvhAPI('post', '/domain/zone/example.com/record', ['fieldType' => 'A', 'target' => '1.2.3.4']);
+     * $serviceManager->OvhAPI('delete', '/domain/zone/example.com/record/12345');
+     */
+    public function OvhAPI($type, $url, $code = null) {
+        try {
+            $type = strtoupper($type);
+            $endpoint = "https://eu.api.ovh.com/1.0";
+            $fullUrl = $endpoint . $url;
+            
+            // Verwende die makeRequest Methode der OVH Klasse
+            $response = $this->ovhGet->makeRequest($type, $fullUrl, $code);
+            
+            // Logging
+            $this->ovhGet->logRequest($url, $type, $response !== false);
+            
+            return $response;
+        } catch (Exception $e) {
+            error_log("OvhAPI Error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Generische ISPConfig API Funktion
+     * @param string $type HTTP-Methode (get, post, delete, put)
+     * @param string $url API-Pfad/Funktion (z.B. "sites_web_domain_add")
+     * @param mixed $code Optionale Daten für POST/PUT Requests
+     * @return mixed API Response oder false bei Fehler
+     * 
+     * Beispiele:
+     * $serviceManager->IspconfigAPI('get', 'sites_web_domain', ['primary_id' => 1]);
+     * $serviceManager->IspconfigAPI('post', 'sites_web_domain', $websiteData);
+     * $serviceManager->IspconfigAPI('put', 'sites_web_domain', ['id' => 1, 'data' => $updateData]);
+     * $serviceManager->IspconfigAPI('delete', 'sites_web_domain', 123);
+     */
+    public function IspconfigAPI($type, $url, $code = null) {
+        try {
+            $type = strtolower($type);
+            
+            // ISPConfig verwendet SOAP, daher müssen wir die URL als Funktionsname interpretieren
+            // Entferne führende Slashes
+            $function = ltrim($url, '/');
+            
+            // Bestimme die richtige SOAP-Funktion basierend auf Type und URL
+            switch($type) {
+                case 'get':
+                    // Für GET requests, füge "_get" hinzu wenn nicht vorhanden
+                    if (!strpos($function, '_get')) {
+                        $function .= '_get';
+                    }
+                    
+                    if ($code !== null) {
+                        $result = $this->ispconfigGet->client->$function($this->ispconfigGet->session_id, $code);
+                    } else {
+                        $result = $this->ispconfigGet->client->$function($this->ispconfigGet->session_id);
+                    }
+                    break;
+                    
+                case 'post':
+                    // Für POST requests, füge "_add" hinzu
+                    if (!strpos($function, '_add')) {
+                        $function .= '_add';
+                    }
+                    
+                    // ISPConfig erwartet: session_id, client_id, params
+                    if (is_array($code) && isset($code['client_id'])) {
+                        $client_id = $code['client_id'];
+                        unset($code['client_id']);
+                        $result = $this->ispconfigPost->client->$function($this->ispconfigPost->session_id, $client_id, $code);
+                    } else {
+                        // Default client_id = 1
+                        $result = $this->ispconfigPost->client->$function($this->ispconfigPost->session_id, 1, $code);
+                    }
+                    break;
+                    
+                case 'put':
+                    // Für PUT requests, füge "_update" hinzu
+                    if (!strpos($function, '_update')) {
+                        $function .= '_update';
+                    }
+                    
+                    // Für Updates brauchen wir: session_id, client_id, primary_id, params
+                    if (is_array($code)) {
+                        $client_id = $code['client_id'] ?? 1;
+                        $primary_id = $code['id'] ?? $code['primary_id'] ?? null;
+                        $params = $code['data'] ?? $code;
+                        
+                        // Entferne Meta-Daten aus params
+                        unset($params['client_id'], $params['id'], $params['primary_id']);
+                        
+                        if ($primary_id) {
+                            $result = $this->ispconfigPost->client->$function($this->ispconfigPost->session_id, $client_id, $primary_id, $params);
+                        } else {
+                            throw new Exception("Primary ID required for update");
+                        }
+                    } else {
+                        throw new Exception("Data array required for update");
+                    }
+                    break;
+                    
+                case 'delete':
+                    // Für DELETE requests, füge "_delete" hinzu
+                    if (!strpos($function, '_delete')) {
+                        $function .= '_delete';
+                    }
+                    
+                    // Für Delete brauchen wir die ID
+                    $result = $this->ispconfigPost->client->$function($this->ispconfigPost->session_id, $code);
+                    break;
+                    
+                default:
+                    throw new Exception("Unsupported HTTP method: $type");
+            }
+            
+            // Logging
+            $this->ispconfigGet->logRequest($function, strtoupper($type), $result !== false);
+            
+            return $result;
+            
+        } catch (Exception $e) {
+            error_log("IspconfigAPI Error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Hilfsfunktion für erweiterte ISPConfig Operationen
+     * Erlaubt direkten Zugriff auf SOAP-Funktionen
+     */
+    public function IspconfigSOAP($function, $params = []) {
+        try {
+            // Füge session_id als ersten Parameter hinzu
+            array_unshift($params, $this->ispconfigGet->session_id);
+            
+            // Rufe die SOAP-Funktion dynamisch auf
+            $result = call_user_func_array([$this->ispconfigGet->client, $function], $params);
+            
+            // Logging
+            $this->ispconfigGet->logRequest($function, 'SOAP', $result !== false);
+            
+            return $result;
+        } catch (Exception $e) {
+            error_log("IspconfigSOAP Error: " . $e->getMessage());
+            return false;
+        }
     }
 
     // Proxmox Methods
