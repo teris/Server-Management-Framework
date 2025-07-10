@@ -393,7 +393,7 @@ class DataMapper {
             'name' => $data['name'] ?? null,
             'domain' => $data['domain'] ?? null,
             'quota' => $data['quota'] ?? null,
-            'active' => $data['active'] ?? null,
+            'active' => $data['postfix'] ?? null,
             'autoresponder' => $data['autoresponder'] ?? 'n',
             'forward_to' => $data['cc'] ?? null
         ]);
@@ -684,6 +684,7 @@ class ProxmoxPost extends ProxmoxGet {
 class ISPConfigGet extends BaseAPI {
     public $session_id;
     public $client;
+    private $debug_mode = true; // Für Debugging aktivieren
 
     public function __construct() {
         $this->host = Config::ISPCONFIG_HOST;
@@ -694,17 +695,58 @@ class ISPConfigGet extends BaseAPI {
 
     public function authenticate() {
         try {
+            if ($this->debug_mode) {
+                error_log("ISPConfig: Verbindung zu {$this->host}");
+            }
+
+            // SOAP Client mit erweiterten Optionen
+            $context = stream_context_create([
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                ],
+                'http' => [
+                    'timeout' => 60,
+                    'user_agent' => 'ISPConfig-API-Client/1.0'
+                ]
+            ]);
+
             $this->client = new SoapClient(null, [
                 'location' => $this->host . '/remote/index.php',
                 'uri' => $this->host . '/remote/',
                 'trace' => 1,
-                'exceptions' => 1
+                'exceptions' => 1,
+                'connection_timeout' => 60,
+                'cache_wsdl' => WSDL_CACHE_NONE,
+                'stream_context' => $context,
+                'soap_version' => SOAP_1_1,
+                'encoding' => 'UTF-8'
             ]);
 
+            if ($this->debug_mode) {
+                error_log("ISPConfig: SOAP Client erstellt");
+            }
+
             $this->session_id = $this->client->login($this->user, $this->password);
+            
+            if ($this->debug_mode) {
+                error_log("ISPConfig: Login-Ergebnis: " . ($this->session_id ? "Erfolgreich (Session: {$this->session_id})" : "Fehlgeschlagen"));
+            }
+
             $this->logRequest('/remote/login', 'POST', $this->session_id !== false);
+            
+            if (!$this->session_id) {
+                throw new Exception("ISPConfig Login fehlgeschlagen - Überprüfen Sie Zugangsdaten");
+            }
+
+        } catch (SoapFault $e) {
+            error_log("ISPConfig SOAP Fehler: " . $e->getMessage());
+            error_log("ISPConfig SOAP Details: " . $e->getTraceAsString());
+            throw new Exception("SOAP Verbindung fehlgeschlagen: " . $e->getMessage());
         } catch (Exception $e) {
             error_log('ISPConfig Login fehlgeschlagen: ' . $e->getMessage());
+            throw $e;
         }
     }
 
@@ -775,40 +817,598 @@ class ISPConfigGet extends BaseAPI {
             return null;
         }
     }
-
+	 /**
+     * Verbesserte E-Mail Accounts Abfrage mit Debugging
+     */
     public function getEmailAccounts($filter = []) {
         try {
-            $emails = $this->client->mail_user_get($this->session_id, $filter);
-            $this->logRequest('/mail/user/get', 'GET', $emails !== false);
+            if (!$this->session_id) {
+                throw new Exception("Keine gültige ISPConfig Session");
+            }
 
-            if ($emails) {
-                return array_map(function($email) {
-                    return DataMapper::mapToEmailAccount($email);
-                }, $emails);
+            if ($this->debug_mode) {
+                error_log("ISPConfig: Rufe E-Mail Accounts ab mit Filter: " . json_encode($filter));
+            }
+
+            // Strategie 1: Versuche mail_user_get mit primary_id (leer für alle)
+            try {
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: Versuche mail_user_get mit primary_id");
+                }
+
+                $emails = $this->client->mail_user_get($this->session_id, ['postfix' => 'y']);
+                
+                if ($emails && is_array($emails) && count($emails) > 0) {
+                    if ($this->debug_mode) {
+                        error_log("ISPConfig: mail_user_get erfolgreich, " . count($emails) . " E-Mails gefunden");
+                        error_log("ISPConfig: Beispiel E-Mail: " . json_encode($emails[0]));
+                    }
+
+                    return array_map(function($email) {
+                        return DataMapper::mapToEmailAccount($email);
+                    }, $emails);
+                }
+
+            } catch (SoapFault $e) {
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: mail_user_get Fehler: " . $e->getMessage());
+                }
+            }
+
+            // Strategie 2: Client-basierte Abfrage um E-Mail-IDs zu bekommen
+            $emailIds = $this->getEmailUserIds();
+            
+            if (!empty($emailIds)) {
+                $emails = [];
+                
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: Gefundene E-Mail-IDs: " . implode(', ', $emailIds));
+                }
+
+                foreach ($emailIds as $mailuser_id) {
+                    try {
+                        $email = $this->client->mail_user_get($this->session_id, $mailuser_id);
+                        if ($email && is_array($email)) {
+                            $emails[] = $email;
+                        }
+                    } catch (Exception $e) {
+                        if ($this->debug_mode) {
+                            error_log("ISPConfig: Fehler beim Abrufen von E-Mail ID {$mailuser_id}: " . $e->getMessage());
+                        }
+                        continue;
+                    }
+                }
+
+                if (!empty($emails)) {
+                    if ($this->debug_mode) {
+                        error_log("ISPConfig: Über IDs abgerufen: " . count($emails) . " E-Mails");
+                    }
+
+                    return array_map(function($email) {
+                        return DataMapper::mapToEmailAccount($email);
+                    }, $emails);
+                }
+            }
+
+            // Strategie 3: Client-Daten für E-Mail-Informationen nutzen
+            $clientEmails = $this->getEmailsFromClients();
+            if (!empty($clientEmails)) {
+                return $clientEmails;
+            }
+
+            // Strategie 4: Alternative SOAP-Funktionen
+            $alternativeEmails = $this->tryAlternativeMailFunctions();
+            if (!empty($alternativeEmails)) {
+                return $alternativeEmails;
+            }
+
+            if ($this->debug_mode) {
+                error_log("ISPConfig: Keine E-Mails über alle Methoden gefunden");
             }
 
             return [];
+
         } catch (Exception $e) {
-            error_log('Error getting emails: ' . $e->getMessage());
-            return [];
+            error_log('ISPConfig E-Mail Fehler: ' . $e->getMessage());
+            throw $e;
         }
     }
 
-    public function getEmailAccount($mailuserId) {
+    /**
+     * Holt E-Mail-User-IDs über verschiedene Methoden
+     */
+    private function getEmailUserIds() {
+        $ids = [];
+
+        // Methode 1: sites_web_domain_get (Websites können E-Mail-Info enthalten)
         try {
-            $email = $this->client->mail_user_get($this->session_id, ['mailuser_id' => $mailuserId]);
-            $this->logRequest("/mail/user/$mailuserId", 'GET', $email !== false);
+            $websites = $this->client->sites_web_domain_get($this->session_id, []);
+            if ($websites && is_array($websites)) {
+                foreach ($websites as $website) {
+                    if (isset($website['domain_id'])) {
+                        // Versuche zugehörige E-Mail-Accounts zu finden
+                        // ISPConfig verknüpft oft E-Mails mit Domain-IDs
+                        $ids[] = $website['domain_id'];
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            if ($this->debug_mode) {
+                error_log("ISPConfig: sites_web_domain_get Fehler: " . $e->getMessage());
+            }
+        }
 
-            if ($email && isset($email[0])) {
-                return DataMapper::mapToEmailAccount($email[0]);
+        // Methode 2: client_get für Client-IDs
+        try {
+            $clients = $this->client->client_get($this->session_id, []);
+            if ($clients && is_array($clients)) {
+                foreach ($clients as $client) {
+                    if (isset($client['client_id'])) {
+                        $ids[] = $client['client_id'];
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            if ($this->debug_mode) {
+                error_log("ISPConfig: client_get Fehler: " . $e->getMessage());
+            }
+        }
+
+        // Methode 3: Sequenzielle ID-Suche (1-100)
+        if (empty($ids)) {
+            if ($this->debug_mode) {
+                error_log("ISPConfig: Verwende sequenzielle ID-Suche");
+            }
+            
+            for ($i = 1; $i <= 100; $i++) {
+                $ids[] = $i;
+            }
+        }
+
+        return array_unique($ids);
+    }
+
+    /**
+     * Extrahiert E-Mail-Informationen aus Client-Daten
+     */
+    private function getEmailsFromClients() {
+        try {
+            $clients = $this->client->client_get($this->session_id, []);
+            
+            if (!$clients || !is_array($clients)) {
+                return [];
             }
 
-            return null;
+            $emails = [];
+            foreach ($clients as $client) {
+                if (isset($client['email']) && !empty($client['email'])) {
+                    $emails[] = DataMapper::mapToEmailAccount([
+                        'mailuser_id' => $client['client_id'] ?? uniqid(),
+                        'email' => $client['email'],
+                        'login' => $client['username'] ?? $client['contact_name'] ?? '',
+                        'name' => $client['contact_name'] ?? $client['company_name'] ?? '',
+                        'domain' => $this->extractDomainFromEmail($client['email']),
+                        'quota' => '1000',
+                        'active' => 'y'
+                    ]);
+                }
+            }
+
+            if ($this->debug_mode) {
+                error_log("ISPConfig: Aus Client-Daten extrahiert: " . count($emails) . " E-Mails");
+            }
+
+            return $emails;
+
         } catch (Exception $e) {
-            error_log('Error getting email: ' . $e->getMessage());
+            if ($this->debug_mode) {
+                error_log("ISPConfig: Client-E-Mail-Extraktion Fehler: " . $e->getMessage());
+            }
+            return [];
+        }
+    }
+
+    /**
+     * Versucht alternative Mail-Funktionen mit korrekten Parametern
+     */
+    private function tryAlternativeMailFunctions() {
+        $alternativeFunctions = [
+            // ISPConfig 3.x Varianten
+            ['function' => 'mail_domain_get', 'params' => [[]]],
+            ['function' => 'mail_alias_get', 'params' => [[]]],
+            ['function' => 'mail_forward_get', 'params' => [[]]],
+            
+            // Mit spezifischen Client-IDs
+            ['function' => 'mail_user_get', 'params' => [0]], // Client-ID 0
+            ['function' => 'mail_user_get', 'params' => [1]], // Client-ID 1
+            
+            // Mit leeren Filtern
+            ['function' => 'mail_user_get', 'params' => [['server_id' => 1]]],
+            ['function' => 'mail_user_get', 'params' => [['sys_userid' => 1]]],
+        ];
+
+        foreach ($alternativeFunctions as $method) {
+            try {
+                $function = $method['function'];
+                $params = array_merge([$this->session_id], $method['params']);
+
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: Teste alternative Funktion {$function} mit Parametern: " . json_encode($params));
+                }
+
+                $result = call_user_func_array([$this->client, $function], $params);
+
+                if ($result && is_array($result) && count($result) > 0) {
+                    if ($this->debug_mode) {
+                        error_log("ISPConfig: Alternative Funktion {$function} erfolgreich: " . count($result) . " Einträge");
+                    }
+
+                    // Transformiere verschiedene Datentypen zu E-Mail-Format
+                    return $this->transformToEmailFormat($result, $function);
+                }
+
+            } catch (Exception $e) {
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: Alternative Funktion {$method['function']} Fehler: " . $e->getMessage());
+                }
+                continue;
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Transformiert verschiedene ISPConfig-Datentypen zu E-Mail-Format
+     */
+    private function transformToEmailFormat($data, $sourceFunction) {
+        $emails = [];
+
+        foreach ($data as $item) {
+            $email = null;
+
+            switch ($sourceFunction) {
+                case 'mail_domain_get':
+                    // Domain-Daten zu Standard-E-Mail transformieren
+                    if (isset($item['domain'])) {
+                        $email = [
+                            'mailuser_id' => $item['domain_id'] ?? uniqid(),
+                            'email' => 'postmaster@' . $item['domain'],
+                            'login' => 'postmaster',
+                            'name' => 'Postmaster',
+                            'domain' => $item['domain'],
+                            'quota' => '1000',
+                            'active' => $item['active'] ?? 'y'
+                        ];
+                    }
+                    break;
+
+                case 'mail_alias_get':
+                    // Alias-Daten transformieren
+                    if (isset($item['source']) && isset($item['destination'])) {
+                        $email = [
+                            'mailuser_id' => $item['mail_forwarding_id'] ?? uniqid(),
+                            'email' => $item['source'],
+                            'login' => explode('@', $item['source'])[0] ?? '',
+                            'name' => 'Alias',
+                            'domain' => explode('@', $item['source'])[1] ?? '',
+                            'quota' => '0',
+                            'active' => $item['active'] ?? 'y'
+                        ];
+                    }
+                    break;
+
+                case 'mail_user_get':
+                default:
+                    // Standard E-Mail-User Daten
+                    if (isset($item['email'])) {
+                        $email = $item;
+                    }
+                    break;
+            }
+
+            if ($email) {
+                $emails[] = DataMapper::mapToEmailAccount($email);
+            }
+        }
+
+        return $emails;
+    }
+
+    /**
+     * Extrahiert Domain aus E-Mail-Adresse
+     */
+    private function extractDomainFromEmail($email) {
+        $parts = explode('@', $email);
+        return isset($parts[1]) ? $parts[1] : '';
+    }
+
+    /**
+     * Test-Funktion für spezifische SOAP-Parameter
+     */
+    public function testMailUserGetParameters() {
+        $testCases = [
+            // Test 1: Mit Filter-Array
+            ['filter' => ['active' => 'y']],
+            ['filter' => []],
+            
+            // Test 2: Mit Primary-ID
+            ['primary_id' => 0],
+            ['primary_id' => 1],
+            ['primary_id' => ''],
+            
+            // Test 3: Mit Server-ID
+            ['server_id' => 1],
+            
+            // Test 4: Mit Client-ID
+            ['client_id' => 1],
+            ['client_id' => 0],
+            
+            // Test 5: Kombinationen
+            ['sys_userid' => 1, 'active' => 'y'],
+        ];
+
+        $results = [];
+
+        foreach ($testCases as $index => $testCase) {
+            try {
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: Teste mail_user_get Fall " . ($index + 1) . ": " . json_encode($testCase));
+                }
+
+                $result = $this->client->mail_user_get($this->session_id, $testCase);
+                
+                $results[$index] = [
+                    'parameters' => $testCase,
+                    'success' => true,
+                    'result_type' => gettype($result),
+                    'result_count' => is_array($result) ? count($result) : 0,
+                    'sample_data' => is_array($result) && count($result) > 0 ? $result[0] : $result
+                ];
+
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: Test Fall " . ($index + 1) . " erfolgreich: " . 
+                        (is_array($result) ? count($result) . " Einträge" : "Einzelresultat"));
+                }
+
+            } catch (Exception $e) {
+                $results[$index] = [
+                    'parameters' => $testCase,
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ];
+
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: Test Fall " . ($index + 1) . " Fehler: " . $e->getMessage());
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Debug-Funktion: Zeigt alle verfügbaren SOAP-Funktionen
+     */
+    private function getAvailableSoapFunctions() {
+        $functions = [];
+        
+        try {
+            // Methode 1: __getFunctions()
+            if (method_exists($this->client, '__getFunctions')) {
+                $soapFunctions = $this->client->__getFunctions();
+                if (is_array($soapFunctions)) {
+                    $functions = array_merge($functions, $soapFunctions);
+                }
+            }
+        } catch (Exception $e) {
+            if ($this->debug_mode) {
+                error_log("ISPConfig: __getFunctions() fehlgeschlagen: " . $e->getMessage());
+            }
+        }
+
+        // Methode 2: Bekannte ISPConfig-Funktionen testen
+        $knownFunctions = [
+            // Mail-Funktionen (verschiedene ISPConfig-Versionen)
+            'mail_user_get', 'mail_user_add', 'mail_user_update', 'mail_user_delete',
+            'mail_get', 'mail_add', 'mail_update', 'mail_delete',
+            'mail_mailbox_get', 'mail_mailbox_add', 'mail_mailbox_update', 'mail_mailbox_delete',
+            'mail_domain_get', 'mail_domain_add', 'mail_domain_update', 'mail_domain_delete',
+            'mail_alias_get', 'mail_alias_add', 'mail_alias_update', 'mail_alias_delete',
+            'mail_forward_get', 'mail_forward_add', 'mail_forward_update', 'mail_forward_delete',
+            
+            // Client-Funktionen
+            'client_get', 'client_get_all', 'client_add', 'client_update', 'client_delete',
+            'client_get_by_username', 'client_get_by_groupid',
+            
+            // Server-Funktionen
+            'server_get', 'server_get_serverid_by_ip', 'server_ip_get', 'server_ip_add',
+            
+            // Allgemeine Funktionen
+            'login', 'logout', 'get_function_list'
+        ];
+
+        foreach ($knownFunctions as $func) {
+            if (method_exists($this->client, $func)) {
+                $functions[] = $func;
+            }
+        }
+
+        return array_unique($functions);
+    }
+
+    /**
+     * Findet Mail-relevante Funktionen
+     */
+    private function findMailFunctions($functions) {
+        $mailFunctions = [];
+        
+        foreach ($functions as $func) {
+            // Suche nach Funktionen die "mail" enthalten und "get" haben
+            if (stripos($func, 'mail') !== false && stripos($func, 'get') !== false) {
+                $mailFunctions[] = $func;
+            }
+        }
+
+        // Priorisierung der Funktionen nach Wahrscheinlichkeit
+        $priorityOrder = [
+            'mail_user_get',
+            'mail_get',
+            'mail_mailbox_get',
+            'mail_domain_get',
+            'mail_alias_get',
+            'mail_forward_get'
+        ];
+
+        $sortedFunctions = [];
+        foreach ($priorityOrder as $priority) {
+            if (in_array($priority, $mailFunctions)) {
+                $sortedFunctions[] = $priority;
+            }
+        }
+
+        // Füge restliche gefundene Funktionen hinzu
+        foreach ($mailFunctions as $func) {
+            if (!in_array($func, $sortedFunctions)) {
+                $sortedFunctions[] = $func;
+            }
+        }
+
+        return $sortedFunctions;
+    }
+
+    /**
+     * Findet Client-relevante Funktionen
+     */
+    private function findClientFunctions($functions) {
+        $clientFunctions = [];
+        
+        foreach ($functions as $func) {
+            if (stripos($func, 'client') !== false && stripos($func, 'get') !== false) {
+                $clientFunctions[] = $func;
+            }
+        }
+
+        return $clientFunctions;
+    }
+
+    /**
+     * Ruft eine Mail-Funktion mit verschiedenen Parameter-Kombinationen auf
+     */
+    private function callMailFunction($function, $filter) {
+        $paramCombinations = [
+            // Standard-Parameter
+            [$this->session_id, $filter],
+            [$this->session_id, []],
+            
+            // Mit Client-ID
+            [$this->session_id, 0, $filter],
+            [$this->session_id, 1, $filter],
+            [$this->session_id, 0, []],
+            [$this->session_id, 1, []],
+            
+            // Nur Session-ID
+            [$this->session_id],
+            
+            // Mit Primary-ID
+            [$this->session_id, ['primary_id' => '']],
+            [$this->session_id, ['primary_id' => 0]],
+        ];
+
+        foreach ($paramCombinations as $params) {
+            try {
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: Teste {$function} mit Parametern: " . json_encode($params));
+                }
+
+                $result = call_user_func_array([$this->client, $function], $params);
+                
+                if ($result && is_array($result) && count($result) > 0) {
+                    return $result;
+                }
+
+            } catch (Exception $e) {
+                if ($this->debug_mode) {
+                    error_log("ISPConfig: {$function} Parameter-Kombination fehlgeschlagen: " . $e->getMessage());
+                }
+                continue;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Ruft eine Client-Funktion auf
+     */
+    private function callClientFunction($function) {
+        try {
+            return $this->client->$function($this->session_id);
+        } catch (Exception $e) {
+            if ($this->debug_mode) {
+                error_log("ISPConfig: Client-Funktion {$function} fehlgeschlagen: " . $e->getMessage());
+            }
             return null;
         }
     }
+
+    /**
+     * Extrahiert E-Mail-Informationen aus Client-Daten
+     */
+    private function extractEmailsFromClients($clients) {
+        $emails = [];
+        
+        foreach ($clients as $client) {
+            // Versuche E-Mail-Informationen aus Client-Daten zu extrahieren
+            if (isset($client['email']) && !empty($client['email'])) {
+                $emails[] = [
+                    'mailuser_id' => $client['client_id'] ?? $client['id'] ?? uniqid(),
+                    'email' => $client['email'],
+                    'login' => $client['username'] ?? $client['contact_name'] ?? '',
+                    'name' => $client['contact_name'] ?? $client['company_name'] ?? '',
+                    'domain' => $this->extractDomainFromEmail($client['email']),
+                    'quota' => '1000', // Default
+                    'postfix' => 'y'
+                ];
+            }
+        }
+
+        return $emails;
+    }
+
+    /**
+     * Direkte SOAP-Calls für spezielle ISPConfig-Versionen
+     */
+    private function tryDirectSoapCalls() {
+        // ISPConfig 3.0.x direkte Calls
+        $directMethods = [
+            'get_mail_users',
+            'list_mail_users',
+            'get_all_mail_users',
+            'fetch_mail_users'
+        ];
+
+        foreach ($directMethods as $method) {
+            try {
+                if (method_exists($this->client, $method)) {
+                    $result = $this->client->$method($this->session_id);
+                    if ($result && is_array($result)) {
+                        if ($this->debug_mode) {
+                            error_log("ISPConfig: Direkter Call {$method} erfolgreich");
+                        }
+                        return array_map(function($email) {
+                            return DataMapper::mapToEmailAccount($email);
+                        }, $result);
+                    }
+                }
+            } catch (Exception $e) {
+                continue;
+            }
+        }
+
+        return null;
+    }
+
 
     public function getClients($filter = []) {
         try {

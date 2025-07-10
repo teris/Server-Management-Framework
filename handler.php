@@ -192,8 +192,8 @@ function handleAjaxRequest($action, $data) {
             } catch (Exception $e) {
                 // Fallback zu Mock-Daten bei ISPConfig-Problemen
                 $mockEmails = [
-                    ['mailuser_id' => '1', 'email' => 'admin@example.com', 'login' => 'admin', 'name' => 'Administrator', 'domain' => 'example.com', 'quota' => '1000', 'active' => 'y', 'autoresponder' => 'n', 'forward_to' => ''],
-                    ['mailuser_id' => '2', 'email' => 'support@example.com', 'login' => 'support', 'name' => 'Support Team', 'domain' => 'example.com', 'quota' => '2000', 'active' => 'y', 'autoresponder' => 'n', 'forward_to' => '']
+                    ['mailuser_id' => '1', 'email' => 'admin@example.com', 'login' => 'admin', 'name' => 'Administrator', 'domain' => 'example.com', 'quota' => '1000', 'postfix' => 'y', 'autoresponder' => 'n', 'forward_to' => ''],
+                    ['mailuser_id' => '2', 'email' => 'support@example.com', 'login' => 'support', 'name' => 'Support Team', 'domain' => 'example.com', 'quota' => '2000', 'postfix' => 'y', 'autoresponder' => 'n', 'forward_to' => '']
                 ];
                 return ['success' => true, 'data' => $mockEmails, 'warning' => 'Verwendet Demo-Daten (ISPConfig-Fehler: ' . $e->getMessage() . ')'];
             }
@@ -385,9 +385,9 @@ function handleAjaxRequest($action, $data) {
         case 'test_email_mock':
             // Mock E-Mail Daten für Testing
             $mockEmails = [
-                ['mailuser_id' => '1', 'email' => 'admin@example.com', 'login' => 'admin', 'name' => 'Administrator', 'domain' => 'example.com', 'quota' => '1000', 'active' => 'y', 'autoresponder' => 'n', 'forward_to' => ''],
-                ['mailuser_id' => '2', 'email' => 'support@example.com', 'login' => 'support', 'name' => 'Support Team', 'domain' => 'example.com', 'quota' => '2000', 'active' => 'y', 'autoresponder' => 'n', 'forward_to' => ''],
-                ['mailuser_id' => '3', 'email' => 'info@test.com', 'login' => 'info', 'name' => 'Information', 'domain' => 'test.com', 'quota' => '500', 'active' => 'y', 'autoresponder' => 'y', 'forward_to' => 'admin@example.com']
+                ['mailuser_id' => '1', 'email' => 'admin@example.com', 'login' => 'admin', 'name' => 'Administrator', 'domain' => 'example.com', 'quota' => '1000', 'postfix' => 'y', 'autoresponder' => 'n', 'forward_to' => ''],
+                ['mailuser_id' => '2', 'email' => 'support@example.com', 'login' => 'support', 'name' => 'Support Team', 'domain' => 'example.com', 'quota' => '2000', 'postfix' => 'y', 'autoresponder' => 'n', 'forward_to' => ''],
+                ['mailuser_id' => '3', 'email' => 'info@test.com', 'login' => 'info', 'name' => 'Information', 'domain' => 'test.com', 'quota' => '500', 'postfix' => 'y', 'autoresponder' => 'y', 'forward_to' => 'admin@example.com']
             ];
             return ['success' => true, 'data' => $mockEmails, 'message' => 'Mock E-Mail Daten geladen'];
             
@@ -674,6 +674,39 @@ function handleAjaxRequest($action, $data) {
 				}, $failoverIPs)];
 			} catch (Exception $e) {
 				return ['success' => false, 'error' => 'Fehler beim Laden der Failover IPs: ' . $e->getMessage()];
+			}
+			
+		case 'test_mail_user_get_parameters':
+			try {
+				$ispconfigGet = new ISPConfigGet();
+				$result = $ispconfigGet->testMailUserGetParameters();
+				return ['success' => true, 'data' => $result];
+			} catch (Exception $e) {
+				return [
+					'success' => false,
+					'error' => 'Parameter-Test fehlgeschlagen: ' . $e->getMessage()
+				];
+			}
+
+		// Verbesserte E-Mail-Abfrage mit Debug
+		case 'get_emails_with_debug':
+			try {
+				$ispconfigGet = new ISPConfigGet();
+				$emails = $ispconfigGet->getEmailAccounts(['postfix' => 'y']);
+				
+				return [
+					'success' => true,
+					'data' => array_map(function($email) {
+						return $email->toArray();
+					}, $emails),
+					'count' => count($emails),
+					'debug' => 'Neue Implementierung mit korrekten Parametern'
+				];
+			} catch (Exception $e) {
+				return [
+					'success' => false,
+					'error' => 'Debug E-Mail-Abfrage fehlgeschlagen: ' . $e->getMessage()
+				];
 			}
 			
 		// ===== ENDE VIRTUAL MAC ACTIONS =====    
