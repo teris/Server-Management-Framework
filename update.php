@@ -401,81 +401,341 @@ class DatabaseUpdater {
      * Synchronisiert ISPConfig E-Mail Accounts
      */
     private function syncISPConfigEmails() {
-        $this->output("📧 Synchronisiere ISPConfig E-Mail Accounts...\n");
-        
-        try {
-            $emails = $this->serviceManager->getISPConfigEmails();
-            $conn = $this->db->getConnection();
-            
-            foreach ($emails as $email) {
-                try {
-                    // Domain aus E-Mail extrahieren
-                    $emailParts = explode('@', $email->email);
-                    $domain = isset($emailParts[1]) ? $emailParts[1] : '';
-                    
-                    // Prüfen ob E-Mail bereits existiert
-                    $stmt = $conn->prepare("SELECT id FROM email_accounts WHERE email_address = ?");
-                    $stmt->execute([$email->email]);
-                    $exists = $stmt->fetch();
-                    
-                    if ($exists) {
-                        // Update
-                        $stmt = $conn->prepare("
-                            UPDATE email_accounts SET 
-                                login_name = ?, full_name = ?, domain = ?, 
-                                quota_mb = ?, active = ?, autoresponder = ?, 
-                                forward_to = ?, updated_at = NOW()
-                            WHERE email_address = ?
-                        ");
-                        
-                        $stmt->execute([
-                            $email->login,
-                            $email->name,
-                            $domain,
-                            $email->quota,
-                            $email->active,
-                            $email->autoresponder,
-                            $email->forward_to,
-                            $email->email
-                        ]);
-                        
-                        $this->stats['emails']['updated']++;
-                    } else {
-                        // Insert
-                        $stmt = $conn->prepare("
-                            INSERT INTO email_accounts 
-                            (email_address, login_name, full_name, domain, quota_mb, 
-                             active, autoresponder, forward_to, created_at) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
-                        ");
-                        
-                        $stmt->execute([
-                            $email->email,
-                            $email->login,
-                            $email->name,
-                            $domain,
-                            $email->quota,
-                            $email->active,
-                            $email->autoresponder,
-                            $email->forward_to
-                        ]);
-                        
-                        $this->stats['emails']['added']++;
-                    }
-                    
-                } catch (Exception $e) {
-                    $this->output("   ⚠️  Fehler bei E-Mail {$email->email}: " . $e->getMessage() . "\n");
-                    $this->stats['emails']['errors']++;
-                }
-            }
-            
-            $this->output("   ✅ E-Mail Accounts synchronisiert: {$this->stats['emails']['added']} neu, {$this->stats['emails']['updated']} aktualisiert\n\n");
-            
-        } catch (Exception $e) {
-            $this->output("   ❌ Fehler beim Abrufen der E-Mail Accounts: " . $e->getMessage() . "\n\n");
-        }
-    }
+    $this->output("📧 Synchronisiere ISPConfig E-Mail Accounts...\n");
     
+		try {
+			$emails = $this->serviceManager->getISPConfigEmails();
+			$conn = $this->db->getConnection();
+			
+			foreach ($emails as $email) {
+				try {
+					// Domain aus E-Mail extrahieren
+					$emailParts = explode('@', $email->email ?: '');
+					$domain = isset($emailParts[1]) ? $emailParts[1] : '';
+					
+					// *** QUOTA FIX - Sichere Konvertierung ***
+					$quotaMB = $this->convertQuotaToMB($email->quota);
+					
+					// Debug-Ausgabe für problematische Werte
+					if ($quotaMB === null || $quotaMB < 0 || $quotaMB > 999999) {
+						$this->output("   🔍 Quota-Debug für {$email->email}: Original='{$email->quota}', Konvertiert='{$quotaMB}'\n");
+					}
+					
+					// Weitere Feld-Validierungen
+					$loginName = $this->sanitizeString($email->login, 50);
+					$fullName = $this->sanitizeString($email->name, 100);
+					$forwardTo = $this->sanitizeString($email->forward_to, 255);
+					
+					// Aktivitäts-Status normalisieren
+					$activeStatus = $this->normalizeActiveStatus($email->active);
+					
+					// Prüfen ob E-Mail bereits existiert
+					$stmt = $conn->prepare("SELECT id FROM email_accounts WHERE email_address = ?");
+					$stmt->execute([$email->email]);
+					$exists = $stmt->fetch();
+					
+					if ($exists) {
+						// Update
+						$stmt = $conn->prepare("
+							UPDATE email_accounts SET 
+								login_name = ?, full_name = ?, domain = ?, 
+								quota_mb = ?, active = ?, autoresponder = ?, 
+								forward_to = ?, updated_at = NOW()
+							WHERE email_address = ?
+						");
+						
+						$stmt->execute([
+							$loginName,
+							$fullName,
+							$domain,
+							$quotaMB,
+							$activeStatus,
+							$email->autoresponder ?: 'n',
+							$forwardTo,
+							$email->email
+						]);
+						
+						$this->stats['emails']['updated']++;
+					} else {
+						// Insert
+						$stmt = $conn->prepare("
+							INSERT INTO email_accounts 
+							(email_address, login_name, full_name, domain, quota_mb, 
+							 active, autoresponder, forward_to, created_at) 
+							VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+						");
+						
+						$stmt->execute([
+							$email->email,
+							$loginName,
+							$fullName,
+							$domain,
+							$quotaMB,
+							$activeStatus,
+							$email->autoresponder ?: 'n',
+							$forwardTo
+						]);
+						
+						$this->stats['emails']['added']++;
+					}
+					
+				} catch (Exception $e) {
+					$this->output("   ⚠️  Fehler bei E-Mail {$email->email}: " . $e->getMessage() . "\n");
+					$this->output("       Quota-Rohdaten: " . var_export($email->quota, true) . "\n");
+					$this->stats['emails']['errors']++;
+				}
+			}
+        
+        $this->output("   ✅ E-Mail Accounts synchronisiert: {$this->stats['emails']['added']} neu, {$this->stats['emails']['updated']} aktualisiert\n\n");
+        
+		} catch (Exception $e) {
+			$this->output("   ❌ Fehler beim Abrufen der E-Mail Accounts: " . $e->getMessage() . "\n\n");
+		}
+	}
+	
+	private function convertQuotaToMB($quota) {
+		// Null oder leer
+		if ($quota === null || $quota === '' || $quota === false) {
+			return 1000; // Standard 1GB
+		}
+		
+		// Bereits numerisch und im erlaubten Bereich
+		if (is_numeric($quota)) {
+			$quotaInt = (int)$quota;
+			
+			// Negative Werte = Unbegrenzt (setze auf 0)
+			if ($quotaInt < 0) {
+				return 0;
+			}
+			
+			// Sehr große Werte begrenzen (Max 999GB)
+			if ($quotaInt > 999999) {
+				return 999999;
+			}
+			
+			return $quotaInt;
+		}
+		
+		// String-Werte mit Einheiten (z.B. "1000M", "2G", "500MB")
+		if (is_string($quota)) {
+			$quota = trim(strtoupper($quota));
+			
+			// Entferne bekannte Einheiten und konvertiere
+			if (preg_match('/^(\d+(?:\.\d+)?)\s*(B|KB|MB|GB|TB|K|M|G|T)?$/', $quota, $matches)) {
+				$value = floatval($matches[1]);
+				$unit = isset($matches[2]) ? $matches[2] : 'MB';
+				
+				switch ($unit) {
+					case 'B':
+						return max(1, (int)($value / (1024 * 1024))); // Bytes zu MB
+					case 'KB':
+					case 'K':
+						return max(1, (int)($value / 1024)); // KB zu MB
+					case 'MB':
+					case 'M':
+						return (int)$value; // Bereits in MB
+					case 'GB':
+					case 'G':
+						return min(999999, (int)($value * 1024)); // GB zu MB
+					case 'TB':
+					case 'T':
+						return 999999; // TB ist zu groß, setze Maximum
+					default:
+						return (int)$value; // Fallback: als MB behandeln
+				}
+			}
+			
+			// Versuche nur den numerischen Teil zu extrahieren
+			if (preg_match('/(\d+)/', $quota, $matches)) {
+				$numericValue = (int)$matches[1];
+				return min(999999, max(1, $numericValue));
+			}
+		}
+		
+		// Fallback für unbekannte Formate
+		return 1000; // Standard 1GB
+	}
+
+    private function normalizeActiveStatus($active) {
+		if ($active === 'y' || $active === '1' || $active === 1 || $active === true || $active === 'yes') {
+			return 'y';
+		} elseif ($active === 'n' || $active === '0' || $active === 0 || $active === false || $active === 'no') {
+			return 'n';
+		}
+		
+		// Fallback: wenn E-Mail-Daten vorhanden sind, ist Account vermutlich aktiv
+		return 'y';
+	}
+
+	private function sanitizeString($value, $maxLength = 255) {
+		if ($value === null || $value === false) {
+			return '';
+		}
+		
+		$cleaned = trim((string)$value);
+		
+		// Kürze zu lange Strings
+		if (strlen($cleaned) > $maxLength) {
+			$cleaned = substr($cleaned, 0, $maxLength - 3) . '...';
+		}
+		
+		return $cleaned;
+	}	
+
+	public function analyzeEmailQuotas() {
+		$this->output("🔍 Analysiere E-Mail Quota-Werte...\n\n");
+		
+		try {
+			$emails = $this->serviceManager->getISPConfigEmails();
+			
+			$quotaAnalysis = [
+				'total_emails' => count($emails),
+				'quota_formats' => [],
+				'quota_values' => [],
+				'problematic_quotas' => [],
+				'sample_emails' => []
+			];
+			
+			foreach ($emails as $index => $email) {
+				$originalQuota = $email->quota;
+				$convertedQuota = $this->convertQuotaToMB($originalQuota);
+				
+				// Sammle Quota-Formate
+				$quotaType = gettype($originalQuota);
+				$quotaFormatKey = $quotaType . ': ' . $originalQuota;
+				
+				if (!isset($quotaAnalysis['quota_formats'][$quotaFormatKey])) {
+					$quotaAnalysis['quota_formats'][$quotaFormatKey] = 0;
+				}
+				$quotaAnalysis['quota_formats'][$quotaFormatKey]++;
+				
+				// Sammle konvertierte Werte
+				if (!isset($quotaAnalysis['quota_values'][$convertedQuota])) {
+					$quotaAnalysis['quota_values'][$convertedQuota] = 0;
+				}
+				$quotaAnalysis['quota_values'][$convertedQuota]++;
+				
+				// Identifiziere problematische Quotas
+				if ($convertedQuota === null || $convertedQuota < 0 || $convertedQuota > 999999) {
+					$quotaAnalysis['problematic_quotas'][] = [
+						'email' => $email->email,
+						'original' => $originalQuota,
+						'converted' => $convertedQuota,
+						'type' => $quotaType
+					];
+				}
+				
+				// Sammle erste 5 E-Mails als Beispiele
+				if ($index < 5) {
+					$quotaAnalysis['sample_emails'][] = [
+						'email' => $email->email,
+						'original_quota' => $originalQuota,
+						'converted_quota' => $convertedQuota,
+						'quota_type' => $quotaType
+					];
+				}
+			}
+			
+			// Ausgabe der Analyse
+			$this->output("📊 QUOTA-ANALYSE ERGEBNISSE:\n");
+			$this->output("Gesamt E-Mails: {$quotaAnalysis['total_emails']}\n\n");
+			
+			$this->output("🔢 Gefundene Quota-Formate:\n");
+			foreach ($quotaAnalysis['quota_formats'] as $format => $count) {
+				$this->output("  - {$format} ({$count}x)\n");
+			}
+			
+			$this->output("\n📏 Konvertierte Quota-Werte:\n");
+			ksort($quotaAnalysis['quota_values']);
+			foreach ($quotaAnalysis['quota_values'] as $value => $count) {
+				$this->output("  - {$value} MB ({$count}x)\n");
+			}
+			
+			if (!empty($quotaAnalysis['problematic_quotas'])) {
+				$this->output("\n⚠️  PROBLEMATISCHE QUOTA-WERTE:\n");
+				foreach ($quotaAnalysis['problematic_quotas'] as $problem) {
+					$this->output("  - {$problem['email']}: '{$problem['original']}' → '{$problem['converted']}' ({$problem['type']})\n");
+				}
+			} else {
+				$this->output("\n✅ Keine problematischen Quota-Werte gefunden!\n");
+			}
+			
+			$this->output("\n📧 BEISPIEL E-MAILS:\n");
+			foreach ($quotaAnalysis['sample_emails'] as $sample) {
+				$this->output("  - {$sample['email']}: '{$sample['original_quota']}' → {$sample['converted_quota']} MB\n");
+			}
+			
+			return $quotaAnalysis;
+			
+		} catch (Exception $e) {
+			$this->output("❌ Quota-Analyse fehlgeschlagen: " . $e->getMessage() . "\n");
+			return false;
+		}
+	}
+
+	public function checkDatabaseSchema() {
+		$this->output("🗄️  Prüfe Datenbank-Schema...\n\n");
+		
+		try {
+			$conn = $this->db->getConnection();
+			
+			// Prüfe email_accounts Tabelle
+			$stmt = $conn->prepare("DESCRIBE email_accounts");
+			$stmt->execute();
+			$columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			
+			$this->output("📋 email_accounts Tabellen-Schema:\n");
+			foreach ($columns as $column) {
+				$this->output("  - {$column['Field']}: {$column['Type']} (Null: {$column['Null']}, Default: {$column['Default']})\n");
+				
+				// Spezielle Prüfung für quota_mb Feld
+				if ($column['Field'] === 'quota_mb') {
+					$this->output("    ⚠️  QUOTA-FELD DETAILS:\n");
+					$this->output("        Typ: {$column['Type']}\n");
+					
+					// Bestimme den erlaubten Wertebereich
+					if (stripos($column['Type'], 'tinyint') !== false) {
+						$this->output("        Bereich: 0 - 255 (zu klein für Quota-Werte!)\n");
+						$this->output("        🔧 EMPFEHLUNG: Ändere zu INT oder MEDIUMINT\n");
+					} elseif (stripos($column['Type'], 'smallint') !== false) {
+						$this->output("        Bereich: 0 - 65535 (kann für große Quotas zu klein sein)\n");
+					} elseif (stripos($column['Type'], 'mediumint') !== false) {
+						$this->output("        Bereich: 0 - 16777215 (gut für Quota-Werte)\n");
+					} elseif (stripos($column['Type'], 'int') !== false) {
+						$this->output("        Bereich: 0 - 4294967295 (perfekt für Quota-Werte)\n");
+					}
+				}
+			}
+			
+			return true;
+			
+		} catch (Exception $e) {
+			$this->output("❌ Schema-Prüfung fehlgeschlagen: " . $e->getMessage() . "\n");
+			return false;
+		}
+	}
+
+	public function fixQuotaColumn() {
+		$this->output("🔧 Repariere quota_mb Spalte...\n");
+		
+		try {
+			$conn = $this->db->getConnection();
+			
+			// Ändere quota_mb zu einem größeren Datentyp
+			$stmt = $conn->prepare("ALTER TABLE email_accounts MODIFY COLUMN quota_mb INT UNSIGNED DEFAULT 1000");
+			$stmt->execute();
+			
+			$this->output("✅ quota_mb Spalte erfolgreich zu INT UNSIGNED geändert\n");
+			$this->output("   Neuer Wertebereich: 0 - 4,294,967,295 MB\n\n");
+			
+			return true;
+			
+		} catch (Exception $e) {
+			$this->output("❌ Spalten-Reparatur fehlgeschlagen: " . $e->getMessage() . "\n");
+			return false;
+		}
+	}
+ 
     /**
      * Synchronisiert OVH Domains
      */
