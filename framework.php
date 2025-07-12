@@ -96,6 +96,16 @@ class Database {
             }
         }
     }
+    
+    public function clearActivityLogs() {
+        try {
+            $stmt = $this->connection->prepare("DELETE FROM activity_log");
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log("Database clearActivityLogs error: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 
 // =============================================================================
@@ -2543,6 +2553,128 @@ class ServiceManager {
         }
 
         return $result;
+    }
+}
+
+// =============================================================================
+// MODULE HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Gibt alle verfügbaren Module zurück
+ */
+function getAllModules() {
+    $modules = [];
+    $module_dir = __DIR__ . '/module/';
+    
+    if (!is_dir($module_dir)) {
+        return $modules;
+    }
+    
+    $dirs = glob($module_dir . '*', GLOB_ONLYDIR);
+    
+    foreach ($dirs as $dir) {
+        $module_key = basename($dir);
+        
+        // Überspringe spezielle Verzeichnisse
+        if (in_array($module_key, ['.', '..', 'assets', 'templates'])) {
+            continue;
+        }
+        
+        $config_file = $dir . '/config.php';
+        $module_file = $dir . '/Module.php';
+        
+        if (file_exists($module_file)) {
+            $config = [
+                'key' => $module_key,
+                'path' => $dir,
+                'enabled' => true, // Standardmäßig aktiviert
+                'name' => ucfirst($module_key),
+                'icon' => '📦',
+                'description' => 'Module ' . ucfirst($module_key),
+                'version' => '1.0.0',
+                'author' => 'System',
+                'dependencies' => []
+            ];
+            
+            // Lade spezifische Konfiguration falls vorhanden
+            if (file_exists($config_file)) {
+                $module_config = include $config_file;
+                $config = array_merge($config, $module_config);
+            }
+            
+            $modules[$module_key] = $config;
+        }
+    }
+    
+    return $modules;
+}
+
+/**
+ * Gibt nur die aktivierten Module zurück
+ */
+function getEnabledModules() {
+    $all_modules = getAllModules();
+    $enabled_modules = [];
+    
+    foreach ($all_modules as $key => $module) {
+        if ($module['enabled']) {
+            $enabled_modules[$key] = $module;
+        }
+    }
+    
+    return $enabled_modules;
+}
+
+/**
+ * Gibt die Konfiguration für ein spezifisches Modul zurück
+ */
+function getModuleConfig($module_key) {
+    return getPluginConfig($module_key);
+}
+
+/**
+ * Prüft ob ein Benutzer auf ein Modul zugreifen darf
+ */
+function canAccessModule($module_key, $user_role) {
+    $config = getModuleConfig($module_key);
+    
+    if (!$config) {
+        return false;
+    }
+    
+    // Standardmäßig haben alle Benutzer Zugriff
+    if (!isset($config['permissions'])) {
+        return true;
+    }
+    
+    // Prüfe spezifische Berechtigungen
+    $permissions = $config['permissions'];
+    
+    // Admin hat immer Zugriff
+    if ($user_role === 'admin') {
+        return true;
+    }
+    
+    // Prüfe Benutzerrolle
+    if (isset($permissions['roles'])) {
+        if (!in_array($user_role, $permissions['roles'])) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Log-Funktion für Aktivitäten
+ */
+function logActivity($message, $level = 'INFO') {
+    try {
+        $db = Database::getInstance();
+        $db->logAction('MODULE_LOG', $message, $level);
+    } catch (Exception $e) {
+        error_log("Activity log error: " . $e->getMessage());
     }
 }
 

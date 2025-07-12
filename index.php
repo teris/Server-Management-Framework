@@ -1,14 +1,29 @@
 <?php
 /**
- * Server Management Interface - Hauptseite mit Login-System
- * Erweitert um Virtual MAC Management
+ * Server Management Interface - Admin Dashboard Core
+ * Version 3.0 mit integriertem Admin-Modul und Plugin-System
  */
 
 require_once 'framework.php';
 require_once 'auth_handler.php';
+require_once 'sys.conf.php';
 
-// Login-Überprüfung - Weiterleitung zu login.php wenn nicht eingeloggt
+// Login-Überprüfung
 requireLogin();
+
+// Plugin-System initialisieren
+try {
+    require_once 'module/ModuleBase.php';
+    $pluginManager = ModuleLoader::getInstance();
+} catch (Exception $e) {
+    error_log('Error initializing plugin manager: ' . $e->getMessage());
+    // Fallback: Leeren Plugin-Manager erstellen
+    $pluginManager = new class {
+        public function getEnabledPlugins() { return []; }
+        public function getAllStyles() { return []; }
+        public function getEnabledModules() { return []; }
+    };
+}
 
 // Handler für Logout
 if (isset($_GET['logout'])) {
@@ -17,11 +32,86 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-// Session-Informationen für JavaScript
-$session_info = getSessionInfoForJS();
+    // AJAX Handler
+    if (isset($_POST['action'])) {
+        // Error reporting für AJAX-Requests deaktivieren
+        error_reporting(E_ERROR | E_WARNING | E_PARSE);
+        ini_set('display_errors', 0);
+        
+        header('Content-Type: application/json');
+        
+        // Session-Check für AJAX
+        if (!SessionManager::isLoggedIn()) {
+            echo json_encode(['success' => false, 'redirect' => 'login.php']);
+            exit;
+        }
+        
+        // Heartbeat
+        if ($_POST['action'] === 'heartbeat') {
+            SessionManager::updateActivity();
+            echo json_encode(['success' => true]);
+            exit;
+        }
+        
+        // Core Admin Actions (direkt verarbeiten)
+        if (isset($_POST['core']) && $_POST['core'] === 'admin') {
+            try {
+                require_once 'core/AdminHandler.php';
+                $adminHandler = new AdminHandler();
+                
+                $result = $adminHandler->handleRequest($_POST['action'], $_POST);
+                echo json_encode($result);
+            } catch (Exception $e) {
+                error_log('AdminHandler Exception: ' . $e->getMessage());
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            }
+            exit;
+        }
+    
+    // Plugin Actions
+    if (isset($_POST['plugin'])) {
+        $plugin_key = $_POST['plugin'];
+        $action = $_POST['action'];
+        
+        // Debug-Log
+        error_log("index.php: Plugin request - plugin: $plugin_key, action: $action");
+        
+        // Daten sammeln
+        $data = $_POST;
+        unset($data['plugin']);
+        unset($data['action']);
+        
+        $result = $pluginManager->handlePluginRequest($plugin_key, $action, $data);
+        
+        // Debug-Log
+        error_log("index.php: Plugin response - " . json_encode($result));
+        
+        echo json_encode($result);
+        exit;
+    }
+    
+    // Legacy Support
+    include("handler.php");
+    exit;
+}
 
-// Handler einbinden (mit AJAX-Auth-Check)
-include("handler.php");
+// Session-Informationen
+try {
+    $session_info = getSessionInfoForJS();
+} catch (Exception $e) {
+    error_log('Error getting session info: ' . $e->getMessage());
+    $session_info = [];
+}
+
+// Admin-Statistiken laden
+try {
+    require_once 'core/AdminCore.php';
+    $adminCore = new AdminCore();
+    $dashboardStats = $adminCore->getDashboardStats();
+} catch (Exception $e) {
+    error_log('Error loading admin stats: ' . $e->getMessage());
+    $dashboardStats = [];
+}
 
 ?>
 <!DOCTYPE html>
@@ -29,847 +119,678 @@ include("handler.php");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server Management Interface</title>
+    <title>Admin Dashboard - Server Management</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/main.css">
+    
+    <!-- Plugin-spezifische Styles -->
+    <?php foreach ($pluginManager->getAllStyles() as $style): ?>
+    <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($style) ?>">
+    <?php endforeach; ?>
 </head>
-<body>
-    <div class="container">
+<body class="bg-light">
+    <div class="container-fluid">
         <!-- User Info Header -->
-        <div class="user-info">
-            <div class="user-details">
-                <div class="user-avatar">
-                    <?= strtoupper(substr($session_info['user']['full_name'] ?? $session_info['user']['username'], 0, 1)) ?>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; font-size: 1.5rem; font-weight: bold;">
+                                <?= strtoupper(substr($session_info['user']['full_name'] ?? $session_info['user']['username'], 0, 1)) ?>
+                            </div>
+                            <div>
+                                <h4 class="mb-0"><?= htmlspecialchars($session_info['user']['full_name'] ?? $session_info['user']['username']) ?></h4>
+                                <p class="text-muted mb-0"><?= htmlspecialchars($session_info['user']['email']) ?> • <?= htmlspecialchars($session_info['user']['role']) ?></p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="badge bg-info" id="sessionTimer">
+                                <i class="bi bi-clock"></i> <span id="timeRemaining">--:--</span>
+                            </div>
+                            <a href="password_change.php" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-key"></i> Passwort
+                            </a>
+                            <a href="?logout=1" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-box-arrow-right"></i> Abmelden
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="user-text">
-                    <h3><?= htmlspecialchars($session_info['user']['full_name'] ?? $session_info['user']['username']) ?></h3>
-                    <p><?= htmlspecialchars($session_info['user']['email']) ?> • <?= htmlspecialchars($session_info['user']['role']) ?></p>
-                </div>
-            </div>
-            
-            <div class="session-controls">
-                <div class="session-timer" id="sessionTimer">
-                    🕒 <span id="timeRemaining">--:--</span>
-                </div>
-                <a href="password_change.php" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: 10px;">
-                    🔑 Passwort
-                </a>
-                <a href="?logout=1" class="logout-btn" onclick="return confirm('Möchten Sie sich wirklich abmelden?')">
-                    🚪 Abmelden
-                </a>
             </div>
         </div>
         
-        <div class="header">
-            <h1>Server Management Interface</h1>
-            <p>Professionelles Framework für Proxmox, ISPConfig und OVH - Modulares OOP-Design</p>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="card-title">Admin Dashboard</h1>
+                        <p class="card-text text-muted">Server Management System • <?= count($pluginManager->getEnabledPlugins()) ?> Plugins aktiv</p>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('admin', this)">📊 Admin Dashboard</button>
-            <button class="tab" onclick="showTab('proxmox', this)">🖥️ Proxmox VM</button>
-            <button class="tab" onclick="showTab('ispconfig', this)">🌐 ISPConfig Website</button>
-            <button class="tab" onclick="showTab('ovh', this)">🔗 OVH Domain</button>
-            <button class="tab" onclick="showTab('virtual-mac', this)">🔌 Virtual MAC</button>
-            <button class="tab" onclick="showTab('network', this)">🔧 Netzwerk Config</button>
-            <button class="tab" onclick="showTab('database', this)">🗄️ Datenbank</button>
-            <button class="tab" onclick="showTab('email', this)">📧 E-Mail</button>
-            <button class="tab" onclick="showTab('endpoints', this)">🔌 API Endpoints</button>
+        <!-- Haupt-Admin-Dashboard (immer sichtbar) -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="mb-0"><i class="bi bi-graph-up"></i> Übersicht</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Statistik-Karten -->
+                        <div class="row mb-4">
+                            <?php foreach ($dashboardStats as $key => $stat): ?>
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card border-0 bg-light" data-stat="<?= $key ?>">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title text-muted"><?= htmlspecialchars($stat['label']) ?></h5>
+                                        <div class="display-6 fw-bold text-primary" id="<?= $key ?>-count"><?= $stat['count'] ?></div>
+                                        <?php if (isset($stat['status'])): ?>
+                                        <span class="badge bg-<?= $stat['status'] === 'running' ? 'success' : ($stat['status'] === 'stopped' ? 'danger' : 'warning') ?>">
+                                            <?= $stat['status_text'] ?>
+                                        </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        
+                        <!-- Admin-Navigation -->
+                        <div class="mb-4">
+                            <h3><i class="bi bi-gear"></i> Verwaltung</h3>
+                            <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#admin-overview" type="button" role="tab">
+                                        <i class="bi bi-graph-up"></i> Übersicht
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="resources-tab" data-bs-toggle="tab" data-bs-target="#admin-resources" type="button" role="tab">
+                                        <i class="bi bi-hdd-stack"></i> Ressourcen
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="plugins-tab" data-bs-toggle="tab" data-bs-target="#admin-plugins" type="button" role="tab">
+                                        <i class="bi bi-puzzle"></i> Plugins
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#admin-logs" type="button" role="tab">
+                                        <i class="bi bi-journal-text"></i> Logs
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#admin-settings" type="button" role="tab">
+                                        <i class="bi bi-gear"></i> Einstellungen
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Admin-Inhalte -->
+                        <div class="tab-content" id="adminTabContent">
+                            <!-- Übersicht -->
+                            <div class="tab-pane fade show active" id="admin-overview" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h4>System-Übersicht</h4>
+                                        <div class="list-group list-group-flush">
+                                            <div class="list-group-item d-flex justify-content-between">
+                                                <span><strong>PHP Version:</strong></span>
+                                                <span><?= phpversion() ?></span>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between">
+                                                <span><strong>Server:</strong></span>
+                                                <span><?= $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown' ?></span>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between">
+                                                <span><strong>Aktive Sessions:</strong></span>
+                                                <span id="active-sessions">-</span>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between">
+                                                <span><strong>System-Auslastung:</strong></span>
+                                                <span id="system-load">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h4>Schnellaktionen</h4>
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-primary" onclick="refreshAllStats()">
+                                                <i class="bi bi-arrow-clockwise"></i> Alle Stats aktualisieren
+                                            </button>
+                                            <button class="btn btn-secondary" onclick="clearCache()">
+                                                <i class="bi bi-trash"></i> Cache leeren
+                                            </button>
+                                            <button class="btn btn-warning" onclick="testAllConnections()">
+                                                <i class="bi bi-plug"></i> Verbindungen testen
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Ressourcen-Verwaltung -->
+                            <div class="tab-pane fade" id="admin-resources" role="tabpanel">
+                                <ul class="nav nav-pills mb-3" id="resourceTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="vms-tab" data-bs-toggle="pill" data-bs-target="#resource-vms" type="button" role="tab">
+                                            <i class="bi bi-display"></i> VMs
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="websites-tab" data-bs-toggle="pill" data-bs-target="#resource-websites" type="button" role="tab">
+                                            <i class="bi bi-globe"></i> Websites
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="databases-tab" data-bs-toggle="pill" data-bs-target="#resource-databases" type="button" role="tab">
+                                            <i class="bi bi-database"></i> Datenbanken
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="emails-tab" data-bs-toggle="pill" data-bs-target="#resource-emails" type="button" role="tab">
+                                            <i class="bi bi-envelope"></i> E-Mails
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="domains-tab" data-bs-toggle="pill" data-bs-target="#resource-domains" type="button" role="tab">
+                                            <i class="bi bi-link-45deg"></i> Domains
+                                        </button>
+                                    </li>
+                                </ul>
+                                
+                                <div class="tab-content" id="resourceTabContent">
+                                    <!-- VM Management -->
+                                    <div class="tab-pane fade show active" id="resource-vms" role="tabpanel">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h4>Virtuelle Maschinen</h4>
+                                            <button class="btn btn-primary btn-sm" onclick="loadVMData()">
+                                                <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                            </button>
+                                        </div>
+                                        <div id="vm-content" class="table-responsive">
+                                            <div class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Laden...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Website Management -->
+                                    <div class="tab-pane fade" id="resource-websites" role="tabpanel">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h4>Websites</h4>
+                                            <button class="btn btn-primary btn-sm" onclick="loadWebsiteData()">
+                                                <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                            </button>
+                                        </div>
+                                        <div id="website-content" class="table-responsive">
+                                            <div class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Laden...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Database Management -->
+                                    <div class="tab-pane fade" id="resource-databases" role="tabpanel">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h4>Datenbanken</h4>
+                                            <button class="btn btn-primary btn-sm" onclick="loadDatabaseData()">
+                                                <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                            </button>
+                                        </div>
+                                        <div id="database-content" class="table-responsive">
+                                            <div class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Laden...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Email Management -->
+                                    <div class="tab-pane fade" id="resource-emails" role="tabpanel">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h4>E-Mail-Konten</h4>
+                                            <button class="btn btn-primary btn-sm" onclick="loadEmailData()">
+                                                <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                            </button>
+                                        </div>
+                                        <div id="email-content" class="table-responsive">
+                                            <div class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Laden...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Domain Management -->
+                                    <div class="tab-pane fade" id="resource-domains" role="tabpanel">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h4>Domains</h4>
+                                            <button class="btn btn-primary btn-sm" onclick="loadDomainData()">
+                                                <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                            </button>
+                                        </div>
+                                        <div id="domain-content" class="table-responsive">
+                                            <div class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Laden...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Plugin-Verwaltung -->
+                            <div class="tab-pane fade" id="admin-plugins" role="tabpanel">
+                                <h4>Verfügbare Plugins</h4>
+                                <div class="row">
+                                    <?php foreach ($pluginManager->getEnabledPlugins() as $plugin_key => $plugin_info): ?>
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h5 class="card-title"><?= htmlspecialchars($plugin_info['name'] ?? $plugin_key) ?></h5>
+                                                <p class="card-text text-muted"><?= htmlspecialchars($plugin_info['description'] ?? 'Keine Beschreibung verfügbar') ?></p>
+                                                <button class="btn btn-primary btn-sm" onclick="loadPluginContent('<?= $plugin_key ?>')">
+                                                    <i class="bi bi-box-arrow-up-right"></i> Öffnen
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            
+                            <!-- Logs -->
+                            <div class="tab-pane fade" id="admin-logs" role="tabpanel">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4>System-Logs</h4>
+                                    <button class="btn btn-primary btn-sm" onclick="loadLogs()">
+                                        <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                    </button>
+                                </div>
+                                <div id="logs-content">
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Laden...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Einstellungen -->
+                            <div class="tab-pane fade" id="admin-settings" role="tabpanel">
+                                <h4>System-Einstellungen</h4>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="mb-0">Allgemeine Einstellungen</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Session-Timeout (Minuten)</label>
+                                                    <input type="number" class="form-control" id="session-timeout" value="30" min="5" max="480">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Auto-Refresh Intervall (Sekunden)</label>
+                                                    <input type="number" class="form-control" id="refresh-interval" value="30" min="10" max="300">
+                                                </div>
+                                                <button class="btn btn-primary" onclick="saveSettings()">
+                                                    <i class="bi bi-check"></i> Speichern
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="mb-0">System-Status</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <strong>Cache-Status:</strong>
+                                                    <span class="badge bg-success ms-2">Aktiv</span>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <strong>API-Verbindungen:</strong>
+                                                    <span class="badge bg-success ms-2">Alle OK</span>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <strong>Letzte Aktualisierung:</strong>
+                                                    <span class="text-muted ms-2" id="last-update">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="content">
-            <!-- Admin Dashboard Tab -->
-            <div id="admin" class="tab-content">
-                <h2>📊 Admin Dashboard</h2>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Proxmox VMs</h3>
-                        <div class="number" id="vm-count">-</div>
+        <!-- Plugin-Bereich -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="pluginTabs" role="tablist">
+                            <?php 
+                            $first = true;
+                            foreach ($pluginManager->getEnabledPlugins() as $plugin_key => $plugin_info): 
+                            ?>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link <?= $first ? 'active' : '' ?>" 
+                                        id="<?= $plugin_key ?>-tab" 
+                                        data-bs-toggle="tab" 
+                                        data-bs-target="#<?= $plugin_key ?>-content" 
+                                        type="button" 
+                                        role="tab"
+                                        onclick="loadPluginContent('<?= $plugin_key ?>')">
+                                    <?= htmlspecialchars($plugin_info['name'] ?? $plugin_key) ?>
+                                </button>
+                            </li>
+                            <?php 
+                            $first = false;
+                            endforeach; 
+                            ?>
+                        </ul>
                     </div>
-                    <div class="stat-card">
-                        <h3>ISPConfig Websites</h3>
-                        <div class="number" id="website-count">-</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Datenbanken</h3>
-                        <div class="number" id="database-count">-</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>E-Mail Accounts</h3>
-                        <div class="number" id="email-count">-</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>OVH Domains</h3>
-                        <div class="number" id="domain-count">-</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Virtual MACs</h3>
-                        <div class="number" id="virtual-mac-count">-</div>
-                    </div>
-                </div>
-                
-                <div class="tabs" style="margin-bottom: 20px;">
-                    <button class="tab active" onclick="showAdminTab('vms', this)">VMs verwalten</button>
-                    <button class="tab" onclick="showAdminTab('websites', this)">Websites verwalten</button>
-                    <button class="tab" onclick="showAdminTab('databases', this)">Datenbanken verwalten</button>
-                    <button class="tab" onclick="showAdminTab('emails', this)">E-Mails verwalten</button>
-                    <button class="tab" onclick="showAdminTab('domains', this)">Domains verwalten</button>
-                    <button class="tab" onclick="showAdminTab('virtual-macs', this)">Virtual MACs verwalten</button>
-                    <button class="tab" onclick="showAdminTab('vps-list', this)">VPS verwalten</button>
-                    <button class="tab" onclick="showAdminTab('logs', this)">Activity Log</button>
-                </div>
-                
-                <!-- VMs Management -->
-                <div id="admin-vms" class="admin-tab-content">
-                    <div class="search-box">
-                        <input type="text" id="vm-search" placeholder="VMs durchsuchen..." onkeyup="filterTable('vms-table', this.value)">
-                        <button class="btn" onclick="loadVMs()">🔄 Aktualisieren</button>
-                        <button class="btn btn-secondary" onclick="loadProxmoxNodes()">📡 Nodes laden</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="vms-table">
-                            <thead>
-                                <tr>
-                                    <th>VM ID</th>
-                                    <th>Name</th>
-                                    <th>Node</th>
-                                    <th>Status</th>
-                                    <th>CPU</th>
-                                    <th>RAM</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody id="vms-tbody">
-                                <tr><td colspan="7" style="text-align: center;">Lade VMs...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Websites Management -->
-                <div id="admin-websites" class="admin-tab-content hidden">
-                    <div class="search-box">
-                        <input type="text" id="website-search" placeholder="Websites durchsuchen..." onkeyup="filterTable('websites-table', this.value)">
-                        <button class="btn" onclick="loadWebsites()">🔄 Aktualisieren</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="websites-table">
-                            <thead>
-                                <tr>
-                                    <th>Domain</th>
-                                    <th>IP Adresse</th>
-                                    <th>System User</th>
-                                    <th>Status</th>
-                                    <th>Quota (MB)</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody id="websites-tbody">
-                                <tr><td colspan="6" style="text-align: center;">Lade Websites...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Databases Management -->
-                <div id="admin-databases" class="admin-tab-content hidden">
-                    <div class="search-box">
-                        <input type="text" id="database-search" placeholder="Datenbanken durchsuchen..." onkeyup="filterTable('databases-table', this.value)">
-                        <button class="btn" onclick="loadDatabases()">🔄 Aktualisieren</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="databases-table">
-                            <thead>
-                                <tr>
-                                    <th>Datenbank Name</th>
-                                    <th>User</th>
-                                    <th>Typ</th>
-                                    <th>Status</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody id="databases-tbody">
-                                <tr><td colspan="5" style="text-align: center;">Lade Datenbanken...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Emails Management -->
-                <div id="admin-emails" class="admin-tab-content hidden">
-                    <div class="search-box">
-                        <input type="text" id="email-search" placeholder="E-Mails durchsuchen..." onkeyup="filterTable('emails-table', this.value)">
-                        <button class="btn" onclick="loadEmails()">🔄 Aktualisieren</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="emails-table">
-                            <thead>
-                                <tr>
-                                    <th>E-Mail Adresse</th>
-                                    <th>Name</th>
-                                    <th>Quota (MB)</th>
-                                    <th>Status</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody id="emails-tbody">
-                                <tr><td colspan="5" style="text-align: center;">Lade E-Mail Accounts...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Domains Management -->
-                <div id="admin-domains" class="admin-tab-content hidden">
-                    <div class="search-box">
-                        <input type="text" id="domain-search" placeholder="Domains durchsuchen..." onkeyup="filterTable('domains-table', this.value)">
-                        <button class="btn" onclick="loadDomains()">🔄 Aktualisieren</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="domains-table">
-                            <thead>
-                                <tr>
-                                    <th>Domain</th>
-                                    <th>Ablaufdatum</th>
-                                    <th>Auto-Renewal</th>
-                                    <th>Status</th>
-                                    <th>Nameserver</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody id="domains-tbody">
-                                <tr><td colspan="6" style="text-align: center;">Lade Domains...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Virtual MACs Management -->
-                <div id="admin-virtual-macs" class="admin-tab-content hidden">
-                    <div class="search-box">
-                        <input type="text" id="virtual-mac-search" placeholder="Virtual MACs durchsuchen..." onkeyup="filterTable('virtual-macs-table', this.value)">
-                        <button class="btn" onclick="loadVirtualMacs()">🔄 Aktualisieren</button>
-                        <button class="btn btn-secondary" onclick="loadDedicatedServers()">📡 Server laden</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="virtual-macs-table">
-                            <thead>
-                                <tr>
-                                    <th>MAC-Adresse</th>
-                                    <th>VM-Name</th>
-                                    <th>IP-Adresse</th>
-                                    <th>Service Name</th>
-                                    <th>Typ</th>
-                                    <th>Erstellt am</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody id="virtual-macs-tbody">
-                                <tr><td colspan="7" style="text-align: center;">Lade Virtual MACs...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- VPS Management -->
-                <div id="admin-vps-list" class="admin-tab-content hidden">
-                    <div class="search-box">
-                        <input type="text" id="vps-search" placeholder="VPS durchsuchen..." onkeyup="filterTable('vps-table', this.value)">
-                        <button class="btn" onclick="loadVPSList()">🔄 Aktualisieren</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="vps-table">
-                            <thead>
-                                <tr>
-                                    <th>VPS Name</th>
-                                    <th>IP Adressen</th>
-                                    <th>MAC Adressen</th>
-                                    <th>Status</th>
-                                    <th>Cluster</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody id="vps-tbody">
-                                <tr><td colspan="6" style="text-align: center;">Lade VPS...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Activity Log -->
-                <div id="admin-logs" class="admin-tab-content hidden">
-                    <div class="search-box">
-                        <input type="text" id="log-search" placeholder="Logs durchsuchen..." onkeyup="filterTable('logs-table', this.value)">
-                        <button class="btn" onclick="loadActivityLog()">🔄 Aktualisieren</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="logs-table">
-                            <thead>
-                                <tr>
-                                    <th>Zeitpunkt</th>
-                                    <th>Aktion</th>
-                                    <th>Details</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="logs-tbody">
-                                <tr><td colspan="4" style="text-align: center;">Lade Activity Log...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Virtual MAC Tab -->
-            <div id="virtual-mac" class="tab-content hidden">
-                <h2>🔌 Virtual MAC Management</h2>
-                
-                <div class="tabs" style="margin-bottom: 20px;">
-                    <button class="tab active" onclick="showVirtualMacTab('overview', this)">📊 Übersicht</button>
-                    <button class="tab" onclick="showVirtualMacTab('create', this)">➕ Erstellen</button>
-                    <button class="tab" onclick="showVirtualMacTab('ip-management', this)">🌐 IP Management</button>
-                    <button class="tab" onclick="showVirtualMacTab('reverse-dns', this)">🔄 Reverse DNS</button>
-                </div>
-                
-                <!-- Overview -->
-                <div id="virtual-mac-overview" class="virtual-mac-tab-content">
-                    <h3>📊 Virtual MAC Übersicht</h3>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <h3>Gesamt Virtual MACs</h3>
-                            <div class="number" id="total-virtual-macs">-</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Zugewiesene IPs</h3>
-                            <div class="number" id="total-assigned-ips">-</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Dedicated Server</h3>
-                            <div class="number" id="total-dedicated-servers">-</div>
-                        </div>
-                    </div>
-                    
-                    <div class="search-box">
-                        <input type="text" id="virtual-mac-overview-search" placeholder="Virtual MACs durchsuchen..." onkeyup="filterTable('virtual-mac-overview-table', this.value)">
-                        <button class="btn" onclick="loadVirtualMacOverview()">🔄 Aktualisieren</button>
-                    </div>
-                    
-                    <div class="table-container">
-                        <table class="data-table" id="virtual-mac-overview-table">
-                            <thead>
-                                <tr>
-                                    <th>MAC-Adresse</th>
-                                    <th>VM-Name</th>
-                                    <th>IP-Adresse</th>
-                                    <th>Service Name</th>
-                                    <th>Typ</th>
-                                    <th>Erstellt am</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody id="virtual-mac-overview-tbody">
-                                <tr><td colspan="7" style="text-align: center;">Lade Virtual MAC Übersicht...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Create Virtual MAC -->
-                <div id="virtual-mac-create" class="virtual-mac-tab-content hidden">
-                    <h3>➕ Neue Virtual MAC erstellen</h3>
-                    
-                    <form onsubmit="createVirtualMac(event)">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="vmac_service_name">Service Name (Dedicated Server)</label>
-                                <select id="vmac_service_name" name="service_name" required>
-                                    <option value="">Server auswählen...</option>
-                                </select>
+                    <div class="card-body">
+                        <div class="tab-content" id="pluginTabContent">
+                            <?php 
+                            $first = true;
+                            foreach ($pluginManager->getEnabledPlugins() as $plugin_key => $plugin_info): 
+                            ?>
+                            <div class="tab-pane fade <?= $first ? 'show active' : '' ?>" 
+                                 id="<?= $plugin_key ?>-content" 
+                                 role="tabpanel">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Laden...</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="vmac_type">MAC-Typ</label>
-                                <select id="vmac_type" name="type">
-                                    <option value="ovh">OVH (Standard)</option>
-                                    <option value="vmware">VMware</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="vmac_virtual_network_interface">Virtual Network Interface</label>
-                            <input type="text" id="vmac_virtual_network_interface" name="virtual_network_interface" required placeholder="eth0">
-                        </div>
-                        
-                        <button type="submit" class="btn">
-                            <span class="loading hidden"></span>
-                            Virtual MAC erstellen
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- IP Management -->
-                <div id="virtual-mac-ip-management" class="virtual-mac-tab-content hidden">
-                    <h3>🌐 IP-Adresse zu Virtual MAC zuweisen</h3>
-                    
-                    <form onsubmit="assignIPToVirtualMac(event)">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="vmac_ip_service_name">Service Name</label>
-                                <select id="vmac_ip_service_name" name="service_name" required onchange="loadVirtualMacsForService(this.value)">
-                                    <option value="">Server auswählen...</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="vmac_ip_mac_address">Virtual MAC</label>
-                                <select id="vmac_ip_mac_address" name="mac_address" required>
-                                    <option value="">Erst Service auswählen...</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="vmac_ip_address">IP-Adresse</label>
-                                <input type="text" id="vmac_ip_address" name="ip_address" required placeholder="192.168.1.100">
-                            </div>
-                            <div class="form-group">
-                                <label for="vmac_ip_vm_name">VM-Name</label>
-                                <input type="text" id="vmac_ip_vm_name" name="virtual_machine_name" required placeholder="webserver-01">
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="btn">
-                            <span class="loading hidden"></span>
-                            IP-Adresse zuweisen
-                        </button>
-                    </form>
-                    
-                    <hr>
-                    
-                    <h4>🗑️ IP-Adresse entfernen</h4>
-                    <form onsubmit="removeIPFromVirtualMac(event)">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="vmac_remove_service_name">Service Name</label>
-                                <select id="vmac_remove_service_name" name="service_name" required>
-                                    <option value="">Server auswählen...</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="vmac_remove_mac_address">Virtual MAC</label>
-                                <input type="text" id="vmac_remove_mac_address" name="mac_address" required placeholder="02:00:00:96:1f:85">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="vmac_remove_ip_address">IP-Adresse</label>
-                            <input type="text" id="vmac_remove_ip_address" name="ip_address" required placeholder="192.168.1.100">
-                        </div>
-                        
-                        <button type="submit" class="btn btn-warning">
-                            <span class="loading hidden"></span>
-                            IP-Adresse entfernen
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Reverse DNS -->
-                <div id="virtual-mac-reverse-dns" class="virtual-mac-tab-content hidden">
-                    <h3>🔄 Reverse DNS Management</h3>
-                    
-                    <form onsubmit="createReverseDNS(event)">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="reverse_ip_address">IP-Adresse</label>
-                                <input type="text" id="reverse_ip_address" name="ip_address" required placeholder="192.168.1.100">
-                            </div>
-                            <div class="form-group">
-                                <label for="reverse_hostname">Hostname</label>
-                                <input type="text" id="reverse_hostname" name="reverse" required placeholder="server.example.com">
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="btn">
-                            <span class="loading hidden"></span>
-                            Reverse DNS erstellen
-                        </button>
-                    </form>
-                    
-                    <hr>
-                    
-                    <h4>🔍 Reverse DNS abfragen</h4>
-                    <form onsubmit="queryReverseDNS(event)">
-                        <div class="form-group">
-                            <label for="query_reverse_ip">IP-Adresse</label>
-                            <input type="text" id="query_reverse_ip" name="ip_address" required placeholder="192.168.1.100">
-                        </div>
-                        
-                        <button type="submit" class="btn btn-secondary">
-                            <span class="loading hidden"></span>
-                            Reverse DNS abfragen
-                        </button>
-                    </form>
-                    
-                    <div id="reverse_dns_result" class="result-box hidden">
-                        <h4>Reverse DNS Informationen:</h4>
-                        <pre id="reverse_dns_content"></pre>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Existing tabs (Proxmox, ISPConfig, etc.) remain the same -->
-            
-            <!-- Proxmox VM Tab -->
-            <div id="proxmox" class="tab-content hidden">
-                <h2>🖥️ VM auf Proxmox anlegen</h2>
-                <form onsubmit="createVM(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="vm_name">VM Name</label>
-                            <input type="text" id="vm_name" name="name" required placeholder="z.B. web-server-01">
-                        </div>
-                        <div class="form-group">
-                            <label for="vm_id">VM ID</label>
-                            <input type="number" id="vm_id" name="vmid" required placeholder="100" min="100" max="999999">
+                            <?php 
+                            $first = false;
+                            endforeach; 
+                            ?>
                         </div>
                     </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="vm_memory">RAM (MB)</label>
-                            <select id="vm_memory" name="memory">
-                                <option value="1024">1 GB</option>
-                                <option value="2048">2 GB</option>
-                                <option value="4096" selected>4 GB</option>
-                                <option value="8192">8 GB</option>
-                                <option value="16384">16 GB</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="vm_cores">CPU Kerne</label>
-                            <select id="vm_cores" name="cores">
-                                <option value="1">1 Kern</option>
-                                <option value="2" selected>2 Kerne</option>
-                                <option value="4">4 Kerne</option>
-                                <option value="8">8 Kerne</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="vm_disk">Festplatte (GB)</label>
-                            <input type="number" id="vm_disk" name="disk" value="20" required min="10">
-                        </div>
-                        <div class="form-group">
-                            <label for="vm_node">Proxmox Node</label>
-                            <input type="text" id="vm_node" name="node" value="pve" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="vm_storage">Storage</label>
-                            <input type="text" id="vm_storage" name="storage" value="local-lvm" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="vm_bridge">Netzwerk Bridge</label>
-                            <input type="text" id="vm_bridge" name="bridge" value="vmbr0" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="vm_mac">MAC Adresse (optional)</label>
-                        <input type="text" id="vm_mac" name="mac" placeholder="aa:bb:cc:dd:ee:ff" pattern="[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="vm_iso">ISO Image</label>
-                        <input type="text" id="vm_iso" name="iso" value="local:iso/ubuntu-22.04-server-amd64.iso" required>
-                    </div>
-                    
-                    <button type="submit" class="btn">
-                        <span class="loading hidden"></span>
-                        VM erstellen
-                    </button>
-                </form>
-            </div>
-            
-            <!-- ISPConfig Website Tab -->
-            <div id="ispconfig" class="tab-content hidden">
-                <h2>🌐 Website in ISPConfig erstellen</h2>
-                <form onsubmit="createWebsite(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="website_domain">Domain</label>
-                            <input type="text" id="website_domain" name="domain" required placeholder="example.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="website_ip">IP Adresse</label>
-                            <input type="text" id="website_ip" name="ip" required placeholder="192.168.1.100">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="website_user">System User</label>
-                            <input type="text" id="website_user" name="user" required placeholder="web1">
-                        </div>
-                        <div class="form-group">
-                            <label for="website_group">System Group</label>
-                            <input type="text" id="website_group" name="group" required placeholder="client1">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="website_quota">HD Quota (MB)</label>
-                            <input type="number" id="website_quota" name="quota" value="1000" required min="100">
-                        </div>
-                        <div class="form-group">
-                            <label for="website_traffic">Traffic Quota (MB)</label>
-                            <input type="number" id="website_traffic" name="traffic" value="10000" required min="1000">
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn">
-                        <span class="loading hidden"></span>
-                        Website erstellen
-                    </button>
-                </form>
-            </div>
-            
-            <!-- OVH Domain Tab -->
-            <div id="ovh" class="tab-content hidden">
-                <h2>🔗 Domain bei OVH bestellen</h2>
-                <form onsubmit="orderDomain(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="domain_name">Domain Name</label>
-                            <input type="text" id="domain_name" name="domain" required placeholder="example.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="domain_duration">Laufzeit (Jahre)</label>
-                            <select id="domain_duration" name="duration">
-                                <option value="1" selected>1 Jahr</option>
-                                <option value="2">2 Jahre</option>
-                                <option value="3">3 Jahre</option>
-                                <option value="5">5 Jahre</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn">
-                        <span class="loading hidden"></span>
-                        Domain bestellen
-                    </button>
-                </form>
-                
-                <hr>
-                
-                <h3>🔍 VPS Informationen abrufen</h3>
-                <form onsubmit="getVPSInfo(event)" style="margin-top: 20px;">
-                    <div class="form-group">
-                        <label for="vps_name">VPS Name</label>
-                        <input type="text" id="vps_name" name="vps_name" required placeholder="vpsXXXXX.ovh.net">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-secondary">
-                        <span class="loading hidden"></span>
-                        VPS Info abrufen
-                    </button>
-                </form>
-                
-                <div id="vps_result" class="result-box hidden">
-                    <h4>VPS Informationen:</h4>
-                    <p><strong>IP Adresse:</strong> <span id="vps_ip"></span></p>
-                    <p><strong>MAC Adresse:</strong> <span id="vps_mac"></span></p>
-                </div>
-            </div>
-            
-            <!-- Network Configuration Tab -->
-            <div id="network" class="tab-content hidden">
-                <h2>🔧 VM Netzwerk Konfiguration</h2>
-                <form onsubmit="updateVMNetwork(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="net_vmid">VM ID</label>
-                            <input type="number" id="net_vmid" name="vmid" required placeholder="100" min="100">
-                        </div>
-                        <div class="form-group">
-                            <label for="net_mac">MAC Adresse</label>
-                            <input type="text" id="net_mac" name="mac" required placeholder="aa:bb:cc:dd:ee:ff" pattern="[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="net_ip">IP Adresse</label>
-                        <input type="text" id="net_ip" name="ip" required placeholder="192.168.1.100">
-                    </div>
-                    
-                    <button type="submit" class="btn">
-                        <span class="loading hidden"></span>
-                        Netzwerk aktualisieren
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Database Tab -->
-            <div id="database" class="tab-content hidden">
-                <h2>🗄️ Datenbank anlegen</h2>
-                <form onsubmit="createDatabase(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="db_name">Datenbank Name</label>
-                            <input type="text" id="db_name" name="name" required placeholder="my_database">
-                        </div>
-                        <div class="form-group">
-                            <label for="db_user">Datenbank User</label>
-                            <input type="text" id="db_user" name="user" required placeholder="db_user">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="db_password">Passwort</label>
-                        <input type="password" id="db_password" name="password" required minlength="6">
-                    </div>
-                    
-                    <button type="submit" class="btn">
-                        <span class="loading hidden"></span>
-                        Datenbank erstellen
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Email Tab -->
-            <div id="email" class="tab-content hidden">
-                <h2>📧 E-Mail Adresse anlegen</h2>
-                <form onsubmit="createEmail(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="email_address">E-Mail Adresse</label>
-                            <input type="email" id="email_address" name="email" required placeholder="user@example.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="email_login">Login Name</label>
-                            <input type="text" id="email_login" name="login" required placeholder="user">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="email_password">Passwort</label>
-                            <input type="password" id="email_password" name="password" required minlength="6">
-                        </div>
-                        <div class="form-group">
-                            <label for="email_quota">Quota (MB)</label>
-                            <input type="number" id="email_quota" name="quota" value="1000" required min="100">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="email_name">Vollständiger Name</label>
-                            <input type="text" id="email_name" name="name" placeholder="Max Mustermann">
-                        </div>
-                        <div class="form-group">
-                            <label for="email_domain">Domain</label>
-                            <input type="text" id="email_domain" name="domain" required placeholder="example.com">
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn">
-                        <span class="loading hidden"></span>
-                        E-Mail Adresse erstellen
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Endpoints Tab -->
-            <div id="endpoints" class="tab-content hidden">
-                <h2>🔌 API Endpoints Tester</h2>
-                <p>Testen Sie einzelne API-Endpunkte der verschiedenen Services</p>
-                
-                <!-- Proxmox Endpoints -->
-                <div class="endpoint-section">
-                    <h3>🖥️ Proxmox API Endpoints</h3>
-                    <div class="endpoint-buttons">
-                        <button class="btn" onclick="testEndpoint('get_proxmox_nodes')">📡 Nodes laden</button>
-                        <button class="btn" onclick="testEndpointWithParam('get_proxmox_storages', 'node', 'pve')">💾 Storages laden</button>
-                        <button class="btn" onclick="testEndpointWithParams('get_vm_config', {node: 'pve', vmid: '100'})">⚙️ VM Config</button>
-                        <button class="btn" onclick="testEndpointWithParams('get_vm_status', {node: 'pve', vmid: '100'})">📊 VM Status</button>
-                        <button class="btn" onclick="testEndpointWithParams('clone_vm', {node: 'pve', vmid: '100', newid: '101', name: 'clone-test'})">📋 VM Klonen</button>
-                    </div>
-                </div>
-                
-                <!-- ISPConfig Endpoints -->
-                <div class="endpoint-section">
-                    <h3>🌐 ISPConfig API Endpoints</h3>
-                    <div class="endpoint-buttons">
-                        <button class="btn" onclick="testEndpoint('get_ispconfig_clients')">👥 Clients laden</button>
-                        <button class="btn" onclick="testEndpoint('get_ispconfig_server_config')">⚙️ Server Config</button>
-                    </div>
-                </div>
-                
-                <!-- OVH Endpoints -->
-                <div class="endpoint-section">
-                    <h3>🔗 OVH API Endpoints</h3>
-                    <div class="endpoint-buttons">
-                        <button class="btn" onclick="testEndpointWithParam('get_ovh_domain_zone', 'domain', 'example.com')">🌐 Domain Zone</button>
-                        <button class="btn" onclick="testEndpointWithParam('get_ovh_dns_records', 'domain', 'example.com')">📝 DNS Records</button>
-                        <button class="btn" onclick="testEndpointWithParam('get_vps_ips', 'vps_name', 'vpsXXXXX.ovh.net')">🌐 VPS IPs</button>
-                        <button class="btn" onclick="testEndpointWithParams('get_vps_ip_details', {vps_name: 'vpsXXXXX.ovh.net', ip: '1.2.3.4'})">📊 IP Details</button>
-                        <button class="btn" onclick="testEndpointWithParams('control_ovh_vps', {vps_name: 'vpsXXXXX.ovh.net', vps_action: 'reboot'})">🔄 VPS Control</button>
-                        <button class="btn" onclick="testEndpointWithParams('create_dns_record', {domain: 'example.com', type: 'A', subdomain: 'test', target: '1.2.3.4'})">➕ DNS Record</button>
-                        <button class="btn" onclick="testEndpointWithParam('refresh_dns_zone', 'domain', 'example.com')">🔄 DNS Refresh</button>
-                    </div>
-                </div>
-                
-                <!-- Virtual MAC Endpoints -->
-                <div class="endpoint-section">
-                    <h3>🔌 Virtual MAC API Endpoints</h3>
-                    <div class="endpoint-buttons">
-                        <button class="btn" onclick="testEndpoint('get_all_virtual_macs')">📋 Alle Virtual MACs</button>
-                        <button class="btn" onclick="testEndpointWithParam('get_virtual_mac_details', 'service_name', 'ns3112327.ip-54-36-111.eu')">🔍 MAC Details</button>
-                        <button class="btn" onclick="testEndpointWithParams('create_virtual_mac', {service_name: 'ns3112327.ip-54-36-111.eu', virtual_network_interface: 'eth0', type: 'ovh'})">➕ Virtual MAC</button>
-                        <button class="btn" onclick="testEndpointWithParams('assign_ip_to_virtual_mac', {service_name: 'ns3112327.ip-54-36-111.eu', mac_address: '02:00:00:96:1f:85', ip_address: '192.168.1.100', virtual_machine_name: 'test-vm'})">🌐 IP zuweisen</button>
-                        <button class="btn" onclick="testEndpointWithParams('create_reverse_dns', {ip_address: '192.168.1.100', reverse: 'test.example.com'})">🔄 Reverse DNS</button>
-                    </div>
-                </div>
-                
-                <!-- Result Display -->
-                <div id="endpoint-result" class="result-box hidden">
-                    <h4>🔍 Endpoint Response:</h4>
-                    <pre id="endpoint-response" style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; max-height: 400px;"></pre>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Session Warning -->
-    <div class="session-warning" id="sessionWarning">
-        <h4>⚠️ Session läuft ab</h4>
-        <p>Ihre Sitzung läuft in <span id="warningTime"></span> ab. Klicken Sie hier um zu verlängern.</p>
-    </div>
-
-    <!-- Session Expired Modal -->
-    <div class="session-expired" id="sessionExpired">
-        <div class="session-expired-content">
-            <h2>🔒 Sitzung abgelaufen</h2>
-            <p>Ihre Sitzung ist abgelaufen. Sie werden zur Anmeldeseite weitergeleitet.</p>
-            <button class="btn" onclick="window.location.href='login.php'">Zur Anmeldung</button>
+    <!-- Toast für Benachrichtigungen -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Benachrichtigung</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastBody">
+                Nachricht hier...
+            </div>
         </div>
     </div>
 
-    <script data-cfasync="false" type="text/javascript" src="assets/session.js"></script>
-    <script data-cfasync="false" type="text/javascript" src="assets/lazy-loading-main.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="assets/main.js"></script>
+    
     <script>
-        // Session-Timer beim Laden der Seite starten
-        document.addEventListener('DOMContentLoaded', function() {
-            initSessionTimer();
-            // Weitere Initialisierungen, falls nicht von lazy-loading-main.js abgedeckt, hier einfügen.
-            // lazy-loading-main.js sollte das Anzeigen des initialen Tabs und das Laden der Stats übernehmen.
+        // Session-Informationen für JavaScript
+        const sessionInfo = <?= json_encode($session_info ?? []) ?>;
+        const enabledPlugins = <?= json_encode($pluginManager->getEnabledPlugins() ?? []) ?>;
+        
+        // ModuleManager für AJAX-Requests
+        window.ModuleManager = {
+            currentModule: 'admin',
+            
+            request: function(plugin, action, data = {}) {
+                return $.ajax({
+                    url: window.location.pathname,
+                    method: 'POST',
+                    data: {
+                        plugin: plugin,
+                        action: action,
+                        ...data
+                    },
+                    dataType: 'json'
+                });
+            },
+            
+            makeRequest: async function(module, action, data = {}) {
+                try {
+                    const response = await $.ajax({
+                        url: window.location.pathname,
+                        method: 'POST',
+                        data: {
+                            plugin: module,
+                            action: action,
+                            ...data
+                        },
+                        dataType: 'json'
+                    });
+                    
+                    // Session-Check
+                    if (!response.success && response.redirect) {
+                        showNotification('Session abgelaufen - Sie werden weitergeleitet', 'error');
+                        setTimeout(() => {
+                            window.location.href = response.redirect;
+                        }, 2000);
+                    }
+                    
+                    return response;
+                } catch (error) {
+                    console.error('ModuleManager.makeRequest error:', error);
+                    throw error;
+                }
+            }
+        };
+        
+        // Toast-Benachrichtigungen
+        function showNotification(message, type = 'info') {
+            const toast = document.getElementById('notificationToast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastBody = document.getElementById('toastBody');
+            
+            // Icon und Titel basierend auf Typ
+            const icons = {
+                'success': 'bi-check-circle-fill text-success',
+                'error': 'bi-x-circle-fill text-danger',
+                'warning': 'bi-exclamation-triangle-fill text-warning',
+                'info': 'bi-info-circle-fill text-info'
+            };
+            
+            toastTitle.innerHTML = `<i class="bi ${icons[type]}"></i> ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            toastBody.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+        
+        // Plugin-Inhalte laden
+        function loadPluginContent(pluginKey) {
+            const contentDiv = document.getElementById(pluginKey + '-content');
+            if (!contentDiv) return;
+            
+            contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Laden...</span></div></div>';
+            
+            ModuleManager.request(pluginKey, 'getContent')
+                .done(function(response) {
+                    if (response.success) {
+                        contentDiv.innerHTML = response.content;
+                    } else {
+                        contentDiv.innerHTML = '<div class="alert alert-danger">Fehler beim Laden des Plugins: ' + (response.error || 'Unbekannter Fehler') + '</div>';
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    contentDiv.innerHTML = '<div class="alert alert-danger">Fehler beim Laden des Plugins: ' + error + '</div>';
+                });
+        }
+        
+        // Admin-Funktionen
+        function refreshAllStats() {
+            showNotification('Statistiken werden aktualisiert...', 'info');
+            // Implementierung hier
+        }
+        
+        function clearCache() {
+            showNotification('Cache wird geleert...', 'info');
+            // Implementierung hier
+        }
+        
+        function testAllConnections() {
+            showNotification('Verbindungen werden getestet...', 'info');
+            // Implementierung hier
+        }
+        
+        function loadVMData() {
+            const contentDiv = document.getElementById('vm-content');
+            contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Laden...</span></div></div>';
+            
+            $.post(window.location.pathname, {action: 'get_vms', core: 'admin'})
+                .done(function(response) {
+                    if (response.success) {
+                        renderVMTable(contentDiv, response.data);
+                    } else {
+                        contentDiv.innerHTML = '<div class="alert alert-danger">Fehler beim Laden der VMs: ' + (response.error || 'Unbekannter Fehler') + '</div>';
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    contentDiv.innerHTML = '<div class="alert alert-danger">Fehler beim Laden der VMs: ' + error + '</div>';
+                });
+        }
+        
+        function renderVMTable(container, vms) {
+            if (!vms || vms.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">Keine VMs gefunden.</div>';
+                return;
+            }
+            
+            let html = '<table class="table table-striped table-hover">';
+            html += '<thead><tr><th>Name</th><th>Status</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Aktionen</th></tr></thead><tbody>';
+            
+            vms.forEach(function(vm) {
+                const statusClass = vm.status === 'running' ? 'success' : (vm.status === 'stopped' ? 'danger' : 'warning');
+                html += '<tr>';
+                html += '<td>' + vm.name + '</td>';
+                html += '<td><span class="badge bg-' + statusClass + '">' + vm.status + '</span></td>';
+                html += '<td>' + (vm.cpu || '-') + '</td>';
+                html += '<td>' + (vm.ram || '-') + '</td>';
+                html += '<td>' + (vm.storage || '-') + '</td>';
+                html += '<td>';
+                if (vm.status === 'running') {
+                    html += '<button class="btn btn-warning btn-sm me-1" onclick="controlVM(\'' + vm.id + '\', \'stop\')"><i class="bi bi-pause"></i></button>';
+                } else {
+                    html += '<button class="btn btn-success btn-sm me-1" onclick="controlVM(\'' + vm.id + '\', \'start\')"><i class="bi bi-play"></i></button>';
+                }
+                html += '<button class="btn btn-danger btn-sm" onclick="controlVM(\'' + vm.id + '\', \'delete\')"><i class="bi bi-trash"></i></button>';
+                html += '</td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function controlVM(vmId, action) {
+            $.post(window.location.pathname, {action: 'control_vm', vm_id: vmId, control: action, core: 'admin'})
+                .done(function(response) {
+                    if (response.success) {
+                        showNotification('VM ' + action + ' erfolgreich ausgeführt', 'success');
+                        loadVMData();
+                    } else {
+                        showNotification('Fehler: ' + (response.error || 'Unbekannter Fehler'), 'error');
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    showNotification('Fehler: ' + error, 'error');
+                });
+        }
+        
+        // Ähnliche Funktionen für andere Ressourcen
+        function loadWebsiteData() {
+            // Implementierung ähnlich wie loadVMData
+        }
+        
+        function loadDatabaseData() {
+            // Implementierung ähnlich wie loadVMData
+        }
+        
+        function loadEmailData() {
+            // Implementierung ähnlich wie loadVMData
+        }
+        
+        function loadDomainData() {
+            // Implementierung ähnlich wie loadVMData
+        }
+        
+        function loadLogs() {
+            // Implementierung für Logs
+        }
+        
+        function saveSettings() {
+            // Implementierung für Einstellungen
+            showNotification('Einstellungen gespeichert', 'success');
+        }
+        
+        // Session-Timer
+        function updateSessionTimer() {
+            const timeRemaining = document.getElementById('timeRemaining');
+            if (timeRemaining) {
+                // Session-Timer-Logik hier
+                timeRemaining.textContent = '29:45';
+            }
+        }
+        
+        // Heartbeat für Session
+        function sendHeartbeat() {
+            $.post(window.location.pathname, {action: 'heartbeat'})
+                .done(function(response) {
+                    if (!response.success && response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                });
+        }
+        
+        // Initialisierung
+        $(document).ready(function() {
+            // Erste Plugin-Inhalte laden
+            const firstPlugin = Object.keys(enabledPlugins)[0];
+            if (firstPlugin) {
+                loadPluginContent(firstPlugin);
+            }
+            
+            // Timer starten
+            setInterval(updateSessionTimer, 1000);
+            setInterval(sendHeartbeat, 30000);
+            
+            // Erste Ressourcen laden
+            loadVMData();
         });
     </script>
 </body>

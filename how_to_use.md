@@ -1,4 +1,4 @@
-# 🚀 ServiceManager API Documentation
+# �� ServiceManager API Dokumentation
 
 ## 📖 Übersicht
 Der `ServiceManager` ist die zentrale Klasse für alle API-Operationen. Hier sind alle verfügbaren Methoden:
@@ -248,30 +248,16 @@ $vpsList = $serviceManager->getOVHVPS();
 
 // VPS MAC-Adresse abrufen (vereinfacht)
 $macInfo = $serviceManager->getOVHVPSMacAddress('vpsXXXXX.ovh.net');
-// Returns: Array with 'ip' and 'mac' or null
-
-// Erweiterte VPS-Abfragen (direkt über OVHGet)
-$ovhGet = new OVHGet();
-
-// Einzelner VPS
-$vps = $ovhGet->getVPS('vpsXXXXX.ovh.net');
-
-// VPS IP-Adressen
-$ips = $ovhGet->getVPSIPs('vpsXXXXX.ovh.net');
-
-// Details einer IP
-$ipDetails = $ovhGet->getVPSIPDetails('vpsXXXXX.ovh.net', '1.2.3.4');
 ```
 
-#### Dedicated Server
+#### Dedicated Servers
 ```php
-$ovhGet = new OVHGet();
-
 // Alle Dedicated Server
-$servers = $ovhGet->getDedicatedServers();
+$dedicatedServers = $serviceManager->getOVHDedicatedServers();
+// Returns: Array of Dedicated Server objects
 
 // Einzelner Dedicated Server
-$server = $ovhGet->getDedicatedServer('ns12345.ip-1-2-3.eu');
+$server = $ovhGet->getDedicatedServer('nsXXXXX.ovh.net');
 ```
 
 ### **✏️ POST Operations**
@@ -279,177 +265,235 @@ $server = $ovhGet->getDedicatedServer('ns12345.ip-1-2-3.eu');
 #### Domain Management
 ```php
 // Domain bestellen
-$result = $serviceManager->orderOVHDomain('example.com', 1); // domain, duration in years
+$result = $serviceManager->orderOVHDomain('example.com', 1);
+// Parameters: domain_name, duration_in_years
 // Returns: API response or false
 
-// Erweiterte Domain-Operationen (direkt über OVHPost)
-$ovhPost = new OVHPost();
-
-// Domain bearbeiten
-$domainData = ['autoRenew' => true];
-$result = $ovhPost->editDomain('example.com', $domainData);
-
 // Domain löschen
-$result = $ovhPost->deleteDomain('example.com');
-```
-
-#### DNS Management
-```php
-$ovhPost = new OVHPost();
-
-// DNS Record erstellen
-$recordData = [
-    'fieldType' => 'A',
-    'subDomain' => 'www',
-    'target' => '1.2.3.4',
-    'ttl' => 3600
-];
-$result = $ovhPost->createDNSRecord('example.com', $recordData);
-
-// DNS Record bearbeiten
-$updateData = ['target' => '5.6.7.8'];
-$result = $ovhPost->editDNSRecord('example.com', '12345', $updateData);
-
-// DNS Record löschen
-$result = $ovhPost->deleteDNSRecord('example.com', '12345');
-
-// DNS Zone aktualisieren
-$result = $ovhPost->refreshDNSZone('example.com');
+$result = $serviceManager->deleteOVHDomain('example.com');
+// Returns: API response or false
 ```
 
 #### VPS Management
 ```php
-$ovhPost = new OVHPost();
+// VPS bestellen
+$vpsData = [
+    'model' => 'vps-ssd-1',
+    'datacenter' => 'gra1',
+    'duration' => 'P1M' // ISO 8601 duration
+];
+$result = $serviceManager->orderOVHVPS($vpsData);
+// Returns: API response or false
 
-// VPS neustarten
-$result = $ovhPost->rebootVPS('vpsXXXXX.ovh.net');
-
-// VPS stoppen
-$result = $ovhPost->stopVPS('vpsXXXXX.ovh.net');
-
-// VPS starten
-$result = $ovhPost->startVPS('vpsXXXXX.ovh.net');
+// VPS löschen
+$result = $serviceManager->deleteOVHVPS('vpsXXXXX.ovh.net');
+// Returns: API response or false
 ```
 
 ---
 
-## 🗃️ **DATABASE OPERATIONS**
+## 🔐 **Authentication & Testing**
 
-### **Activity Log**
+### API-Verbindungen testen
 ```php
-$db = Database::getInstance();
+// Alle APIs testen
+$authHandler = new AuthHandler();
+$results = $authHandler->testAllAPIs();
 
-// Aktion loggen
-$db->logAction('VM erstellt', json_encode($vmData), 'success');
-
-// Activity Log abrufen
-$logs = $db->getActivityLog(50); // Limit: 50 Einträge
+// Einzelne APIs testen
+$proxmoxStatus = $authHandler->testProxmox();
+$ispconfigStatus = $authHandler->testISPConfig();
+$ovhStatus = $authHandler->testOVH();
 ```
 
----
-
-## 🔄 **DATA MAPPING**
-
-### **JSON zu PHP Objekten konvertieren**
-```php
-// Proxmox VM Response zu VM Object
-$vmObject = DataMapper::mapToVM($proxmoxResponse);
-
-// ISPConfig Website Response zu Website Object
-$websiteObject = DataMapper::mapToWebsite($ispconfigResponse);
-
-// OVH Domain Response zu Domain Object
-$domainObject = DataMapper::mapToDomain($ovhResponse);
-
-// Objekt zu Array
-$vmArray = $vmObject->toArray();
-```
-
----
-
-## 🧪 **TESTING & DEBUGGING**
-
-### **Einzelne API-Klassen direkt nutzen**
-```php
-// Direkte Proxmox API Nutzung
-$proxmoxGet = new ProxmoxGet();
-$proxmoxPost = new ProxmoxPost();
-
-// Direkte ISPConfig API Nutzung
-$ispconfigGet = new ISPConfigGet();
-$ispconfigPost = new ISPConfigPost();
-
-// Direkte OVH API Nutzung
-$ovhGet = new OVHGet();
-$ovhPost = new OVHPost();
-```
-
-### **Error Handling**
+### Error Handling
 ```php
 try {
     $result = $serviceManager->createProxmoxVM($vmData);
     if ($result === false) {
-        echo "Fehler beim Erstellen der VM";
+        throw new Exception('VM creation failed');
     }
 } catch (Exception $e) {
-    echo "Exception: " . $e->getMessage();
+    error_log('API Error: ' . $e->getMessage());
+    // Handle error appropriately
 }
 ```
 
 ---
 
-## 📊 **RETURN VALUES**
+## 📊 **Admin Dashboard**
 
-### **Erfolgreiche Responses:**
-- **GET Operations:** Array of Objects oder einzelnes Object
-- **POST Operations:** API Response Array oder Boolean
-
-### **Fehler-Responses:**
-- **`false`** bei API-Fehlern
-- **`null`** wenn Ressource nicht gefunden
-- **`[]`** (leeres Array) wenn keine Ergebnisse
-
-### **Object Properties:**
+### Dashboard-Funktionen
 ```php
-// VM Object
-$vm->vmid, $vm->name, $vm->node, $vm->status, $vm->cores, $vm->memory
+// Dashboard initialisieren
+$adminCore = new AdminCore();
 
-// Website Object  
-$website->domain, $website->ip_address, $website->system_user, $website->active
+// Ressourcen abrufen
+$resources = $adminCore->getAllResources();
 
-// Database Object
-$database->database_name, $database->database_user, $database->database_type
+// Statistiken abrufen
+$stats = $adminCore->getStatistics();
 
-// Email Object
-$email->email, $email->login, $email->name, $email->quota, $email->active
+// Activity Log abrufen
+$activities = $adminCore->getActivityLog();
+```
 
-// Domain Object
-$domain->domain, $domain->expiration, $domain->autoRenew, $domain->nameServers
-
-// VPS Object
-$vps->name, $vps->state, $vps->ips, $vps->mac_addresses, $vps->cluster
+### Real-time Updates
+```javascript
+// JavaScript für Real-time Updates
+setInterval(function() {
+    AjaxHandler.heartbeat();
+}, 30000); // Alle 30 Sekunden
 ```
 
 ---
 
-## ⚡ **QUICK REFERENCE**
+## 🛠️ **Debug & Development**
 
-### **Häufigste Operationen:**
+### Debug-Modus aktivieren
 ```php
-$serviceManager = new ServiceManager();
-
-// VMs auflisten und steuern
-$vms = $serviceManager->getProxmoxVMs();
-$serviceManager->controlProxmoxVM('pve', '100', 'start');
-
-// Websites verwalten
-$websites = $serviceManager->getISPConfigWebsites();
-$serviceManager->createISPConfigWebsite($websiteData);
-
-// Domains verwalten
-$domains = $serviceManager->getOVHDomains();
-$serviceManager->orderOVHDomain('example.com', 1);
-
-// VPS MAC abrufen
-$macInfo = $serviceManager->getOVHVPSMacAddress('vpsXXXXX.ovh.net');
+// In config/config.inc.php
+define('DEBUG_MODE', true);
+define('LOG_LEVEL', 'DEBUG');
 ```
+
+### Debug-Tools verwenden
+```bash
+# Debug-Interface öffnen
+php debug.php
+
+# Spezifische Debug-Tests
+php debug/ispconfig_debug.php
+php debug/ovh_failover_mac.php
+php debug/soap_test.php
+```
+
+### Logs abrufen
+```php
+// Activity Log
+$activities = $adminCore->getActivityLog();
+
+// Error Log
+$errors = $adminCore->getErrorLog();
+
+// API Log
+$apiLogs = $adminCore->getAPILog();
+```
+
+---
+
+## 📝 **Beispiele**
+
+### Vollständiges Beispiel: VM erstellen und konfigurieren
+```php
+<?php
+require_once 'framework.php';
+
+try {
+    $serviceManager = new ServiceManager();
+    
+    // 1. VM erstellen
+    $vmData = [
+        'vmid' => '101',
+        'name' => 'web-server',
+        'node' => 'pve',
+        'memory' => '4096',
+        'cores' => '2',
+        'disk' => '50',
+        'storage' => 'local-lvm',
+        'bridge' => 'vmbr0',
+        'iso' => 'local:iso/ubuntu-22.04.iso'
+    ];
+    
+    $result = $serviceManager->createProxmoxVM($vmData);
+    if ($result) {
+        echo "VM erfolgreich erstellt\n";
+        
+        // 2. VM starten
+        $serviceManager->controlProxmoxVM('pve', '101', 'start');
+        echo "VM gestartet\n";
+        
+        // 3. Website für die VM erstellen
+        $websiteData = [
+            'domain' => 'web-server.local',
+            'ip' => '192.168.1.101',
+            'user' => 'web1',
+            'group' => 'client1',
+            'quota' => 1000,
+            'traffic' => 10000
+        ];
+        
+        $websiteResult = $serviceManager->createISPConfigWebsite($websiteData);
+        if ($websiteResult) {
+            echo "Website erfolgreich erstellt\n";
+        }
+    }
+    
+} catch (Exception $e) {
+    error_log('Error: ' . $e->getMessage());
+    echo "Fehler: " . $e->getMessage() . "\n";
+}
+?>
+```
+
+### Beispiel: Backup-Strategie
+```php
+<?php
+// Backup aller VMs
+$vms = $serviceManager->getProxmoxVMs();
+foreach ($vms as $vm) {
+    if ($vm->status === 'running') {
+        // VM stoppen vor Backup
+        $serviceManager->controlProxmoxVM($vm->node, $vm->vmid, 'stop');
+        sleep(10); // Warten bis VM gestoppt ist
+    }
+    
+    // Backup erstellen
+    $backupResult = $proxmoxPost->createBackup($vm->node, $vm->vmid);
+    
+    if ($vm->status === 'running') {
+        // VM wieder starten
+        $serviceManager->controlProxmoxVM($vm->node, $vm->vmid, 'start');
+    }
+}
+?>
+```
+
+---
+
+## 🔧 **Konfiguration**
+
+### Erweiterte Konfiguration
+```php
+// In config/config.inc.php
+
+// Timeout-Einstellungen
+define('API_TIMEOUT', 30);
+define('CURL_TIMEOUT', 60);
+
+// Retry-Einstellungen
+define('MAX_RETRIES', 3);
+define('RETRY_DELAY', 5);
+
+// Logging-Einstellungen
+define('LOG_ENABLED', true);
+define('LOG_FILE', 'logs/api.log');
+define('LOG_LEVEL', 'INFO'); // DEBUG, INFO, WARNING, ERROR
+
+// Cache-Einstellungen
+define('CACHE_ENABLED', true);
+define('CACHE_DURATION', 300); // 5 Minuten
+```
+
+---
+
+## 📚 **Weitere Ressourcen**
+
+- **[README.md](README.md)** - Projektübersicht und Installation
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Richtlinien für Beiträge
+- **[BOOTSTRAP_MIGRATION.md](BOOTSTRAP_MIGRATION.md)** - UI-Migration Details
+- **[GitHub Repository](https://github.com/teris/server-management-framework)** - Source Code
+
+---
+
+**Viel Erfolg beim Verwenden des Server Management Frameworks! 🚀**
