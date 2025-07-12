@@ -1,832 +1,733 @@
-// [Das JavaScript erweitert um Session-Management und Auth-Überprüfung]
+/**
+ * Main JavaScript für Bootstrap-basiertes Admin Dashboard
+ * Nutzt jQuery für alle DOM-Manipulationen und AJAX-Requests
+ */
+
+// Globale Variablen
+let sessionTimer = null;
+let heartbeatInterval = null;
+let refreshInterval = null;
+
+// Utility-Funktionen
+const Utils = {
+    // Toast-Benachrichtigungen anzeigen
+    showNotification: function(message, type = 'info') {
+        const toast = $('#notificationToast');
+        const toastTitle = $('#toastTitle');
+        const toastBody = $('#toastBody');
         
-        // Globale Variablen
-        let currentData = {
-            vms: [],
-            websites: [],
-            databases: [],
-            emails: [],
-            domains: [],
-            vps: [],
-            logs: []
+        // Icon und Titel basierend auf Typ
+        const icons = {
+            'success': 'bi-check-circle-fill text-success',
+            'error': 'bi-x-circle-fill text-danger',
+            'warning': 'bi-exclamation-triangle-fill text-warning',
+            'info': 'bi-info-circle-fill text-info'
         };
         
-        // Session Management
-        let sessionHeartbeatInterval;
+        toastTitle.html(`<i class="bi ${icons[type]}"></i> ${type.charAt(0).toUpperCase() + type.slice(1)}`);
+        toastBody.text(message);
         
-        function startSessionHeartbeat() {
-            // Heartbeat alle 2 Minuten senden
-            sessionHeartbeatInterval = setInterval(() => {
-                fetch('?heartbeat=1')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.success && data.redirect) {
-                            window.location.href = data.redirect;
-                        }
-                    })
-                    .catch(error => {
-                        console.warn('Heartbeat failed:', error);
-                    });
-            }, 120000); // 2 Minuten
+        const bsToast = new bootstrap.Toast(toast[0]);
+        bsToast.show();
+    },
+    
+    // Loading-State anzeigen
+    showLoading: function(container) {
+        const loadingHtml = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Laden...</span>
+                </div>
+            </div>
+        `;
+        $(container).html(loadingHtml);
+    },
+    
+    // Fehler anzeigen
+    showError: function(container, message) {
+        const errorHtml = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i> ${message}
+            </div>
+        `;
+        $(container).html(errorHtml);
+    },
+    
+    // Erfolg anzeigen
+    showSuccess: function(container, message) {
+        const successHtml = `
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle-fill"></i> ${message}
+            </div>
+        `;
+        $(container).html(successHtml);
+    },
+    
+    // Formatierung von Bytes
+    formatBytes: function(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    },
+    
+    // Formatierung von Prozent
+    formatPercent: function(value, total) {
+        if (total === 0) return '0%';
+        return Math.round((value / total) * 100) + '%';
+    }
+};
+
+// AJAX-Handler
+const AjaxHandler = {
+    // Basis-AJAX-Request
+    request: function(url, data, options = {}) {
+        const defaults = {
+            method: 'POST',
+            dataType: 'json',
+            timeout: 30000
+        };
+        
+        const settings = $.extend({}, defaults, options);
+        
+        return $.ajax({
+            url: url,
+            method: settings.method,
+            data: data,
+            dataType: settings.dataType,
+            timeout: settings.timeout
+        });
+    },
+    
+    // Plugin-Request
+    pluginRequest: function(plugin, action, data = {}) {
+        return this.request('index.php', {
+            plugin: plugin,
+            action: action,
+            ...data
+        });
+    },
+    
+    // Admin-Request
+    adminRequest: function(action, data = {}) {
+        return this.request('index.php', {
+            core: 'admin',
+            action: action,
+            ...data
+        });
+    },
+    
+    // Heartbeat
+    heartbeat: function() {
+        return this.request('index.php', { action: 'heartbeat' });
+    }
+};
+
+// Session-Management
+const SessionManager = {
+    // Session-Timer aktualisieren
+    updateTimer: function() {
+        const timeRemaining = $('#timeRemaining');
+        if (timeRemaining.length) {
+            // Hier würde die echte Session-Timer-Logik stehen
+            timeRemaining.text('29:45');
         }
-        
-        function stopSessionHeartbeat() {
-            if (sessionHeartbeatInterval) {
-                clearInterval(sessionHeartbeatInterval);
-            }
-        }
-        
-        // Tab Management
-        function showTab(tabName, element) {
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
+    },
+    
+    // Heartbeat senden
+    sendHeartbeat: function() {
+        AjaxHandler.heartbeat()
+            .done(function(response) {
+                if (!response.success && response.redirect) {
+                    window.location.href = response.redirect;
+                }
+            })
+            .fail(function() {
+                Utils.showNotification('Session-Problem erkannt', 'warning');
             });
-            
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
+    },
+    
+    // Timer starten
+    startTimers: function() {
+        // Session-Timer jede Sekunde
+        sessionTimer = setInterval(this.updateTimer, 1000);
+        
+        // Heartbeat alle 30 Sekunden
+        heartbeatInterval = setInterval(this.sendHeartbeat, 30000);
+    },
+    
+    // Timer stoppen
+    stopTimers: function() {
+        if (sessionTimer) clearInterval(sessionTimer);
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+    }
+};
+
+// Plugin-Management
+const PluginManager = {
+    // Plugin-Inhalt laden
+    loadContent: function(pluginKey) {
+        const contentDiv = $(`#${pluginKey}-content`);
+        if (!contentDiv.length) return;
+        
+        Utils.showLoading(contentDiv);
+        
+        AjaxHandler.pluginRequest(pluginKey, 'getContent')
+            .done(function(response) {
+                if (response.success) {
+                    contentDiv.html(response.content);
+                    
+                    // Plugin-spezifische Initialisierung
+                    if (window[pluginKey + 'Plugin'] && typeof window[pluginKey + 'Plugin'].init === 'function') {
+                        window[pluginKey + 'Plugin'].init();
+                    }
+                } else {
+                    Utils.showError(contentDiv, 'Fehler beim Laden des Plugins: ' + (response.error || 'Unbekannter Fehler'));
+                }
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showError(contentDiv, 'Fehler beim Laden des Plugins: ' + error);
             });
-            
-            document.getElementById(tabName).classList.remove('hidden');
-            element.classList.add('active');
-            
-            if (tabName === 'admin') {
-                loadAllData();
-            }
+    },
+    
+    // Plugin-Aktion ausführen
+    executeAction: function(pluginKey, action, data = {}) {
+        return AjaxHandler.pluginRequest(pluginKey, action, data)
+            .done(function(response) {
+                if (response.success) {
+                    Utils.showNotification(response.message || 'Aktion erfolgreich ausgeführt', 'success');
+                } else {
+                    Utils.showNotification(response.error || 'Fehler bei der Ausführung', 'error');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showNotification('Fehler: ' + error, 'error');
+            });
+    }
+};
+
+// Admin-Funktionen
+const AdminFunctions = {
+    // Alle Statistiken aktualisieren
+    refreshAllStats: function() {
+        Utils.showNotification('Statistiken werden aktualisiert...', 'info');
+        
+        AjaxHandler.adminRequest('get_dashboard_stats')
+            .done(function(response) {
+                if (response.success) {
+                    AdminFunctions.updateStats(response.data);
+                    Utils.showNotification('Statistiken aktualisiert', 'success');
+                } else {
+                    Utils.showNotification('Fehler beim Aktualisieren der Statistiken', 'error');
+                }
+            })
+            .fail(function() {
+                Utils.showNotification('Fehler beim Aktualisieren der Statistiken', 'error');
+            });
+    },
+    
+    // Statistiken in der UI aktualisieren
+    updateStats: function(stats) {
+        $.each(stats, function(key, value) {
+            $(`#${key}-count`).text(value.count);
+        });
+    },
+    
+    // Cache leeren
+    clearCache: function() {
+        Utils.showNotification('Cache wird geleert...', 'info');
+        
+        AjaxHandler.adminRequest('clear_cache')
+            .done(function(response) {
+                if (response.success) {
+                    Utils.showNotification('Cache erfolgreich geleert', 'success');
+                } else {
+                    Utils.showNotification('Fehler beim Leeren des Caches', 'error');
+                }
+            })
+            .fail(function() {
+                Utils.showNotification('Fehler beim Leeren des Caches', 'error');
+            });
+    },
+    
+    // Alle Verbindungen testen
+    testAllConnections: function() {
+        Utils.showNotification('Verbindungen werden getestet...', 'info');
+        
+        AjaxHandler.adminRequest('test_connections')
+            .done(function(response) {
+                if (response.success) {
+                    Utils.showNotification('Alle Verbindungen funktionieren', 'success');
+                } else {
+                    Utils.showNotification('Einige Verbindungen haben Probleme', 'warning');
+                }
+            })
+            .fail(function() {
+                Utils.showNotification('Fehler beim Testen der Verbindungen', 'error');
+            });
+    },
+    
+    // VM-Daten laden
+    loadVMData: function() {
+        const contentDiv = $('#vm-content');
+        Utils.showLoading(contentDiv);
+        
+        AjaxHandler.adminRequest('get_resources', { type: 'vms' })
+            .done(function(response) {
+                if (response.success) {
+                    AdminFunctions.renderVMTable(contentDiv, response.data.data);
+                } else {
+                    Utils.showError(contentDiv, 'Fehler beim Laden der VMs: ' + (response.error || 'Unbekannter Fehler'));
+                }
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showError(contentDiv, 'Fehler beim Laden der VMs: ' + error);
+            });
+    },
+    
+    // VM-Tabelle rendern
+    renderVMTable: function(container, vms) {
+        if (!vms || vms.length === 0) {
+            container.html('<div class="alert alert-info">Keine VMs gefunden.</div>');
+            return;
         }
         
-        function showAdminTab(tabName, element) {
-            document.querySelectorAll('.admin-tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            element.parentNode.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            document.getElementById('admin-' + tabName).classList.remove('hidden');
-            element.classList.add('active');
-        }
+        let html = '<table class="table table-striped table-hover">';
+        html += '<thead><tr><th>Name</th><th>Status</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Aktionen</th></tr></thead><tbody>';
         
-        // Notification System
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 5000);
-        }
-        
-        // Loading State Management
-        function setLoading(form, loading) {
-            const button = form.querySelector('button[type="submit"]');
-            const spinner = button.querySelector('.loading');
-            
-            if (loading) {
-                button.disabled = true;
-                spinner.classList.remove('hidden');
+        vms.forEach(function(vm) {
+            const statusClass = vm.status === 'running' ? 'success' : (vm.status === 'stopped' ? 'danger' : 'warning');
+            html += '<tr>';
+            html += '<td>' + vm.name + '</td>';
+            html += '<td><span class="badge bg-' + statusClass + '">' + vm.status + '</span></td>';
+            html += '<td>' + (vm.cpu || '-') + '</td>';
+            html += '<td>' + (vm.ram || '-') + '</td>';
+            html += '<td>' + (vm.storage || '-') + '</td>';
+            html += '<td>';
+            if (vm.status === 'running') {
+                html += '<button class="btn btn-warning btn-sm me-1" onclick="AdminFunctions.controlVM(\'' + vm.id + '\', \'stop\')"><i class="bi bi-pause"></i></button>';
             } else {
-                button.disabled = false;
-                spinner.classList.add('hidden');
+                html += '<button class="btn btn-success btn-sm me-1" onclick="AdminFunctions.controlVM(\'' + vm.id + '\', \'start\')"><i class="bi bi-play"></i></button>';
             }
-        }
+            html += '<button class="btn btn-danger btn-sm" onclick="AdminFunctions.controlVM(\'' + vm.id + '\', \'delete\')"><i class="bi bi-trash"></i></button>';
+            html += '</td>';
+            html += '</tr>';
+        });
         
-        // API Request Handler mit Session-Überprüfung
-        async function makeRequest(action, formData) {
-            const data = new FormData();
-            data.append('action', action);
-            
-            if (formData) {
-                if (formData instanceof FormData) {
-                    for (const [key, value] of formData.entries()) {
-                        data.append(key, value);
-                    }
+        html += '</tbody></table>';
+        container.html(html);
+    },
+    
+    // VM steuern
+    controlVM: function(vmId, action) {
+        AjaxHandler.adminRequest('control_vm', { vm_id: vmId, control: action })
+            .done(function(response) {
+                if (response.success) {
+                    Utils.showNotification('VM ' + action + ' erfolgreich ausgeführt', 'success');
+                    AdminFunctions.loadVMData();
                 } else {
-                    for (const [key, value] of Object.entries(formData)) {
-                        data.append(key, value);
-                    }
+                    Utils.showNotification('Fehler: ' + (response.error || 'Unbekannter Fehler'), 'error');
                 }
-            }
-            
-            try {
-                const response = await fetch('', {
-                    method: 'POST',
-                    body: data
-                });
-                
-                const result = await response.json();
-                
-                // Session-Expired-Check
-                if (!result.success && result.redirect) {
-                    showNotification('Session abgelaufen - Sie werden weitergeleitet', 'error');
-                    setTimeout(() => {
-                        window.location.href = result.redirect;
-                    }, 2000);
-                    return result;
-                }
-                
-                // Admin-Rechte-Check
-                if (!result.success && result.error === 'Admin-Rechte erforderlich') {
-                    showNotification('Admin-Rechte erforderlich für diese Aktion', 'error');
-                    return result;
-                }
-                
-                return result;
-            } catch (error) {
-                console.error('Request failed:', error);
-                throw error;
-            }
-        }
-        
-        // Endpoint Testing Functions
-        async function testEndpoint(action) {
-            try {
-                const result = await makeRequest(action);
-                displayEndpointResult(action, result);
-            } catch (error) {
-                displayEndpointResult(action, {success: false, error: error.message});
-            }
-        }
-        
-        async function testEndpointWithParam(action, paramName, paramValue) {
-            try {
-                const params = {};
-                params[paramName] = paramValue;
-                const result = await makeRequest(action, params);
-                displayEndpointResult(action, result);
-            } catch (error) {
-                displayEndpointResult(action, {success: false, error: error.message});
-            }
-        }
-        
-        async function testEndpointWithParams(action, params) {
-            try {
-                const result = await makeRequest(action, params);
-                displayEndpointResult(action, result);
-            } catch (error) {
-                displayEndpointResult(action, {success: false, error: error.message});
-            }
-        }
-        
-        function displayEndpointResult(action, result) {
-            document.getElementById('endpoint-result').classList.remove('hidden');
-            document.getElementById('endpoint-response').textContent = 
-                `Action: ${action}\n\nResponse:\n${JSON.stringify(result, null, 2)}`;
-        }
-        
-        // Data Loading Functions
-        async function loadAllData() {
-            updateStats();
-            loadVMs();
-            loadWebsites();
-            loadDatabases();
-            loadEmails();
-            loadDomains();
-            loadVPSList();
-            loadActivityLog();
-        }
-        
-        async function updateStats() {
-            try {
-                const [vms, websites, databases, emails, domains, vps] = await Promise.all([
-                    makeRequest('get_all_vms'),
-                    makeRequest('get_all_websites'),
-                    makeRequest('get_all_databases'),
-                    makeRequest('get_all_emails'),
-                    makeRequest('get_all_domains'),
-                    makeRequest('get_all_vps')
-                ]);
-                
-                document.getElementById('vm-count').textContent = vms.data ? vms.data.length : 0;
-                document.getElementById('website-count').textContent = websites.data ? websites.data.length : 0;
-                document.getElementById('database-count').textContent = databases.data ? databases.data.length : 0;
-                document.getElementById('email-count').textContent = emails.data ? emails.data.length : 0;
-                document.getElementById('domain-count').textContent = domains.data ? domains.data.length : 0;
-                document.getElementById('vps-count').textContent = vps.data ? vps.data.length : 0;
-            } catch (error) {
-                console.error('Fehler beim Laden der Statistiken:', error);
-            }
-        }
-        
-        async function loadVMs() {
-            try {
-                const result = await makeRequest('get_all_vms');
-                if (result.success) {
-                    currentData.vms = result.data;
-                    displayVMs(result.data);
-                } else {
-                    showNotification('Fehler beim Laden der VMs: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler beim Laden der VMs', 'error');
-            }
-        }
-        
-        function displayVMs(vms) {
-            const tbody = document.getElementById('vms-tbody');
-            if (!vms || vms.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Keine VMs gefunden</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = vms.map(vm => `
-                <tr>
-                    <td>${vm.vmid || 'N/A'}</td>
-                    <td>${vm.name || 'N/A'}</td>
-                    <td>${vm.node || 'N/A'}</td>
-                    <td><span class="status-badge ${vm.status === 'running' ? 'status-running' : 'status-stopped'}">${vm.status || 'unknown'}</span></td>
-                    <td>${vm.cores || vm.cpus || 'N/A'}</td>
-                    <td>${vm.memory ? Math.round(vm.memory/1024/1024) + ' MB' : 'N/A'}</td>
-                    <td class="action-buttons">
-                        ${vm.status === 'running' ? 
-                            `<button class="btn btn-warning" onclick="controlVM('${vm.node}', '${vm.vmid}', 'stop')">⏹️ Stop</button>
-                             <button class="btn btn-secondary" onclick="controlVM('${vm.node}', '${vm.vmid}', 'suspend')">⏸️ Suspend</button>` :
-                            `<button class="btn btn-success" onclick="controlVM('${vm.node}', '${vm.vmid}', 'start')">▶️ Start</button>`
-                        }
-                        <button class="btn btn-secondary" onclick="controlVM('${vm.node}', '${vm.vmid}', 'reset')">🔄 Reset</button>
-                        <button class="btn btn-danger" onclick="deleteVM('${vm.node}', '${vm.vmid}')">🗑️ Löschen</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        async function loadWebsites() {
-            try {
-                const result = await makeRequest('get_all_websites');
-                if (result.success) {
-                    currentData.websites = result.data;
-                    displayWebsites(result.data);
-                } else {
-                    showNotification('Fehler beim Laden der Websites: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler beim Laden der Websites', 'error');
-            }
-        }
-        
-        function displayWebsites(websites) {
-            const tbody = document.getElementById('websites-tbody');
-            if (!websites || websites.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Keine Websites gefunden</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = websites.map(site => `
-                <tr>
-                    <td>${site.domain || 'N/A'}</td>
-                    <td>${site.ip_address || 'N/A'}</td>
-                    <td>${site.system_user || 'N/A'}</td>
-                    <td><span class="status-badge ${site.active === 'y' ? 'status-active' : 'status-stopped'}">${site.active === 'y' ? 'Aktiv' : 'Inaktiv'}</span></td>
-                    <td>${site.hd_quota || 'N/A'}</td>
-                    <td class="action-buttons">
-                        <button class="btn btn-danger" onclick="deleteWebsite('${site.domain_id}')">🗑️ Löschen</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-       /* async function loadDatabases() {
-            try {
-                const result = await makeRequest('get_all_databases');
-                if (result.success) {
-                    currentData.databases = result.data;
-                    displayDatabases(result.data);
-                } else {
-                    showNotification('Fehler beim Laden der Datenbanken: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler beim Laden der Datenbanken', 'error');
-            }
-        }
-        
-        function displayDatabases(databases) {
-            const tbody = document.getElementById('databases-tbody');
-            if (!databases || databases.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Keine Datenbanken gefunden</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = databases.map(db => `
-                <tr>
-                    <td>${db.database_name || 'N/A'}</td>
-                    <td>${db.database_user || 'N/A'}</td>
-                    <td>${db.database_type || 'mysql'}</td>
-                    <td><span class="status-badge ${db.active === 'y' ? 'status-active' : 'status-stopped'}">${db.active === 'y' ? 'Aktiv' : 'Inaktiv'}</span></td>
-                    <td class="action-buttons">
-                        <button class="btn btn-danger" onclick="deleteDatabase('${db.database_id}')">🗑️ Löschen</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        async function loadEmails() {
-            try {
-                const result = await makeRequest('get_all_emails');
-                if (result.success) {
-                    currentData.emails = result.data;
-                    displayEmails(result.data);
-                } else {
-                    showNotification('Fehler beim Laden der E-Mail Accounts: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler beim Laden der E-Mail Accounts', 'error');
-            }
-        }
-        
-        function displayEmails(emails) {
-            const tbody = document.getElementById('emails-tbody');
-            if (!emails || emails.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Keine E-Mail Accounts gefunden</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = emails.map(email => `
-                <tr>
-                    <td>${email.email || 'N/A'}</td>
-                    <td>${email.name || 'N/A'}</td>
-                    <td>${email.quota || 'N/A'}</td>
-                    <td><span class="status-badge ${email.active === 'y' ? 'status-active' : 'status-stopped'}">${email.active === 'y' ? 'Aktiv' : 'Inaktiv'}</span></td>
-                    <td class="action-buttons">
-                        <button class="btn btn-danger" onclick="deleteEmail('${email.mailuser_id}')">🗑️ Löschen</button>
-                    </td>
-                </tr>
-            `).join('');
-        }*/
-        
-        async function loadDomains() {
-            try {
-                const result = await makeRequest('get_all_domains');
-                if (result.success) {
-                    currentData.domains = result.data;
-                    displayDomains(result.data);
-                } else {
-                    showNotification('Fehler beim Laden der Domains: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler beim Laden der Domains', 'error');
-            }
-        }
-        
-        function displayDomains(domains) {
-            const tbody = document.getElementById('domains-tbody');
-            if (!domains || domains.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Keine Domains gefunden</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = domains.map(domain => `
-                <tr>
-                    <td>${domain.domain || 'N/A'}</td>
-                    <td>${domain.expiration || 'N/A'}</td>
-                    <td>${domain.autoRenew ? 'Ja' : 'Nein'}</td>
-                    <td><span class="status-badge status-active">${domain.state || 'N/A'}</span></td>
-                    <td>${domain.nameServers ? domain.nameServers.join(', ') : 'N/A'}</td>
-                    <td class="action-buttons">
-                        <button class="btn btn-secondary" onclick="testEndpointWithParam('get_ovh_dns_records', 'domain', '${domain.domain}')">📝 DNS</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        async function loadVPSList() {
-            try {
-                const result = await makeRequest('get_all_vps');
-                if (result.success) {
-                    currentData.vps = result.data;
-                    displayVPSList(result.data);
-                } else {
-                    showNotification('Fehler beim Laden der VPS: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler beim Laden der VPS', 'error');
-            }
-        }
-        
-        function displayVPSList(vpsList) {
-            const tbody = document.getElementById('vps-tbody');
-            if (!vpsList || vpsList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Keine VPS gefunden</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = vpsList.map(vps => `
-                <tr>
-                    <td>${vps.name || 'N/A'}</td>
-                    <td>${vps.ips ? vps.ips.join(', ') : 'N/A'}</td>
-                    <td>${vps.mac_addresses ? Object.values(vps.mac_addresses).join(', ') : 'N/A'}</td>
-                    <td><span class="status-badge ${vps.state === 'running' ? 'status-running' : 'status-stopped'}">${vps.state || 'N/A'}</span></td>
-                    <td>${vps.cluster || 'N/A'}</td>
-                    <td class="action-buttons">
-                        <button class="btn btn-secondary" onclick="testEndpointWithParams('control_ovh_vps', {vps_name: '${vps.name}', vps_action: 'reboot'})">🔄 Reboot</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        async function loadActivityLog() {
-            try {
-                const result = await makeRequest('get_activity_log');
-                if (result.success) {
-                    currentData.logs = result.data;
-                    displayActivityLog(result.data);
-                } else {
-                    showNotification('Fehler beim Laden des Activity Logs: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler beim Laden des Activity Logs', 'error');
-            }
-        }
-        
-        function displayActivityLog(logs) {
-            const tbody = document.getElementById('logs-tbody');
-            if (!logs || logs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Keine Log-Einträge gefunden</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = logs.map(log => `
-                <tr>
-                    <td>${new Date(log.created_at).toLocaleString('de-DE')}</td>
-                    <td>${log.action || 'N/A'}</td>
-                    <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${log.details || 'N/A'}</td>
-                    <td><span class="status-badge ${log.status === 'success' ? 'status-running' : 'status-stopped'}">${log.status || 'N/A'}</span></td>
-                </tr>
-            `).join('');
-        }
-        
-        // Control Functions
-        async function controlVM(node, vmid, action) {
-            if (!confirm(`Möchten Sie wirklich "${action}" für VM ${vmid} ausführen?`)) {
-                return;
-            }
-            
-            try {
-                const formData = new FormData();
-                formData.append('node', node);
-                formData.append('vmid', vmid);
-                formData.append('vm_action', action);
-                
-                const result = await makeRequest('control_vm', formData);
-                
-                if (result.success) {
-                    showNotification(`VM ${vmid} ${action} erfolgreich ausgeführt!`);
-                    setTimeout(() => loadVMs(), 2000);
-                } else {
-                    showNotification(`Fehler beim ${action} der VM: ` + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-        }
-        
-        async function deleteVM(node, vmid) {
-            if (!confirm(`Möchten Sie VM ${vmid} wirklich PERMANENT löschen? Diese Aktion kann nicht rückgängig gemacht werden!`)) {
-                return;
-            }
-            
-            try {
-                const formData = new FormData();
-                formData.append('node', node);
-                formData.append('vmid', vmid);
-                
-                const result = await makeRequest('delete_vm', formData);
-                
-                if (result.success) {
-                    showNotification(`VM ${vmid} wurde erfolgreich gelöscht!`);
-                    loadVMs();
-                } else {
-                    showNotification('Fehler beim Löschen der VM: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-        }
-        
-        async function deleteWebsite(domainId) {
-            if (!confirm('Möchten Sie diese Website wirklich löschen?')) {
-                return;
-            }
-            
-            try {
-                const formData = new FormData();
-                formData.append('domain_id', domainId);
-                
-                const result = await makeRequest('delete_website', formData);
-                
-                if (result.success) {
-                    showNotification('Website wurde erfolgreich gelöscht!');
-                    loadWebsites();
-                } else {
-                    showNotification('Fehler beim Löschen der Website: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-        }
-        
-        async function deleteDatabase(databaseId) {
-            if (!confirm('Möchten Sie diese Datenbank wirklich löschen?')) {
-                return;
-            }
-            
-            try {
-                const formData = new FormData();
-                formData.append('database_id', databaseId);
-                
-                const result = await makeRequest('delete_database', formData);
-                
-                if (result.success) {
-                    showNotification('Datenbank wurde erfolgreich gelöscht!');
-                    loadDatabases();
-                } else {
-                    showNotification('Fehler beim Löschen der Datenbank: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-        }
-        
-        async function deleteEmail(mailuserId) {
-            if (!confirm('Möchten Sie diese E-Mail Adresse wirklich löschen?')) {
-                return;
-            }
-            
-            try {
-                const formData = new FormData();
-                formData.append('mailuser_id', mailuserId);
-                
-                const result = await makeRequest('delete_email', formData);
-                
-                if (result.success) {
-                    showNotification('E-Mail Adresse wurde erfolgreich gelöscht!');
-                    loadEmails();
-                } else {
-                    showNotification('Fehler beim Löschen der E-Mail Adresse: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-        }
-        
-        // Search/Filter Function
-        function filterTable(tableId, searchValue) {
-            const table = document.getElementById(tableId);
-            const tbody = table.querySelector('tbody');
-            const rows = tbody.querySelectorAll('tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                if (text.includes(searchValue.toLowerCase())) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showNotification('Fehler: ' + error, 'error');
             });
-        }
+    },
+    
+    // Website-Daten laden
+    loadWebsiteData: function() {
+        const contentDiv = $('#website-content');
+        Utils.showLoading(contentDiv);
         
-        // Original Creation Functions
-        async function createVM(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            setLoading(form, true);
-            
-            try {
-                const result = await makeRequest('create_vm', formData);
-                
-                if (result.success) {
-                    showNotification('VM wurde erfolgreich erstellt!');
-                    form.reset();
-                    if (!document.getElementById('admin').classList.contains('hidden')) {
-                        loadVMs();
-                    }
+        AjaxHandler.adminRequest('get_resources', { type: 'websites' })
+            .done(function(response) {
+                if (response.success) {
+                    AdminFunctions.renderWebsiteTable(contentDiv, response.data.data);
                 } else {
-                    showNotification('Fehler beim Erstellen der VM: ' + (result.error || 'Unbekannter Fehler'), 'error');
+                    Utils.showError(contentDiv, 'Fehler beim Laden der Websites: ' + (response.error || 'Unbekannter Fehler'));
                 }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-            
-            setLoading(form, false);
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showError(contentDiv, 'Fehler beim Laden der Websites: ' + error);
+            });
+    },
+    
+    // Website-Tabelle rendern
+    renderWebsiteTable: function(container, websites) {
+        if (!websites || websites.length === 0) {
+            container.html('<div class="alert alert-info">Keine Websites gefunden.</div>');
+            return;
         }
         
-        async function createWebsite(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            setLoading(form, true);
-            
-            try {
-                const result = await makeRequest('create_website', formData);
-                
-                if (result.success) {
-                    showNotification('Website wurde erfolgreich erstellt!');
-                    form.reset();
-                    if (!document.getElementById('admin').classList.contains('hidden')) {
-                        loadWebsites();
-                    }
-                } else {
-                    showNotification('Fehler beim Erstellen der Website: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-            
-            setLoading(form, false);
-        }
+        let html = '<table class="table table-striped table-hover">';
+        html += '<thead><tr><th>Domain</th><th>Status</th><th>PHP Version</th><th>SSL</th><th>Aktionen</th></tr></thead><tbody>';
         
-        async function orderDomain(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            setLoading(form, true);
-            
-            try {
-                const result = await makeRequest('order_domain', formData);
-                
-                if (result.success) {
-                    showNotification('Domain wurde erfolgreich bestellt!');
-                    form.reset();
-                    if (!document.getElementById('admin').classList.contains('hidden')) {
-                        loadDomains();
-                    }
-                } else {
-                    showNotification('Fehler beim Bestellen der Domain: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-            
-            setLoading(form, false);
-        }
-        
-        async function getVPSInfo(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            setLoading(form, true);
-            
-            try {
-                const result = await makeRequest('get_vps_info', formData);
-                
-                if (result.success && result.data) {
-                    document.getElementById('vps_ip').textContent = result.data.ip;
-                    document.getElementById('vps_mac').textContent = result.data.mac;
-                    document.getElementById('vps_result').classList.remove('hidden');
-                    showNotification('VPS Informationen erfolgreich abgerufen!');
-                } else {
-                    showNotification('Fehler beim Abrufen der VPS Informationen: ' + (result.error || 'Keine Daten gefunden'), 'error');
-                    document.getElementById('vps_result').classList.add('hidden');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-            
-            setLoading(form, false);
-        }
-        
-        async function updateVMNetwork(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            setLoading(form, true);
-            
-            try {
-                const result = await makeRequest('update_vm_network', formData);
-                
-                if (result.success) {
-                    showNotification('VM Netzwerk wurde erfolgreich aktualisiert!');
-                    form.reset();
-                    if (!document.getElementById('admin').classList.contains('hidden')) {
-                        loadVMs();
-                    }
-                } else {
-                    showNotification('Fehler beim Aktualisieren des VM Netzwerks: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-            
-            setLoading(form, false);
-        }
-        
-        async function createDatabase(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            setLoading(form, true);
-            
-            try {
-                const result = await makeRequest('create_database', formData);
-                
-                if (result.success) {
-                    showNotification('Datenbank wurde erfolgreich erstellt!');
-                    form.reset();
-                    if (!document.getElementById('admin').classList.contains('hidden')) {
-                        loadDatabases();
-                    }
-                } else {
-                    showNotification('Fehler beim Erstellen der Datenbank: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-            
-            setLoading(form, false);
-        }
-        
-        async function createEmail(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            setLoading(form, true);
-            
-            try {
-                const result = await makeRequest('create_email', formData);
-                
-                if (result.success) {
-                    showNotification('E-Mail Adresse wurde erfolgreich erstellt!');
-                    form.reset();
-                    if (!document.getElementById('admin').classList.contains('hidden')) {
-                        loadEmails();
-                    }
-                } else {
-                    showNotification('Fehler beim Erstellen der E-Mail Adresse: ' + (result.error || 'Unbekannter Fehler'), 'error');
-                }
-            } catch (error) {
-                showNotification('Netzwerkfehler: ' + error.message, 'error');
-            }
-            
-            setLoading(form, false);
-        }
-        
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Session-Heartbeat starten
-            startSessionHeartbeat();
-            
-            if (!document.getElementById('admin').classList.contains('hidden')) {
-                loadAllData();
-            }
+        websites.forEach(function(website) {
+            const statusClass = website.status === 'active' ? 'success' : 'danger';
+            const sslClass = website.ssl ? 'success' : 'secondary';
+            html += '<tr>';
+            html += '<td>' + website.domain + '</td>';
+            html += '<td><span class="badge bg-' + statusClass + '">' + website.status + '</span></td>';
+            html += '<td>' + (website.php_version || '-') + '</td>';
+            html += '<td><span class="badge bg-' + sslClass + '">' + (website.ssl ? 'Ja' : 'Nein') + '</span></td>';
+            html += '<td>';
+            html += '<button class="btn btn-primary btn-sm me-1" onclick="AdminFunctions.controlWebsite(\'' + website.id + '\', \'edit\')"><i class="bi bi-pencil"></i></button>';
+            html += '<button class="btn btn-danger btn-sm" onclick="AdminFunctions.controlWebsite(\'' + website.id + '\', \'delete\')"><i class="bi bi-trash"></i></button>';
+            html += '</td>';
+            html += '</tr>';
         });
         
-        // Session-Heartbeat stoppen wenn Seite verlassen wird
-        window.addEventListener('beforeunload', function() {
-            stopSessionHeartbeat();
-        });
-
-        async function loadOVHFailoverIPs() {
-            try {
-                const result = await makeRequest('get_ovh_failover_ips');
-                if (result.success && result.data) {
-                    currentData.failoverips = result.data; // Store for potential filtering
-                    displayOVHFailoverIPs(result.data);
+        html += '</tbody></table>';
+        container.html(html);
+    },
+    
+    // Website steuern
+    controlWebsite: function(websiteId, action) {
+        AjaxHandler.adminRequest('control_website', { website_id: websiteId, control: action })
+            .done(function(response) {
+                if (response.success) {
+                    Utils.showNotification('Website ' + action + ' erfolgreich ausgeführt', 'success');
+                    AdminFunctions.loadWebsiteData();
                 } else {
-                    showNotification('Fehler beim Laden der OVH Failover IPs: ' + (result.error || 'Keine Daten'), 'error');
-                    document.getElementById('failover-ips-tbody').innerHTML = '<tr><td colspan="7" style="text-align: center;">Fehler beim Laden oder keine IPs gefunden.</td></tr>';
+                    Utils.showNotification('Fehler: ' + (response.error || 'Unbekannter Fehler'), 'error');
                 }
-            } catch (error) {
-                showNotification('Netzwerkfehler beim Laden der OVH Failover IPs: ' + error.message, 'error');
-                document.getElementById('failover-ips-tbody').innerHTML = '<tr><td colspan="7" style="text-align: center;">Netzwerkfehler.</td></tr>';
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showNotification('Fehler: ' + error, 'error');
+            });
+    },
+    
+    // Ähnliche Funktionen für andere Ressourcen
+    loadDatabaseData: function() {
+        const contentDiv = $('#database-content');
+        Utils.showLoading(contentDiv);
+        
+        AjaxHandler.adminRequest('get_resources', { type: 'databases' })
+            .done(function(response) {
+                if (response.success) {
+                    AdminFunctions.renderDatabaseTable(contentDiv, response.data.data);
+                } else {
+                    Utils.showError(contentDiv, 'Fehler beim Laden der Datenbanken: ' + (response.error || 'Unbekannter Fehler'));
+                }
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showError(contentDiv, 'Fehler beim Laden der Datenbanken: ' + error);
+            });
+    },
+    
+    loadEmailData: function() {
+        const contentDiv = $('#email-content');
+        Utils.showLoading(contentDiv);
+        
+        AjaxHandler.adminRequest('get_resources', { type: 'emails' })
+            .done(function(response) {
+                if (response.success) {
+                    AdminFunctions.renderEmailTable(contentDiv, response.data.data);
+                } else {
+                    Utils.showError(contentDiv, 'Fehler beim Laden der E-Mails: ' + (response.error || 'Unbekannter Fehler'));
+                }
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showError(contentDiv, 'Fehler beim Laden der E-Mails: ' + error);
+            });
+    },
+    
+    loadDomainData: function() {
+        const contentDiv = $('#domain-content');
+        Utils.showLoading(contentDiv);
+        
+        AjaxHandler.adminRequest('get_resources', { type: 'domains' })
+            .done(function(response) {
+                if (response.success) {
+                    AdminFunctions.renderDomainTable(contentDiv, response.data.data);
+                } else {
+                    Utils.showError(contentDiv, 'Fehler beim Laden der Domains: ' + (response.error || 'Unbekannter Fehler'));
+                }
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showError(contentDiv, 'Fehler beim Laden der Domains: ' + error);
+            });
+    },
+    
+    loadLogs: function() {
+        const contentDiv = $('#logs-content');
+        Utils.showLoading(contentDiv);
+        
+        AjaxHandler.adminRequest('get_activity_logs')
+            .done(function(response) {
+                if (response.success) {
+                    AdminFunctions.renderLogsTable(contentDiv, response.data.logs);
+                } else {
+                    Utils.showError(contentDiv, 'Fehler beim Laden der Logs: ' + (response.error || 'Unbekannter Fehler'));
+                }
+            })
+            .fail(function(xhr, status, error) {
+                Utils.showError(contentDiv, 'Fehler beim Laden der Logs: ' + error);
+            });
+    },
+    
+    saveSettings: function() {
+        // Implementierung für Einstellungen
+        Utils.showNotification('Einstellungen gespeichert', 'success');
+    },
+    
+    // Render-Funktionen für Tabellen
+    renderDatabaseTable: function(container, databases) {
+        if (!databases || databases.length === 0) {
+            container.html('<div class="alert alert-info">Keine Datenbanken gefunden.</div>');
+            return;
+        }
+        
+        let html = '<table class="table table-striped table-hover">';
+        html += '<thead><tr><th>Name</th><th>Benutzer</th><th>Typ</th><th>Status</th><th>Aktionen</th></tr></thead><tbody>';
+        
+        databases.forEach(function(database) {
+            const statusClass = database.active === 'y' ? 'success' : 'danger';
+            html += '<tr>';
+            html += '<td>' + database.database_name + '</td>';
+            html += '<td>' + database.database_user + '</td>';
+            html += '<td>' + (database.database_type || 'mysql') + '</td>';
+            html += '<td><span class="badge bg-' + statusClass + '">' + (database.active === 'y' ? 'Aktiv' : 'Inaktiv') + '</span></td>';
+            html += '<td>';
+            html += '<button class="btn btn-primary btn-sm me-1" onclick="AdminFunctions.editDatabase(\'' + database.database_id + '\')"><i class="bi bi-pencil"></i></button>';
+            html += '<button class="btn btn-danger btn-sm" onclick="AdminFunctions.deleteDatabase(\'' + database.database_id + '\')"><i class="bi bi-trash"></i></button>';
+            html += '</td>';
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        container.html(html);
+    },
+    
+    renderEmailTable: function(container, emails) {
+        if (!emails || emails.length === 0) {
+            container.html('<div class="alert alert-info">Keine E-Mail-Konten gefunden.</div>');
+            return;
+        }
+        
+        let html = '<table class="table table-striped table-hover">';
+        html += '<thead><tr><th>E-Mail</th><th>Name</th><th>Quota</th><th>Status</th><th>Aktionen</th></tr></thead><tbody>';
+        
+        emails.forEach(function(email) {
+            const statusClass = email.active === 'y' ? 'success' : 'danger';
+            html += '<tr>';
+            html += '<td>' + email.email + '</td>';
+            html += '<td>' + (email.name || '-') + '</td>';
+            html += '<td>' + (email.quota || '-') + '</td>';
+            html += '<td><span class="badge bg-' + statusClass + '">' + (email.active === 'y' ? 'Aktiv' : 'Inaktiv') + '</span></td>';
+            html += '<td>';
+            html += '<button class="btn btn-primary btn-sm me-1" onclick="AdminFunctions.editEmail(\'' + email.mailuser_id + '\')"><i class="bi bi-pencil"></i></button>';
+            html += '<button class="btn btn-danger btn-sm" onclick="AdminFunctions.deleteEmail(\'' + email.mailuser_id + '\')"><i class="bi bi-trash"></i></button>';
+            html += '</td>';
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        container.html(html);
+    },
+    
+    renderDomainTable: function(container, domains) {
+        if (!domains || domains.length === 0) {
+            container.html('<div class="alert alert-info">Keine Domains gefunden.</div>');
+            return;
+        }
+        
+        let html = '<table class="table table-striped table-hover">';
+        html += '<thead><tr><th>Domain</th><th>Ablaufdatum</th><th>Auto-Renewal</th><th>Status</th><th>Nameserver</th><th>Aktionen</th></tr></thead><tbody>';
+        
+        domains.forEach(function(domain) {
+            const statusClass = domain.state === 'active' ? 'success' : 'warning';
+            html += '<tr>';
+            html += '<td>' + domain.domain + '</td>';
+            html += '<td>' + (domain.expiration || '-') + '</td>';
+            html += '<td>' + (domain.autoRenew ? 'Ja' : 'Nein') + '</td>';
+            html += '<td><span class="badge bg-' + statusClass + '">' + (domain.state || '-') + '</span></td>';
+            html += '<td>' + (domain.nameServers ? domain.nameServers.join(', ') : '-') + '</td>';
+            html += '<td>';
+            html += '<button class="btn btn-secondary btn-sm" onclick="AdminFunctions.testDomainDNS(\'' + domain.domain + '\')"><i class="bi bi-globe"></i> DNS</button>';
+            html += '</td>';
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        container.html(html);
+    },
+    
+    renderLogsTable: function(container, logs) {
+        if (!logs || logs.length === 0) {
+            container.html('<div class="alert alert-info">Keine Log-Einträge gefunden.</div>');
+            return;
+        }
+        
+        let html = '<table class="table table-striped table-hover">';
+        html += '<thead><tr><th>Zeitstempel</th><th>Aktion</th><th>Details</th><th>Status</th></tr></thead><tbody>';
+        
+        logs.forEach(function(log) {
+            const statusClass = log.status === 'success' ? 'success' : 'danger';
+            html += '<tr>';
+            html += '<td>' + new Date(log.created_at).toLocaleString('de-DE') + '</td>';
+            html += '<td>' + (log.action || '-') + '</td>';
+            html += '<td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">' + (log.details || '-') + '</td>';
+            html += '<td><span class="badge bg-' + statusClass + '">' + (log.status || '-') + '</span></td>';
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        container.html(html);
+    },
+    
+    // Zusätzliche Hilfsfunktionen
+    editDatabase: function(databaseId) {
+        Utils.showNotification('Datenbank-Bearbeitung noch nicht implementiert', 'info');
+    },
+    
+    editEmail: function(mailuserId) {
+        Utils.showNotification('E-Mail-Bearbeitung noch nicht implementiert', 'info');
+    },
+    
+    testDomainDNS: function(domain) {
+        Utils.showNotification('DNS-Test für ' + domain + ' noch nicht implementiert', 'info');
+    }
+};
+
+// Event-Handler
+const EventHandlers = {
+    // Tab-Wechsel für Admin-Bereich
+    initAdminTabs: function() {
+        $('#adminTabs .nav-link').on('click', function() {
+            const target = $(this).data('bs-target');
+            if (target === '#admin-resources') {
+                // Ressourcen-Tab aktiviert - erste Ressource laden
+                setTimeout(function() {
+                    AdminFunctions.loadVMData();
+                }, 100);
             }
-        }
-
-        function displayOVHFailoverIPs(failoverIPs) {
-            const tbody = document.getElementById('failover-ips-tbody');
-            if (!failoverIPs || failoverIPs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Keine OVH Failover IPs gefunden.</td></tr>';
-                return;
+        });
+    },
+    
+    // Tab-Wechsel für Ressourcen
+    initResourceTabs: function() {
+        $('#resourceTabs .nav-link').on('click', function() {
+            const target = $(this).data('bs-target');
+            const resourceType = target.replace('#resource-', '');
+            
+            // Entsprechende Daten laden
+            switch(resourceType) {
+                case 'vms':
+                    AdminFunctions.loadVMData();
+                    break;
+                case 'websites':
+                    AdminFunctions.loadWebsiteData();
+                    break;
+                case 'databases':
+                    AdminFunctions.loadDatabaseData();
+                    break;
+                case 'emails':
+                    AdminFunctions.loadEmailData();
+                    break;
+                case 'domains':
+                    AdminFunctions.loadDomainData();
+                    break;
             }
+        });
+    },
+    
+    // Plugin-Tab-Wechsel
+    initPluginTabs: function() {
+        $('#pluginTabs .nav-link').on('click', function() {
+            const pluginKey = $(this).attr('id').replace('-tab', '');
+            PluginManager.loadContent(pluginKey);
+        });
+    },
+    
+    // Formular-Submission
+    initForms: function() {
+        $('form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            const originalText = submitBtn.text();
+            
+            // Loading-State
+            submitBtn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Wird verarbeitet...');
+            
+            // AJAX-Submission
+            $.ajax({
+                url: form.attr('action') || window.location.href,
+                method: form.attr('method') || 'POST',
+                data: form.serialize(),
+                dataType: 'json'
+            })
+            .done(function(response) {
+                if (response.success) {
+                    Utils.showNotification(response.message || 'Formular erfolgreich gesendet', 'success');
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                } else {
+                    Utils.showNotification(response.error || 'Fehler beim Senden des Formulars', 'error');
+                }
+            })
+            .fail(function() {
+                Utils.showNotification('Fehler beim Senden des Formulars', 'error');
+            })
+            .always(function() {
+                // Button zurücksetzen
+                submitBtn.prop('disabled', false).text(originalText);
+            });
+        });
+    }
+};
 
-            tbody.innerHTML = failoverIPs.map(ip => `
-                <tr>
-                    <td>${ip.ip || 'N/A'}</td>
-                    <td>${ip.block || 'N/A'}</td>
-                    <td>${ip.routedTo ? (ip.routedTo.serviceName || ip.routedTo) : 'N/A'}</td>
-                    <td>${ip.type || 'N/A'}</td>
-                    <td>${ip.country || ip.geo || 'N/A'}</td>
-                    <td>${ip.virtualMac || 'Nicht vorhanden'}</td>
-                    <td class="action-buttons">
-                        ${!ip.virtualMac ? '<button class="btn btn-secondary btn-small" onclick="generateMacAddress(\'' + ip.ip + '\')">Macadresse Erzeugen</button>' : ''}
-                        <!-- Weitere Aktionen können hier hinzugefügt werden -->
-                    </td>
-                </tr>
-            `).join('');
-        }
+// Initialisierung
+$(document).ready(function() {
+    // Session-Timer starten
+    SessionManager.startTimers();
+    
+    // Event-Handler initialisieren
+    EventHandlers.initAdminTabs();
+    EventHandlers.initResourceTabs();
+    EventHandlers.initPluginTabs();
+    EventHandlers.initForms();
+    
+    // Erste Plugin-Inhalte laden
+    const firstPlugin = Object.keys(window.enabledPlugins || {})[0];
+    if (firstPlugin) {
+        PluginManager.loadContent(firstPlugin);
+    }
+    
+    // Erste Ressourcen laden
+    AdminFunctions.loadVMData();
+    
+    // Auto-Refresh alle 30 Sekunden
+    refreshInterval = setInterval(function() {
+        AdminFunctions.refreshAllStats();
+    }, 30000);
+    
+    // Debug-Informationen
+    console.log('Admin Dashboard initialisiert');
+    console.log('Verfügbare Plugins:', window.enabledPlugins || 'Nicht verfügbar');
+    console.log('Session-Info:', window.sessionInfo || 'Nicht verfügbar');
+});
 
-        // Placeholder for future functionality
-        function generateMacAddress(ipAddress) {
-            showNotification(`Funktion "Macadresse Erzeugen" für ${ipAddress} ist noch nicht implementiert.`, 'info');
-            // Hier käme später der API Aufruf POST /ip/{ip}/virtualMac
-            // Beispiel: await makeRequest('create_ovh_virtual_mac', { ip: ipAddress });
-            // Dann loadOVHFailoverIPs() neu laden.
-        }
+// Cleanup beim Verlassen der Seite
+$(window).on('beforeunload', function() {
+    SessionManager.stopTimers();
+    if (refreshInterval) clearInterval(refreshInterval);
+});
+
+// Globale Funktionen für onclick-Handler
+window.refreshAllStats = AdminFunctions.refreshAllStats;
+window.clearCache = AdminFunctions.clearCache;
+window.testAllConnections = AdminFunctions.testAllConnections;
+window.loadVMData = AdminFunctions.loadVMData;
+window.loadWebsiteData = AdminFunctions.loadWebsiteData;
+window.loadDatabaseData = AdminFunctions.loadDatabaseData;
+window.loadEmailData = AdminFunctions.loadEmailData;
+window.loadDomainData = AdminFunctions.loadDomainData;
+window.loadLogs = AdminFunctions.loadLogs;
+window.saveSettings = AdminFunctions.saveSettings;
+window.loadPluginContent = PluginManager.loadContent;

@@ -29,6 +29,53 @@ let dataLoaded = {
 // Session Management
 let sessionHeartbeatInterval;
 
+// Am Anfang der Datei nach den globalen Variablen
+async function makeRequest(action, formData) {
+    // Wenn kein Modul angegeben, nutze Legacy-Mapping
+    if (!formData || !formData.module) {
+        const module = window.ModuleManager ? ModuleManager.currentModule : 'admin';
+        
+        // Legacy-Kompatibilität
+        const data = new FormData();
+        data.append('action', action);
+        data.append('module', module);
+        
+        if (formData instanceof FormData) {
+            for (const [key, value] of formData.entries()) {
+                if (key !== 'action') data.append(key, value);
+            }
+        } else if (formData) {
+            for (const [key, value] of Object.entries(formData)) {
+                if (key !== 'action') data.append(key, value);
+            }
+        }
+        
+        try {
+            const response = await fetch('', {
+                method: 'POST',
+                body: data
+            });
+            
+            const result = await response.json();
+            
+            if (!result.success && result.redirect) {
+                showNotification('Session abgelaufen - Sie werden weitergeleitet', 'error');
+                setTimeout(() => {
+                    window.location.href = result.redirect;
+                }, 2000);
+            }
+            
+            return result;
+        } catch (error) {
+            console.error('Request failed:', error);
+            throw error;
+        }
+    }
+    
+    // Neue Modul-basierte Requests
+    return ModuleManager.makeRequest(ModuleManager.currentModule, action, formData);
+}
+
 function startSessionHeartbeat() {
     sessionHeartbeatInterval = setInterval(() => {
         fetch('?heartbeat=1')
@@ -229,44 +276,7 @@ function setLoading(form, loading) {
     }
 }
 
-// API Request Handler
-async function makeRequest(action, formData) {
-    const data = new FormData();
-    data.append('action', action);
-    
-    if (formData) {
-        if (formData instanceof FormData) {
-            for (const [key, value] of formData.entries()) {
-                data.append(key, value);
-            }
-        } else {
-            for (const [key, value] of Object.entries(formData)) {
-                data.append(key, value);
-            }
-        }
-    }
-    
-    try {
-        const response = await fetch('', {
-            method: 'POST',
-            body: data
-        });
-        
-        const result = await response.json();
-        
-        if (!result.success && result.redirect) {
-            showNotification('Session abgelaufen - Sie werden weitergeleitet', 'error');
-            setTimeout(() => {
-                window.location.href = result.redirect;
-            }, 2000);
-        }
-        return result;
-    } catch (error) {
-        console.error('Request failed for action ' + action + ':', error);
-        showNotification('Netzwerkfehler oder Serverproblem bei Aktion: ' + action, 'error');
-        throw error; // Re-throw to be caught by calling function if needed
-    }
-}
+
 
 // Data Loading Functions with Lazy Loading
 async function loadVMs() {

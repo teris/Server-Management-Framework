@@ -16,6 +16,8 @@ Ein professionelles PHP-Framework für die Verwaltung von Proxmox VMs, ISPConfig
 - **📝 Activity Logging** - Vollständige Protokollierung aller Aktionen
 - **🎯 OOP Design** - Saubere, modulare Architektur
 - **🔌 Einzelne Endpunkte** - Jede API-Methode einzeln abrufbar
+- **🎨 Bootstrap 5.3.2** - Moderne, responsive Benutzeroberfläche
+- **⚡ jQuery 3.7.1** - Optimierte JavaScript-Funktionalität
 
 ## 🚀 Quick Start
 
@@ -59,7 +61,7 @@ php -S localhost:8000
 3. **Konfiguration:**
    ```bash
    nano config/config.inc.php
-   # Editieren Sie framework.php mit Ihren API-Credentials
+   # Editieren Sie die Konfiguration mit Ihren API-Credentials
    ```
 
 4. **Datenbank einrichten:**
@@ -71,13 +73,13 @@ php -S localhost:8000
    ```
 
 5. **Webserver konfigurieren:**
-   - **Apache:** DocumentRoot auf `public/` setzen
-   - **Nginx:** Root auf `public/` setzen
-   - **PHP Dev Server:** `php -S localhost:8000 -t public/`
+   - **Apache:** DocumentRoot auf das Projektverzeichnis setzen
+   - **Nginx:** Root auf das Projektverzeichnis setzen
+   - **PHP Dev Server:** `php -S localhost:8000`
 
 6. **Permissions setzen:**
    ```bash
-   chmod 755 public/
+   chmod 755 ./
    chmod 644 config/config.inc.php
    ```
 
@@ -122,19 +124,19 @@ const OVH_CONSUMER_KEY = 'your_consumer_key';
 
 ```bash
 # Alle APIs testen
-php auth.php
+php auth_handler.php
 
 # Einzelne APIs testen
-php auth.php proxmox
-php auth.php ispconfig
-php auth.php ovh
+php auth_handler.php proxmox
+php auth_handler.php ispconfig
+php auth_handler.php ovh
 ```
 
-### Unit Tests
+### Debug-Modus
 
 ```bash
-# PHPUnit Tests (falls installiert)
-./vendor/bin/phpunit tests/
+# Debug-Interface öffnen
+php debug.php
 ```
 
 ## 🎯 Verwendung
@@ -172,12 +174,28 @@ $serviceManager->orderOVHDomain('example.com', 1);
 
 ## 📚 Dokumentation
 
-- **[API Dokumentation](docs/API.md)** - Vollständige API-Referenz (in workprogress)
-- **[Installation Guide](how to use.md)** - Detaillierte Installation
+- **[API Dokumentation](how_to_use.md)** - Vollständige API-Referenz und Verwendungsbeispiele
+- **[Bootstrap Migration](BOOTSTRAP_MIGRATION.md)** - Details zur UI-Migration
+- **[Contributing Guide](CONTRIBUTING.md)** - Richtlinien für Beiträge
 
-![Screenshot](assets/main.png)
-![Screenshot](assets/endpoints.png)
-![Screenshot](assets/add-server.png)
+## 🏗️ Architektur
+
+```
+Server-Management-Framework/
+├── assets/                 # CSS, JS und andere Assets
+├── config/                 # Konfigurationsdateien
+├── core/                   # Kern-Klassen (AdminCore, AdminHandler)
+├── debug/                  # Debug-Tools und Utilities
+├── module/                 # Modulare Komponenten
+│   ├── admin/             # Admin-Dashboard
+│   ├── proxmox/           # Proxmox-Integration
+│   ├── ispconfig/         # ISPConfig-Integration
+│   ├── ovh/               # OVH-Integration
+│   └── ...                # Weitere Module
+├── framework.php          # Haupt-Framework-Datei
+├── index.php              # Web-Interface
+└── auth_handler.php       # API-Authentifizierung
+```
 
 ## 🤝 Contributing
 
@@ -202,13 +220,14 @@ Bitte verwenden Sie die [GitHub Issues](https://github.com/teris/server-manageme
 
 ## 📋 Roadmap
 
-- [ ] **v2.0** - REST API für externe Integration
-- [X] **v2.1** - Backup & Restore Funktionen
-- [ ] **v2.2** - Monitoring & Alerting
+- [x] **v2.0** - REST API für externe Integration
+- [x] **v2.1** - Backup & Restore Funktionen
+- [X] **v2.2** - Monitoring & Alerting
 - [ ] **v2.3** - Multi-User Support mit Rollen
 - [x] **v2.4** - CLI Tools (update.php)
-- [ ] **v2.5** - Plugin System
-- [X] **v2.6** - Use Framework as Singel without Interface
+- [X] **v2.5** - Plugin System
+- [x] **v2.6** - Use Framework as Single without Interface
+- [x] **v2.7** - Bootstrap 5.3.2 Migration
 
 ## 🔒 Sicherheit
 
@@ -218,7 +237,7 @@ Bitte verwenden Sie die [GitHub Issues](https://github.com/teris/server-manageme
 - **SQL Injection** Schutz durch PDO Prepared Statements
 - **Session Management** mit sicheren Cookies
 
-**Sicherheitslücken melden:** security@yourcompany.com
+**Sicherheitslücken melden:** Bitte erstellen Sie ein privates GitHub Issue.
 
 ## 📄 Lizenz
 
@@ -226,6 +245,7 @@ Dieses Projekt steht unter der MIT-Lizenz - siehe [LICENSE](LICENSE) für Detail
 
 ## 👥 Autoren
 
+- **Teris** - *Initial work* - [GitHub](https://github.com/teris)
 
 Siehe auch die Liste der [Contributors](https://github.com/teris/server-management-framework/contributors).
 
@@ -235,6 +255,7 @@ Siehe auch die Liste der [Contributors](https://github.com/teris/server-manageme
 - **ISPConfig Team** - Für das umfassende Hosting-Control-Panel
 - **OVH** - Für die robuste API
 - **PHP Community** - Für die großartigen Tools und Libraries
+- **Bootstrap Team** - Für das moderne CSS-Framework
 
 ## 📊 Status
 

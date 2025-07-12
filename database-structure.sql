@@ -1,495 +1,864 @@
--- Datenbank erstellen
-CREATE DATABASE IF NOT EXISTS server_management;
-USE server_management;
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1:3306
+-- Erstellungszeit: 12. Jul 2025 um 21:13
+-- Server-Version: 10.11.11-MariaDB-0+deb12u1
+-- PHP-Version: 7.4.33
 
--- Aktivitäts-Log Tabelle für alle Server-Aktionen
-CREATE TABLE activity_log (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    action VARCHAR(255) NOT NULL,
-    details TEXT,
-    status ENUM('success', 'error', 'pending') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_action (action),
-    INDEX idx_status (status),
-    INDEX idx_created_at (created_at)
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Datenbank: `server_management`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `active_modules`
+--
+
+CREATE TABLE `active_modules` (
+  `id` int(11) NOT NULL,
+  `module_name` varchar(100) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `activated_at` timestamp NULL DEFAULT NULL,
+  `deactivated_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `activity_log`
+--
+
+CREATE TABLE `activity_log` (
+  `id` int(11) NOT NULL,
+  `action` varchar(255) NOT NULL,
+  `details` text DEFAULT NULL,
+  `status` enum('success','error','pending') NOT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `api_credentials`
+--
+
+CREATE TABLE `api_credentials` (
+  `id` int(11) NOT NULL,
+  `service_name` varchar(100) NOT NULL,
+  `endpoint` varchar(500) DEFAULT NULL,
+  `username` varchar(255) DEFAULT NULL,
+  `password_encrypted` text DEFAULT NULL,
+  `api_key_encrypted` text DEFAULT NULL,
+  `additional_config` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`additional_config`)),
+  `active` enum('y','n') DEFAULT 'y',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `backup_jobs`
+--
+
+CREATE TABLE `backup_jobs` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `type` enum('vm','database','files') NOT NULL,
+  `target_id` int(11) DEFAULT NULL,
+  `schedule_cron` varchar(100) DEFAULT NULL,
+  `storage_location` varchar(500) DEFAULT NULL,
+  `retention_days` int(11) DEFAULT 30,
+  `compression` enum('none','lzo','gzip','zstd') DEFAULT 'zstd',
+  `active` enum('y','n') DEFAULT 'y',
+  `last_run` timestamp NULL DEFAULT NULL,
+  `next_run` timestamp NULL DEFAULT NULL,
+  `status` enum('success','failed','running','pending') DEFAULT 'pending',
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `domains`
+--
+
+CREATE TABLE `domains` (
+  `id` int(11) NOT NULL,
+  `domain_name` varchar(255) NOT NULL,
+  `registrar` varchar(100) DEFAULT 'OVH',
+  `registration_date` date DEFAULT NULL,
+  `expiration_date` date DEFAULT NULL,
+  `auto_renew` enum('y','n') DEFAULT 'y',
+  `nameservers` text DEFAULT NULL,
+  `status` enum('active','pending','expired','suspended') DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `email_accounts`
+--
+
+CREATE TABLE `email_accounts` (
+  `id` int(11) NOT NULL,
+  `email_address` varchar(255) NOT NULL,
+  `login_name` varchar(255) NOT NULL,
+  `password_hash` varchar(255) DEFAULT NULL,
+  `full_name` varchar(255) DEFAULT NULL,
+  `domain` varchar(255) NOT NULL,
+  `quota_mb` int(11) DEFAULT 1000,
+  `active` enum('y','n') DEFAULT 'y',
+  `autoresponder` enum('y','n') DEFAULT 'n',
+  `autoresponder_text` text DEFAULT NULL,
+  `forward_to` varchar(255) DEFAULT NULL,
+  `spam_filter` enum('y','n') DEFAULT 'y',
+  `website_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `login_attempts`
+--
+
+CREATE TABLE `login_attempts` (
+  `id` int(11) NOT NULL,
+  `username` varchar(100) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `success` enum('y','n') NOT NULL,
+  `failure_reason` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `module_configs`
+--
+
+CREATE TABLE `module_configs` (
+  `id` int(11) NOT NULL,
+  `module_name` varchar(100) NOT NULL,
+  `config_key` varchar(255) NOT NULL,
+  `config_value` text DEFAULT NULL,
+  `config_type` enum('string','integer','boolean','json') NOT NULL DEFAULT 'string',
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `module_dependencies`
+--
+
+CREATE TABLE `module_dependencies` (
+  `id` int(11) NOT NULL,
+  `module_name` varchar(100) NOT NULL,
+  `dependency_name` varchar(100) NOT NULL,
+  `dependency_type` enum('required','optional','conflicts') NOT NULL DEFAULT 'required',
+  `version_constraint` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `module_permissions`
+--
+
+CREATE TABLE `module_permissions` (
+  `id` int(11) NOT NULL,
+  `module_name` varchar(100) NOT NULL,
+  `permission_name` varchar(255) NOT NULL,
+  `permission_description` text DEFAULT NULL,
+  `required_role` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `network_config`
+--
+
+CREATE TABLE `network_config` (
+  `id` int(11) NOT NULL,
+  `vm_id` int(11) NOT NULL,
+  `interface_name` varchar(50) DEFAULT 'net0',
+  `ip_address` varchar(45) DEFAULT NULL,
+  `subnet_mask` varchar(45) DEFAULT '255.255.255.0',
+  `gateway` varchar(45) DEFAULT NULL,
+  `dns_servers` text DEFAULT NULL,
+  `mac_address` varchar(17) DEFAULT NULL,
+  `bridge` varchar(50) DEFAULT 'vmbr0',
+  `vlan_tag` int(11) DEFAULT NULL,
+  `active` enum('y','n') DEFAULT 'y',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `server_resources`
+--
+
+CREATE TABLE `server_resources` (
+  `id` int(11) NOT NULL,
+  `vm_id` int(11) DEFAULT NULL,
+  `cpu_usage` decimal(5,2) DEFAULT NULL,
+  `memory_usage` decimal(5,2) DEFAULT NULL,
+  `disk_usage` decimal(5,2) DEFAULT NULL,
+  `network_in` bigint(20) DEFAULT NULL,
+  `network_out` bigint(20) DEFAULT NULL,
+  `timestamp` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `sm_databases`
+--
+
+CREATE TABLE `sm_databases` (
+  `id` int(11) NOT NULL,
+  `database_name` varchar(255) NOT NULL,
+  `database_user` varchar(255) NOT NULL,
+  `database_type` enum('mysql','postgresql') DEFAULT 'mysql',
+  `server_id` int(11) DEFAULT 1,
+  `charset` varchar(50) DEFAULT 'utf8',
+  `remote_access` enum('y','n') DEFAULT 'n',
+  `active` enum('y','n') DEFAULT 'y',
+  `website_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `ssl_certificates`
+--
+
+CREATE TABLE `ssl_certificates` (
+  `id` int(11) NOT NULL,
+  `domain` varchar(255) NOT NULL,
+  `certificate_path` varchar(500) DEFAULT NULL,
+  `private_key_path` varchar(500) DEFAULT NULL,
+  `certificate_authority` varchar(100) DEFAULT NULL,
+  `issue_date` date DEFAULT NULL,
+  `expiration_date` date DEFAULT NULL,
+  `auto_renew` enum('y','n') DEFAULT 'y',
+  `status` enum('valid','expired','revoked','pending') DEFAULT 'pending',
+  `website_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `system_settings`
+--
+
+CREATE TABLE `system_settings` (
+  `id` int(11) NOT NULL,
+  `setting_key` varchar(100) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  `setting_type` enum('string','integer','boolean','json') DEFAULT 'string',
+  `description` text DEFAULT NULL,
+  `is_public` enum('y','n') DEFAULT 'n',
+  `updated_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `full_name` varchar(255) DEFAULT NULL,
+  `role` enum('admin','user','readonly') DEFAULT 'user',
+  `active` enum('y','n') DEFAULT 'y',
+  `last_login` timestamp NULL DEFAULT NULL,
+  `failed_login_attempts` int(11) DEFAULT 0,
+  `locked_until` timestamp NULL DEFAULT NULL,
+  `password_changed_at` timestamp NULL DEFAULT current_timestamp(),
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Stellvertreter-Struktur des Views `user_activity_overview`
+-- (Siehe unten für die tatsächliche Ansicht)
+--
+CREATE TABLE `user_activity_overview` (
+`id` int(11)
+,`username` varchar(100)
+,`full_name` varchar(255)
+,`email` varchar(255)
+,`role` enum('admin','user','readonly')
+,`active` enum('y','n')
+,`last_login` timestamp
+,`failed_login_attempts` int(11)
+,`locked_until` timestamp
+,`active_sessions` bigint(21)
+,`total_login_attempts` bigint(21)
+,`failed_attempts_today` decimal(22,0)
+,`created_at` timestamp
 );
 
--- VM Management Tabelle
-CREATE TABLE vms (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    vm_id INT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    node VARCHAR(100) NOT NULL,
-    status ENUM('running', 'stopped', 'suspended') DEFAULT 'stopped',
-    memory INT NOT NULL,
-    cores INT NOT NULL,
-    disk_size INT NOT NULL,
-    ip_address VARCHAR(45),
-    mac_address VARCHAR(17),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_vm_id (vm_id),
-    INDEX idx_name (name),
-    INDEX idx_status (status)
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `user_permissions`
+--
+
+CREATE TABLE `user_permissions` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `permission_type` enum('proxmox','ispconfig','ovh','admin','readonly') NOT NULL,
+  `resource_id` varchar(255) DEFAULT NULL,
+  `granted_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `expires_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `user_sessions`
+--
+
+CREATE TABLE `user_sessions` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `session_id` varchar(128) NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `last_activity` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `expires_at` timestamp NOT NULL,
+  `is_active` enum('y','n') DEFAULT 'y',
+  `logout_reason` enum('manual','timeout','forced') DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `vms`
+--
+
+CREATE TABLE `vms` (
+  `id` int(11) NOT NULL,
+  `vm_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `node` varchar(100) NOT NULL,
+  `status` enum('running','stopped','suspended') DEFAULT 'stopped',
+  `memory` int(11) NOT NULL,
+  `cores` int(11) NOT NULL,
+  `disk_size` int(11) NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `mac_address` varchar(17) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Stellvertreter-Struktur des Views `vm_overview`
+-- (Siehe unten für die tatsächliche Ansicht)
+--
+CREATE TABLE `vm_overview` (
+`id` int(11)
+,`vm_id` int(11)
+,`name` varchar(255)
+,`node` varchar(100)
+,`status` enum('running','stopped','suspended')
+,`memory` int(11)
+,`cores` int(11)
+,`ip_address` varchar(45)
+,`mac_address` varchar(17)
+,`website_domain` varchar(255)
+,`database_count` bigint(21)
+,`email_count` bigint(21)
+,`created_at` timestamp
+,`updated_at` timestamp
 );
 
--- Website Management Tabelle
-CREATE TABLE websites (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    domain VARCHAR(255) NOT NULL,
-    ip_address VARCHAR(45) NOT NULL,
-    system_user VARCHAR(100) NOT NULL,
-    system_group VARCHAR(100) NOT NULL,
-    document_root VARCHAR(500),
-    hd_quota INT DEFAULT 1000,
-    traffic_quota INT DEFAULT 10000,
-    active ENUM('y', 'n') DEFAULT 'y',
-    ssl_enabled ENUM('y', 'n') DEFAULT 'n',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_domain (domain),
-    INDEX idx_ip (ip_address),
-    INDEX idx_active (active)
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `websites`
+--
+
+CREATE TABLE `websites` (
+  `id` int(11) NOT NULL,
+  `domain` varchar(255) NOT NULL,
+  `ip_address` varchar(45) NOT NULL,
+  `system_user` varchar(100) NOT NULL,
+  `system_group` varchar(100) NOT NULL,
+  `document_root` varchar(500) DEFAULT NULL,
+  `hd_quota` int(11) DEFAULT 1000,
+  `traffic_quota` int(11) DEFAULT 10000,
+  `active` enum('y','n') DEFAULT 'y',
+  `ssl_enabled` enum('y','n') DEFAULT 'n',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Stellvertreter-Struktur des Views `website_overview`
+-- (Siehe unten für die tatsächliche Ansicht)
+--
+CREATE TABLE `website_overview` (
+`id` int(11)
+,`domain` varchar(255)
+,`ip_address` varchar(45)
+,`system_user` varchar(100)
+,`active` enum('y','n')
+,`vm_name` varchar(255)
+,`vm_status` enum('running','stopped','suspended')
+,`database_count` bigint(21)
+,`email_count` bigint(21)
+,`ssl_status` enum('valid','expired','revoked','pending')
+,`ssl_expires` date
+,`created_at` timestamp
+,`updated_at` timestamp
 );
 
--- Domain Management Tabelle
-CREATE TABLE domains (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    domain_name VARCHAR(255) NOT NULL,
-    registrar VARCHAR(100) DEFAULT 'OVH',
-    registration_date DATE,
-    expiration_date DATE,
-    auto_renew ENUM('y', 'n') DEFAULT 'y',
-    nameservers TEXT,
-    status ENUM('active', 'pending', 'expired', 'suspended') DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_domain (domain_name),
-    INDEX idx_status (status),
-    INDEX idx_expiration (expiration_date)
-);
+-- --------------------------------------------------------
 
--- Datenbank Management Tabelle
-CREATE TABLE sm_databases (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    database_name VARCHAR(255) NOT NULL,
-    database_user VARCHAR(255) NOT NULL,
-    database_type ENUM('mysql', 'postgresql') DEFAULT 'mysql',
-    server_id INT DEFAULT 1,
-    charset VARCHAR(50) DEFAULT 'utf8',
-    remote_access ENUM('y', 'n') DEFAULT 'n',
-    active ENUM('y', 'n') DEFAULT 'y',
-    website_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_db_name (database_name),
-    INDEX idx_user (database_user),
-    INDEX idx_active (active),
-    FOREIGN KEY (website_id) REFERENCES websites(id) ON DELETE SET NULL
-);
+--
+-- Struktur des Views `user_activity_overview`
+--
+DROP TABLE IF EXISTS `user_activity_overview`;
 
--- E-Mail Management Tabelle
-CREATE TABLE email_accounts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    email_address VARCHAR(255) NOT NULL,
-    login_name VARCHAR(255) NOT NULL,
-    password_hash VARCHAR(255),
-    full_name VARCHAR(255),
-    domain VARCHAR(255) NOT NULL,
-    quota_mb INT DEFAULT 1000,
-    active ENUM('y', 'n') DEFAULT 'y',
-    autoresponder ENUM('y', 'n') DEFAULT 'n',
-    autoresponder_text TEXT,
-    forward_to VARCHAR(255),
-    spam_filter ENUM('y', 'n') DEFAULT 'y',
-    website_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_email (email_address),
-    INDEX idx_domain (domain),
-    INDEX idx_active (active),
-    FOREIGN KEY (website_id) REFERENCES websites(id) ON DELETE SET NULL
-);
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `user_activity_overview`  AS SELECT `u`.`id` AS `id`, `u`.`username` AS `username`, `u`.`full_name` AS `full_name`, `u`.`email` AS `email`, `u`.`role` AS `role`, `u`.`active` AS `active`, `u`.`last_login` AS `last_login`, `u`.`failed_login_attempts` AS `failed_login_attempts`, `u`.`locked_until` AS `locked_until`, count(distinct `s`.`id`) AS `active_sessions`, count(distinct `la`.`id`) AS `total_login_attempts`, sum(case when `la`.`success` = 'n' then 1 else 0 end) AS `failed_attempts_today`, `u`.`created_at` AS `created_at` FROM ((`users` `u` left join `user_sessions` `s` on(`u`.`id` = `s`.`user_id` and `s`.`is_active` = 'y' and `s`.`expires_at` > current_timestamp())) left join `login_attempts` `la` on(`u`.`username` = `la`.`username` and cast(`la`.`created_at` as date) = curdate())) GROUP BY `u`.`id` ;
 
--- API Credentials Tabelle (verschlüsselt)
-CREATE TABLE api_credentials (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    service_name VARCHAR(100) NOT NULL,
-    endpoint VARCHAR(500),
-    username VARCHAR(255),
-    password_encrypted TEXT,
-    api_key_encrypted TEXT,
-    additional_config JSON,
-    active ENUM('y', 'n') DEFAULT 'y',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_service (service_name)
-);
+-- --------------------------------------------------------
 
--- =========================================================================
--- BENUTZER-VERWALTUNG UND LOGIN-SYSTEM
--- =========================================================================
+--
+-- Struktur des Views `vm_overview`
+--
+DROP TABLE IF EXISTS `vm_overview`;
 
--- Benutzer Tabelle für Login-System
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(255),
-    role ENUM('admin', 'user', 'readonly') DEFAULT 'user',
-    active ENUM('y', 'n') DEFAULT 'y',
-    last_login TIMESTAMP NULL,
-    failed_login_attempts INT DEFAULT 0,
-    locked_until TIMESTAMP NULL,
-    password_changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_username (username),
-    UNIQUE KEY unique_email (email),
-    INDEX idx_role (role),
-    INDEX idx_active (active),
-    INDEX idx_last_login (last_login)
-);
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `vm_overview`  AS SELECT `v`.`id` AS `id`, `v`.`vm_id` AS `vm_id`, `v`.`name` AS `name`, `v`.`node` AS `node`, `v`.`status` AS `status`, `v`.`memory` AS `memory`, `v`.`cores` AS `cores`, `v`.`ip_address` AS `ip_address`, `v`.`mac_address` AS `mac_address`, `w`.`domain` AS `website_domain`, count(distinct `d`.`id`) AS `database_count`, count(distinct `e`.`id`) AS `email_count`, `v`.`created_at` AS `created_at`, `v`.`updated_at` AS `updated_at` FROM (((`vms` `v` left join `websites` `w` on(`v`.`ip_address` = `w`.`ip_address`)) left join `sm_databases` `d` on(`w`.`id` = `d`.`website_id`)) left join `email_accounts` `e` on(`w`.`id` = `e`.`website_id`)) GROUP BY `v`.`id` ;
 
--- Login-Sessions Tabelle für Session-Tracking
-CREATE TABLE user_sessions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    session_id VARCHAR(128) NOT NULL,
-    ip_address VARCHAR(45),
-    user_agent TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL,
-    is_active ENUM('y', 'n') DEFAULT 'y',
-    logout_reason ENUM('manual', 'timeout', 'forced') NULL,
-    INDEX idx_session_id (session_id),
-    INDEX idx_user_id (user_id),
-    INDEX idx_active (is_active),
-    INDEX idx_expires (expires_at),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+-- --------------------------------------------------------
 
--- Login-Attempts Tabelle für Sicherheits-Monitoring
-CREATE TABLE login_attempts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(100),
-    ip_address VARCHAR(45),
-    user_agent TEXT,
-    success ENUM('y', 'n') NOT NULL,
-    failure_reason VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_username (username),
-    INDEX idx_ip (ip_address),
-    INDEX idx_success (success),
-    INDEX idx_created_at (created_at)
-);
+--
+-- Struktur des Views `website_overview`
+--
+DROP TABLE IF EXISTS `website_overview`;
 
--- Benutzer-Berechtigungen Tabelle (erweitert für Zukunft)
-CREATE TABLE user_permissions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    permission_type ENUM('proxmox', 'ispconfig', 'ovh', 'admin', 'readonly') NOT NULL,
-    resource_id VARCHAR(255), -- Optional: für spezifische Ressourcen
-    granted_by INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NULL,
-    UNIQUE KEY unique_user_permission (user_id, permission_type, resource_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (granted_by) REFERENCES users(id) ON DELETE SET NULL
-);
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `website_overview`  AS SELECT `w`.`id` AS `id`, `w`.`domain` AS `domain`, `w`.`ip_address` AS `ip_address`, `w`.`system_user` AS `system_user`, `w`.`active` AS `active`, `v`.`name` AS `vm_name`, `v`.`status` AS `vm_status`, count(distinct `d`.`id`) AS `database_count`, count(distinct `e`.`id`) AS `email_count`, `s`.`status` AS `ssl_status`, `s`.`expiration_date` AS `ssl_expires`, `w`.`created_at` AS `created_at`, `w`.`updated_at` AS `updated_at` FROM ((((`websites` `w` left join `vms` `v` on(`w`.`ip_address` = `v`.`ip_address`)) left join `sm_databases` `d` on(`w`.`id` = `d`.`website_id`)) left join `email_accounts` `e` on(`w`.`id` = `e`.`website_id`)) left join `ssl_certificates` `s` on(`w`.`id` = `s`.`website_id`)) GROUP BY `w`.`id` ;
 
--- =========================================================================
--- WEITERE SYSTEM-TABELLEN
--- =========================================================================
+--
+-- Indizes der exportierten Tabellen
+--
 
--- Network Configuration Tabelle
-CREATE TABLE network_config (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    vm_id INT NOT NULL,
-    interface_name VARCHAR(50) DEFAULT 'net0',
-    ip_address VARCHAR(45),
-    subnet_mask VARCHAR(45) DEFAULT '255.255.255.0',
-    gateway VARCHAR(45),
-    dns_servers TEXT,
-    mac_address VARCHAR(17),
-    bridge VARCHAR(50) DEFAULT 'vmbr0',
-    vlan_tag INT,
-    active ENUM('y', 'n') DEFAULT 'y',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (vm_id) REFERENCES vms(vm_id) ON DELETE CASCADE,
-    INDEX idx_vm_id (vm_id),
-    INDEX idx_ip (ip_address)
-);
+--
+-- Indizes für die Tabelle `active_modules`
+--
+ALTER TABLE `active_modules`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `module_name` (`module_name`),
+  ADD KEY `idx_is_active` (`is_active`),
+  ADD KEY `idx_activated_at` (`activated_at`);
 
--- SSL Certificates Tabelle
-CREATE TABLE ssl_certificates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    domain VARCHAR(255) NOT NULL,
-    certificate_path VARCHAR(500),
-    private_key_path VARCHAR(500),
-    certificate_authority VARCHAR(100),
-    issue_date DATE,
-    expiration_date DATE,
-    auto_renew ENUM('y', 'n') DEFAULT 'y',
-    status ENUM('valid', 'expired', 'revoked', 'pending') DEFAULT 'pending',
-    website_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (website_id) REFERENCES websites(id) ON DELETE CASCADE,
-    INDEX idx_domain (domain),
-    INDEX idx_expiration (expiration_date)
-);
+--
+-- Indizes für die Tabelle `activity_log`
+--
+ALTER TABLE `activity_log`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_action` (`action`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_created_at` (`created_at`);
 
--- Server Resources Monitoring Tabelle
-CREATE TABLE server_resources (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    vm_id INT,
-    cpu_usage DECIMAL(5,2),
-    memory_usage DECIMAL(5,2),
-    disk_usage DECIMAL(5,2),
-    network_in BIGINT,
-    network_out BIGINT,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (vm_id) REFERENCES vms(vm_id) ON DELETE CASCADE,
-    INDEX idx_vm_timestamp (vm_id, timestamp),
-    INDEX idx_timestamp (timestamp)
-);
+--
+-- Indizes für die Tabelle `api_credentials`
+--
+ALTER TABLE `api_credentials`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_service` (`service_name`);
 
--- Backup Jobs Tabelle
-CREATE TABLE backup_jobs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    type ENUM('vm', 'database', 'files') NOT NULL,
-    target_id INT,
-    schedule_cron VARCHAR(100),
-    storage_location VARCHAR(500),
-    retention_days INT DEFAULT 30,
-    compression ENUM('none', 'lzo', 'gzip', 'zstd') DEFAULT 'zstd',
-    active ENUM('y', 'n') DEFAULT 'y',
-    last_run TIMESTAMP NULL,
-    next_run TIMESTAMP NULL,
-    status ENUM('success', 'failed', 'running', 'pending') DEFAULT 'pending',
-    created_by INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_type_target (type, target_id),
-    INDEX idx_next_run (next_run),
-    INDEX idx_active (active),
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
-);
+--
+-- Indizes für die Tabelle `backup_jobs`
+--
+ALTER TABLE `backup_jobs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_type_target` (`type`,`target_id`),
+  ADD KEY `idx_next_run` (`next_run`),
+  ADD KEY `idx_active` (`active`),
+  ADD KEY `created_by` (`created_by`);
 
--- System Settings Tabelle
-CREATE TABLE system_settings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    setting_key VARCHAR(100) NOT NULL,
-    setting_value TEXT,
-    setting_type ENUM('string', 'integer', 'boolean', 'json') DEFAULT 'string',
-    description TEXT,
-    is_public ENUM('y', 'n') DEFAULT 'n',
-    updated_by INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_setting_key (setting_key),
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
-);
+--
+-- Indizes für die Tabelle `domains`
+--
+ALTER TABLE `domains`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_domain` (`domain_name`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_expiration` (`expiration_date`);
 
--- =========================================================================
--- BEISPIEL-DATEN UND STANDARD-KONFIGURATION
--- =========================================================================
+--
+-- Indizes für die Tabelle `email_accounts`
+--
+ALTER TABLE `email_accounts`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_email` (`email_address`),
+  ADD KEY `idx_domain` (`domain`),
+  ADD KEY `idx_active` (`active`),
+  ADD KEY `website_id` (`website_id`);
 
--- API Credentials Einträge
-INSERT INTO api_credentials (service_name, endpoint, username, active) VALUES 
-('proxmox', 'https://your-proxmox-host:8006', 'root@pam', 'y'),
-('ispconfig', 'https://your-ispconfig-host:8080', 'admin', 'y'),
-('ovh', 'https://eu.api.ovh.com/1.0', '', 'y');
+--
+-- Indizes für die Tabelle `login_attempts`
+--
+ALTER TABLE `login_attempts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_username` (`username`),
+  ADD KEY `idx_ip` (`ip_address`),
+  ADD KEY `idx_success` (`success`),
+  ADD KEY `idx_created_at` (`created_at`);
 
--- Standard System-Einstellungen
-INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public) VALUES
-('session_timeout', '600', 'integer', 'Session-Timeout in Sekunden (Standard: 10 Minuten)', 'n'),
-('max_login_attempts', '5', 'integer', 'Maximale Login-Versuche vor Sperrung', 'n'),
-('lockout_duration', '900', 'integer', 'Sperrzeit nach zu vielen Login-Versuchen (Sekunden)', 'n'),
-('password_min_length', '6', 'integer', 'Minimale Passwort-Länge', 'n'),
-('require_password_change', 'n', 'boolean', 'Passwort-Änderung bei erstem Login erzwingen', 'n'),
-('site_title', 'Server Management Interface', 'string', 'Website-Titel', 'y'),
-('enable_registration', 'n', 'boolean', 'Benutzer-Registrierung aktivieren', 'n'),
-('backup_retention_days', '30', 'integer', 'Standard-Aufbewahrungszeit für Backups', 'n');
+--
+-- Indizes für die Tabelle `module_configs`
+--
+ALTER TABLE `module_configs`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `module_config` (`module_name`,`config_key`),
+  ADD KEY `idx_module_name` (`module_name`);
 
--- =========================================================================
--- VIEWS FÜR BESSERE DATENABFRAGE
--- =========================================================================
+--
+-- Indizes für die Tabelle `module_dependencies`
+--
+ALTER TABLE `module_dependencies`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `module_dependency` (`module_name`,`dependency_name`),
+  ADD KEY `idx_module_name` (`module_name`),
+  ADD KEY `idx_dependency_name` (`dependency_name`);
 
--- VM Übersicht mit Website-Zuordnung
-CREATE VIEW vm_overview AS
-SELECT 
-    v.id,
-    v.vm_id,
-    v.name,
-    v.node,
-    v.status,
-    v.memory,
-    v.cores,
-    v.ip_address,
-    v.mac_address,
-    w.domain as website_domain,
-    COUNT(DISTINCT d.id) as database_count,
-    COUNT(DISTINCT e.id) as email_count,
-    v.created_at,
-    v.updated_at
-FROM vms v
-LEFT JOIN websites w ON v.ip_address = w.ip_address
-LEFT JOIN sm_databases d ON w.id = d.website_id
-LEFT JOIN email_accounts e ON w.id = e.website_id
-GROUP BY v.id;
+--
+-- Indizes für die Tabelle `module_permissions`
+--
+ALTER TABLE `module_permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `module_permission` (`module_name`,`permission_name`),
+  ADD KEY `idx_module_name` (`module_name`),
+  ADD KEY `idx_required_role` (`required_role`);
 
--- Website Übersicht mit Benutzer-Informationen
-CREATE VIEW website_overview AS
-SELECT 
-    w.id,
-    w.domain,
-    w.ip_address,
-    w.system_user,
-    w.active,
-    v.name as vm_name,
-    v.status as vm_status,
-    COUNT(DISTINCT d.id) as database_count,
-    COUNT(DISTINCT e.id) as email_count,
-    s.status as ssl_status,
-    s.expiration_date as ssl_expires,
-    w.created_at,
-    w.updated_at
-FROM websites w
-LEFT JOIN vms v ON w.ip_address = v.ip_address
-LEFT JOIN sm_databases d ON w.id = d.website_id
-LEFT JOIN email_accounts e ON w.id = e.website_id
-LEFT JOIN ssl_certificates s ON w.id = s.website_id
-GROUP BY w.id;
+--
+-- Indizes für die Tabelle `network_config`
+--
+ALTER TABLE `network_config`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_vm_id` (`vm_id`),
+  ADD KEY `idx_ip` (`ip_address`);
 
--- Benutzer-Aktivität Übersicht
-CREATE VIEW user_activity_overview AS
-SELECT 
-    u.id,
-    u.username,
-    u.full_name,
-    u.email,
-    u.role,
-    u.active,
-    u.last_login,
-    u.failed_login_attempts,
-    u.locked_until,
-    COUNT(DISTINCT s.id) as active_sessions,
-    COUNT(DISTINCT la.id) as total_login_attempts,
-    SUM(CASE WHEN la.success = 'n' THEN 1 ELSE 0 END) as failed_attempts_today,
-    u.created_at
-FROM users u
-LEFT JOIN user_sessions s ON u.id = s.user_id AND s.is_active = 'y' AND s.expires_at > NOW()
-LEFT JOIN login_attempts la ON u.username = la.username AND DATE(la.created_at) = CURDATE()
-GROUP BY u.id;
+--
+-- Indizes für die Tabelle `server_resources`
+--
+ALTER TABLE `server_resources`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_vm_timestamp` (`vm_id`,`timestamp`),
+  ADD KEY `idx_timestamp` (`timestamp`);
 
--- =========================================================================
--- TRIGGER FÜR AUTOMATISCHE UPDATES UND LOGGING
--- =========================================================================
+--
+-- Indizes für die Tabelle `sm_databases`
+--
+ALTER TABLE `sm_databases`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_db_name` (`database_name`),
+  ADD KEY `idx_user` (`database_user`),
+  ADD KEY `idx_active` (`active`),
+  ADD KEY `website_id` (`website_id`);
 
-DELIMITER //
+--
+-- Indizes für die Tabelle `ssl_certificates`
+--
+ALTER TABLE `ssl_certificates`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `website_id` (`website_id`),
+  ADD KEY `idx_domain` (`domain`),
+  ADD KEY `idx_expiration` (`expiration_date`);
 
--- VM Timestamp Update Trigger
-CREATE TRIGGER update_vm_timestamp 
-BEFORE UPDATE ON vms
-FOR EACH ROW
-BEGIN
-    SET NEW.updated_at = CURRENT_TIMESTAMP;
-END//
+--
+-- Indizes für die Tabelle `system_settings`
+--
+ALTER TABLE `system_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_setting_key` (`setting_key`),
+  ADD KEY `updated_by` (`updated_by`);
 
--- Website Timestamp Update Trigger
-CREATE TRIGGER update_website_timestamp 
-BEFORE UPDATE ON websites
-FOR EACH ROW
-BEGIN
-    SET NEW.updated_at = CURRENT_TIMESTAMP;
-END//
+--
+-- Indizes für die Tabelle `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_username` (`username`),
+  ADD UNIQUE KEY `unique_email` (`email`),
+  ADD KEY `idx_role` (`role`),
+  ADD KEY `idx_active` (`active`),
+  ADD KEY `idx_last_login` (`last_login`);
 
--- VM Erstellung Logging
-CREATE TRIGGER log_vm_creation
-AFTER INSERT ON vms
-FOR EACH ROW
-BEGIN
-    INSERT INTO activity_log (action, details, status) 
-    VALUES ('VM Created', CONCAT('VM ', NEW.name, ' (ID: ', NEW.vm_id, ') created'), 'success');
-END//
+--
+-- Indizes für die Tabelle `user_permissions`
+--
+ALTER TABLE `user_permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_user_permission` (`user_id`,`permission_type`,`resource_id`),
+  ADD KEY `granted_by` (`granted_by`);
 
--- Website Erstellung Logging
-CREATE TRIGGER log_website_creation
-AFTER INSERT ON websites
-FOR EACH ROW
-BEGIN
-    INSERT INTO activity_log (action, details, status) 
-    VALUES ('Website Created', CONCAT('Website ', NEW.domain, ' created'), 'success');
-END//
+--
+-- Indizes für die Tabelle `user_sessions`
+--
+ALTER TABLE `user_sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_session_id` (`session_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_active` (`is_active`),
+  ADD KEY `idx_expires` (`expires_at`);
 
--- Benutzer Login Tracking
-CREATE TRIGGER update_user_login
-AFTER INSERT ON login_attempts
-FOR EACH ROW
-BEGIN
-    IF NEW.success = 'y' THEN
-        UPDATE users 
-        SET last_login = NEW.created_at, failed_login_attempts = 0, locked_until = NULL
-        WHERE username = NEW.username;
-    ELSE
-        UPDATE users 
-        SET failed_login_attempts = failed_login_attempts + 1,
-            locked_until = CASE 
-                WHEN failed_login_attempts + 1 >= 5 THEN DATE_ADD(NOW(), INTERVAL 15 MINUTE)
-                ELSE locked_until
-            END
-        WHERE username = NEW.username;
-    END IF;
-END//
+--
+-- Indizes für die Tabelle `vms`
+--
+ALTER TABLE `vms`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_vm_id` (`vm_id`),
+  ADD KEY `idx_name` (`name`),
+  ADD KEY `idx_status` (`status`);
 
--- Session Cleanup Trigger
-CREATE TRIGGER cleanup_expired_sessions
-AFTER INSERT ON user_sessions
-FOR EACH ROW
-BEGIN
-    -- Abgelaufene Sessions als inaktiv markieren
-    UPDATE user_sessions 
-    SET is_active = 'n', logout_reason = 'timeout'
-    WHERE expires_at < NOW() AND is_active = 'y';
-END//
+--
+-- Indizes für die Tabelle `websites`
+--
+ALTER TABLE `websites`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_domain` (`domain`),
+  ADD KEY `idx_ip` (`ip_address`),
+  ADD KEY `idx_active` (`active`);
 
-DELIMITER ;
+--
+-- AUTO_INCREMENT für exportierte Tabellen
+--
 
--- =========================================================================
--- INDIZES FÜR BESSERE PERFORMANCE
--- =========================================================================
+--
+-- AUTO_INCREMENT für Tabelle `active_modules`
+--
+ALTER TABLE `active_modules`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
--- Kombinierte Indizes für häufige Abfragen
-CREATE INDEX idx_activity_log_combined ON activity_log (action, status, created_at);
-CREATE INDEX idx_vms_combined ON vms (status, created_at);
-CREATE INDEX idx_websites_combined ON websites (active, created_at);
-CREATE INDEX idx_user_login_combined ON users (username, active, locked_until);
-CREATE INDEX idx_session_activity_combined ON user_sessions (user_id, is_active, expires_at);
+--
+-- AUTO_INCREMENT für Tabelle `activity_log`
+--
+ALTER TABLE `activity_log`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
--- =========================================================================
--- BERECHTIGUNG FÜR DATENBANK-BENUTZER (BEISPIEL)
--- =========================================================================
+--
+-- AUTO_INCREMENT für Tabelle `api_credentials`
+--
+ALTER TABLE `api_credentials`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
--- Beispiel für Berechtigungen - in Produktion anpassen!
--- CREATE USER 'server_mgmt'@'localhost' IDENTIFIED BY 'secure_password_here';
--- GRANT ALL PRIVILEGES ON server_management.* TO 'server_mgmt'@'localhost';
--- FLUSH PRIVILEGES;
+--
+-- AUTO_INCREMENT für Tabelle `backup_jobs`
+--
+ALTER TABLE `backup_jobs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
--- =========================================================================
--- CLEANUP-JOBS (Optional - via Cron ausführen)
--- =========================================================================
+--
+-- AUTO_INCREMENT für Tabelle `domains`
+--
+ALTER TABLE `domains`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
--- Alte Login-Versuche löschen (älter als 30 Tage)
--- DELETE FROM login_attempts WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
+--
+-- AUTO_INCREMENT für Tabelle `email_accounts`
+--
+ALTER TABLE `email_accounts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
--- Abgelaufene Sessions löschen (älter als 7 Tage)
--- DELETE FROM user_sessions WHERE expires_at < DATE_SUB(NOW(), INTERVAL 7 DAY);
+--
+-- AUTO_INCREMENT für Tabelle `login_attempts`
+--
+ALTER TABLE `login_attempts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
--- Alte Activity-Logs löschen (älter als 90 Tage)
--- DELETE FROM activity_log WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY);
+--
+-- AUTO_INCREMENT für Tabelle `module_configs`
+--
+ALTER TABLE `module_configs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `module_dependencies`
+--
+ALTER TABLE `module_dependencies`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `module_permissions`
+--
+ALTER TABLE `module_permissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `network_config`
+--
+ALTER TABLE `network_config`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `server_resources`
+--
+ALTER TABLE `server_resources`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `sm_databases`
+--
+ALTER TABLE `sm_databases`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `ssl_certificates`
+--
+ALTER TABLE `ssl_certificates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `system_settings`
+--
+ALTER TABLE `system_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `user_permissions`
+--
+ALTER TABLE `user_permissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `user_sessions`
+--
+ALTER TABLE `user_sessions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `vms`
+--
+ALTER TABLE `vms`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `websites`
+--
+ALTER TABLE `websites`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints der exportierten Tabellen
+--
+
+--
+-- Constraints der Tabelle `backup_jobs`
+--
+ALTER TABLE `backup_jobs`
+  ADD CONSTRAINT `backup_jobs_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints der Tabelle `email_accounts`
+--
+ALTER TABLE `email_accounts`
+  ADD CONSTRAINT `email_accounts_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints der Tabelle `network_config`
+--
+ALTER TABLE `network_config`
+  ADD CONSTRAINT `network_config_ibfk_1` FOREIGN KEY (`vm_id`) REFERENCES `vms` (`vm_id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `server_resources`
+--
+ALTER TABLE `server_resources`
+  ADD CONSTRAINT `server_resources_ibfk_1` FOREIGN KEY (`vm_id`) REFERENCES `vms` (`vm_id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `sm_databases`
+--
+ALTER TABLE `sm_databases`
+  ADD CONSTRAINT `sm_databases_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints der Tabelle `ssl_certificates`
+--
+ALTER TABLE `ssl_certificates`
+  ADD CONSTRAINT `ssl_certificates_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `system_settings`
+--
+ALTER TABLE `system_settings`
+  ADD CONSTRAINT `system_settings_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints der Tabelle `user_permissions`
+--
+ALTER TABLE `user_permissions`
+  ADD CONSTRAINT `user_permissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_permissions_ibfk_2` FOREIGN KEY (`granted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints der Tabelle `user_sessions`
+--
+ALTER TABLE `user_sessions`
+  ADD CONSTRAINT `user_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
