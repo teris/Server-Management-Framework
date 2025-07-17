@@ -6,6 +6,7 @@
 
 require_once 'framework.php';
 require_once 'auth_handler.php';
+require_once 'sys.conf.php';
 
 // Prüfen ob bereits ein Admin-User existiert
 function hasAdminUser() {
@@ -65,7 +66,7 @@ if (hasAdminUser()) {
 }
 
 // Setup verarbeiten
-if ($_POST['action'] === 'setup') {
+if (isset($_POST['action']) && $_POST['action'] === 'setup') {
     $username = trim($_POST['username'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -74,13 +75,13 @@ if ($_POST['action'] === 'setup') {
     
     // Validierung
     if (empty($username) || empty($email) || empty($password) || empty($full_name)) {
-        $error_message = 'Alle Felder sind erforderlich.';
+        $error_message = t('all_fields_required') . '.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error_message = 'Ungültige E-Mail Adresse.';
+        $error_message = t('invalid_email') . '.';
     } elseif (strlen($password) < 6) {
-        $error_message = 'Passwort muss mindestens 6 Zeichen lang sein.';
+        $error_message = t('password_too_short') . '.';
     } elseif ($password !== $confirm_password) {
-        $error_message = 'Passwörter stimmen nicht überein.';
+        $error_message = t('passwords_not_match') . '.';
     } else {
         try {
             // Tabellen erstellen falls nötig
@@ -91,7 +92,7 @@ if ($_POST['action'] === 'setup') {
             $result = $auth->createUser($username, $email, $password, $full_name, 'admin');
             
             if ($result['success']) {
-                $success_message = 'Setup erfolgreich abgeschlossen! Sie können sich jetzt anmelden.';
+                $success_message = t('setup_complete') . ' ' . t('setup_complete_message');
                 $setup_complete = true;
                 
                 // Log-Eintrag für Setup
@@ -105,25 +106,25 @@ if ($_POST['action'] === 'setup') {
                 $error_message = $result['message'];
             }
         } catch (Exception $e) {
-            $error_message = 'Fehler beim Setup: ' . $e->getMessage();
+            $error_message = t('setup_error') . ': ' . $e->getMessage();
         }
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="<?= getCurrentLanguage() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Setup - Server Management Interface</title>
+    <title><?= t('system_setup') ?> - <?= t('server_management') ?></title>
     <link rel="stylesheet" type="text/css" href="assets/setup.css">
 </head>
 <body>
     <div class="setup-container">
         <div class="setup-header">
-            <h1>🚀 System Setup</h1>
-            <p>Willkommen beim Server Management Interface!<br>
-               Erstellen Sie zunächst einen Administrator-Account.</p>
+            <h1>🚀 <?= t('system_setup') ?></h1>
+            <p><?= t('welcome_setup') ?><br>
+               <?= t('create_admin_account') ?></p>
         </div>
         
         <?php if (!empty($error_message)): ?>
@@ -140,12 +141,12 @@ if ($_POST['action'] === 'setup') {
         
         <?php if (!$setup_complete): ?>
             <div class="password-requirements">
-                <h4>📋 Anforderungen:</h4>
+                <h4>📋 <?= t('requirements') ?>:</h4>
                 <ul>
-                    <li>Alle Felder sind erforderlich</li>
-                    <li>Passwort mindestens 6 Zeichen</li>
-                    <li>Gültige E-Mail Adresse</li>
-                    <li>Benutzername muss eindeutig sein</li>
+                    <li><?= t('all_fields_required') ?></li>
+                    <li><?= t('password_min_length') ?></li>
+                    <li><?= t('valid_email_required') ?></li>
+                    <li><?= t('unique_username_required') ?></li>
                 </ul>
             </div>
             
@@ -153,7 +154,7 @@ if ($_POST['action'] === 'setup') {
                 <input type="hidden" name="action" value="setup">
                 
                 <div class="form-group">
-                    <label for="full_name">👤 Vollständiger Name</label>
+                    <label for="full_name">👤 <?= t('full_name') ?></label>
                     <input type="text" id="full_name" name="full_name" required 
                            value="<?= htmlspecialchars($_POST['full_name'] ?? '') ?>"
                            placeholder="Max Mustermann">
@@ -161,14 +162,14 @@ if ($_POST['action'] === 'setup') {
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="username">🧑‍💻 Benutzername</label>
+                        <label for="username">🧑‍💻 <?= t('username') ?></label>
                         <input type="text" id="username" name="username" required 
                                value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
                                placeholder="admin">
                     </div>
                     
                     <div class="form-group">
-                        <label for="email">📧 E-Mail</label>
+                        <label for="email">📧 <?= t('email') ?></label>
                         <input type="email" id="email" name="email" required 
                                value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
                                placeholder="admin@example.com">
@@ -177,26 +178,26 @@ if ($_POST['action'] === 'setup') {
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="password">🔑 Passwort</label>
+                        <label for="password">🔑 <?= t('password') ?></label>
                         <input type="password" id="password" name="password" required
                                minlength="6" placeholder="Mindestens 6 Zeichen">
                     </div>
                     
                     <div class="form-group">
-                        <label for="confirm_password">🔒 Passwort bestätigen</label>
+                        <label for="confirm_password">🔒 <?= t('confirm_password') ?></label>
                         <input type="password" id="confirm_password" name="confirm_password" required
-                               minlength="6" placeholder="Passwort wiederholen">
+                               minlength="6" placeholder="<?= t('password_confirm_placeholder') ?>">
                     </div>
                 </div>
                 
                 <button type="submit" class="setup-btn" id="setupBtn">
                     <span class="loading hidden" id="loadingSpinner"></span>
-                    <span id="setupText">🎯 Admin-Account erstellen</span>
+                    <span id="setupText">🎯 <?= t('create_admin_user') ?></span>
                 </button>
             </form>
         <?php else: ?>
             <a href="login.php" class="continue-btn">
-                🚪 Zur Anmeldung
+                🚪 <?= t('go_to_login') ?>
             </a>
         <?php endif; ?>
         

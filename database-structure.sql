@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Erstellungszeit: 12. Jul 2025 um 21:13
+-- Erstellungszeit: 17. Jul 2025 um 13:39
 -- Server-Version: 10.11.11-MariaDB-0+deb12u1
 -- PHP-Version: 7.4.33
 
@@ -140,6 +140,40 @@ CREATE TABLE `email_accounts` (
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `groups`
+--
+
+CREATE TABLE `groups` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Daten für Tabelle `groups`
+--
+
+INSERT INTO `groups` (`id`, `name`, `description`) VALUES
+(1, 'admin', 'Alle sind Administratoren'),
+(2, 'user', 'Einfacher Benutzer'),
+(3, 'lesen', 'Kann nur daten abrufen');
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `group_module_permissions`
+--
+
+CREATE TABLE `group_module_permissions` (
+  `id` int(11) NOT NULL,
+  `group_id` int(11) NOT NULL,
+  `module_id` int(11) NOT NULL,
+  `can_access` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `login_attempts`
 --
 
@@ -151,6 +185,18 @@ CREATE TABLE `login_attempts` (
   `success` enum('y','n') NOT NULL,
   `failure_reason` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `modules`
+--
+
+CREATE TABLE `modules` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -242,6 +288,20 @@ CREATE TABLE `server_resources` (
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `settings`
+--
+
+CREATE TABLE `settings` (
+  `id` int(11) NOT NULL,
+  `site_title` varchar(255) NOT NULL DEFAULT 'Meine Seite',
+  `logo_path` varchar(255) DEFAULT NULL,
+  `favicon_path` varchar(255) DEFAULT NULL,
+  `mode` enum('live','database') NOT NULL DEFAULT 'live'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `sm_databases`
 --
 
@@ -310,8 +370,9 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `full_name` varchar(255) DEFAULT NULL,
-  `role` enum('admin','user','readonly') DEFAULT 'user',
+  `role` varchar(255) DEFAULT NULL,
   `active` enum('y','n') DEFAULT 'y',
+  `group_id` int(11) DEFAULT NULL,
   `last_login` timestamp NULL DEFAULT NULL,
   `failed_login_attempts` int(11) DEFAULT 0,
   `locked_until` timestamp NULL DEFAULT NULL,
@@ -331,7 +392,7 @@ CREATE TABLE `user_activity_overview` (
 ,`username` varchar(100)
 ,`full_name` varchar(255)
 ,`email` varchar(255)
-,`role` enum('admin','user','readonly')
+,`role` varchar(255)
 ,`active` enum('y','n')
 ,`last_login` timestamp
 ,`failed_login_attempts` int(11)
@@ -550,6 +611,18 @@ ALTER TABLE `email_accounts`
   ADD KEY `website_id` (`website_id`);
 
 --
+-- Indizes für die Tabelle `groups`
+--
+ALTER TABLE `groups`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indizes für die Tabelle `group_module_permissions`
+--
+ALTER TABLE `group_module_permissions`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indizes für die Tabelle `login_attempts`
 --
 ALTER TABLE `login_attempts`
@@ -558,6 +631,12 @@ ALTER TABLE `login_attempts`
   ADD KEY `idx_ip` (`ip_address`),
   ADD KEY `idx_success` (`success`),
   ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indizes für die Tabelle `modules`
+--
+ALTER TABLE `modules`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indizes für die Tabelle `module_configs`
@@ -600,6 +679,12 @@ ALTER TABLE `server_resources`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_vm_timestamp` (`vm_id`,`timestamp`),
   ADD KEY `idx_timestamp` (`timestamp`);
+
+--
+-- Indizes für die Tabelle `settings`
+--
+ALTER TABLE `settings`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indizes für die Tabelle `sm_databases`
@@ -716,9 +801,27 @@ ALTER TABLE `email_accounts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT für Tabelle `groups`
+--
+ALTER TABLE `groups`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT für Tabelle `group_module_permissions`
+--
+ALTER TABLE `group_module_permissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT für Tabelle `login_attempts`
 --
 ALTER TABLE `login_attempts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `modules`
+--
+ALTER TABLE `modules`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -749,6 +852,12 @@ ALTER TABLE `network_config`
 -- AUTO_INCREMENT für Tabelle `server_resources`
 --
 ALTER TABLE `server_resources`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `settings`
+--
+ALTER TABLE `settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --

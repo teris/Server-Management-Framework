@@ -9,7 +9,19 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class OvhModule extends ModuleBase {
     
     public function getContent() {
-        return $this->render('main');
+        $translations = $this->tMultiple([
+            'module_title', 'order_domain_ovh', 'domain_name', 'duration', 'order_domain',
+            'get_vps_info', 'vps_name', 'get_vps_info_button', 'vps_information', 'ip_address',
+            'mac_address', 'dns_management', 'create_dns_record', 'domain', 'record_type',
+            'subdomain', 'target', 'ttl_seconds', 'vps_control', 'action', 'reboot', 'start',
+            'stop', 'reset', 'execute_vps_action', 'failover_ips', 'load_failover_ips',
+            'quick_actions', 'check_domain_availability', 'show_dns_records', 'refresh_dns_zone',
+            'save', 'cancel', 'edit', 'delete', 'create', 'refresh', 'actions', 'status'
+        ]);
+        
+        return $this->render('main', [
+            'translations' => $translations
+        ]);
     }
     
     public function handleAjaxRequest($action, $data) {
@@ -50,8 +62,11 @@ class OvhModule extends ModuleBase {
             case 'create_ovh_virtual_mac':
                 return $this->createVirtualMacForIP($data);
                 
+            case 'get_translations':
+                return $this->getTranslations();
+                
             default:
-                return $this->error('Unknown action: ' . $action);
+                return $this->error($this->t('unknown_action') . ': ' . $action);
         }
     }
     
@@ -66,10 +81,10 @@ class OvhModule extends ModuleBase {
         }
         
         try {
-            $api = new OVHAPI();
+            $serviceManager = new ServiceManager();
             
             // Prüfe Verfügbarkeit
-            $availability = $api->checkDomainAvailability($data['domain']);
+            $availability = $serviceManager->OvhAPI('get', "/domain/{$data['domain']}/availability");
             
             if (!$availability['available']) {
                 return $this->error('Domain ist nicht verfügbar');
@@ -86,15 +101,15 @@ class OvhModule extends ModuleBase {
                 'dns_zone' => true
             ];
             
-            $result = $api->orderDomain($order_config);
+            $result = $serviceManager->OvhAPI('post', '/domain/order', $order_config);
             
             $this->log("Domain {$data['domain']} ordered for {$data['duration']} year(s)");
             
-            return $this->success($result, 'Domain erfolgreich bestellt');
+            return $this->success($result, $this->t('domain_ordered_successfully'));
             
         } catch (Exception $e) {
             $this->log('Error ordering domain: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_ordering_domain') . ': ' . $e->getMessage());
         }
     }
     
@@ -108,14 +123,14 @@ class OvhModule extends ModuleBase {
         }
         
         try {
-            $api = new OVHAPI();
-            $zone = $api->getDomainZone($data['domain']);
+            $serviceManager = new ServiceManager();
+            $zone = $serviceManager->OvhAPI('get', "/domain/zone/{$data['domain']}");
             
             return $this->success($zone);
             
         } catch (Exception $e) {
             $this->log('Error getting domain zone: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_domain_zone') . ': ' . $e->getMessage());
         }
     }
     
@@ -129,8 +144,8 @@ class OvhModule extends ModuleBase {
         }
         
         try {
-            $api = new OVHAPI();
-            $records = $api->getDNSRecords($data['domain']);
+            $serviceManager = new ServiceManager();
+            $records = $serviceManager->OvhAPI('get', "/domain/zone/{$data['domain']}/record");
             
             return $this->success($records);
             
@@ -153,7 +168,7 @@ class OvhModule extends ModuleBase {
         }
         
         try {
-            $api = new OVHAPI();
+            $serviceManager = new ServiceManager();
             
             $record_config = [
                 'fieldType' => $data['type'],
@@ -162,7 +177,7 @@ class OvhModule extends ModuleBase {
                 'ttl' => $data['ttl'] ?? 3600
             ];
             
-            $result = $api->createDNSRecord($data['domain'], $record_config);
+            $result = $serviceManager->OvhAPI('post', "/domain/zone/{$data['domain']}/record", $record_config);
             
             $this->log("DNS record created for {$data['domain']}: {$data['subdomain']} {$data['type']} {$data['target']}");
             
@@ -184,8 +199,8 @@ class OvhModule extends ModuleBase {
         }
         
         try {
-            $api = new OVHAPI();
-            $result = $api->refreshDNSZone($data['domain']);
+            $serviceManager = new ServiceManager();
+            $result = $serviceManager->OvhAPI('post', "/domain/zone/{$data['domain']}/refresh");
             
             $this->log("DNS zone refreshed for {$data['domain']}");
             
@@ -388,6 +403,22 @@ class OvhModule extends ModuleBase {
                 'vps_total' => 0
             ];
         }
+    }
+    
+    private function getTranslations() {
+        $translations = $this->tMultiple([
+            'domain_ordered_successfully', 'error_ordering_domain', 'domain_not_available',
+            'dns_record_created_successfully', 'error_creating_dns_record',
+            'dns_zone_updated_successfully', 'error_refreshing_dns_zone',
+            'error_getting_vps_info', 'error_getting_vps_ips', 'error_getting_vps_ip_details',
+            'vps_action_executed_successfully', 'error_controlling_vps',
+            'failover_ips_loaded', 'error_getting_failover_ips', 'no_failover_ips_found',
+            'virtual_mac_created_successfully', 'error_creating_virtual_mac',
+            'network_error', 'unknown_error', 'enter_domain', 'checking_availability',
+            'domain_availability_not_implemented', 'dns_records_loaded'
+        ]);
+        
+        return $this->success($translations);
     }
 }
 ?>

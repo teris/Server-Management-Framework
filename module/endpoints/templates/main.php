@@ -1,16 +1,36 @@
-<div id="endpoints" class="tab-content">
-    <h2>🔌 API Endpoints Tester</h2>
-    <p>Testen Sie einzelne API-Endpunkte der verschiedenen Services</p>
+<div id="endpoints-content">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">🔌 <?php echo $translations['api_endpoints_tester']; ?></h2>
+        </div>
+        <div class="card-body">
+            <p><?php echo $translations['test_api_endpoints']; ?></p>
+        </div>
+    </div>
     
     <!-- Proxmox Endpoints -->
-    <div class="endpoint-section">
-        <h3>🖥️ Proxmox API Endpoints</h3>
-        <div class="endpoint-buttons">
-            <button class="btn" onclick="testEndpoint('proxmox', 'get_proxmox_nodes')">📡 Nodes laden</button>
-            <button class="btn" onclick="testEndpointWithParam('proxmox', 'get_proxmox_storages', 'node', 'pve')">💾 Storages laden</button>
-            <button class="btn" onclick="testEndpointWithParams('proxmox', 'get_vm_config', {node: 'pve', vmid: '100'})">⚙️ VM Config</button>
-            <button class="btn" onclick="testEndpointWithParams('proxmox', 'get_vm_status', {node: 'pve', vmid: '100'})">📊 VM Status</button>
-            <button class="btn" onclick="testEndpointWithParams('proxmox', 'clone_vm', {node: 'pve', vmid: '100', newid: '101', name: 'clone-test'})">📋 VM Klonen</button>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="mb-0">🖥️ <?php echo $translations['proxmox_api_endpoints']; ?></h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-primary w-100" onclick="testEndpoint('proxmox', 'get_proxmox_nodes')">📡 <?php echo $translations['load_nodes']; ?></button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-primary w-100" onclick="testEndpointWithParam('proxmox', 'get_proxmox_storages', 'node', 'pve')">💾 <?php echo $translations['load_storages']; ?></button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-primary w-100" onclick="testEndpointWithParams('proxmox', 'get_vm_config', {node: 'pve', vmid: '100'})">⚙️ <?php echo $translations['vm_config']; ?></button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-primary w-100" onclick="testEndpointWithParams('proxmox', 'get_vm_status', {node: 'pve', vmid: '100'})">📊 <?php echo $translations['vm_status']; ?></button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-primary w-100" onclick="testEndpointWithParams('proxmox', 'clone_vm', {node: 'pve', vmid: '100', newid: '101', name: 'clone-test'})">📋 <?php echo $translations['clone_vm']; ?></button>
+                </div>
+            </div>
         </div>
     </div>
     

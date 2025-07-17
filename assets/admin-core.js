@@ -361,11 +361,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Legacy support for old function calls
-function loadVMs() { loadResource('vms'); }
-function loadWebsites() { loadResource('websites'); }
-function loadDatabases() { loadResource('databases'); }
-function loadEmails() { loadResource('emails'); }
-function loadDomains() { loadResource('domains'); }
-function loadVirtualMacs() { loadResource('virtualmacs'); }
-function loadVPSList() { loadResource('vps'); }
-function loadActivityLog() { loadLogs(); }
+window.loadResource = loadResource;
+window.loadVMData = function() { loadResource('vms'); };
+window.loadWebsiteData = function() { loadResource('websites'); };
+window.loadDatabaseData = function() { loadResource('databases'); };
+window.loadEmailData = function() { loadResource('emails'); };
+window.loadDomainData = function() { loadResource('domains'); };
+window.loadVirtualMacs = function() { loadResource('virtualmacs'); }
+window.loadVPSList = function() { loadResource('vps'); }
+window.loadActivityLog = function() { loadLogs(); }

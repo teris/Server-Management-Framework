@@ -3,7 +3,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="mb-0"><i class="bi bi-gear"></i> Admin-Modul</h3>
+                    <h3 class="mb-0"><i class="bi bi-gear"></i> <?php echo $translations['module_title']; ?></h3>
                 </div>
                 <div class="card-body">
                     <!-- Schnellaktionen -->
@@ -12,9 +12,9 @@
                             <div class="card border-0 bg-primary text-white">
                                 <div class="card-body text-center">
                                     <i class="bi bi-display display-4"></i>
-                                    <h5 class="mt-2">VMs verwalten</h5>
+                                    <h5 class="mt-2"><?php echo $translations['manage_vms']; ?></h5>
                                     <button class="btn btn-light btn-sm" onclick="loadVMData()">
-                                        <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                        <i class="bi bi-arrow-clockwise"></i> <?php echo $translations['refresh']; ?>
                                     </button>
                                 </div>
                             </div>
@@ -23,9 +23,9 @@
                             <div class="card border-0 bg-success text-white">
                                 <div class="card-body text-center">
                                     <i class="bi bi-globe display-4"></i>
-                                    <h5 class="mt-2">Websites</h5>
+                                    <h5 class="mt-2"><?php echo $translations['websites']; ?></h5>
                                     <button class="btn btn-light btn-sm" onclick="loadWebsiteData()">
-                                        <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                        <i class="bi bi-arrow-clockwise"></i> <?php echo $translations['refresh']; ?>
                                     </button>
                                 </div>
                             </div>
@@ -34,9 +34,9 @@
                             <div class="card border-0 bg-info text-white">
                                 <div class="card-body text-center">
                                     <i class="bi bi-database display-4"></i>
-                                    <h5 class="mt-2">Datenbanken</h5>
+                                    <h5 class="mt-2"><?php echo $translations['databases']; ?></h5>
                                     <button class="btn btn-light btn-sm" onclick="loadDatabaseData()">
-                                        <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                        <i class="bi bi-arrow-clockwise"></i> <?php echo $translations['refresh']; ?>
                                     </button>
                                 </div>
                             </div>
@@ -45,9 +45,9 @@
                             <div class="card border-0 bg-warning text-white">
                                 <div class="card-body text-center">
                                     <i class="bi bi-envelope display-4"></i>
-                                    <h5 class="mt-2">E-Mails</h5>
+                                    <h5 class="mt-2"><?php echo $translations['emails']; ?></h5>
                                     <button class="btn btn-light btn-sm" onclick="loadEmailData()">
-                                        <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                                        <i class="bi bi-arrow-clockwise"></i> <?php echo $translations['refresh']; ?>
                                     </button>
                                 </div>
                             </div>
@@ -624,7 +624,9 @@ function createEmail() {
 }
 
 // Log-Funktionen
-let logAutoRefreshInterval = null;
+if (typeof window.logAutoRefreshInterval === 'undefined') {
+    window.logAutoRefreshInterval = null;
+}
 
 function loadLogs() {
     const container = $('#admin-logs-content');
@@ -686,17 +688,17 @@ function clearLogs() {
 }
 
 function startLogAutoRefresh() {
-    if (logAutoRefreshInterval) {
-        clearInterval(logAutoRefreshInterval);
+    if (window.logAutoRefreshInterval) {
+        clearInterval(window.logAutoRefreshInterval);
     }
-    logAutoRefreshInterval = setInterval(loadLogs, 10000); // Alle 10 Sekunden
+    window.logAutoRefreshInterval = setInterval(loadLogs, 10000); // Alle 10 Sekunden
     Utils.showNotification('Auto-Refresh für Logs aktiviert', 'info');
 }
 
 function stopLogAutoRefresh() {
-    if (logAutoRefreshInterval) {
-        clearInterval(logAutoRefreshInterval);
-        logAutoRefreshInterval = null;
+    if (window.logAutoRefreshInterval) {
+        clearInterval(window.logAutoRefreshInterval);
+        window.logAutoRefreshInterval = null;
     }
     Utils.showNotification('Auto-Refresh für Logs deaktiviert', 'info');
 }

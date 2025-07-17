@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <!-- Modul-Titel -->
+    <module_title>Admin-Modul</module_title>
+    
+    <!-- Schnellaktionen -->
+    <manage_vms>VMs verwalten</manage_vms>
+    <websites>Websites</websites>
+    <databases>Datenbanken</databases>
+    <emails>E-Mails</emails>
+    <refresh>Aktualisieren</refresh>
+    
+    <!-- System-Status -->
+    <system_status>System-Status</system_status>
+    <connected>Verbunden</connected>
+    <proxmox>Proxmox</proxmox>
+    <ispconfig>ISPConfig</ispconfig>
+    <ovh_api>OVH API</ovh_api>
+    <database>Datenbank</database>
+    
+    <!-- Ressourcen-Verwaltung -->
+    <resource_management>Ressourcen-Verwaltung</resource_management>
+    <virtual_machines>Virtuelle Maschinen</virtual_machines>
+    <new_vm>Neue VM</new_vm>
+    <new_website>Neue Website</new_website>
+    <new_database>Neue Datenbank</new_database>
+    <new_email_account>Neues E-Mail-Konto</new_email_account>
+    
+    <!-- System-Logs -->
+    <system_logs>System-Logs</system_logs>
+    <load_logs>Logs laden</load_logs>
+    <clear_logs>Logs leeren</clear_logs>
+    
+    <!-- Allgemeine Texte -->
+    <loading>Laden...</loading>
+    <access_denied>Zugriff verweigert. Admin-Rechte erforderlich.</access_denied>
+    <error_loading_module>Fehler beim Laden des Admin-Moduls</error_loading_module>
+    <operation_successful>Operation erfolgreich</operation_successful>
+    <operation_failed>Operation fehlgeschlagen</operation_failed>
+    <validation_failed>Validierung fehlgeschlagen</validation_failed>
+    <admin_rights_required>Admin-Rechte erforderlich</admin_rights_required>
+    
+    <!-- Erfolgsmeldungen -->
+    <vm_deleted_successfully>VM erfolgreich gelöscht</vm_deleted_successfully>
+    <website_deleted_successfully>Website erfolgreich gelöscht</website_deleted_successfully>
+    <database_deleted_successfully>Datenbank erfolgreich gelöscht</database_deleted_successfully>
+    <email_deleted_successfully>E-Mail erfolgreich gelöscht</email_deleted_successfully>
+    
+    <!-- Fehlermeldungen -->
+    <error_getting_vms>Fehler beim Abrufen der VMs</error_getting_vms>
+    <error_getting_websites>Fehler beim Abrufen der Websites</error_getting_websites>
+    <error_getting_databases>Fehler beim Abrufen der Datenbanken</error_getting_databases>
+    <error_getting_emails>Fehler beim Abrufen der E-Mails</error_getting_emails>
+    <error_getting_domains>Fehler beim Abrufen der Domains</error_getting_domains>
+    <error_getting_vps>Fehler beim Abrufen der VPS</error_getting_vps>
+    <error_getting_logs>Fehler beim Abrufen der Logs</error_getting_logs>
+    <error_deleting_vm>Fehler beim Löschen der VM</error_deleting_vm>
+    <error_deleting_website>Fehler beim Löschen der Website</error_deleting_website>
+    <error_deleting_database>Fehler beim Löschen der Datenbank</error_deleting_database>
+    <error_deleting_email>Fehler beim Löschen der E-Mail</error_deleting_email>
+    
+    <!-- Tabellen-Header -->
+    <actions>Aktionen</actions>
+    <name>Name</name>
+    <status>Status</status>
+    <created>Erstellt</created>
+    <updated>Aktualisiert</updated>
+    
+    <!-- Buttons -->
+    <edit>Bearbeiten</edit>
+    <delete>Löschen</delete>
+    <view>Anzeigen</view>
+    <create>Erstellen</create>
+    <save>Speichern</save>
+    <cancel>Abbrechen</cancel>
+    <confirm>Bestätigen</confirm>
+    
+    <!-- Bestätigungsdialoge -->
+    <confirm_delete>Löschen bestätigen</confirm_delete>
+    <confirm_delete_vm>Möchten Sie diese VM wirklich löschen?</confirm_delete_vm>
+    <confirm_delete_website>Möchten Sie diese Website wirklich löschen?</confirm_delete_website>
+    <confirm_delete_database>Möchten Sie diese Datenbank wirklich löschen?</confirm_delete_database>
+    <confirm_delete_email>Möchten Sie dieses E-Mail-Konto wirklich löschen?</confirm_delete_email>
+    
+    <!-- Status-Indikatoren -->
+    <online>Online</online>
+    <offline>Offline</offline>
+    <running>Läuft</running>
+    <stopped>Gestoppt</stopped>
+    <error>Fehler</error>
+    <warning>Warnung</warning>
+    <info>Info</info>
+</translations> 

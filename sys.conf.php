@@ -4,10 +4,15 @@
  * Admin Dashboard Core mit Plugin-System
  */
 
-// Plugin Registry - Alle verfügbaren Plugins
+// LanguageManager einbinden (falls verfügbar)
+if (file_exists(__DIR__ . '/core/LanguageManager.php')) {
+    require_once __DIR__ . '/core/LanguageManager.php';
+}
+
+// --- PLUGINS START ---
 $plugins = [
     'admin' => [
-        'enabled' => true,
+        'enabled' => false,
         'name' => 'Admin Dashboard',
         'icon' => '📊',
         'path' => 'module/admin',
@@ -97,12 +102,14 @@ $plugins = [
         'description' => 'Benutzerdefiniertes Modul für Tests'
     ]
 ];
+// --- PLUGINS END ---
 
-// Globale Systemeinstellungen
+// --- SYSTEM_CONFIG START ---
 $system_config = [
     'version' => '3.0.0',
     'theme' => 'default',
-    'language' => 'de',
+    'language' => 'de', // Standardsprache (deutsch)
+    'available_languages' => ['de', 'en', 'fr', 'es', 'it'], // Verfügbare Sprachen
     'timezone' => 'Europe/Berlin',
     'debug_mode' => true,
     'maintenance_mode' => false,
@@ -112,21 +119,23 @@ $system_config = [
     'log_level' => 'INFO', // DEBUG, INFO, WARNING, ERROR
     'admin_email' => 'admin@example.com'
 ];
+// --- SYSTEM_CONFIG END ---
 
-// Feature Flags
+// --- FEATURE_FLAGS START ---
 $feature_flags = [
     'lazy_loading' => true,
     'advanced_search' => false,
     'bulk_operations' => false,
     'api_v2' => false,
     'dark_mode' => false,
-    'multi_language' => false,
+    'multi_language' => true, // Mehrsprachigkeit aktiviert
     'webhooks' => false,
     'two_factor_auth' => false,
     'plugin_auto_update' => false
 ];
+// --- FEATURE_FLAGS END ---
 
-// API Konfiguration
+// --- API_CONFIG START ---
 $api_config = [
     'rate_limit' => [
         'enabled' => true,
@@ -141,6 +150,7 @@ $api_config = [
     ],
     'timeout' => 30 // Sekunden
 ];
+// --- API_CONFIG END ---
 
 // Security Settings
 $security_config = [
@@ -247,5 +257,68 @@ if ($system_config['debug_mode']) {
 } else {
     error_reporting(E_ERROR | E_WARNING);
     ini_set('display_errors', 0);
+}
+
+// Language Manager Helper Functions
+function getLanguageManager() {
+    if (!class_exists('LanguageManager')) {
+        return null;
+    }
+    return LanguageManager::getInstance();
+}
+
+function translate($module_key, $key, $default = null) {
+    $lm = getLanguageManager();
+    if (!$lm) {
+        return $default !== null ? $default : $key;
+    }
+    return $lm->translate($module_key, $key, $default);
+}
+
+function setLanguage($language) {
+    $lm = getLanguageManager();
+    if (!$lm) {
+        return false;
+    }
+    return $lm->setLanguage($language);
+}
+
+function getCurrentLanguage() {
+    $lm = getLanguageManager();
+    if (!$lm) {
+        global $system_config;
+        return $system_config['language'] ?? 'de';
+    }
+    return $lm->getCurrentLanguage();
+}
+
+function getAvailableLanguages() {
+    $lm = getLanguageManager();
+    if (!$lm) {
+        global $system_config;
+        return $system_config['available_languages'] ?? ['de'];
+    }
+    return $lm->getAvailableLanguages();
+}
+
+// Core Translation Helper Functions
+function t($key, $default = null) {
+    $lm = getLanguageManager();
+    if (!$lm) {
+        return $default !== null ? $default : $key;
+    }
+    return $lm->translateCore($key, $default);
+}
+
+function tMultiple($keys) {
+    $lm = getLanguageManager();
+    if (!$lm) {
+        $result = [];
+        foreach ($keys as $key) {
+            $result[$key] = $key;
+        }
+        return $result;
+    }
+    return $lm->translateCoreMultiple($keys);
 }
 ?>

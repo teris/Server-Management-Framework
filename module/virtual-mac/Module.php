@@ -14,11 +14,25 @@ if (!class_exists('ServiceManager')) {
 class VirtualMacModule extends ModuleBase {
     
     public function getContent() {
+        $translations = $this->tMultiple([
+            'module_title', 'virtual_mac_management', 'overview', 'create', 'ip_management',
+            'reverse_dns', 'virtual_mac_overview', 'total_virtual_macs', 'assigned_ips',
+            'dedicated_servers', 'search_virtual_macs', 'refresh', 'mac_address', 'vm_name',
+            'ip_address', 'service_name', 'type', 'created_at', 'actions', 'create_new_virtual_mac',
+            'service_name_dedicated_server', 'select_server', 'mac_type', 'ovh_standard', 'vmware',
+            'virtual_network_interface', 'create_virtual_mac', 'assign_ip_to_virtual_mac',
+            'virtual_machine_name', 'assign_ip_address', 'remove_ip_address', 'remove_ip_from_virtual_mac',
+            'reverse_dns_management', 'hostname', 'create_reverse_dns', 'query_reverse_dns',
+            'query_reverse_dns_button', 'reverse_dns_information', 'save', 'cancel', 'edit',
+            'delete', 'create', 'refresh', 'actions', 'status'
+        ]);
+        
         // Lade Dedicated Servers für Dropdowns
         $servers = $this->getDedicatedServersList();
         
         return $this->render('main', [
-            'servers' => $servers
+            'servers' => $servers,
+            'translations' => $translations
         ]);
     }
     
@@ -64,8 +78,11 @@ class VirtualMacModule extends ModuleBase {
             case 'load_virtual_mac_overview':
                 return $this->loadVirtualMacOverview();
                 
+            case 'get_translations':
+                return $this->getTranslations();
+                
             default:
-                return $this->error('Unknown action: ' . $action);
+                return $this->error($this->t('unknown_action') . ': ' . $action);
         }
     }
     
@@ -91,11 +108,11 @@ class VirtualMacModule extends ModuleBase {
             
             $this->log("Virtual MAC created for service {$data['service_name']}");
             
-            return $this->success($result, 'Virtual MAC erfolgreich erstellt');
+            return $this->success($result, $this->t('virtual_mac_created_successfully'));
             
         } catch (Exception $e) {
             $this->log('Error creating virtual MAC: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_creating_virtual_mac') . ': ' . $e->getMessage());
         }
     }
     
@@ -116,7 +133,7 @@ class VirtualMacModule extends ModuleBase {
             
         } catch (Exception $e) {
             $this->log('Error getting virtual MAC details: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_virtual_mac_details') . ': ' . $e->getMessage());
         }
     }
     
@@ -423,6 +440,24 @@ class VirtualMacModule extends ModuleBase {
         } catch (Exception $e) {
             return ['total' => 0, 'assigned_ips' => 0];
         }
+    }
+    
+    private function getTranslations() {
+        $translations = $this->tMultiple([
+            'virtual_mac_created_successfully', 'error_creating_virtual_mac',
+            'error_getting_virtual_mac_details', 'error_getting_all_virtual_macs',
+            'virtual_mac_deleted_successfully', 'error_deleting_virtual_mac',
+            'ip_address_assigned_successfully', 'error_assigning_ip',
+            'ip_address_removed_successfully', 'error_removing_ip',
+            'reverse_dns_created_successfully', 'error_creating_reverse_dns',
+            'error_querying_reverse_dns', 'reverse_dns_deleted_successfully',
+            'error_deleting_reverse_dns', 'error_getting_dedicated_servers',
+            'error_getting_virtual_macs_for_service', 'error_loading_virtual_mac_overview',
+            'network_error', 'unknown_error', 'no_virtual_macs_found',
+            'loading_virtual_mac_overview'
+        ]);
+        
+        return $this->success($translations);
     }
 }
 ?>

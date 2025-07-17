@@ -67,7 +67,7 @@ async function makeRequest(action, formData) {
             
             return result;
         } catch (error) {
-            console.error('Request failed:', error);
+            console.error((window.t ? window.t('js_ajax_error') : 'Request failed') + ':', error);
             throw error;
         }
     }
@@ -175,13 +175,13 @@ function loadDataForTab(tabName) {
         if (loadFunction) {
             showLoadingForTab(tabName);
             loadFunction().catch(error => {
-                console.error(`Error loading data for tab ${tabName}:`, error);
-                showNotification(`Fehler beim Laden von ${tabName}: ${error.message}`, 'error');
+                console.error((window.t ? window.t('js_data_load_error') : `Error loading data for tab ${tabName}`) + ':', error);
+                showNotification((window.t ? window.t('js_data_load_error') : `Fehler beim Laden von ${tabName}`) + ': ' + error.message, 'error');
                 // Optionally hide loading indicator here or display error in table
                 const tbody = document.getElementById(getTableBodyIdForTab(tabName));
                 if (tbody) {
                     const colspan = tbody.parentElement.querySelector('thead tr th').length || 7;
-                    tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; color: red;">Laden fehlgeschlagen.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; color: red;">${window.t ? window.t('js_data_load_error') : 'Laden fehlgeschlagen'}.</td></tr>`;
                 }
             });
         }
@@ -244,7 +244,7 @@ async function loadStatsOnly() {
         updateStat('virtual-mac-count', results[6]);
 
     } catch (error) {
-        console.error('Fehler beim Laden der Statistiken:', error);
+        console.error((window.t ? window.t('js_data_load_error') : 'Fehler beim Laden der Statistiken') + ':', error);
     }
 }
 
@@ -915,11 +915,11 @@ async function loadVirtualMacs() {
 
 // Display Virtual MACs in a generic table (takes tbodyId)
 function displayVirtualMacsInTable(virtualMacsData, tbodyId) {
-    const tbody = document.getElementById(tbodyId);
-    if (!tbody) {
-        console.error(`Cannot find tbody with ID: ${tbodyId}`);
-        return;
-    }
+            const tbody = document.getElementById(tbodyId);
+        if (!tbody) {
+            console.error((window.t ? window.t('js_unknown_error') : `Cannot find tbody with ID: ${tbodyId}`));
+            return;
+        }
     if (!virtualMacsData || virtualMacsData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Keine Virtual MACs gefunden</td></tr>';
         return;
@@ -1010,8 +1010,8 @@ async function loadDedicatedServersForDropdown() {
              showNotification('Fehler beim Laden der Dedicated Server Liste: ' + (result.error || 'Keine Daten'), 'error');
         }
     } catch (error) {
-        console.error('Error loading dedicated servers:', error);
-        showNotification('Netzwerkfehler beim Laden der Dedicated Server.', 'error');
+        console.error((window.t ? window.t('js_data_load_error') : 'Error loading dedicated servers') + ':', error);
+        showNotification((window.t ? window.t('js_network_error') : 'Netzwerkfehler') + ' beim Laden der Dedicated Server.', 'error');
     }
 }
 async function loadDedicatedServers() { // Used by button in admin virtual macs table

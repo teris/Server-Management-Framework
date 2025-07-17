@@ -5,6 +5,7 @@
 
 require_once 'framework.php';
 require_once 'auth_handler.php';
+require_once 'sys.conf.php';
 
 // Wenn bereits eingeloggt, zur Hauptseite weiterleiten
 if (SessionManager::isLoggedIn()) {
@@ -15,12 +16,12 @@ if (SessionManager::isLoggedIn()) {
 $error_message = '';
 
 // Login verarbeiten
-if ($_POST['action'] === 'login') {
+if (isset($_POST['action']) && $_POST['action'] === 'login') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     
     if (empty($username) || empty($password)) {
-        $error_message = 'Bitte Benutzername und Passwort eingeben.';
+        $error_message = t('please_login') . '.';
     } else {
         $auth = new AuthenticationHandler();
         $login_result = $auth->login($username, $password);
@@ -36,18 +37,18 @@ if ($_POST['action'] === 'login') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="<?= getCurrentLanguage() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Server Management Interface</title>
+    <title><?= t('login_title') ?> - <?= t('server_management') ?></title>
 	<link rel="stylesheet" type="text/css" href="assets/login.css">
 </head>
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h1>🔐 Login</h1>
-            <p>Server Management Interface</p>
+            <h1>🔐 <?= t('login_title') ?></h1>
+            <p><?= t('login_subtitle') ?></p>
         </div>
         
         <?php if (!empty($error_message)): ?>
@@ -58,31 +59,31 @@ if ($_POST['action'] === 'login') {
         
         <!-- Demo Credentials (Remove in production) -->
         <div class="demo-credentials">
-            <h4>🔧 Standard Login-Daten:</h4>
-            <p><strong>Benutzername:</strong> admin</p>
-            <p><strong>Passwort:</strong> admin123</p>
-            <p style="color: #dc2626; font-weight: 500; margin-top: 8px;">⚠️ Bitte nach dem ersten Login ändern!</p>
+            <h4>🔧 <?= t('demo_credentials') ?>:</h4>
+            <p><strong><?= t('username') ?>:</strong> admin</p>
+            <p><strong><?= t('password') ?>:</strong> admin123</p>
+            <p style="color: #dc2626; font-weight: 500; margin-top: 8px;">⚠️ <?= t('change_after_first_login') ?>!</p>
         </div>
         
         <form method="POST" id="loginForm">
             <input type="hidden" name="action" value="login">
             
             <div class="form-group">
-                <label for="username">🧑‍💻 Benutzername</label>
+                <label for="username">🧑‍💻 <?= t('username') ?></label>
                 <input type="text" id="username" name="username" required 
                        value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
-                       placeholder="Ihr Benutzername">
+                       placeholder="<?= t('username') ?>">
             </div>
             
             <div class="form-group">
-                <label for="password">🔑 Passwort</label>
+                <label for="password">🔑 <?= t('password') ?></label>
                 <input type="password" id="password" name="password" required
-                       placeholder="Ihr Passwort">
+                       placeholder="<?= t('password') ?>">
             </div>
             
             <button type="submit" class="login-btn" id="loginBtn">
                 <span class="loading hidden" id="loadingSpinner"></span>
-                <span id="loginText">🚀 Anmelden</span>
+                <span id="loginText">🚀 <?= t('login') ?></span>
             </button>
         </form>
         

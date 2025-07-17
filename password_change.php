@@ -5,6 +5,7 @@
 
 require_once 'framework.php';
 require_once 'auth_handler.php';
+require_once 'sys.conf.php';
 
 // Login-Überprüfung
 requireLogin();
@@ -13,20 +14,20 @@ $error_message = '';
 $success_message = '';
 
 // Passwort-Änderung verarbeiten
-if ($_POST['action'] === 'change_password') {
+if (isset($_POST['action']) && $_POST['action'] === 'change_password') {
     $current_password = $_POST['current_password'] ?? '';
     $new_password = $_POST['new_password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     
     // Validierung
     if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
-        $error_message = 'Alle Felder sind erforderlich.';
+        $error_message = t('all_fields_required') . '.';
     } elseif (strlen($new_password) < 6) {
-        $error_message = 'Neues Passwort muss mindestens 6 Zeichen lang sein.';
+        $error_message = t('password_too_short') . '.';
     } elseif ($new_password !== $confirm_password) {
-        $error_message = 'Neue Passwörter stimmen nicht überein.';
+        $error_message = t('passwords_not_match') . '.';
     } elseif ($current_password === $new_password) {
-        $error_message = 'Neues Passwort muss sich vom aktuellen unterscheiden.';
+        $error_message = t('new_password_must_differ') . '.';
     } else {
         // Passwort ändern
         $user_info = SessionManager::getUserInfo();
@@ -34,7 +35,7 @@ if ($_POST['action'] === 'change_password') {
         $result = $auth->changePassword($user_info['id'], $current_password, $new_password);
         
         if ($result['success']) {
-            $success_message = 'Passwort wurde erfolgreich geändert.';
+            $success_message = t('password_changed') . '.';
             
             // Optional: Session beenden und Neuanmeldung erfordern
             // SessionManager::logout();
@@ -49,11 +50,11 @@ if ($_POST['action'] === 'change_password') {
 $user_info = SessionManager::getUserInfo();
 ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="<?= getCurrentLanguage() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passwort ändern - Server Management Interface</title>
+    <title><?= t('change_password_title') ?> - <?= t('server_management') ?></title>
     <link rel="stylesheet" type="text/css" href="assets/main.css">
     <style>
         .password-container {
@@ -180,11 +181,11 @@ $user_info = SessionManager::getUserInfo();
     <div class="container">
         <div class="password-container">
             <a href="index.php" class="back-link">
-                ← Zurück zum Dashboard
+                ← <?= t('back') ?> <?= t('dashboard') ?>
             </a>
             
             <div class="password-header">
-                <h1>🔐 Passwort ändern</h1>
+                <h1>🔐 <?= t('change_password_title') ?></h1>
                 
                 <div class="user-badge">
                     <div class="user-avatar">

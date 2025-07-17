@@ -1,30 +1,39 @@
-<div id="ovh" class="tab-content">
-    <h2>🔗 Domain bei OVH bestellen</h2>
-    <form onsubmit="orderDomain(event)">
-        <div class="form-row">
-            <div class="form-group">
-                <label for="domain_name">Domain Name</label>
-                <input type="text" id="domain_name" name="domain" required placeholder="example.com">
-            </div>
-            <div class="form-group">
-                <label for="domain_duration">Laufzeit (Jahre)</label>
-                <select id="domain_duration" name="duration">
-                    <option value="1" selected>1 Jahr</option>
-                    <option value="2">2 Jahre</option>
-                    <option value="3">3 Jahre</option>
-                    <option value="5">5 Jahre</option>
-                </select>
-            </div>
+<div id="ovh-content">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">🔗 <?php echo $translations['order_domain_ovh']; ?></h2>
         </div>
-        
-        <button type="submit" class="btn">
-            <span class="loading hidden"></span>
-            Domain bestellen
-        </button>
-    </form>
+        <div class="card-body">
+            <form onsubmit="orderDomain(event)">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="domain_name"><?php echo $translations['domain_name']; ?></label>
+                            <input type="text" class="form-control" id="domain_name" name="domain" required placeholder="example.com">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="domain_duration"><?php echo $translations['duration']; ?></label>
+                            <select class="form-control" id="domain_duration" name="duration">
+                                <option value="1" selected>1 Jahr</option>
+                                <option value="2">2 Jahre</option>
+                                <option value="3">3 Jahre</option>
+                                <option value="5">5 Jahre</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <span class="loading hidden"></span>
+                    <?php echo $translations['order_domain']; ?>
+                </button>
+            </form>
+
     
     <hr>
-    
+    <div class="row">
     <h3>🔍 VPS Informationen abrufen</h3>
     <form onsubmit="getVPSInfo(event)" style="margin-top: 20px;">
         <div class="form-group">
@@ -47,7 +56,7 @@
     <hr>
     
     <!-- DNS Management -->
-    <div class="endpoint-section">
+    <div class="endpoint-section col-md-6">
         <h3>🌐 DNS Management</h3>
         
         <h4>DNS Record erstellen</h4>
@@ -95,7 +104,7 @@
     </div>
     
     <!-- VPS Control -->
-    <div class="endpoint-section">
+    <div class="endpoint-section col-md-6">
         <h3>🖥️ VPS Control</h3>
         <form onsubmit="controlVPS(event)">
             <div class="form-row">
@@ -122,7 +131,7 @@
     </div>
     
     <!-- Failover IPs -->
-    <div class="endpoint-section">
+    <div class="endpoint-section col-md-12">
         <h3>🌐 Failover IPs</h3>
         <button class="btn btn-secondary" onclick="loadFailoverIPs()">
             📋 Failover IPs laden
@@ -147,9 +156,9 @@
             </table>
         </div>
     </div>
-    
+    </div>
     <!-- Quick Actions -->
-    <div class="endpoint-section">
+    <div class="endpoint-section col-md-12  ">
         <h3>⚡ Schnellaktionen</h3>
         <div class="endpoint-buttons">
             <button class="btn btn-secondary" onclick="checkDomainAvailability()">
@@ -163,8 +172,9 @@
             </button>
         </div>
     </div>
+</div>  
 </div>
-
+</div>
 <script>
 // OVH Module JavaScript
 window.ovhModule = {

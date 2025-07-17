@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <!-- Module Title -->
+    <module_title>Admin Module</module_title>
+    
+    <!-- Quick Actions -->
+    <manage_vms>Manage VMs</manage_vms>
+    <websites>Websites</websites>
+    <databases>Databases</databases>
+    <emails>Emails</emails>
+    <refresh>Refresh</refresh>
+    
+    <!-- System Status -->
+    <system_status>System Status</system_status>
+    <connected>Connected</connected>
+    <proxmox>Proxmox</proxmox>
+    <ispconfig>ISPConfig</ispconfig>
+    <ovh_api>OVH API</ovh_api>
+    <database>Database</database>
+    
+    <!-- Resource Management -->
+    <resource_management>Resource Management</resource_management>
+    <virtual_machines>Virtual Machines</virtual_machines>
+    <new_vm>New VM</new_vm>
+    <new_website>New Website</new_website>
+    <new_database>New Database</new_database>
+    <new_email_account>New Email Account</new_email_account>
+    
+    <!-- System Logs -->
+    <system_logs>System Logs</system_logs>
+    <load_logs>Load Logs</load_logs>
+    <clear_logs>Clear Logs</clear_logs>
+    
+    <!-- General Texts -->
+    <loading>Loading...</loading>
+    <access_denied>Access denied. Admin rights required.</access_denied>
+    <error_loading_module>Error loading admin module</error_loading_module>
+    <operation_successful>Operation successful</operation_successful>
+    <operation_failed>Operation failed</operation_failed>
+    <validation_failed>Validation failed</validation_failed>
+    <admin_rights_required>Admin rights required</admin_rights_required>
+    
+    <!-- Success Messages -->
+    <vm_deleted_successfully>VM deleted successfully</vm_deleted_successfully>
+    <website_deleted_successfully>Website deleted successfully</website_deleted_successfully>
+    <database_deleted_successfully>Database deleted successfully</database_deleted_successfully>
+    <email_deleted_successfully>Email deleted successfully</email_deleted_successfully>
+    
+    <!-- Error Messages -->
+    <error_getting_vms>Error getting VMs</error_getting_vms>
+    <error_getting_websites>Error getting websites</error_getting_websites>
+    <error_getting_databases>Error getting databases</error_getting_databases>
+    <error_getting_emails>Error getting emails</error_getting_emails>
+    <error_getting_domains>Error getting domains</error_getting_domains>
+    <error_getting_vps>Error getting VPS</error_getting_vps>
+    <error_getting_logs>Error getting logs</error_getting_logs>
+    <error_deleting_vm>Error deleting VM</error_deleting_vm>
+    <error_deleting_website>Error deleting website</error_deleting_website>
+    <error_deleting_database>Error deleting database</error_deleting_database>
+    <error_deleting_email>Error deleting email</error_deleting_email>
+    
+    <!-- Table Headers -->
+    <actions>Actions</actions>
+    <name>Name</name>
+    <status>Status</status>
+    <created>Created</created>
+    <updated>Updated</updated>
+    
+    <!-- Buttons -->
+    <edit>Edit</edit>
+    <delete>Delete</delete>
+    <view>View</view>
+    <create>Create</create>
+    <save>Save</save>
+    <cancel>Cancel</cancel>
+    <confirm>Confirm</confirm>
+    
+    <!-- Confirmation Dialogs -->
+    <confirm_delete>Confirm Delete</confirm_delete>
+    <confirm_delete_vm>Do you really want to delete this VM?</confirm_delete_vm>
+    <confirm_delete_website>Do you really want to delete this website?</confirm_delete_website>
+    <confirm_delete_database>Do you really want to delete this database?</confirm_delete_database>
+    <confirm_delete_email>Do you really want to delete this email account?</confirm_delete_email>
+    
+    <!-- Status Indicators -->
+    <online>Online</online>
+    <offline>Offline</offline>
+    <running>Running</running>
+    <stopped>Stopped</stopped>
+    <error>Error</error>
+    <warning>Warning</warning>
+    <info>Info</info>
+</translations> 

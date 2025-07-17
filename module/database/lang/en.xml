@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <module_title>Database Management</module_title>
+    <databases>Databases</databases>
+    <add_database>Add Database</add_database>
+    <edit_database>Edit Database</edit_database>
+    <delete_database>Delete Database</delete_database>
+    <database_name>Database Name</database_name>
+    <user>User</user>
+    <password>Password</password>
+    <host>Host</host>
+    <status>Status</status>
+    <actions>Actions</actions>
+    <save>Save</save>
+    <cancel>Cancel</cancel>
+    <edit>Edit</edit>
+    <delete>Delete</delete>
+    <create>Create</create>
+    <refresh>Refresh</refresh>
+    <operation_successful>Operation successful</operation_successful>
+    <operation_failed>Operation failed</operation_failed>
+    <validation_failed>Validation failed</validation_failed>
+    <confirm_delete>Do you really want to delete?</confirm_delete>
+    <loading>Loading...</loading>
+    <unknown_action>Unknown action</unknown_action>
+    <admin_rights_required>Admin rights required</admin_rights_required>
+    <database_created_successfully>Database created successfully</database_created_successfully>
+    <database_deleted_successfully>Database deleted successfully</database_deleted_successfully>
+    <error_creating_database>Error creating database</error_creating_database>
+    <error_deleting_database>Error deleting database</error_deleting_database>
+    <error_getting_databases>Error getting databases</error_getting_databases>
+    <create_database>Create Database</create_database>
+    <database_user>Database User</database_user>
+    <password_min_length>At least 6 characters. Use a secure password!</password_min_length>
+    <connection_info>Connection Information</connection_info>
+    <port>Port</port>
+    <charset>Character Set</charset>
+    <advanced_options>Advanced Options</advanced_options>
+    <database_server_info>Database Server Info</database_server_info>
+    <generate_secure_password>Generate Secure Password</generate_secure_password>
+    <connection_details>After creation, you can connect with the following data:</connection_details>
+    <host_info>localhost (or server IP for remote access)</host_info>
+    <port_info>3306 (MySQL/MariaDB Standard)</port_info>
+    <charset_info>All databases are created with utf8mb4 character set by default, which provides full Unicode support (including emojis).</charset_info>
+    <phpmyadmin_info>You can also manage your database via phpMyAdmin:</phpmyadmin_info>
+    <phpmyadmin_url>https://your-server.com/phpmyadmin</phpmyadmin_url>
+    <secure_password_generated>Secure password generated</secure_password_generated>
+    <database_info_message>MySQL/MariaDB Server running on port 3306</database_info_message>
+    <database_created_message>Database was created successfully!</database_created_message>
+    <network_error>Network error</network_error>
+    <unknown_error>Unknown error</unknown_error>
+    <database_connection_alert>Database created successfully!\n\nConnection data:\nHost: localhost\nDatabase: {dbName}\nUser: {dbUser}\nPassword: [Your chosen password]</database_connection_alert>
+</translations> 

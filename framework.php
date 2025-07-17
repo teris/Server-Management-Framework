@@ -50,46 +50,33 @@ class Database {
         }
     }
 
-    public function getActivityLog($limit = 50) {
+    public function getActivityLog($limit = 50, $offset = 0) {
         try {
-            // Limit als Integer validieren und direkt in Query einbauen
             $limit = (int) $limit;
+            $offset = (int) $offset;
             if ($limit <= 0) $limit = 50;
-            if ($limit > 1000) $limit = 1000; // Max. Limit für Performance
-            
-            // Query ohne Platzhalter für LIMIT
+            if ($limit > 1000) $limit = 1000;
+            if ($offset < 0) $offset = 0;
             $sql = "SELECT id, action, details, status, created_at 
                     FROM activity_log 
                     ORDER BY created_at DESC 
-                    LIMIT " . $limit;
-            
+                    LIMIT $limit OFFSET $offset";
             $stmt = $this->connection->prepare($sql);
             $stmt->execute();
-            
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            // Sicherstellen dass created_at im richtigen Format ist
             foreach ($results as &$row) {
                 if (isset($row['created_at'])) {
-                    // Timestamp zu deutschem Format konvertieren falls nötig
                     $row['created_at_formatted'] = date('d.m.Y H:i:s', strtotime($row['created_at']));
                 }
             }
-            
             return $results;
-            
         } catch (PDOException $e) {
             error_log("Database getActivityLog error: " . $e->getMessage());
-            
-            // Fallback: Versuche ohne LIMIT
             try {
                 $stmt = $this->connection->prepare("SELECT id, action, details, status, created_at FROM activity_log ORDER BY created_at DESC");
                 $stmt->execute();
                 $all_results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                
-                // Manuell limitieren
-                return array_slice($all_results, 0, $limit);
-                
+                return array_slice($all_results, $offset, $limit);
             } catch (PDOException $e2) {
                 error_log("Database fallback error: " . $e2->getMessage());
                 return [];
@@ -99,7 +86,7 @@ class Database {
     
     public function clearActivityLogs() {
         try {
-            $stmt = $this->connection->prepare("DELETE FROM activity_log");
+            $stmt = $this->connection->prepare("TRUNCATE TABLE activity_log");
             return $stmt->execute();
         } catch (PDOException $e) {
             error_log("Database clearActivityLogs error: " . $e->getMessage());
@@ -694,7 +681,7 @@ class ProxmoxPost extends ProxmoxGet {
 class ISPConfigGet extends BaseAPI {
     public $session_id;
     public $client;
-    private $debug_mode = true; // Für Debugging aktivieren
+    private $debug_mode = false; // Für Debugging aktivieren
 
     public function __construct() {
         $this->host = Config::ISPCONFIG_HOST;
@@ -2664,18 +2651,6 @@ function canAccessModule($module_key, $user_role) {
     }
     
     return true;
-}
-
-/**
- * Log-Funktion für Aktivitäten
- */
-function logActivity($message, $level = 'INFO') {
-    try {
-        $db = Database::getInstance();
-        $db->logAction('MODULE_LOG', $message, $level);
-    } catch (Exception $e) {
-        error_log("Activity log error: " . $e->getMessage());
-    }
 }
 
 ?>

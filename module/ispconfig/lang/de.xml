@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <!-- Modul-Titel -->
+    <module_title>ISPConfig Website Management</module_title>
+    
+    <!-- Allgemeine Texte -->
+    <websites>Websites</websites>
+    <databases>Datenbanken</databases>
+    <email_accounts>E-Mail-Konten</email_accounts>
+    <ftp_users>FTP-Benutzer</ftp_users>
+    <subdomains>Subdomains</subdomains>
+    <clients>Kunden</clients>
+    
+    <!-- Aktionen -->
+    <create_website>Website erstellen</create_website>
+    <edit_website>Website bearbeiten</edit_website>
+    <delete_website>Website löschen</delete_website>
+    <create_database>Datenbank erstellen</create_database>
+    <create_email>E-Mail-Konto erstellen</create_email>
+    <create_ftp_user>FTP-Benutzer erstellen</create_ftp_user>
+    <create_subdomain>Subdomain erstellen</create_subdomain>
+    
+    <!-- Formular-Felder -->
+    <domain>Domain</domain>
+    <ip_address>IP-Adresse</ip_address>
+    <system_user>System-Benutzer</system_user>
+    <system_group>System-Gruppe</system_group>
+    <quota>Quota</quota>
+    <traffic>Traffic</traffic>
+    <php_version>PHP-Version</php_version>
+    <ssl>SSL</ssl>
+    <backup>Backup</backup>
+    <description>Beschreibung</description>
+    
+    <!-- Status -->
+    <active>Aktiv</active>
+    <inactive>Inaktiv</inactive>
+    <suspended>Suspendiert</suspended>
+    <pending>Ausstehend</pending>
+    
+    <!-- Erfolgsmeldungen -->
+    <website_created_successfully>Website erfolgreich erstellt</website_created_successfully>
+    <website_updated_successfully>Website erfolgreich aktualisiert</website_updated_successfully>
+    <website_deleted_successfully>Website erfolgreich gelöscht</website_deleted_successfully>
+    <database_created_successfully>Datenbank erfolgreich erstellt</database_created_successfully>
+    <email_created_successfully>E-Mail-Konto erfolgreich erstellt</email_created_successfully>
+    <ftp_user_created_successfully>FTP-Benutzer erfolgreich erstellt</ftp_user_created_successfully>
+    <subdomain_created_successfully>Subdomain erfolgreich erstellt</subdomain_created_successfully>
+    
+    <!-- Fehlermeldungen -->
+    <error_creating_website>Fehler beim Erstellen der Website</error_creating_website>
+    <error_updating_website>Fehler beim Aktualisieren der Website</error_updating_website>
+    <error_deleting_website>Fehler beim Löschen der Website</error_deleting_website>
+    <error_getting_clients>Fehler beim Abrufen der Kunden</error_getting_clients>
+    <error_getting_server_config>Fehler beim Abrufen der Server-Konfiguration</error_getting_server_config>
+    <error_getting_website_details>Fehler beim Abrufen der Website-Details</error_getting_website_details>
+    <error_creating_database>Fehler beim Erstellen der Datenbank</error_creating_database>
+    <error_creating_email>Fehler beim Erstellen des E-Mail-Kontos</error_creating_email>
+    <error_creating_ftp_user>Fehler beim Erstellen des FTP-Benutzers</error_creating_ftp_user>
+    <error_creating_subdomain>Fehler beim Erstellen der Subdomain</error_creating_subdomain>
+    
+    <!-- Buttons -->
+    <create>Erstellen</create>
+    <edit>Bearbeiten</edit>
+    <delete>Löschen</delete>
+    <save>Speichern</save>
+    <cancel>Abbrechen</cancel>
+    <refresh>Aktualisieren</refresh>
+    <view>Anzeigen</view>
+    <confirm>Bestätigen</confirm>
+    
+    <!-- Bestätigungsdialoge -->
+    <confirm_delete_website>Möchten Sie diese Website wirklich löschen?</confirm_delete_website>
+    <confirm_delete_database>Möchten Sie diese Datenbank wirklich löschen?</confirm_delete_database>
+    <confirm_delete_email>Möchten Sie dieses E-Mail-Konto wirklich löschen?</confirm_delete_email>
+    
+    <!-- Tabellen-Header -->
+    <domain_name>Domain</domain_name>
+    <ip>IP-Adresse</ip>
+    <status>Status</status>
+    <quota_usage>Quota-Nutzung</quota_usage>
+    <traffic_usage>Traffic-Nutzung</traffic_usage>
+    <created>Erstellt</created>
+    <updated>Aktualisiert</updated>
+    <actions>Aktionen</actions>
+    
+    <!-- Einheiten -->
+    <mb>MB</mb>
+    <gb>GB</gb>
+    <percent>%</percent>
+    
+    <!-- Platzhalter -->
+    <enter_domain>Domain eingeben</enter_domain>
+    <enter_ip_address>IP-Adresse eingeben</enter_ip_address>
+    <enter_system_user>System-Benutzer eingeben</enter_system_user>
+    <enter_system_group>System-Gruppe eingeben</enter_system_group>
+    <select_php_version>PHP-Version auswählen</select_php_version>
+    
+    <!-- Validierung -->
+    <domain_required>Domain ist erforderlich</domain_required>
+    <ip_address_required>IP-Adresse ist erforderlich</ip_address_required>
+    <system_user_required>System-Benutzer ist erforderlich</system_user_required>
+    <system_group_required>System-Gruppe ist erforderlich</system_group_required>
+    <quota_required>Quota ist erforderlich</quota_required>
+    <traffic_required>Traffic ist erforderlich</traffic_required>
+    <invalid_domain>Ungültige Domain</invalid_domain>
+    <invalid_ip_address>Ungültige IP-Adresse</invalid_ip_address>
+    <invalid_quota>Ungültige Quota</invalid_quota>
+    <invalid_traffic>Ungültiger Traffic</invalid_traffic>
+    
+    <!-- Allgemeine Texte -->
+    <loading>Laden...</loading>
+    <operation_successful>Operation erfolgreich</operation_successful>
+    <operation_failed>Operation fehlgeschlagen</operation_failed>
+    <validation_failed>Validierung fehlgeschlagen</validation_failed>
+    <unknown_action>Unbekannte Aktion</unknown_action>
+    <create_website_ispconfig>Website in ISPConfig erstellen</create_website_ispconfig>
+    <hd_quota>HD Quota (MB)</hd_quota>
+    <traffic_quota>Traffic Quota (MB)</traffic_quota>
+    <domain_id>Domain ID</domain_id>
+    <ftp_username>FTP Username</ftp_username>
+    <parent_domain_id>Parent Domain ID</parent_domain_id>
+    <subdomain>Subdomain</subdomain>
+    <redirect_type>Redirect Type</redirect_type>
+    <no_redirect>Kein Redirect</no_redirect>
+    <redirect_temporary>R (Temporary)</redirect_temporary>
+    <redirect_permanent>L (Permanent)</redirect_permanent>
+    <redirect_path>Redirect Path (optional)</redirect_path>
+    <quick_actions>Schnellaktionen</quick_actions>
+    <load_clients>Clients laden</load_clients>
+    <server_config>Server Config</server_config>
+    <website_details>Website Details</website_details>
+    <clients_loaded>Clients geladen - siehe Konsole</clients_loaded>
+    <server_config_loaded>Server Config geladen - siehe Konsole</server_config_loaded>
+    <website_details_loaded>Website Details geladen - siehe Konsole</website_details_loaded>
+    <enter_domain_id>Bitte Domain ID eingeben</enter_domain_id>
+    <network_error>Netzwerkfehler</network_error>
+    <unknown_error>Unbekannter Fehler</unknown_error>
+    <website_created_message>Website wurde erfolgreich erstellt!</website_created_message>
+    <ftp_user_created_message>FTP-Benutzer wurde erfolgreich erstellt!</ftp_user_created_message>
+    <subdomain_created_message>Subdomain wurde erfolgreich erstellt!</subdomain_created_message>
+</translations> 

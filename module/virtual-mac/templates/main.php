@@ -1,11 +1,16 @@
-<div id="virtual-mac" class="tab-content">
-    <h2>🔌 Virtual MAC Management</h2>
-    
-    <div class="tabs" style="margin-bottom: 20px;">
-        <button class="tab active" onclick="showVirtualMacTab('overview', this)">📊 Übersicht</button>
-        <button class="tab" onclick="showVirtualMacTab('create', this)">➕ Erstellen</button>
-        <button class="tab" onclick="showVirtualMacTab('ip-management', this)">🌐 IP Management</button>
-        <button class="tab" onclick="showVirtualMacTab('reverse-dns', this)">🔄 Reverse DNS</button>
+<div id="virtual-mac-content">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">🔌 <?php echo $translations['virtual_mac_management']; ?></h2>
+        </div>
+        <div class="card-body">
+            <div class="tabs" style="margin-bottom: 20px;">
+                <button class="tab active" onclick="showVirtualMacTab('overview', this)">📊 <?php echo $translations['overview']; ?></button>
+                <button class="tab" onclick="showVirtualMacTab('create', this)">➕ <?php echo $translations['create']; ?></button>
+                <button class="tab" onclick="showVirtualMacTab('ip-management', this)">🌐 <?php echo $translations['ip_management']; ?></button>
+                <button class="tab" onclick="showVirtualMacTab('reverse-dns', this)">🔄 <?php echo $translations['reverse_dns']; ?></button>
+            </div>
+        </div>
     </div>
     
     <!-- Overview -->

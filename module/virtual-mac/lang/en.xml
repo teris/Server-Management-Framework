@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <module_title>Virtual MAC Management</module_title>
+    <virtual_macs>Virtual MACs</virtual_macs>
+    <add_virtual_mac>Add Virtual MAC</add_virtual_mac>
+    <edit_virtual_mac>Edit Virtual MAC</edit_virtual_mac>
+    <delete_virtual_mac>Delete Virtual MAC</delete_virtual_mac>
+    <add_ip>Add IP</add_ip>
+    <edit_ip>Edit IP</edit_ip>
+    <delete_ip>Delete IP</delete_ip>
+    <add_reverse_dns>Add Reverse DNS</add_reverse_dns>
+    <edit_reverse_dns>Edit Reverse DNS</edit_reverse_dns>
+    <delete_reverse_dns>Delete Reverse DNS</delete_reverse_dns>
+    <domain_name>Domain Name</domain_name>
+    <ip_address>IP Address</ip_address>
+    <mac_address>MAC Address</mac_address>
+    <status>Status</status>
+    <actions>Actions</actions>
+    <save>Save</save>
+    <cancel>Cancel</cancel>
+    <edit>Edit</edit>
+    <delete>Delete</delete>
+    <create>Create</create>
+    <refresh>Refresh</refresh>
+    <operation_successful>Operation successful</operation_successful>
+    <operation_failed>Operation failed</operation_failed>
+    <validation_failed>Validation failed</validation_failed>
+    <confirm_delete>Do you really want to delete?</confirm_delete>
+    <loading>Loading...</loading>
+    <unknown_action>Unknown action</unknown_action>
+    <virtual_mac_management>Virtual MAC Management</virtual_mac_management>
+    <overview>Overview</overview>
+    <create>Create</create>
+    <ip_management>IP Management</ip_management>
+    <reverse_dns>Reverse DNS</reverse_dns>
+    <virtual_mac_overview>Virtual MAC Overview</virtual_mac_overview>
+    <total_virtual_macs>Total Virtual MACs</total_virtual_macs>
+    <assigned_ips>Assigned IPs</assigned_ips>
+    <dedicated_servers>Dedicated Servers</dedicated_servers>
+    <search_virtual_macs>Search Virtual MACs...</search_virtual_macs>
+    <refresh>Aktualisieren</refresh>
+    <mac_address>MAC Address</mac_address>
+    <vm_name>VM Name</vm_name>
+    <ip_address>IP Address</ip_address>
+    <service_name>Service Name</service_name>
+    <type>Type</type>
+    <created_at>Created At</created_at>
+    <actions>Actions</actions>
+    <loading_virtual_mac_overview>Loading Virtual MAC Overview...</loading_virtual_mac_overview>
+    <no_virtual_macs_found>No Virtual MACs found</no_virtual_macs_found>
+    <create_new_virtual_mac>Create New Virtual MAC</create_new_virtual_mac>
+    <service_name_dedicated_server>Service Name (Dedicated Server)</service_name_dedicated_server>
+    <select_server>Select Server...</select_server>
+    <mac_type>MAC Type</mac_type>
+    <ovh_standard>OVH (Standard)</ovh_standard>
+    <vmware>VMware</vmware>
+    <virtual_network_interface>Virtual Network Interface</virtual_network_interface>
+    <create_virtual_mac>Create Virtual MAC</create_virtual_mac>
+    <virtual_mac_created_successfully>Virtual MAC created successfully</virtual_mac_created_successfully>
+    <error_creating_virtual_mac>Error creating Virtual MAC</error_creating_virtual_mac>
+    <assign_ip_to_virtual_mac>Assign IP to Virtual MAC</assign_ip_to_virtual_mac>
+    <virtual_machine_name>VM Name</virtual_machine_name>
+    <assign_ip_address>Assign IP Address</assign_ip_address>
+    <ip_address_assigned_successfully>IP address assigned successfully</ip_address_assigned_successfully>
+    <error_assigning_ip>Error assigning IP address</error_assigning_ip>
+    <remove_ip_address>Remove IP Address</remove_ip_address>
+    <remove_ip_from_virtual_mac>Remove IP from Virtual MAC</remove_ip_from_virtual_mac>
+    <ip_address_removed_successfully>IP address removed successfully</ip_address_removed_successfully>
+    <error_removing_ip>Error removing IP address</error_removing_ip>
+    <reverse_dns_management>Reverse DNS Management</reverse_dns_management>
+    <hostname>Hostname</hostname>
+    <create_reverse_dns>Create Reverse DNS</create_reverse_dns>
+    <reverse_dns_created_successfully>Reverse DNS created successfully</reverse_dns_created_successfully>
+    <error_creating_reverse_dns>Error creating Reverse DNS</error_creating_reverse_dns>
+    <query_reverse_dns>Query Reverse DNS</query_reverse_dns>
+    <query_reverse_dns_button>Query Reverse DNS</query_reverse_dns_button>
+    <reverse_dns_information>Reverse DNS Information</reverse_dns_information>
+    <error_querying_reverse_dns>Error querying Reverse DNS</error_querying_reverse_dns>
+    <delete_reverse_dns>Delete Reverse DNS</delete_reverse_dns>
+    <reverse_dns_deleted_successfully>Reverse DNS deleted successfully</reverse_dns_deleted_successfully>
+    <error_deleting_reverse_dns>Error deleting Reverse DNS</error_deleting_reverse_dns>
+    <error_getting_virtual_mac_details>Error getting Virtual MAC details</error_getting_virtual_mac_details>
+    <error_getting_all_virtual_macs>Error getting all Virtual MACs</error_getting_all_virtual_macs>
+    <virtual_mac_deleted_successfully>Virtual MAC deleted successfully</virtual_mac_deleted_successfully>
+    <error_deleting_virtual_mac>Error deleting Virtual MAC</error_deleting_virtual_mac>
+    <error_getting_dedicated_servers>Error getting dedicated servers</error_getting_dedicated_servers>
+    <error_getting_virtual_macs_for_service>Error getting Virtual MACs for service</error_getting_virtual_macs_for_service>
+    <error_loading_virtual_mac_overview>Error loading Virtual MAC overview</error_loading_virtual_mac_overview>
+    <network_error>Network error</network_error>
+    <unknown_error>Unknown error</unknown_error>
+    <first_select_service>First select service...</first_select_service>
+</translations> 

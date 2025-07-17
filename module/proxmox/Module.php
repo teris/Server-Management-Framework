@@ -9,7 +9,17 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class ProxmoxModule extends ModuleBase {
     
     public function getContent() {
-        return $this->render('main');
+        $translations = $this->tMultiple([
+            'module_title', 'create_vm_proxmox', 'vm_name', 'vm_id', 'ram_mb', 'cpu_cores',
+            'disk_gb', 'proxmox_node', 'storage', 'network_bridge', 'mac_address', 'iso_image',
+            'create_vm', 'extended_features', 'get_nodes', 'load_storages', 'clone_vm',
+            'clone_vm_dialog', 'source_vm_id', 'new_vm_id', 'new_name', 'cancel',
+            'save', 'edit', 'delete', 'create', 'refresh', 'actions', 'status'
+        ]);
+        
+        return $this->render('main', [
+            'translations' => $translations
+        ]);
     }
     
     public function handleAjaxRequest($action, $data) {
@@ -32,8 +42,11 @@ class ProxmoxModule extends ModuleBase {
             case 'clone_vm':
                 return $this->cloneVM($data);
                 
+            case 'get_translations':
+                return $this->getTranslations();
+                
             default:
-                return $this->error('Unknown action: ' . $action);
+                return $this->error($this->t('unknown_action') . ': ' . $action);
         }
     }
     
@@ -56,7 +69,7 @@ class ProxmoxModule extends ModuleBase {
         }
         
         try {
-            $api = new ProxmoxAPI();
+            $serviceManager = new ServiceManager();
             
             $vm_config = [
                 'vmid' => $data['vmid'],
@@ -78,28 +91,28 @@ class ProxmoxModule extends ModuleBase {
                 $vm_config['net0'] .= ",macaddr={$data['mac']}";
             }
             
-            $result = $api->createVM($data['node'], $vm_config);
+            $result = $serviceManager->createProxmoxVM($vm_config);
             
             $this->log("VM {$data['vmid']} ({$data['name']}) created successfully");
             
-            return $this->success($result, 'VM erfolgreich erstellt');
+            return $this->success($result, $this->t('vm_created_successfully'));
             
         } catch (Exception $e) {
             $this->log('Error creating VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_creating_vm') . ': ' . $e->getMessage());
         }
     }
     
     private function getProxmoxNodes() {
         try {
-            $api = new ProxmoxAPI();
-            $nodes = $api->getNodes();
+            $serviceManager = new ServiceManager();
+            $nodes = $serviceManager->ProxmoxAPI('get', '/nodes');
             
             return $this->success($nodes);
             
         } catch (Exception $e) {
             $this->log('Error getting nodes: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_nodes') . ': ' . $e->getMessage());
         }
     }
     
@@ -113,8 +126,8 @@ class ProxmoxModule extends ModuleBase {
         }
         
         try {
-            $api = new ProxmoxAPI();
-            $storages = $api->getStorages($data['node']);
+            $serviceManager = new ServiceManager();
+            $storages = $serviceManager->ProxmoxAPI('get', "/nodes/{$data['node']}/storage");
             
             return $this->success($storages);
             
@@ -135,8 +148,8 @@ class ProxmoxModule extends ModuleBase {
         }
         
         try {
-            $api = new ProxmoxAPI();
-            $config = $api->getVMConfig($data['node'], $data['vmid']);
+            $serviceManager = new ServiceManager();
+            $config = $serviceManager->ProxmoxAPI('get', "/nodes/{$data['node']}/qemu/{$data['vmid']}/config");
             
             return $this->success($config);
             
@@ -157,8 +170,8 @@ class ProxmoxModule extends ModuleBase {
         }
         
         try {
-            $api = new ProxmoxAPI();
-            $status = $api->getVMStatus($data['node'], $data['vmid']);
+            $serviceManager = new ServiceManager();
+            $status = $serviceManager->ProxmoxAPI('get', "/nodes/{$data['node']}/qemu/{$data['vmid']}/status/current");
             
             return $this->success($status);
             
@@ -181,7 +194,7 @@ class ProxmoxModule extends ModuleBase {
         }
         
         try {
-            $api = new ProxmoxAPI();
+            $serviceManager = new ServiceManager();
             
             $clone_config = [
                 'newid' => $data['newid'],
@@ -190,7 +203,7 @@ class ProxmoxModule extends ModuleBase {
                 'target' => $data['node']
             ];
             
-            $result = $api->cloneVM($data['node'], $data['vmid'], $clone_config);
+            $result = $serviceManager->ProxmoxAPI('post', "/nodes/{$data['node']}/qemu/{$data['vmid']}/clone", $clone_config);
             
             $this->log("VM {$data['vmid']} cloned to {$data['newid']} ({$data['name']})");
             
@@ -204,8 +217,8 @@ class ProxmoxModule extends ModuleBase {
     
     public function getStats() {
         try {
-            $api = new ProxmoxAPI();
-            $vms = $api->getAllVMs();
+            $serviceManager = new ServiceManager();
+            $vms = $serviceManager->getProxmoxVMs();
             
             $running = 0;
             $stopped = 0;
@@ -234,6 +247,18 @@ class ProxmoxModule extends ModuleBase {
         } catch (Exception $e) {
             return [];
         }
+    }
+    
+    private function getTranslations() {
+        $translations = $this->tMultiple([
+            'vm_created_successfully', 'error_creating_vm', 'error_getting_nodes',
+            'error_getting_storages', 'error_getting_vm_config', 'error_getting_vm_status',
+            'vm_cloned_successfully', 'error_cloning_vm', 'storages_loaded',
+            'please_enter_node', 'network_error', 'unknown_error', 'vm_created',
+            'vm_cloned', 'available_storages'
+        ]);
+        
+        return $this->success($translations);
     }
 }
 ?>

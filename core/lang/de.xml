@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <!-- Allgemeine Texte -->
+    <welcome>Willkommen</welcome>
+    <loading>Laden...</loading>
+    <error>Fehler</error>
+    <success>Erfolgreich</success>
+    <warning>Warnung</warning>
+    <info>Information</info>
+    <confirm>Bestätigen</confirm>
+    <cancel>Abbrechen</cancel>
+    <save>Speichern</save>
+    <delete>Löschen</delete>
+    <edit>Bearbeiten</edit>
+    <view>Anzeigen</view>
+    <create>Erstellen</create>
+    <update>Aktualisieren</update>
+    <refresh>Aktualisieren</refresh>
+    <close>Schließen</close>
+    <back>Zurück</back>
+    <next>Weiter</next>
+    <previous>Zurück</previous>
+    <submit>Absenden</submit>
+    <reset>Zurücksetzen</reset>
+    <search>Suchen</search>
+    <filter>Filter</filter>
+    <sort>Sortieren</sort>
+    <export>Exportieren</export>
+    <import>Importieren</import>
+    <download>Herunterladen</download>
+    <upload>Hochladen</upload>
+    
+    <!-- Navigation -->
+    <home>Startseite</home>
+    <dashboard>Dashboard</dashboard>
+    <settings>Einstellungen</settings>
+    <profile>Profil</profile>
+    <logout>Abmelden</logout>
+    <login>Anmelden</login>
+    <register>Registrieren</register>
+    <password>Passwort</password>
+    <username>Benutzername</username>
+    <email>E-Mail</email>
+    <full_name>Vollständiger Name</full_name>
+    
+    <!-- Status -->
+    <online>Online</online>
+    <offline>Offline</offline>
+    <running>Läuft</running>
+    <stopped>Gestoppt</stopped>
+    <active>Aktiv</active>
+    <inactive>Inaktiv</inactive>
+    <enabled>Aktiviert</enabled>
+    <disabled>Deaktiviert</disabled>
+    <connected>Verbunden</connected>
+    <disconnected>Getrennt</disconnected>
+    
+    <!-- Zeit und Datum -->
+    <today>Heute</today>
+    <yesterday>Gestern</yesterday>
+    <tomorrow>Morgen</tomorrow>
+    <created>Erstellt</created>
+    <updated>Aktualisiert</updated>
+    <last_login>Letzter Login</last_login>
+    <session_timeout>Session-Timeout</session_timeout>
+    
+    <!-- Validierung -->
+    <required>Erforderlich</required>
+    <invalid_email>Ungültige E-Mail-Adresse</invalid_email>
+    <invalid_password>Ungültiges Passwort</invalid_password>
+    <passwords_not_match>Passwörter stimmen nicht überein</passwords_not_match>
+    <password_too_short>Passwort ist zu kurz</password_too_short>
+    <username_exists>Benutzername existiert bereits</username_exists>
+    <email_exists>E-Mail-Adresse existiert bereits</email_exists>
+    
+    <!-- Meldungen -->
+    <operation_successful>Operation erfolgreich</operation_successful>
+    <operation_failed>Operation fehlgeschlagen</operation_failed>
+    <access_denied>Zugriff verweigert</access_denied>
+    <not_found>Nicht gefunden</not_found>
+    <server_error>Server-Fehler</server_error>
+    <network_error>Netzwerk-Fehler</network_error>
+    <timeout_error>Zeitüberschreitung</timeout_error>
+    <validation_error>Validierungsfehler</validation_error>
+    
+    <!-- Bestätigungsdialoge -->
+    <confirm_delete>Löschen bestätigen</confirm_delete>
+    <confirm_logout>Abmeldung bestätigen</confirm_logout>
+    <confirm_password_change>Passwort-Änderung bestätigen</confirm_password_change>
+    <confirm_update>Update bestätigen</confirm_update>
+    
+    <!-- Spezifische Texte für Hauptdateien -->
+    
+    <!-- index.php -->
+    <admin_dashboard>Admin Dashboard</admin_dashboard>
+    <server_management>Server Management</server_management>
+    <overview>Übersicht</overview>
+    <plugins_active>Plugins aktiv</plugins_active>
+    <session_timer>Session-Timer</session_timer>
+    <time_remaining>Verbleibende Zeit</time_remaining>
+    <change_password>Passwort ändern</change_password>
+    <user_info>Benutzerinformationen</user_info>
+    <role>Rolle</role>
+    <last_activity>Letzte Aktivität</last_activity>
+    <system_status>System-Status</system_status>
+    <quick_actions>Schnellaktionen</quick_actions>
+    <recent_activity>Letzte Aktivitäten</recent_activity>
+    <system_stats>System-Statistiken</system_stats>
+    
+    <!-- setup.php -->
+    <system_setup>System Setup</system_setup>
+    <welcome_setup>Willkommen beim Server Management Interface!</welcome_setup>
+    <create_admin_account>Erstellen Sie zunächst einen Administrator-Account.</create_admin_account>
+    <setup_complete>Setup erfolgreich abgeschlossen!</setup_complete>
+    <setup_complete_message>Sie können sich jetzt anmelden.</setup_complete_message>
+    <go_to_login>Zur Anmeldung</go_to_login>
+    <requirements>Anforderungen</requirements>
+    <all_fields_required>Alle Felder sind erforderlich</all_fields_required>
+    <password_min_length>Passwort mindestens 6 Zeichen</password_min_length>
+    <valid_email_required>Gültige E-Mail-Adresse</valid_email_required>
+    <unique_username_required>Benutzername muss eindeutig sein</unique_username_required>
+    <create_admin_user>Admin-Account erstellen</create_admin_user>
+    <confirm_password>Passwort bestätigen</confirm_password>
+    <password_confirm_placeholder>Passwort wiederholen</password_confirm_placeholder>
+    <setup_error>Fehler beim Setup</setup_error>
+    <admin_user_exists>Es existiert bereits ein Administrator-Account.</admin_user_exists>
+    
+    <!-- update.php -->
+    <system_update>System Update</system_update>
+    <check_for_updates>Nach Updates suchen</check_for_updates>
+    <current_version>Aktuelle Version</current_version>
+    <latest_version>Neueste Version</latest_version>
+    <update_available>Update verfügbar</update_available>
+    <no_update_available>Kein Update verfügbar</no_update_available>
+    <update_system>System aktualisieren</update_system>
+    <update_in_progress>Update läuft...</update_in_progress>
+    <update_complete>Update abgeschlossen</update_complete>
+    <update_failed>Update fehlgeschlagen</update_failed>
+    <backup_before_update>Sicherung vor Update erstellen</backup_before_update>
+    <changelog>Änderungsprotokoll</changelog>
+    <update_notes>Update-Hinweise</update_notes>
+    <system_compatibility>System-Kompatibilität</system_compatibility>
+    <update_size>Update-Größe</update_size>
+    <estimated_time>Geschätzte Zeit</estimated_time>
+    
+    <!-- password_change.php -->
+    <change_password_title>Passwort ändern</change_password_title>
+    <current_password>Aktuelles Passwort</current_password>
+    <new_password>Neues Passwort</new_password>
+    <confirm_new_password>Neues Passwort bestätigen</confirm_new_password>
+    <password_requirements>Passwort-Anforderungen</password_requirements>
+    <password_changed>Passwort erfolgreich geändert</password_changed>
+    <password_change_failed>Passwort-Änderung fehlgeschlagen</password_change_failed>
+    <current_password_incorrect>Aktuelles Passwort ist falsch</current_password_incorrect>
+    <password_strength>Passwort-Stärke</password_strength>
+    <weak>Schwach</weak>
+    <medium>Mittel</medium>
+    <strong>Stark</strong>
+    <very_strong>Sehr stark</very_strong>
+    <password_history>Passwort-Historie</password_history>
+    <password_expiry>Passwort-Ablauf</password_expiry>
+    <days_until_expiry>Tage bis zum Ablauf</days_until_expiry>
+    <force_password_change>Passwort-Änderung erzwingen</force_password_change>
+    
+    <!-- login.php -->
+    <login_title>Anmeldung</login_title>
+    <login_subtitle>Server Management Interface</login_subtitle>
+    <remember_me>Angemeldet bleiben</remember_me>
+    <forgot_password>Passwort vergessen?</forgot_password>
+    <login_failed>Anmeldung fehlgeschlagen</login_failed>
+    <invalid_credentials>Ungültige Anmeldedaten</invalid_credentials>
+    <account_locked>Account gesperrt</account_locked>
+    <too_many_attempts>Zu viele Anmeldeversuche</too_many_attempts>
+    <login_successful>Anmeldung erfolgreich</login_successful>
+    <redirecting>Weiterleitung...</redirecting>
+    <login_required>Anmeldung erforderlich</login_required>
+    <session_expired>Session abgelaufen</session_expired>
+    <please_login>Bitte melden Sie sich an</please_login>
+    <demo_credentials>Standard Login-Daten</demo_credentials>
+    <change_after_first_login>Bitte nach dem ersten Login ändern</change_after_first_login>
+    <new_password_must_differ>Neues Passwort muss sich vom aktuellen unterscheiden</new_password_must_differ>
+    <admin_rights_required>Nur Administratoren können dieses Script ausführen</admin_rights_required>
+    
+    <!-- Allgemeine UI-Elemente -->
+    <loading_spinner>Lädt...</loading_spinner>
+    <no_data>Keine Daten verfügbar</no_data>
+    <no_results>Keine Ergebnisse gefunden</no_results>
+    <select_all>Alle auswählen</select_all>
+    <deselect_all>Alle abwählen</deselect_all>
+    <show_more>Mehr anzeigen</show_more>
+    <show_less>Weniger anzeigen</show_less>
+    <expand>Erweitern</expand>
+    <collapse>Einklappen</collapse>
+    <details>Details</details>
+    <summary>Zusammenfassung</summary>
+    <help>Hilfe</help>
+    <about>Über</about>
+    <contact>Kontakt</contact>
+    <support>Support</support>
+    <documentation>Dokumentation</documentation>
+    
+    <!-- JavaScript-spezifische Übersetzungen -->
+    <js_network_error>Netzwerkfehler</js_network_error>
+    <js_server_error>Server-Fehler</js_server_error>
+    <js_ajax_error>AJAX-Fehler</js_ajax_error>
+    <js_session_expired>Session abgelaufen</js_session_expired>
+    <js_plugin_load_error>Fehler beim Laden des Plugins</js_plugin_load_error>
+    <js_unknown_error>Unbekannter Fehler</js_unknown_error>
+    <js_form_submit_error>Fehler beim Absenden des Formulars</js_form_submit_error>
+    <js_form_success>Formular erfolgreich abgeschickt</js_form_success>
+    <js_vm_load_error>Fehler beim Laden der VMs</js_vm_load_error>
+    <js_vm_control_success>VM-Operation erfolgreich</js_vm_control_success>
+    <js_vm_control_error>Fehler bei VM-Operation</js_vm_control_error>
+    <js_no_vms_found>Keine VMs gefunden</js_no_vms_found>
+    <js_website_load_error>Fehler beim Laden der Websites</js_website_load_error>
+    <js_no_websites_found>Keine Websites gefunden</js_no_websites_found>
+    <js_domain_load_error>Fehler beim Laden der Domains</js_domain_load_error>
+    <js_no_domains_found>Keine Domains gefunden</js_no_domains_found>
+    <js_no_logs_found>Keine Logs gefunden</js_no_logs_found>
+    <js_stats_updating>Statistiken werden aktualisiert...</js_stats_updating>
+    <js_cache_clearing>Cache wird geleert...</js_cache_clearing>
+    <js_connections_testing>Verbindungen werden getestet...</js_connections_testing>
+    <js_settings_saved>Einstellungen gespeichert</js_settings_saved>
+    <js_loading>Laden...</js_loading>
+    <js_processing>Verarbeite...</js_processing>
+    <js_confirm_delete>Löschen bestätigen</js_confirm_delete>
+    <js_confirm_vm_delete>VM löschen bestätigen</js_confirm_vm_delete>
+    <js_confirm_website_delete>Website löschen bestätigen</js_confirm_website_delete>
+    <js_confirm_database_delete>Datenbank löschen bestätigen</js_confirm_database_delete>
+    <js_confirm_email_delete>E-Mail löschen bestätigen</js_confirm_email_delete>
+    <js_operation_successful>Operation erfolgreich</js_operation_successful>
+    <js_operation_failed>Operation fehlgeschlagen</js_operation_failed>
+    <js_validation_failed>Validierung fehlgeschlagen</js_validation_failed>
+    <js_access_denied>Zugriff verweigert</js_access_denied>
+    <js_timeout_error>Zeitüberschreitung</js_timeout_error>
+    <js_connection_lost>Verbindung verloren</js_connection_lost>
+    <js_data_load_error>Fehler beim Laden der Daten</js_data_load_error>
+    <js_data_save_error>Fehler beim Speichern der Daten</js_data_save_error>
+    <js_data_update_error>Fehler beim Aktualisieren der Daten</js_data_update_error>
+    <js_data_delete_error>Fehler beim Löschen der Daten</js_data_delete_error>
+    <js_please_wait>Bitte warten...</js_please_wait>
+    <js_retry_later>Versuchen Sie es später erneut</js_retry_later>
+    <js_contact_admin>Kontaktieren Sie den Administrator</js_contact_admin>
+    <js_debug_info>Debug-Informationen</js_debug_info>
+    <js_available_plugins>Verfügbare Plugins</js_available_plugins>
+    <js_session_info>Session-Informationen</js_session_info>
+    <js_not_available>Nicht verfügbar</js_not_available>
+    <js_admin_dashboard_initialized>Admin Dashboard initialisiert</js_admin_dashboard_initialized>
+    
+    <!-- Tabellen-Header -->
+    <name>Name</name>
+    <domain>Domain</domain>
+    <status>Status</status>
+    <actions>Aktionen</actions>
+    <active>Aktiv</active>
+    <inactive>Inaktiv</inactive>
+    <edit>Bearbeiten</edit>
+    
+    <feedback>Feedback</feedback>
+    <bug_report>Fehler melden</bug_report>
+    <feature_request>Feature anfordern</feature_request>
+    
+    <!-- Tabellen und Listen -->
+    <no_records>Keine Einträge gefunden</no_records>
+    <showing_records>Zeige Einträge</showing_records>
+    <of_total>von insgesamt</of_total>
+    <entries_per_page>Einträge pro Seite</entries_per_page>
+    <first_page>Erste Seite</first_page>
+    <last_page>Letzte Seite</last_page>
+    <next_page>Nächste Seite</next_page>
+    <previous_page>Vorherige Seite</previous_page>
+    <page>Seite</page>
+    <total_pages>Gesamtseiten</total_pages>
+    
+    <!-- Formulare -->
+    <form_validation_error>Formular-Validierungsfehler</form_validation_error>
+    <field_required>Feld ist erforderlich</field_required>
+    <invalid_format>Ungültiges Format</invalid_format>
+    <min_length>Mindestlänge</min_length>
+    <max_length>Maximallänge</max_length>
+    <character_count>Zeichenanzahl</character_count>
+    <remaining_characters>Verbleibende Zeichen</remaining_characters>
+    
+    <!-- Benachrichtigungen -->
+    <notification>Benachrichtigung</notification>
+    <notifications>Benachrichtigungen</notifications>
+    <mark_as_read>Als gelesen markieren</mark_as_read>
+    <mark_all_as_read>Alle als gelesen markieren</mark_all_as_read>
+    <clear_notifications>Benachrichtigungen löschen</clear_notifications>
+    <no_notifications>Keine Benachrichtigungen</no_notifications>
+    
+    <!-- Kalender und Datum -->
+    <calendar>Kalender</calendar>
+    <date_picker>Datumsauswahl</date_picker>
+    <time_picker>Zeitauswahl</time_picker>
+    <select_date>Datum auswählen</select_date>
+    <select_time>Zeit auswählen</select_time>
+    <today>Heute</today>
+    <yesterday>Gestern</yesterday>
+    <tomorrow>Morgen</tomorrow>
+    <this_week>Diese Woche</this_week>
+    <last_week>Letzte Woche</last_week>
+    <next_week>Nächste Woche</next_week>
+    <this_month>Dieser Monat</this_month>
+    <last_month>Letzter Monat</last_month>
+    <next_month>Nächster Monat</next_month>
+    <this_year>Dieses Jahr</this_year>
+    <last_year>Letztes Jahr</last_year>
+    <next_year>Nächstes Jahr</next_year>
+    
+    <!-- JavaScript Fehlermeldungen -->
+    <js_network_error>Netzwerkfehler - Server nicht erreichbar</js_network_error>
+    <js_server_error>Server-Fehler - Bitte versuchen Sie es später erneut</js_server_error>
+    <js_ajax_error>AJAX-Fehler</js_ajax_error>
+    <js_session_expired>Session abgelaufen - Sie werden weitergeleitet</js_session_expired>
+    <js_plugin_load_error>Fehler beim Laden des Plugins</js_plugin_load_error>
+    <js_unknown_error>Unbekannter Fehler</js_unknown_error>
+    <js_form_submit_error>Fehler beim Senden des Formulars</js_form_submit_error>
+    <js_form_success>Formular erfolgreich gesendet</js_form_success>
+    <js_vm_load_error>Fehler beim Laden der VMs</js_vm_load_error>
+    <js_vm_control_success>VM {action} erfolgreich ausgeführt</js_vm_control_success>
+    <js_vm_control_error>Fehler bei VM-Operation</js_vm_control_error>
+    <js_no_vms_found>Keine VMs gefunden</js_no_vms_found>
+    <js_no_websites_found>Keine Websites gefunden</js_no_websites_found>
+    <js_no_databases_found>Keine Datenbanken gefunden</js_no_databases_found>
+    <js_no_emails_found>Keine E-Mails gefunden</js_no_emails_found>
+    <js_no_domains_found>Keine Domains gefunden</js_no_domains_found>
+    <js_no_logs_found>Keine Log-Einträge gefunden</js_no_logs_found>
+    <js_stats_updating>Statistiken werden aktualisiert...</js_stats_updating>
+    <js_cache_clearing>Cache wird geleert...</js_cache_clearing>
+    <js_connections_testing>Verbindungen werden getestet...</js_connections_testing>
+    <js_settings_saved>Einstellungen gespeichert</js_settings_saved>
+    <js_loading>Laden...</js_loading>
+    <js_processing>Wird verarbeitet...</js_processing>
+    <js_confirm_delete>Löschen bestätigen</js_confirm_delete>
+    <js_confirm_vm_delete>Möchten Sie diese VM wirklich löschen?</js_confirm_vm_delete>
+    <js_confirm_website_delete>Möchten Sie diese Website wirklich löschen?</js_confirm_website_delete>
+    <js_confirm_database_delete>Möchten Sie diese Datenbank wirklich löschen?</js_confirm_database_delete>
+    <js_confirm_email_delete>Möchten Sie dieses E-Mail-Konto wirklich löschen?</js_confirm_email_delete>
+    <js_operation_successful>Operation erfolgreich</js_operation_successful>
+    <js_operation_failed>Operation fehlgeschlagen</js_operation_failed>
+    <js_validation_failed>Validierung fehlgeschlagen</js_validation_failed>
+    <js_access_denied>Zugriff verweigert</js_access_denied>
+    <js_timeout_error>Zeitüberschreitung bei der Anfrage</js_timeout_error>
+    <js_connection_lost>Verbindung verloren</js_connection_lost>
+    <js_data_load_error>Fehler beim Laden der Daten</js_data_load_error>
+    <js_data_save_error>Fehler beim Speichern der Daten</js_data_save_error>
+    <js_data_update_error>Fehler beim Aktualisieren der Daten</js_data_update_error>
+    <js_data_delete_error>Fehler beim Löschen der Daten</js_data_delete_error>
+    <js_please_wait>Bitte warten...</js_please_wait>
+    <js_retry_later>Bitte versuchen Sie es später erneut</js_retry_later>
+    <js_contact_admin>Bitte kontaktieren Sie den Administrator</js_contact_admin>
+    <js_debug_info>Debug-Informationen</js_debug_info>
+    <js_available_plugins>Verfügbare Plugins</js_available_plugins>
+    <js_session_info>Session-Info</js_session_info>
+    <js_not_available>Nicht verfügbar</js_not_available>
+    <js_admin_dashboard_initialized>Admin Dashboard initialisiert</js_admin_dashboard_initialized>
+    
+    <!-- Admin Dashboard UI-Elemente -->
+    <administration>Administration</administration>
+    <resources>Ressourcen</resources>
+    <plugins>Plugins</plugins>
+    <logs>Logs</logs>
+    <settings>Einstellungen</settings>
+    <system_overview>Systemübersicht</system_overview>
+    <server>Server</server>
+    <unknown>Unbekannt</unknown>
+    <active_sessions>Aktive Sitzungen</active_sessions>
+    <system_load>Systemauslastung</system_load>
+    <quick_actions>Schnellaktionen</quick_actions>
+    <refresh_all_stats>Alle Statistiken aktualisieren</refresh_all_stats>
+    <clear_cache>Cache leeren</clear_cache>
+    <test_connections>Verbindungen testen</test_connections>
+    <resource_management>Ressourcen-Verwaltung</resource_management>
+    <vms>VMs</vms>
+    <websites>Websites</websites>
+    <databases>Datenbanken</databases>
+    <emails>E-Mails</emails>
+    <domains>Domains</domains>
+    <virtual_machines>Virtuelle Maschinen</virtual_machines>
+    <refresh>Aktualisieren</refresh>
+    <loading>Laden...</loading>
+    <website_management>Website Management</website_management>
+    <database_management>Database Management</database_management>
+    <email_management>E-Mail Management</email_management>
+    <email_accounts>E-Mail Accounts</email_accounts>
+    <domain_management>Domain Management</domain_management>
+    <plugin_management>Plugin-Verwaltung</plugin_management>
+    <available_plugins>Verfügbare Plugins</available_plugins>
+    <no_description_available>Keine Beschreibung verfügbar</no_description_available>
+    <open>Öffnen</open>
+    <system_logs>System-Logs</system_logs>
+    <system_settings>System Einstellungen</system_settings>
+    <general_settings>Allgemeine Einstellungen</general_settings>
+    <session_timeout>Session-Timeout (Minuten)</session_timeout>
+    <auto_refresh_interval>Auto-Refresh Intervall (Sekunden)</auto_refresh_interval>
+    <save>Speichern</save>
+    <system_status>System-Status</system_status>
+    <cache_status>Cache-Status</cache_status>
+    <active>Aktiv</active>
+    <api_connections>API-Verbindungen</api_connections>
+    <all_ok>Alle OK</all_ok>
+    <last_update>Letzte Aktualisierung</last_update>
+    <notification>Benachrichtigung</notification>
+    <message_here>Nachricht hier...</message_here>
+    <name>Name</name>
+    <status>Status</status>
+    <cpu>CPU</cpu>
+    <ram>RAM</ram>
+    <storage>Speicher</storage>
+    <actions>Aktionen</actions>
+    <running>Laufend</running>
+    <stopped>Gestoppt</stopped>
+    <start>Start</start>
+    <stop>Stop</stop>
+    <delete>Löschen</delete>
+    <unknown>Unbekannt</unknown>
+
+    <settings>Einstellungen</settings>
+    <general>Allgemein</general>
+    <api_credentials>API-Zugangsdaten</api_credentials>
+    <modules>Module</modules>
+    <users>Benutzer</users>
+    <groups>Gruppen</groups>
+    <site_title>Seitentitel</site_title>
+    <logo>Logo</logo>
+    <favicon>Favicon</favicon>
+    <mode>Modus</mode>
+    <live_mode>Live-Modus</live_mode>
+    <database_mode>Datenbank-Modus</database_mode>
+    <db_mode_hint>Im Datenbank-Modus werden alle Daten direkt aus der Datenbank geladen.</db_mode_hint>
+    <add_user>Neuen Benutzer anlegen</add_user>
+    <add_group>Neue Gruppe anlegen</add_group>
+    <group_name>Gruppenname</group_name>
+    <group_description>Beschreibung</group_description>
+    <modules_rights_loading>Lade Modulrechte...</modules_rights_loading>
+    <no_modules_found>Keine Module gefunden.</no_modules_found>
+    <no_users_found>Keine Benutzer gefunden.</no_users_found>
+    <no_groups_found>Keine Gruppen gefunden.</no_groups_found>
+    <user_form_title>Benutzer</user_form_title>
+    <group_form_title>Gruppe</group_form_title>
+    <user_name_label>Nutzername</user_name_label>
+    <user_full_name_label>Vollständiger Name</user_full_name_label>
+    <user_email_label>E-Mail</user_email_label>
+    <user_password_label>Passwort</user_password_label>
+    <user_role_label>Rolle</user_role_label>
+    <user_active_label>Aktiv</user_active_label>
+    <group_modules_label>Modulrechte</group_modules_label>
+    <save_button>Speichern</save_button>
+    <cancel_button>Abbrechen</cancel_button>
+    <edit_button>Bearbeiten</edit_button>
+    <delete_button>Löschen</delete_button>
+    <status_active>Aktiv</status_active>
+    <status_inactive>Inaktiv</status_inactive>
+    <confirm_delete_user>Benutzer wirklich löschen?</confirm_delete_user>
+    <confirm_delete_group>Gruppe wirklich löschen?</confirm_delete_group>
+    <settings_saved>Gespeichert!</settings_saved>
+    <settings_error>Fehler</settings_error>
+    <modules_saved>Module gespeichert!</modules_saved>
+    <users_saved>Benutzer gespeichert!</users_saved>
+    <groups_saved>Gruppen gespeichert!</groups_saved>
+    <api_credentials_saved>API-Zugangsdaten gespeichert!</api_credentials_saved>
+    <api_credentials_error>Fehler beim Speichern der API-Zugangsdaten</api_credentials_error>
+    <modules_error>Fehler beim Speichern der Module</modules_error>
+    <users_error>Fehler beim Speichern der Benutzer</users_error>
+    <groups_error>Fehler beim Speichern der Gruppen</groups_error>
+    <general_error>Fehler beim Speichern der Einstellungen</general_error>
+    <api_credentials_loading>Lade API-Zugangsdaten...</api_credentials_loading>
+    <modules_loading>Lade Module...</modules_loading>
+    <users_loading>Lade Benutzer...</users_loading>
+    <groups_loading>Lade Gruppen...</groups_loading>
+    <user_form_loading>Lade Benutzerformular...</user_form_loading>
+    <group_form_loading>Lade Gruppenformular...</group_form_loading>
+    <user_form_error>Fehler im Benutzerformular</user_form_error>
+    <group_form_error>Fehler im Gruppenformular</group_form_error>
+    <user_form_success>Benutzer gespeichert!</user_form_success>
+    <group_form_success>Gruppe gespeichert!</group_form_success>
+    <user_form_submit>Absenden</user_form_submit>
+    <group_form_submit>Absenden</group_form_submit>
+    <user_form_reset>Zurücksetzen</user_form_reset>
+    <group_form_reset>Zurücksetzen</group_form_reset>
+    <user_form_close>Schließen</user_form_close>
+    <group_form_close>Schließen</group_form_close>
+    <user_form_required>Erforderlich</user_form_required>
+    <group_form_required>Erforderlich</group_form_required>
+    <user_saved>Benutzer gespeichert!</user_saved>
+    <user_deleted>Benutzer gelöscht!</user_deleted>
+    <user_updated>Benutzer aktualisiert!</user_updated>
+    <user_added>Benutzer hinzugefügt!</user_added>
+    <group_saved>Gruppe gespeichert!</group_saved>
+    <group_deleted>Gruppe gelöscht!</group_deleted>
+    <group_updated>Gruppe aktualisiert!</group_updated>
+    <group_added>Gruppe hinzugefügt!</group_added>
+    <error_saving>Fehler beim Speichern!</error_saving>
+    <error_deleting>Fehler beim Löschen!</error_deleting>
+    <error_editing>Fehler beim Bearbeiten!</error_editing>
+    <error_adding>Fehler beim Hinzufügen!</error_adding>
+    <error_loading_users>Fehler beim Laden der Benutzer</error_loading_users>
+    <error_loading_groups>Fehler beim Laden der Gruppen</error_loading_groups>
+    <error_loading_api_credentials>Fehler beim Laden der API-Zugangsdaten</error_loading_api_credentials>
+    <sql_error>SQL-Fehler</sql_error>
+    <save_user>Benutzer speichern</save_user>
+    <save_group>Gruppe speichern</save_group>
+    <delete_user>Benutzer löschen</delete_user>
+    <delete_group>Gruppe löschen</delete_group>
+    <add_user>Benutzer hinzufügen</add_user>
+    <add_group>Gruppe hinzufügen</add_group>
+    <module_permissions_saved>Modulrechte gespeichert!</module_permissions_saved>
+    <error_saving_module_permissions>Fehler beim Speichern der Modulrechte</error_saving_module_permissions>
+    <no_mapping_for_module_key>Kein Mapping für Modul-Key</no_mapping_for_module_key>
+    <insert_permission>Berechtigung eingetragen</insert_permission>
+    <settings_saved>Einstellungen gespeichert!</settings_saved>
+    <api_credentials_saved>API-Zugangsdaten gespeichert!</api_credentials_saved>
+    <confirm_delete>Wirklich löschen?</confirm_delete>
+    <system_config_save_success>System-Konfiguration erfolgreich gespeichert!</system_config_save_success>
+    <system_config_save_error>Fehler beim Speichern der System-Konfiguration! Überprüfen Sie die Dateiberechtigungen.</system_config_save_error>
+    <mein_profil>Mein Profil</mein_profil>
+    <letzter_login>Letzter Login</letzter_login>
+    <passwort_geaendert>Passwort zuletzt geändert</passwort_geaendert>
+    <profil_erstellt>Profil erstellt</profil_erstellt>
+    <letztes_update>Letztes Update</letztes_update>
+    <altes_passwort>Altes Passwort (erforderlich für Änderung)</altes_passwort>
+    <neues_passwort>Neues Passwort (leer lassen für keine Änderung)</neues_passwort>
+    <profil_speichern>Profil speichern</profil_speichern>
+    <passwort_hinweis>Das aktuelle Passwort kann aus Sicherheitsgründen nicht angezeigt werden.</passwort_hinweis>
+    <profil_gespeichert>Profil erfolgreich gespeichert!</profil_gespeichert>
+    <passwort_alt_fehler>Das alte Passwort ist nicht korrekt.</passwort_alt_fehler>
+    <passwort_felder_leer>Bitte beide Passwortfelder ausfüllen, um das Passwort zu ändern.</passwort_felder_leer>
+    <welcome_admin_area>Willkommen im Adminbereich! Bitte wählen Sie eine Funktion im Menü.</welcome_admin_area>
+</translations> 

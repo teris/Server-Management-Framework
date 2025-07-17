@@ -1,51 +1,69 @@
-<div id="ispconfig" class="tab-content">
-    <h2>🌐 Website in ISPConfig erstellen</h2>
-    <form onsubmit="createWebsite(event)">
-        <div class="form-row">
-            <div class="form-group">
-                <label for="website_domain">Domain</label>
-                <input type="text" id="website_domain" name="domain" required placeholder="example.com">
-            </div>
-            <div class="form-group">
-                <label for="website_ip">IP Adresse</label>
-                <input type="text" id="website_ip" name="ip" required placeholder="192.168.1.100">
-            </div>
+<div id="ispconfig-content">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">🌐 <?php echo $translations['create_website_ispconfig']; ?></h2>
         </div>
-        
-        <div class="form-row">
-            <div class="form-group">
-                <label for="website_user">System User</label>
-                <input type="text" id="website_user" name="user" required placeholder="web1">
-            </div>
-            <div class="form-group">
-                <label for="website_group">System Group</label>
-                <input type="text" id="website_group" name="group" required placeholder="client1">
-            </div>
-        </div>
-        
-        <div class="form-row">
-            <div class="form-group">
-                <label for="website_quota">HD Quota (MB)</label>
-                <input type="number" id="website_quota" name="quota" value="1000" required min="100">
-            </div>
-            <div class="form-group">
-                <label for="website_traffic">Traffic Quota (MB)</label>
-                <input type="number" id="website_traffic" name="traffic" value="10000" required min="1000">
-            </div>
-        </div>
-        
-        <button type="submit" class="btn">
-            <span class="loading hidden"></span>
-            Website erstellen
-        </button>
-    </form>
+        <div class="card-body">
+            <form onsubmit="createWebsite(event)">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="website_domain"><?php echo $translations['domain']; ?></label>
+                            <input type="text" class="form-control" id="website_domain" name="domain" required placeholder="example.com">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="website_ip"><?php echo $translations['ip_address']; ?></label>
+                            <input type="text" class="form-control" id="website_ip" name="ip" required placeholder="192.168.1.100">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="website_user"><?php echo $translations['system_user']; ?></label>
+                            <input type="text" class="form-control" id="website_user" name="user" required placeholder="web1">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="website_group"><?php echo $translations['system_group']; ?></label>
+                            <input type="text" class="form-control" id="website_group" name="group" required placeholder="client1">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="website_quota"><?php echo $translations['hd_quota']; ?></label>
+                            <input type="number" class="form-control" id="website_quota" name="quota" value="1000" required min="100">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="website_traffic"><?php echo $translations['traffic_quota']; ?></label>
+                            <input type="number" class="form-control" id="website_traffic" name="traffic" value="10000" required min="1000">
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <span class="loading hidden"></span>
+                    <?php echo $translations['create_website']; ?>
+                </button>
+            </form>
+       
     
     <hr>
     
     <!-- FTP User erstellen -->
-    <div class="endpoint-section">
+    <div class="row">
+    <div class="endpoint-section col-md-6">
         <h3>👤 FTP-Benutzer erstellen</h3>
-        <form onsubmit="createFTPUser(event)">
+        <form onsubmit="showBootstrapConfirm('FTP-Benutzer wirklich erstellen?', createFTPUser); return false;">
             <div class="form-row">
                 <div class="form-group">
                     <label for="ftp_domain_id">Domain ID</label>
@@ -76,9 +94,9 @@
     </div>
     
     <!-- Subdomain erstellen -->
-    <div class="endpoint-section">
+    <div class="endpoint-section col-md-6">
         <h3>🌐 Subdomain erstellen</h3>
-        <form onsubmit="createSubdomain(event)">
+        <form onsubmit="showBootstrapConfirm('Subdomain wirklich erstellen?', createSubdomain); return false;">
             <div class="form-row">
                 <div class="form-group">
                     <label for="sub_parent_id">Parent Domain ID</label>
@@ -115,22 +133,42 @@
     </div>
     
     <!-- Quick Actions -->
-    <div class="endpoint-section">
+    <div class="endpoint-section col-md-12">
         <h3>⚡ Schnellaktionen</h3>
         <div class="endpoint-buttons">
-            <button class="btn btn-secondary" onclick="loadISPConfigClients()">
+            <button class="btn btn-secondary" onclick="showBootstrapConfirm('Clients wirklich laden?', loadISPConfigClients)">
                 👥 Clients laden
             </button>
-            <button class="btn btn-secondary" onclick="loadServerConfig()">
+            <button class="btn btn-secondary" onclick="showBootstrapConfirm('Server Config wirklich laden?', loadServerConfig)">
                 ⚙️ Server Config
             </button>
-            <button class="btn btn-secondary" onclick="showWebsiteDetails()">
+            <button class="btn btn-secondary" onclick="showBootstrapConfirm('Website Details wirklich anzeigen?', showWebsiteDetails)">
                 📊 Website Details
             </button>
         </div>
     </div>
 </div>
-
+</div>
+<!-- Bootstrap Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">Bestätigen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+      </div>
+      <div class="modal-body" id="confirmModalBody">
+        <!-- Dynamischer Text -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="button" class="btn btn-primary" id="confirmModalOk">Bestätigen</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
 <script>
 // ISPConfig Module JavaScript
 window.ispconfigModule = {
@@ -267,5 +305,24 @@ async function createSubdomain(event) {
     }
     
     setLoading(form, false);
+}
+
+function showBootstrapConfirm(message, onConfirm) {
+    const modalBody = document.getElementById('confirmModalBody');
+    modalBody.textContent = message;
+
+    const okButton = document.getElementById('confirmModalOk');
+    // Vorherige Eventlistener entfernen
+    const newOkButton = okButton.cloneNode(true);
+    okButton.parentNode.replaceChild(newOkButton, okButton);
+
+    newOkButton.addEventListener('click', function() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+        modal.hide();
+        if (typeof onConfirm === 'function') onConfirm();
+    });
+
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
 }
 </script>

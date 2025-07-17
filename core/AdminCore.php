@@ -206,7 +206,11 @@ class AdminCore {
             $result = [];
             foreach ($vms as $vm) {
                 if (is_object($vm)) {
-                    $result[] = $vm->toArray();
+                    if (method_exists($vm, 'toArray')) {
+                        $result[] = $vm->toArray();
+                    } else {
+                        $result[] = (array) $vm;
+                    }
                 } else {
                     $result[] = $vm;
                 }
@@ -225,7 +229,11 @@ class AdminCore {
             $result = [];
             foreach ($websites as $site) {
                 if (is_object($site)) {
-                    $result[] = $site->toArray();
+                    if (method_exists($site, 'toArray')) {
+                        $result[] = $site->toArray();
+                    } else {
+                        $result[] = (array) $site;
+                    }
                 } else {
                     $result[] = $site;
                 }
@@ -244,7 +252,11 @@ class AdminCore {
             $result = [];
             foreach ($databases as $db) {
                 if (is_object($db)) {
-                    $result[] = $db->toArray();
+                    if (method_exists($db, 'toArray')) {
+                        $result[] = $db->toArray();
+                    } else {
+                        $result[] = (array) $db;
+                    }
                 } else {
                     $result[] = $db;
                 }
@@ -263,7 +275,11 @@ class AdminCore {
             $result = [];
             foreach ($emails as $email) {
                 if (is_object($email)) {
-                    $result[] = $email->toArray();
+                    if (method_exists($email, 'toArray')) {
+                        $result[] = $email->toArray();
+                    } else {
+                        $result[] = (array) $email;
+                    }
                 } else {
                     $result[] = $email;
                 }
@@ -282,7 +298,11 @@ class AdminCore {
             $result = [];
             foreach ($domains as $domain) {
                 if (is_object($domain)) {
-                    $result[] = $domain->toArray();
+                    if (method_exists($domain, 'toArray')) {
+                        $result[] = $domain->toArray();
+                    } else {
+                        $result[] = (array) $domain;
+                    }
                 } else {
                     $result[] = $domain;
                 }
@@ -297,9 +317,9 @@ class AdminCore {
     /**
      * Activity Logs abrufen
      */
-    public function getActivityLogs($filters = []) {
+    public function getActivityLogs($filters = [], $limit = 50, $offset = 0) {
         try {
-            $logs = $this->db->getActivityLog(100);
+            $logs = $this->db->getActivityLog($limit, $offset);
             
             // Filter anwenden
             if (!empty($filters)) {
@@ -533,6 +553,228 @@ class AdminCore {
         }
         
         return $results;
+    }
+
+    // --- API-Zugangsdaten ---
+    public function getApiCredentials() {
+        try {
+            $stmt = $this->db->getConnection()->query("SELECT * FROM api_credentials");
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Werte aus config/config.inc.php holen
+            require_once dirname(__DIR__) . '/config/config.inc.php';
+            $config = [
+                'proxmox' => [
+                    'endpoint' => Config::PROXMOX_HOST,
+                    'username' => Config::PROXMOX_USER,
+                    'password' => Config::PROXMOX_PASSWORD
+                ],
+                'ispconfig' => [
+                    'endpoint' => Config::ISPCONFIG_HOST,
+                    'username' => Config::ISPCONFIG_USER,
+                    'password' => Config::ISPCONFIG_PASSWORD
+                ],
+                'ovh' => [
+                    'endpoint' => Config::OVH_ENDPOINT,
+                    'application_key' => Config::OVH_APPLICATION_KEY,
+                    'application_secret' => Config::OVH_APPLICATION_SECRET,
+                    'consumer_key' => Config::OVH_CONSUMER_KEY
+                ]
+            ];
+            return ['success' => true, 'data' => $data, 'config' => $config];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function saveApiCredentials($data) {
+        try {
+            $db = $this->db->getConnection();
+            foreach ($data as $key => $value) {
+                if (preg_match('/^api_url_(\d+)$/', $key, $m)) {
+                    $id = $m[1];
+                    $url = $value;
+                    $user = $data['api_user_' . $id] ?? '';
+                    $pass = $data['api_password_' . $id] ?? '';
+                    $stmt = $db->prepare("UPDATE api_credentials SET api_url=?, api_user=?, api_password=? WHERE id=?");
+                    $stmt->execute([$url, $user, $pass, $id]);
+                }
+            }
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    // --- Module ---
+    public function getModules() {
+        try {
+            $stmt = $this->db->getConnection()->query("SELECT * FROM modules");
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return ['success' => true, 'data' => $data];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function saveModules($data) {
+        try {
+            $db = $this->db->getConnection();
+            $stmt = $db->query("SELECT id FROM modules");
+            $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($ids as $id) {
+                $isActive = isset($data['module_' . $id]) ? 1 : 0;
+                $db->prepare("UPDATE modules SET is_active=? WHERE id=?")->execute([$isActive, $id]);
+            }
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    // --- Benutzer ---
+    public function getUsers() {
+        try {
+            $stmt = $this->db->getConnection()->query("SELECT * FROM users");
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return ['success' => true, 'data' => $data];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function getUser($id) {
+        try {
+            $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE id=?");
+            $stmt->execute([$id]);
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return ['success' => true, 'data' => $data];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function saveUser($data) {
+        try {
+            $db = $this->db->getConnection();
+            $id = $data['user_id'] ?? null;
+            $username = $data['username'] ?? '';
+            $full_name = $data['full_name'] ?? '';
+            $email = $data['email'] ?? '';
+            $group_id = $data['group_id'] ?? null;
+            $role = $data['role'] ?? 'user';
+            if ($group_id) {
+                $stmt_group = $db->prepare("SELECT name FROM groups WHERE id = ?");
+                $stmt_group->execute([$group_id]);
+                $role = $stmt_group->fetchColumn() ?: $role;
+            }
+            $active = isset($data['active']) && $data['active'] === 'y' ? 'y' : 'n';
+            $password = $data['password'] ?? '';
+            if ($id) {
+                // Update
+                if ($password) {
+                    $hash = password_hash($password, PASSWORD_DEFAULT);
+                    $stmt = $db->prepare("UPDATE users SET username=?, full_name=?, email=?, role=?, active=?, password_hash=?, group_id=? WHERE id=?");
+                    $stmt->execute([$username, $full_name, $email, $role, $active, $hash, $group_id, $id]);
+                } else {
+                    $stmt = $db->prepare("UPDATE users SET username=?, full_name=?, email=?, role=?, active=?, group_id=? WHERE id=?");
+                    $stmt->execute([$username, $full_name, $email, $role, $active, $group_id, $id]);
+                }
+            } else {
+                // Insert
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $db->prepare("INSERT INTO users (username, full_name, email, role, active, password_hash, group_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$username, $full_name, $email, $role, $active, $hash, $group_id]);
+            }
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function deleteUser($id) {
+        try {
+            $stmt = $this->db->getConnection()->prepare("DELETE FROM users WHERE id=?");
+            $stmt->execute([$id]);
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    // --- Gruppen ---
+    public function getGroups() {
+        try {
+            $stmt = $this->db->getConnection()->query("SELECT * FROM groups");
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return ['success' => true, 'data' => $data];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function getGroup($id) {
+        try {
+            $stmt = $this->db->getConnection()->prepare("SELECT * FROM groups WHERE id=?");
+            $stmt->execute([$id]);
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return ['success' => true, 'data' => $data];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function saveGroup($data) {
+        try {
+            $db = $this->db->getConnection();
+            $id = $data['group_id'] ?? null;
+            $name = $data['group_name'] ?? '';
+            $desc = $data['group_description'] ?? '';
+            if ($id) {
+                $stmt = $db->prepare("UPDATE groups SET name=?, description=? WHERE id=?");
+                $stmt->execute([$name, $desc, $id]);
+            } else {
+                $stmt = $db->prepare("INSERT INTO groups (name, description) VALUES (?, ?)");
+                $stmt->execute([$name, $desc]);
+                $id = $db->lastInsertId();
+            }
+            // Modulrechte speichern
+            $db->prepare("DELETE FROM group_module_permissions WHERE group_id=?")->execute([$id]);
+            foreach ($data as $key => $value) {
+                if (preg_match('/^module_(\d+)$/', $key, $m)) {
+                    $module_id = $m[1];
+                    $can_access = $value === 'on' ? 1 : 0;
+                    $db->prepare("INSERT INTO group_module_permissions (group_id, module_id, can_access) VALUES (?, ?, ?)")
+                        ->execute([$id, $module_id, $can_access]);
+                }
+            }
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function deleteGroup($id) {
+        try {
+            $db = $this->db->getConnection();
+            $db->prepare("DELETE FROM group_module_permissions WHERE group_id=?")->execute([$id]);
+            $db->prepare("DELETE FROM groups WHERE id=?")->execute([$id]);
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function getGroupModules($groupId = null) {
+        try {
+            $db = $this->db->getConnection();
+            $modules = $db->query("SELECT * FROM modules")->fetchAll(PDO::FETCH_ASSOC);
+            if ($groupId) {
+                $perms = $db->prepare("SELECT module_id, can_access FROM group_module_permissions WHERE group_id=?");
+                $perms->execute([$groupId]);
+                $permMap = [];
+                foreach ($perms->fetchAll(PDO::FETCH_ASSOC) as $p) {
+                    $permMap[$p['module_id']] = $p['can_access'];
+                }
+                foreach ($modules as &$m) {
+                    $m['can_access'] = isset($permMap[$m['id']]) ? (bool)$permMap[$m['id']] : false;
+                }
+            } else {
+                foreach ($modules as &$m) {
+                    $m['can_access'] = false;
+                }
+            }
+            return ['success' => true, 'data' => $modules];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
     }
 }
 ?>

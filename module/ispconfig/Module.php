@@ -9,7 +9,18 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class IspconfigModule extends ModuleBase {
     
     public function getContent() {
-        return $this->render('main');
+        $translations = $this->tMultiple([
+            'module_title', 'create_website_ispconfig', 'domain', 'ip_address', 'system_user',
+            'system_group', 'hd_quota', 'traffic_quota', 'create_website', 'create_ftp_user',
+            'domain_id', 'ftp_username', 'password', 'quota', 'create_subdomain', 'parent_domain_id',
+            'subdomain', 'redirect_type', 'no_redirect', 'redirect_temporary', 'redirect_permanent',
+            'redirect_path', 'quick_actions', 'load_clients', 'server_config', 'website_details',
+            'save', 'cancel', 'edit', 'delete', 'create', 'refresh', 'actions', 'status'
+        ]);
+        
+        return $this->render('main', [
+            'translations' => $translations
+        ]);
     }
     
     public function handleAjaxRequest($action, $data) {
@@ -35,8 +46,11 @@ class IspconfigModule extends ModuleBase {
             case 'create_subdomain':
                 return $this->createSubdomain($data);
                 
+            case 'get_translations':
+                return $this->getTranslations();
+                
             default:
-                return $this->error('Unknown action: ' . $action);
+                return $this->error($this->t('unknown_action') . ': ' . $action);
         }
     }
     
@@ -56,7 +70,7 @@ class IspconfigModule extends ModuleBase {
         }
         
         try {
-            $api = new ISPConfigAPI();
+            $serviceManager = new ServiceManager();
             
             // Client ID ermitteln (vereinfacht - normalerweise aus Session/DB)
             $client_id = 1;
@@ -104,41 +118,41 @@ class IspconfigModule extends ModuleBase {
                 'system_group' => $data['group']
             ];
             
-            $result = $api->createWebsite($client_id, $website_config);
+            $result = $serviceManager->createISPConfigWebsite($website_config);
             
             $this->log("Website {$data['domain']} created successfully");
             
-            return $this->success($result, 'Website erfolgreich erstellt');
+            return $this->success($result, $this->t('website_created_successfully'));
             
         } catch (Exception $e) {
             $this->log('Error creating website: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_creating_website') . ': ' . $e->getMessage());
         }
     }
     
     private function getISPConfigClients() {
         try {
-            $api = new ISPConfigAPI();
-            $clients = $api->getClients();
+            $serviceManager = new ServiceManager();
+            $clients = $serviceManager->IspconfigAPI('get', '/client');
             
             return $this->success($clients);
             
         } catch (Exception $e) {
             $this->log('Error getting clients: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_clients') . ': ' . $e->getMessage());
         }
     }
     
     private function getISPConfigServerConfig() {
         try {
-            $api = new ISPConfigAPI();
-            $config = $api->getServerConfig();
+            $serviceManager = new ServiceManager();
+            $config = $serviceManager->IspconfigAPI('get', '/server');
             
             return $this->success($config);
             
         } catch (Exception $e) {
             $this->log('Error getting server config: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_server_config') . ': ' . $e->getMessage());
         }
     }
     
@@ -152,8 +166,8 @@ class IspconfigModule extends ModuleBase {
         }
         
         try {
-            $api = new ISPConfigAPI();
-            $details = $api->getWebsiteDetails($data['domain_id']);
+            $serviceManager = new ServiceManager();
+            $details = $serviceManager->IspconfigAPI('get', "/sites/web_domain/{$data['domain_id']}");
             
             return $this->success($details);
             
@@ -174,16 +188,16 @@ class IspconfigModule extends ModuleBase {
         }
         
         try {
-            $api = new ISPConfigAPI();
+            $serviceManager = new ServiceManager();
             
             // Aktuelle Konfiguration laden
-            $current = $api->getWebsiteDetails($data['domain_id']);
+            $current = $serviceManager->IspconfigAPI('get', "/sites/web_domain/{$data['domain_id']}");
             
             // Nur übergebene Felder aktualisieren
             $update_data = array_merge($current, $data);
             unset($update_data['domain_id']);
             
-            $result = $api->updateWebsite($data['domain_id'], $update_data);
+            $result = $serviceManager->IspconfigAPI('post', "/sites/web_domain/{$data['domain_id']}", $update_data);
             
             $this->log("Website {$data['domain_id']} updated");
             
@@ -208,7 +222,7 @@ class IspconfigModule extends ModuleBase {
         }
         
         try {
-            $api = new ISPConfigAPI();
+            $serviceManager = new ServiceManager();
             
             $ftp_config = [
                 'server_id' => 1,
@@ -227,7 +241,7 @@ class IspconfigModule extends ModuleBase {
                 'dl_bandwidth' => -1
             ];
             
-            $result = $api->createFTPUser($ftp_config);
+            $result = $serviceManager->IspconfigAPI('post', '/sites/ftp_user', $ftp_config);
             
             $this->log("FTP user {$data['username']} created for domain {$data['domain_id']}");
             
@@ -251,10 +265,10 @@ class IspconfigModule extends ModuleBase {
         }
         
         try {
-            $api = new ISPConfigAPI();
+            $serviceManager = new ServiceManager();
             
             // Parent Domain Details holen
-            $parent = $api->getWebsiteDetails($data['parent_domain_id']);
+            $parent = $serviceManager->IspconfigAPI('get', "/sites/web_domain/{$data['parent_domain_id']}");
             
             $subdomain_config = [
                 'server_id' => $parent['server_id'],
@@ -268,7 +282,7 @@ class IspconfigModule extends ModuleBase {
                 'active' => 'y'
             ];
             
-            $result = $api->createSubdomain($subdomain_config);
+            $result = $serviceManager->IspconfigAPI('post', '/sites/web_domain', $subdomain_config);
             
             $this->log("Subdomain {$subdomain_config['domain']} created");
             
@@ -282,8 +296,8 @@ class IspconfigModule extends ModuleBase {
     
     public function getStats() {
         try {
-            $api = new ISPConfigAPI();
-            $websites = $api->getAllWebsites();
+            $serviceManager = new ServiceManager();
+            $websites = $serviceManager->getISPConfigWebsites();
             
             $active = 0;
             $total_quota = 0;
@@ -307,6 +321,16 @@ class IspconfigModule extends ModuleBase {
         } catch (Exception $e) {
             return [];
         }
+    }
+    
+    private function getTranslations() {
+        $translations = $this->tMultiple([
+            'website_created_message', 'ftp_user_created_message', 'subdomain_created_message',
+            'network_error', 'unknown_error', 'clients_loaded', 'server_config_loaded',
+            'website_details_loaded', 'enter_domain_id'
+        ]);
+        
+        return $this->success($translations);
     }
 }
 ?>

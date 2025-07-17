@@ -3,11 +3,15 @@
  * ModuleBase - Abstrakte Basisklasse für alle Module
  */
 
+// LanguageManager einbinden
+require_once dirname(__DIR__) . '/core/LanguageManager.php';
+
 abstract class ModuleBase {
     protected $module_key;
     protected $module_config;
     protected $user_role;
     protected $user_id;
+    protected $language_manager;
     
     public function __construct($module_key) {
         $this->module_key = $module_key;
@@ -18,6 +22,9 @@ abstract class ModuleBase {
             $this->user_role = $_SESSION['user']['role'] ?? 'user';
             $this->user_id = $_SESSION['user']['id'] ?? null;
         }
+        
+        // Sprachmanager initialisieren
+        $this->language_manager = LanguageManager::getInstance();
     }
     
     /**
@@ -107,6 +114,20 @@ abstract class ModuleBase {
         ob_start();
         include $template_path;
         return ob_get_clean();
+    }
+    
+    /**
+     * Helper: Übersetzt einen Schlüssel für das aktuelle Modul
+     */
+    protected function t($key, $default = null) {
+        return $this->language_manager->translate($this->module_key, $key, $default);
+    }
+    
+    /**
+     * Helper: Übersetzt mehrere Schlüssel für das aktuelle Modul
+     */
+    protected function tMultiple($keys) {
+        return $this->language_manager->translateMultiple($this->module_key, $keys);
     }
     
     /**

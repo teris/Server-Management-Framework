@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <!-- Modul-Titel -->
+    <module_title>Proxmox VM Management</module_title>
+    
+    <!-- Allgemeine Texte -->
+    <virtual_machines>Virtuelle Maschinen</virtual_machines>
+    <nodes>Knoten</nodes>
+    <storage>Speicher</storage>
+    <backups>Backups</backups>
+    <templates>Vorlagen</templates>
+    
+    <!-- Aktionen -->
+    <create_vm>VM erstellen</create_vm>
+    <start_vm>VM starten</start_vm>
+    <stop_vm>VM stoppen</stop_vm>
+    <restart_vm>VM neu starten</restart_vm>
+    <delete_vm>VM löschen</delete_vm>
+    <clone_vm>VM klonen</clone_vm>
+    <backup_vm>VM sichern</backup_vm>
+    <restore_vm>VM wiederherstellen</restore_vm>
+    
+    <!-- Status -->
+    <running>Läuft</running>
+    <stopped>Gestoppt</stopped>
+    <paused>Pausiert</paused>
+    <suspended>Suspendiert</suspended>
+    <unknown>Unbekannt</unknown>
+    
+    <!-- Erfolgsmeldungen -->
+    <vm_created_successfully>VM erfolgreich erstellt</vm_created_successfully>
+    <vm_started_successfully>VM erfolgreich gestartet</vm_started_successfully>
+    <vm_stopped_successfully>VM erfolgreich gestoppt</vm_stopped_successfully>
+    <vm_restarted_successfully>VM erfolgreich neu gestartet</vm_restarted_successfully>
+    <vm_deleted_successfully>VM erfolgreich gelöscht</vm_deleted_successfully>
+    <vm_cloned_successfully>VM erfolgreich geklont</vm_cloned_successfully>
+    <vm_backed_up_successfully>VM erfolgreich gesichert</vm_backed_up_successfully>
+    <vm_restored_successfully>VM erfolgreich wiederhergestellt</vm_restored_successfully>
+    
+    <!-- Fehlermeldungen -->
+    <error_creating_vm>Fehler beim Erstellen der VM</error_creating_vm>
+    <error_starting_vm>Fehler beim Starten der VM</error_starting_vm>
+    <error_stopping_vm>Fehler beim Stoppen der VM</error_stopping_vm>
+    <error_restarting_vm>Fehler beim Neustarten der VM</error_restarting_vm>
+    <error_deleting_vm>Fehler beim Löschen der VM</error_deleting_vm>
+    <error_cloning_vm>Fehler beim Klonen der VM</error_cloning_vm>
+    <error_backing_up_vm>Fehler beim Sichern der VM</error_backing_up_vm>
+    <error_restoring_vm>Fehler beim Wiederherstellen der VM</error_restoring_vm>
+    <error_getting_vms>Fehler beim Abrufen der VMs</error_getting_vms>
+    <error_getting_nodes>Fehler beim Abrufen der Knoten</error_getting_nodes>
+    <error_getting_storage>Fehler beim Abrufen des Speichers</error_getting_storage>
+    
+    <!-- Formular-Felder -->
+    <vm_name>VM Name</vm_name>
+    <node>Knoten</node>
+    <memory>Arbeitsspeicher</memory>
+    <cpu_cores>CPU Kerne</cpu_cores>
+    <disk_size>Festplattengröße</disk_size>
+    <network>Netzwerk</network>
+    <os_template>OS Vorlage</os_template>
+    <description>Beschreibung</description>
+    
+    <!-- Buttons -->
+    <create>Erstellen</create>
+    <start>Starten</start>
+    <stop>Stoppen</stop>
+    <restart>Neustarten</restart>
+    <delete>Löschen</delete>
+    <clone>Klonen</clone>
+    <backup>Sichern</backup>
+    <restore>Wiederherstellen</restore>
+    <edit>Bearbeiten</edit>
+    <view>Anzeigen</view>
+    <refresh>Aktualisieren</refresh>
+    <cancel>Abbrechen</cancel>
+    <save>Speichern</save>
+    <confirm>Bestätigen</confirm>
+    
+    <!-- Bestätigungsdialoge -->
+    <confirm_delete_vm>Möchten Sie diese VM wirklich löschen?</confirm_delete_vm>
+    <confirm_stop_vm>Möchten Sie diese VM wirklich stoppen?</confirm_stop_vm>
+    <confirm_restart_vm>Möchten Sie diese VM wirklich neu starten?</confirm_restart_vm>
+    
+    <!-- Tabellen-Header -->
+    <vm_id>VM ID</vm_id>
+    <name>Name</name>
+    <status>Status</status>
+    <node_name>Knoten</node_name>
+    <memory_usage>Arbeitsspeicher</memory_usage>
+    <cpu_usage>CPU</cpu_usage>
+    <disk_usage>Festplatte</disk_usage>
+    <uptime>Laufzeit</uptime>
+    <actions>Aktionen</actions>
+    
+    <!-- Einheiten -->
+    <gb>GB</gb>
+    <mb>MB</mb>
+    <cores>Kerne</cores>
+    <percent>%</percent>
+    
+    <!-- Platzhalter -->
+    <enter_vm_name>VM Namen eingeben</enter_vm_name>
+    <enter_description>Beschreibung eingeben</enter_description>
+    <select_node>Knoten auswählen</select_node>
+    <select_os_template>OS Vorlage auswählen</select_os_template>
+    
+    <!-- Validierung -->
+    <vm_name_required>VM Name ist erforderlich</vm_name_required>
+    <node_required>Knoten ist erforderlich</node_required>
+    <memory_required>Arbeitsspeicher ist erforderlich</memory_required>
+    <cpu_cores_required>CPU Kerne sind erforderlich</cpu_cores_required>
+    <disk_size_required>Festplattengröße ist erforderlich</disk_size_required>
+    <invalid_memory>Ungültige Arbeitsspeicher-Größe</invalid_memory>
+    <invalid_cpu_cores>Ungültige Anzahl CPU Kerne</invalid_cpu_cores>
+    <invalid_disk_size>Ungültige Festplattengröße</invalid_disk_size>
+    
+    <!-- Template-spezifische Übersetzungen -->
+    <create_vm_proxmox>VM auf Proxmox anlegen</create_vm_proxmox>
+    <ram_mb>RAM (MB)</ram_mb>
+    <disk_gb>Festplatte (GB)</disk_gb>
+    <proxmox_node>Proxmox Node</proxmox_node>
+    <network_bridge>Netzwerk Bridge</network_bridge>
+    <mac_address>MAC Adresse (optional)</mac_address>
+    <iso_image>ISO Image</iso_image>
+    <extended_features>Erweiterte Funktionen</extended_features>
+    <get_nodes>Nodes abrufen</get_nodes>
+    <load_storages>Storages laden</load_storages>
+    <clone_vm_dialog>VM Klonen</clone_vm_dialog>
+    <source_vm_id>Quell-VM ID</source_vm_id>
+    <new_vm_id>Neue VM ID</new_vm_id>
+    <new_name>Neuer Name</new_name>
+    <error_getting_storages>Fehler beim Abrufen der Storages</error_getting_storages>
+    <error_getting_vm_config>Fehler beim Abrufen der VM-Konfiguration</error_getting_vm_config>
+    <error_getting_vm_status>Fehler beim Abrufen des VM-Status</error_getting_vm_status>
+    <storages_loaded>Storages geladen - siehe Konsole</storages_loaded>
+    <please_enter_node>Bitte erst einen Node angeben</please_enter_node>
+    <network_error>Netzwerkfehler</network_error>
+    <unknown_error>Unbekannter Fehler</unknown_error>
+    <vm_created>VM wurde erfolgreich erstellt!</vm_created>
+    <vm_cloned>VM wurde erfolgreich geklont!</vm_cloned>
+    <available_storages>Verfügbare Storages</available_storages>
+    <example_web_server>z.B. web-server-01</example_web_server>
+    <one_core>1 Kern</one_core>
+    <two_cores>2 Kerne</two_cores>
+    <four_cores>4 Kerne</four_cores>
+    <eight_cores>8 Kerne</eight_cores>
+    <one_gb>1 GB</one_gb>
+    <two_gb>2 GB</two_gb>
+    <four_gb>4 GB</four_gb>
+    <eight_gb>8 GB</eight_gb>
+    <sixteen_gb>16 GB</sixteen_gb>
+    <clone_vm_01>clone-vm-01</clone_vm_01>
+    <unknown_action>Unbekannte Aktion</unknown_action>
+    <operation_successful>Operation erfolgreich</operation_successful>
+    <operation_failed>Operation fehlgeschlagen</operation_failed>
+    <validation_failed>Validierung fehlgeschlagen</validation_failed>
+    <confirm_delete>Möchten Sie wirklich löschen?</confirm_delete>
+    <loading>Laden...</loading>
+</translations> 

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <module_title>ISPConfig Website Management</module_title>
+    <websites>Websites</websites>
+    <databases>Databases</databases>
+    <email_accounts>Email Accounts</email_accounts>
+    <ftp_users>FTP Users</ftp_users>
+    <subdomains>Subdomains</subdomains>
+    <clients>Clients</clients>
+    <create_website>Create Website</create_website>
+    <edit_website>Edit Website</edit_website>
+    <delete_website>Delete Website</delete_website>
+    <create_database>Create Database</create_database>
+    <create_email>Create Email Account</create_email>
+    <create_ftp_user>Create FTP User</create_ftp_user>
+    <create_subdomain>Create Subdomain</create_subdomain>
+    <domain>Domain</domain>
+    <ip_address>IP Address</ip_address>
+    <system_user>System User</system_user>
+    <system_group>System Group</system_group>
+    <quota>Quota</quota>
+    <traffic>Traffic</traffic>
+    <php_version>PHP Version</php_version>
+    <ssl>SSL</ssl>
+    <backup>Backup</backup>
+    <description>Description</description>
+    <active>Active</active>
+    <inactive>Inactive</inactive>
+    <suspended>Suspended</suspended>
+    <pending>Pending</pending>
+    <website_created_successfully>Website created successfully</website_created_successfully>
+    <website_updated_successfully>Website updated successfully</website_updated_successfully>
+    <website_deleted_successfully>Website deleted successfully</website_deleted_successfully>
+    <database_created_successfully>Database created successfully</database_created_successfully>
+    <email_created_successfully>Email account created successfully</email_created_successfully>
+    <ftp_user_created_successfully>FTP user created successfully</ftp_user_created_successfully>
+    <subdomain_created_successfully>Subdomain created successfully</subdomain_created_successfully>
+    <error_creating_website>Error creating website</error_creating_website>
+    <error_updating_website>Error updating website</error_updating_website>
+    <error_deleting_website>Error deleting website</error_deleting_website>
+    <error_getting_clients>Error getting clients</error_getting_clients>
+    <error_getting_server_config>Error getting server configuration</error_getting_server_config>
+    <error_getting_website_details>Error getting website details</error_getting_website_details>
+    <error_creating_database>Error creating database</error_creating_database>
+    <error_creating_email>Error creating email account</error_creating_email>
+    <error_creating_ftp_user>Error creating FTP user</error_creating_ftp_user>
+    <error_creating_subdomain>Error creating subdomain</error_creating_subdomain>
+    <create>Create</create>
+    <edit>Edit</edit>
+    <delete>Delete</delete>
+    <save>Save</save>
+    <cancel>Cancel</cancel>
+    <refresh>Refresh</refresh>
+    <view>View</view>
+    <confirm>Confirm</confirm>
+    <confirm_delete_website>Do you really want to delete this website?</confirm_delete_website>
+    <confirm_delete_database>Do you really want to delete this database?</confirm_delete_database>
+    <confirm_delete_email>Do you really want to delete this email account?</confirm_delete_email>
+    <domain_name>Domain</domain_name>
+    <ip>IP Address</ip>
+    <status>Status</status>
+    <quota_usage>Quota Usage</quota_usage>
+    <traffic_usage>Traffic Usage</traffic_usage>
+    <created>Created</created>
+    <updated>Updated</updated>
+    <actions>Actions</actions>
+    <mb>MB</mb>
+    <gb>GB</gb>
+    <percent>%</percent>
+    <enter_domain>Enter domain</enter_domain>
+    <enter_ip_address>Enter IP address</enter_ip_address>
+    <enter_system_user>Enter system user</enter_system_user>
+    <enter_system_group>Enter system group</enter_system_group>
+    <select_php_version>Select PHP version</select_php_version>
+    <domain_required>Domain is required</domain_required>
+    <ip_address_required>IP address is required</ip_address_required>
+    <system_user_required>System user is required</system_user_required>
+    <system_group_required>System group is required</system_group_required>
+    <quota_required>Quota is required</quota_required>
+    <traffic_required>Traffic is required</traffic_required>
+    <invalid_domain>Invalid domain</invalid_domain>
+    <invalid_ip_address>Invalid IP address</invalid_ip_address>
+    <invalid_quota>Invalid quota</invalid_quota>
+    <invalid_traffic>Invalid traffic</invalid_traffic>
+    <loading>Loading...</loading>
+    <operation_successful>Operation successful</operation_successful>
+    <operation_failed>Operation failed</operation_failed>
+    <validation_failed>Validation failed</validation_failed>
+    <unknown_action>Unknown action</unknown_action>
+    <create_website_ispconfig>Create Website in ISPConfig</create_website_ispconfig>
+    <hd_quota>HD Quota (MB)</hd_quota>
+    <traffic_quota>Traffic Quota (MB)</traffic_quota>
+    <domain_id>Domain ID</domain_id>
+    <ftp_username>FTP Username</ftp_username>
+    <parent_domain_id>Parent Domain ID</parent_domain_id>
+    <subdomain>Subdomain</subdomain>
+    <redirect_type>Redirect Type</redirect_type>
+    <no_redirect>No Redirect</no_redirect>
+    <redirect_temporary>R (Temporary)</redirect_temporary>
+    <redirect_permanent>L (Permanent)</redirect_permanent>
+    <redirect_path>Redirect Path (optional)</redirect_path>
+    <quick_actions>Quick Actions</quick_actions>
+    <load_clients>Load Clients</load_clients>
+    <server_config>Server Config</server_config>
+    <website_details>Website Details</website_details>
+    <clients_loaded>Clients loaded - see console</clients_loaded>
+    <server_config_loaded>Server config loaded - see console</server_config_loaded>
+    <website_details_loaded>Website details loaded - see console</website_details_loaded>
+    <enter_domain_id>Please enter domain ID</enter_domain_id>
+    <network_error>Network error</network_error>
+    <unknown_error>Unknown error</unknown_error>
+    <website_created_message>Website was created successfully!</website_created_message>
+    <ftp_user_created_message>FTP user was created successfully!</ftp_user_created_message>
+    <subdomain_created_message>Subdomain was created successfully!</subdomain_created_message>
+</translations> 

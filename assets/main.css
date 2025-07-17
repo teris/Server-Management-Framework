@@ -4,6 +4,7 @@
 body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    max-width: 90%;
 }
 
 /* Card-Anpassungen */
@@ -36,6 +37,7 @@ body {
     color: #6b7280;
     font-weight: 500;
     transition: all 0.3s ease;
+    background-color: #fff;
 }
 
 .nav-tabs .nav-link:hover {
@@ -186,6 +188,11 @@ body {
 .spinner-border {
     width: 2rem;
     height: 2rem;
+}
+
+/* Utility-Klassen */
+.hidden {
+    display: none !important;
 }
 
 /* Responsive Anpassungen */

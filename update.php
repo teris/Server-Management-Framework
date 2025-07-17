@@ -6,12 +6,13 @@
 
 require_once 'framework.php';
 require_once 'auth_handler.php';
+require_once 'sys.conf.php';
 
 // Nur Admins dürfen dieses Script ausführen
 if (php_sapi_name() !== 'cli') {
     requireLogin();
     if (!SessionManager::isAdmin()) {
-        die('Zugriff verweigert. Nur Administratoren können dieses Script ausführen.');
+        die(t('access_denied') . '. ' . t('admin_rights_required') . '.');
     }
 }
 
@@ -36,7 +37,7 @@ class DatabaseUpdater {
      * Führt das komplette Update aus
      */
     public function runFullUpdate() {
-        $this->output("🚀 Starte Datenbank-Update...\n");
+        $this->output("🚀 " . t('system_update') . "...\n");
         $this->output(str_repeat("=", 60) . "\n\n");
         
         $startTime = microtime(true);

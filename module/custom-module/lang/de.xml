@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <module_title>Benutzerdefiniertes Modul</module_title>
+    <custom_feature>Eigene Funktion</custom_feature>
+    <add_item>Element hinzufügen</add_item>
+    <edit_item>Element bearbeiten</edit_item>
+    <delete_item>Element löschen</delete_item>
+    <item_name>Name</item_name>
+    <status>Status</status>
+    <actions>Aktionen</actions>
+    <save>Speichern</save>
+    <cancel>Abbrechen</cancel>
+    <edit>Bearbeiten</edit>
+    <delete>Löschen</delete>
+    <create>Erstellen</create>
+    <refresh>Aktualisieren</refresh>
+    <operation_successful>Operation erfolgreich</operation_successful>
+    <operation_failed>Operation fehlgeschlagen</operation_failed>
+    <validation_failed>Validierung fehlgeschlagen</validation_failed>
+    <confirm_delete>Möchten Sie wirklich löschen?</confirm_delete>
+    <loading>Laden...</loading>
+    <test_successful>Test erfolgreich</test_successful>
+    <unknown_action>Unbekannte Aktion</unknown_action>
+    <unknown_error>Unbekannter Fehler</unknown_error>
+    <custom_module_description>Dies ist ein benutzerdefiniertes Modul für Tests und Entwicklung.</custom_module_description>
+    <test_button>Test ausführen</test_button>
+    <welcome_message>Willkommen im benutzerdefinierten Modul</welcome_message>
+</translations> 

@@ -333,9 +333,9 @@ async function loadStatsOnly() {
         
         console.log('✅ Stats loaded successfully');
         
-    } catch (error) {
-        console.error('❌ Error loading stats:', error);
-    }
+            } catch (error) {
+            console.error('❌ ' + (window.t ? window.t('js_data_load_error') : 'Error loading stats') + ':', error);
+        }
 }
 
 async function getDataCount(action) {
@@ -380,9 +380,9 @@ async function loadEmails() {
         }
         
     } catch (error) {
-        console.error('❌ Email loading error:', error);
+        console.error('❌ ' + (window.t ? window.t('js_data_load_error') : 'Email loading error') + ':', error);
         markAsError('emails', error.message);
-        showNotification('Fehler beim Laden der E-Mail Accounts: ' + error.message, 'error');
+        showNotification((window.t ? window.t('js_data_load_error') : 'Fehler beim Laden der E-Mail Accounts') + ': ' + error.message, 'error');
     }
 }
 
@@ -404,9 +404,9 @@ async function loadVMs() {
         }
         
     } catch (error) {
-        console.error('❌ VM loading error:', error);
+        console.error('❌ ' + (window.t ? window.t('js_vm_load_error') : 'VM loading error') + ':', error);
         markAsError('vms', error.message);
-        showNotification('Fehler beim Laden der VMs: ' + error.message, 'error');
+        showNotification((window.t ? window.t('js_vm_load_error') : 'Fehler beim Laden der VMs') + ': ' + error.message, 'error');
     }
 }
 
@@ -428,7 +428,7 @@ async function loadWebsites() {
         }
         
     } catch (error) {
-        console.error('❌ Website loading error:', error);
+        console.error('❌ ' + (window.t ? window.t('js_data_load_error') : 'Website loading error') + ':', error);
         markAsError('websites', error.message);
     }
 }

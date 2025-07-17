@@ -101,6 +101,34 @@ class AdminHandler {
                 case 'get_settings':
                     return $this->getSettings();
                 
+                // --- Erweiterungen für Settings-Seite ---
+                case 'get_api_credentials':
+                    return $this->adminCore->getApiCredentials();
+                case 'save_api_credentials':
+                    return $this->adminCore->saveApiCredentials($data);
+                case 'get_modules':
+                    return $this->adminCore->getModules();
+                case 'save_modules':
+                    return $this->adminCore->saveModules($data);
+                case 'get_users':
+                    return $this->adminCore->getUsers();
+                case 'get_user':
+                    return $this->adminCore->getUser($data['id']);
+                case 'save_user':
+                    return $this->adminCore->saveUser($data);
+                case 'delete_user':
+                    return $this->adminCore->deleteUser($data['id']);
+                case 'get_groups':
+                    return $this->adminCore->getGroups();
+                case 'get_group':
+                    return $this->adminCore->getGroup($data['id']);
+                case 'save_group':
+                    return $this->adminCore->saveGroup($data);
+                case 'delete_group':
+                    return $this->adminCore->deleteGroup($data['id']);
+                case 'get_group_modules':
+                    return $this->adminCore->getGroupModules(isset($data['group_id']) ? $data['group_id'] : null);
+                
                 default:
                     return $this->error('Unbekannte Aktion: ' . $action);
             }
@@ -203,12 +231,12 @@ class AdminHandler {
     }
     
     private function formatWebsitesTable($websites) {
-        $html = '<table class="resource-table">
+        $html = '<table class="table table-striped table-hover">
             <thead>
                 <tr>
                     <th>Domain</th>
                     <th>IP</th>
-                    <th>User</th>
+                    <th>Benutzer</th>
                     <th>Status</th>
                     <th>Quota</th>
                     <th>Aktionen</th>
@@ -217,15 +245,19 @@ class AdminHandler {
             <tbody>';
         
         foreach ($websites as $site) {
-            $status_class = ($site['active'] ?? 'n') === 'y' ? 'status-active' : 'status-inactive';
+            $isActive = ($site['active'] ?? 'n') === 'y';
+            $statusClass = $isActive ? 'success' : 'danger';
+            $statusText = $isActive ? 'Aktiv' : 'Inaktiv';
+            
             $html .= '<tr>
                 <td>' . htmlspecialchars($site['domain'] ?? 'N/A') . '</td>
                 <td>' . htmlspecialchars($site['ip_address'] ?? 'N/A') . '</td>
                 <td>' . htmlspecialchars($site['system_user'] ?? 'N/A') . '</td>
-                <td><span class="status-badge ' . $status_class . '">' . (($site['active'] ?? 'n') === 'y' ? 'Aktiv' : 'Inaktiv') . '</span></td>
+                <td><span class="badge bg-' . $statusClass . '">' . $statusText . '</span></td>
                 <td>' . htmlspecialchars($site['hd_quota'] ?? 'N/A') . ' MB</td>
-                <td class="action-buttons">
-                    <button class="btn btn-small btn-danger" onclick="deleteWebsite(\'' . ($site['domain_id'] ?? '') . '\')">Löschen</button>
+                <td>
+                    <button class="btn btn-primary btn-sm me-1" onclick="editWebsite(\'' . ($site['domain_id'] ?? '') . '\')" title="Bearbeiten"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteWebsite(\'' . ($site['domain_id'] ?? '') . '\')" title="Löschen"><i class="bi bi-trash"></i></button>
                 </td>
             </tr>';
         }
@@ -524,26 +556,29 @@ class AdminHandler {
      */
     private function getActivityLogs($data) {
         $filters = [];
-        
+        $limit = 50; // Standard-Limit
+        $offset = 0;
         if (isset($data['level']) && $data['level']) {
             $filters['level'] = $data['level'];
         }
-        
         if (isset($data['date']) && $data['date']) {
             $filters['date'] = $data['date'];
         }
-        
+        if (isset($data['limit']) && is_numeric($data['limit'])) {
+            $limit = (int) $data['limit'];
+            if ($limit < 1) $limit = 1;
+            if ($limit > 100) $limit = 100;
+        }
+        if (isset($data['offset']) && is_numeric($data['offset'])) {
+            $offset = (int) $data['offset'];
+            if ($offset < 0) $offset = 0;
+        }
         try {
-            $logs = $this->adminCore->getActivityLogs($filters);
-            
-            // Sicherstellen, dass logs ein Array ist
+            $logs = $this->adminCore->getActivityLogs($filters, $limit, $offset);
             if (!is_array($logs)) {
                 $logs = [];
             }
-            
-            // Format für Anzeige
             $html = $this->formatLogsTable($logs);
-            
             return $this->success([
                 'logs' => $logs,
                 'html' => $html

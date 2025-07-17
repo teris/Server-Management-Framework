@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <!-- General Texts -->
+    <welcome>Welcome</welcome>
+    <loading>Loading...</loading>
+    <error>Error</error>
+    <success>Success</success>
+    <warning>Warning</warning>
+    <info>Information</info>
+    <confirm>Confirm</confirm>
+    <cancel>Cancel</cancel>
+    <save>Save</save>
+    <delete>Delete</delete>
+    <edit>Edit</edit>
+    <view>View</view>
+    <create>Create</create>
+    <update>Update</update>
+    <refresh>Refresh</refresh>
+    <close>Close</close>
+    <back>Back</back>
+    <next>Next</next>
+    <previous>Previous</previous>
+    <submit>Submit</submit>
+    <reset>Reset</reset>
+    <search>Search</search>
+    <filter>Filter</filter>
+    <sort>Sort</sort>
+    <export>Export</export>
+    <import>Import</import>
+    <download>Download</download>
+    <upload>Upload</upload>
+    
+    <!-- Navigation -->
+    <home>Home</home>
+    <dashboard>Dashboard</dashboard>
+    <settings>Settings</settings>
+    <profile>Profile</profile>
+    <logout>Logout</logout>
+    <login>Login</login>
+    <register>Register</register>
+    <password>Password</password>
+    <username>Username</username>
+    <email>Email</email>
+    <full_name>Full Name</full_name>
+    
+    <!-- Status -->
+    <online>Online</online>
+    <offline>Offline</offline>
+    <running>Running</running>
+    <stopped>Stopped</stopped>
+    <active>Active</active>
+    <inactive>Inactive</inactive>
+    <enabled>Enabled</enabled>
+    <disabled>Disabled</disabled>
+    <connected>Connected</connected>
+    <disconnected>Disconnected</disconnected>
+    
+    <!-- Time and Date -->
+    <today>Today</today>
+    <yesterday>Yesterday</yesterday>
+    <tomorrow>Tomorrow</tomorrow>
+    <created>Created</created>
+    <updated>Updated</updated>
+    <last_login>Last Login</last_login>
+    <session_timeout>Session Timeout</session_timeout>
+    
+    <!-- Validation -->
+    <required>Required</required>
+    <invalid_email>Invalid email address</invalid_email>
+    <invalid_password>Invalid password</invalid_password>
+    <passwords_not_match>Passwords do not match</passwords_not_match>
+    <password_too_short>Password is too short</password_too_short>
+    <username_exists>Username already exists</username_exists>
+    <email_exists>Email address already exists</email_exists>
+    
+    <!-- Messages -->
+    <operation_successful>Operation successful</operation_successful>
+    <operation_failed>Operation failed</operation_failed>
+    <access_denied>Access denied</access_denied>
+    <not_found>Not found</not_found>
+    <server_error>Server error</server_error>
+    <network_error>Network error</network_error>
+    <timeout_error>Timeout error</timeout_error>
+    <validation_error>Validation error</validation_error>
+    
+    <!-- Confirmation Dialogs -->
+    <confirm_delete>Confirm Delete</confirm_delete>
+    <confirm_logout>Confirm Logout</confirm_logout>
+    <confirm_password_change>Confirm Password Change</confirm_password_change>
+    <confirm_update>Confirm Update</confirm_update>
+    
+    <!-- Specific Texts for Main Files -->
+    
+    <!-- index.php -->
+    <admin_dashboard>Admin Dashboard</admin_dashboard>
+    <server_management>Server Management</server_management>
+    <overview>Overview</overview>
+    <plugins_active>plugins active</plugins_active>
+    <session_timer>Session Timer</session_timer>
+    <time_remaining>Time Remaining</time_remaining>
+    <change_password>Change Password</change_password>
+    <user_info>User Information</user_info>
+    <role>Role</role>
+    <last_activity>Last Activity</last_activity>
+    <system_status>System Status</system_status>
+    <quick_actions>Quick Actions</quick_actions>
+    <recent_activity>Recent Activity</recent_activity>
+    <system_stats>System Statistics</system_stats>
+    
+    <!-- setup.php -->
+    <system_setup>System Setup</system_setup>
+    <welcome_setup>Welcome to the Server Management Interface!</welcome_setup>
+    <create_admin_account>First, create an administrator account.</create_admin_account>
+    <setup_complete>Setup completed successfully!</setup_complete>
+    <setup_complete_message>You can now log in.</setup_complete_message>
+    <go_to_login>Go to Login</go_to_login>
+    <requirements>Requirements</requirements>
+    <all_fields_required>All fields are required</all_fields_required>
+    <password_min_length>Password minimum 6 characters</password_min_length>
+    <valid_email_required>Valid email address</valid_email_required>
+    <unique_username_required>Username must be unique</unique_username_required>
+    <create_admin_user>Create Admin Account</create_admin_user>
+    <confirm_password>Confirm Password</confirm_password>
+    <password_confirm_placeholder>Repeat password</password_confirm_placeholder>
+    <setup_error>Setup error</setup_error>
+    <admin_user_exists>An administrator account already exists.</admin_user_exists>
+    
+    <!-- update.php -->
+    <system_update>System Update</system_update>
+    <check_for_updates>Check for Updates</check_for_updates>
+    <current_version>Current Version</current_version>
+    <latest_version>Latest Version</latest_version>
+    <update_available>Update Available</update_available>
+    <no_update_available>No Update Available</no_update_available>
+    <update_system>Update System</update_system>
+    <update_in_progress>Update in Progress...</update_in_progress>
+    <update_complete>Update Complete</update_complete>
+    <update_failed>Update Failed</update_failed>
+    <backup_before_update>Create Backup Before Update</backup_before_update>
+    <changelog>Changelog</changelog>
+    <update_notes>Update Notes</update_notes>
+    <system_compatibility>System Compatibility</system_compatibility>
+    <update_size>Update Size</update_size>
+    <estimated_time>Estimated Time</estimated_time>
+    
+    <!-- password_change.php -->
+    <change_password_title>Change Password</change_password_title>
+    <current_password>Current Password</current_password>
+    <new_password>New Password</new_password>
+    <confirm_new_password>Confirm New Password</confirm_new_password>
+    <password_requirements>Password Requirements</password_requirements>
+    <password_changed>Password changed successfully</password_changed>
+    <password_change_failed>Password change failed</password_change_failed>
+    <current_password_incorrect>Current password is incorrect</current_password_incorrect>
+    <password_strength>Password Strength</password_strength>
+    <weak>Weak</weak>
+    <medium>Medium</medium>
+    <strong>Strong</strong>
+    <very_strong>Very Strong</very_strong>
+    <password_history>Password History</password_history>
+    <password_expiry>Password Expiry</password_expiry>
+    <days_until_expiry>Days until expiry</days_until_expiry>
+    <force_password_change>Force Password Change</force_password_change>
+    
+    <!-- login.php -->
+    <login_title>Login</login_title>
+    <login_subtitle>Server Management Interface</login_subtitle>
+    <remember_me>Remember Me</remember_me>
+    <forgot_password>Forgot Password?</forgot_password>
+    <login_failed>Login Failed</login_failed>
+    <invalid_credentials>Invalid credentials</invalid_credentials>
+    <account_locked>Account Locked</account_locked>
+    <too_many_attempts>Too many login attempts</too_many_attempts>
+    <login_successful>Login Successful</login_successful>
+    <redirecting>Redirecting...</redirecting>
+    <login_required>Login Required</login_required>
+    <session_expired>Session Expired</session_expired>
+    <please_login>Please log in</please_login>
+    <demo_credentials>Default Login Credentials</demo_credentials>
+    <change_after_first_login>Please change after first login</change_after_first_login>
+    <new_password_must_differ>New password must differ from current</new_password_must_differ>
+    <admin_rights_required>Only administrators can run this script</admin_rights_required>
+    
+    <!-- General UI Elements -->
+    <loading_spinner>Loading...</loading_spinner>
+    <no_data>No data available</no_data>
+    <no_results>No results found</no_results>
+    <select_all>Select All</select_all>
+    <deselect_all>Deselect All</deselect_all>
+    <show_more>Show More</show_more>
+    <show_less>Show Less</show_less>
+    <expand>Expand</expand>
+    <collapse>Collapse</collapse>
+    <details>Details</details>
+    <summary>Summary</summary>
+    <help>Help</help>
+    <about>About</about>
+    <contact>Contact</contact>
+    <support>Support</support>
+    <documentation>Documentation</documentation>
+    <feedback>Feedback</feedback>
+    <bug_report>Report Bug</bug_report>
+    <feature_request>Request Feature</feature_request>
+    
+    <!-- Tables and Lists -->
+    <no_records>No records found</no_records>
+    <showing_records>Showing records</showing_records>
+    <of_total>of total</of_total>
+    <entries_per_page>Entries per page</entries_per_page>
+    <first_page>First Page</first_page>
+    <last_page>Last Page</last_page>
+    <next_page>Next Page</next_page>
+    <previous_page>Previous Page</previous_page>
+    <page>Page</page>
+    <total_pages>Total Pages</total_pages>
+    
+    <!-- Forms -->
+    <form_validation_error>Form Validation Error</form_validation_error>
+    <field_required>Field is required</field_required>
+    <invalid_format>Invalid format</invalid_format>
+    <min_length>Minimum length</min_length>
+    <max_length>Maximum length</max_length>
+    <character_count>Character count</character_count>
+    <remaining_characters>Remaining characters</remaining_characters>
+    
+    <!-- Notifications -->
+    <notification>Notification</notification>
+    <notifications>Notifications</notifications>
+    <mark_as_read>Mark as Read</mark_as_read>
+    <mark_all_as_read>Mark All as Read</mark_all_as_read>
+    <clear_notifications>Clear Notifications</clear_notifications>
+    <no_notifications>No notifications</no_notifications>
+    
+    <!-- Calendar and Date -->
+    <calendar>Calendar</calendar>
+    <date_picker>Date Picker</date_picker>
+    <time_picker>Time Picker</time_picker>
+    <select_date>Select Date</select_date>
+    <select_time>Select Time</select_time>
+    <today>Today</today>
+    <yesterday>Yesterday</yesterday>
+    <tomorrow>Tomorrow</tomorrow>
+    <this_week>This Week</this_week>
+    <last_week>Last Week</last_week>
+    <next_week>Next Week</next_week>
+    <this_month>This Month</this_month>
+    <last_month>Last Month</last_month>
+    <next_month>Next Month</next_month>
+    <this_year>This Year</this_year>
+    <last_year>Last Year</last_year>
+    <next_year>Next Year</next_year>
+    
+    <!-- JavaScript Error Messages -->
+    <js_network_error>Network error - Server not reachable</js_network_error>
+    <js_server_error>Server error - Please try again later</js_server_error>
+    <js_ajax_error>AJAX Error</js_ajax_error>
+    <js_session_expired>Session expired - You will be redirected</js_session_expired>
+    <js_plugin_load_error>Error loading plugin</js_plugin_load_error>
+    <js_unknown_error>Unknown error</js_unknown_error>
+    <js_form_submit_error>Error submitting form</js_form_submit_error>
+    <js_form_success>Form submitted successfully</js_form_success>
+    <js_vm_load_error>Error loading VMs</js_vm_load_error>
+    <js_vm_control_success>VM {action} executed successfully</js_vm_control_success>
+    <js_vm_control_error>Error in VM operation</js_vm_control_error>
+    <js_no_vms_found>No VMs found</js_no_vms_found>
+    <js_website_load_error>Error loading websites</js_website_load_error>
+    <js_no_websites_found>No websites found</js_no_websites_found>
+    <js_domain_load_error>Error loading domains</js_domain_load_error>
+    <js_no_domains_found>No domains found</js_no_domains_found>
+    <js_no_logs_found>No log entries found</js_no_logs_found>
+    <js_stats_updating>Updating statistics...</js_stats_updating>
+    <js_cache_clearing>Clearing cache...</js_cache_clearing>
+    <js_connections_testing>Testing connections...</js_connections_testing>
+    <js_settings_saved>Settings saved</js_settings_saved>
+    <js_loading>Loading...</js_loading>
+    <js_processing>Processing...</js_processing>
+    <js_confirm_delete>Confirm Delete</js_confirm_delete>
+    <js_confirm_vm_delete>Do you really want to delete this VM?</js_confirm_vm_delete>
+    <js_confirm_website_delete>Do you really want to delete this website?</js_confirm_website_delete>
+    <js_confirm_database_delete>Do you really want to delete this database?</js_confirm_database_delete>
+    <js_confirm_email_delete>Do you really want to delete this email account?</js_confirm_email_delete>
+    <js_operation_successful>Operation successful</js_operation_successful>
+    <js_operation_failed>Operation failed</js_operation_failed>
+    <js_validation_failed>Validation failed</js_validation_failed>
+    <js_access_denied>Access denied</js_access_denied>
+    <js_timeout_error>Request timeout</js_timeout_error>
+    <js_connection_lost>Connection lost</js_connection_lost>
+    <js_data_load_error>Error loading data</js_data_load_error>
+    <js_data_save_error>Error saving data</js_data_save_error>
+    <js_data_update_error>Error updating data</js_data_update_error>
+    <js_data_delete_error>Error deleting data</js_data_delete_error>
+    <js_please_wait>Please wait...</js_please_wait>
+    <js_retry_later>Please try again later</js_retry_later>
+    <js_contact_admin>Please contact the administrator</js_contact_admin>
+    <js_debug_info>Debug Information</js_debug_info>
+    <js_available_plugins>Available Plugins</js_available_plugins>
+    <js_session_info>Session Info</js_session_info>
+    <js_not_available>Not available</js_not_available>
+    <js_admin_dashboard_initialized>Admin Dashboard initialized</js_admin_dashboard_initialized>
+    
+    <!-- Admin Dashboard UI Elements -->
+    <administration>Administration</administration>
+    <resources>Resources</resources>
+    <plugins>Plugins</plugins>
+    <logs>Logs</logs>
+    <system_overview>System Overview</system_overview>
+    <server>Server</server>
+    <unknown>Unknown</unknown>
+    <active_sessions>Active Sessions</active_sessions>
+    <system_load>System Load</system_load>
+    <quick_actions>Quick Actions</quick_actions>
+    <refresh_all_stats>Refresh All Stats</refresh_all_stats>
+    <clear_cache>Clear Cache</clear_cache>
+    <test_connections>Test Connections</test_connections>
+    <virtual_machines>Virtual Machines</virtual_machines>
+    <email_accounts>Email Accounts</email_accounts>
+    <available_plugins>Available Plugins</available_plugins>
+    <no_description_available>No description available</no_description_available>
+    <general>General</general>
+    <api_credentials>API Credentials</api_credentials>
+    <modules>Modules</modules>
+    <users>Users</users>
+    <groups>Groups</groups>
+    <site_title>Site Title</site_title>
+    <logo>Logo</logo>
+    <favicon>Favicon</favicon>
+    <mode>Mode</mode>
+    <live_mode>Live Mode</live_mode>
+    <database_mode>Database Mode</database_mode>
+    <db_mode_hint>In database mode, all data is loaded directly from the database.</db_mode_hint>
+    <auto_refresh_interval>Auto Refresh Interval</auto_refresh_interval>
+    <cache_status>Cache Status</cache_status>
+    <api_connections>API Connections</api_connections>
+    <all_ok>All OK</all_ok>
+    <last_update>Last Update</last_update>
+    <save_button>Save</save_button>
+    <user_saved>User saved!</user_saved>
+    <user_deleted>User deleted!</user_deleted>
+    <user_updated>User updated!</user_updated>
+    <user_added>User added!</user_added>
+    <group_saved>Group saved!</group_saved>
+    <group_deleted>Group deleted!</group_deleted>
+    <group_updated>Group updated!</group_updated>
+    <group_added>Group added!</group_added>
+    <error_saving>Error saving!</error_saving>
+    <error_deleting>Error deleting!</error_deleting>
+    <error_editing>Error editing!</error_editing>
+    <error_adding>Error adding!</error_adding>
+    <error_loading_users>Error loading users</error_loading_users>
+    <error_loading_groups>Error loading groups</error_loading_groups>
+    <error_loading_api_credentials>Error loading API credentials</error_loading_api_credentials>
+    <sql_error>SQL error</sql_error>
+    <save_user>Save user</save_user>
+    <save_group>Save group</save_group>
+    <delete_user>Delete user</delete_user>
+    <delete_group>Delete group</delete_group>
+    <add_user>Add user</add_user>
+    <add_group>Add group</add_group>
+    <module_permissions_saved>Module permissions saved!</module_permissions_saved>
+    <error_saving_module_permissions>Error saving module permissions</error_saving_module_permissions>
+    <no_mapping_for_module_key>No mapping for module key</no_mapping_for_module_key>
+    <insert_permission>Permission inserted</insert_permission>
+    <settings_saved>Settings saved!</settings_saved>
+    <api_credentials_saved>API credentials saved!</api_credentials_saved>
+    <confirm_delete>Really delete?</confirm_delete>
+    <mein_profil>My Profile</mein_profil>
+    <letzter_login>Last Login</letzter_login>
+    <passwort_geaendert>Password last changed</passwort_geaendert>
+    <profil_erstellt>Profile created</profil_erstellt>
+    <letztes_update>Last update</letztes_update>
+    <altes_passwort>Old password (required for change)</altes_passwort>
+    <neues_passwort>New password (leave empty for no change)</neues_passwort>
+    <profil_speichern>Save profile</profil_speichern>
+    <passwort_hinweis>The current password cannot be displayed for security reasons.</passwort_hinweis>
+    <profil_gespeichert>Profile saved successfully!</profil_gespeichert>
+    <passwort_alt_fehler>The old password is incorrect.</passwort_alt_fehler>
+    <passwort_felder_leer>Please fill in both password fields to change the password.</passwort_felder_leer>
+    <zeitstempel>Timestamps</zeitstempel>
+    <benutzername>Username</benutzername>
+    <vollstaendiger_name>Full Name</vollstaendiger_name>
+    <passwort_nicht_angezeigt>The current password cannot be displayed for security reasons.</passwort_nicht_angezeigt>
+    <passwort_zuletzt_geaendert>Password last changed</passwort_zuletzt_geaendert>
+    <system_settings>System Settings</system_settings>
+    <welcome_admin_area>Welcome to the admin area! Please select a function from the menu.</welcome_admin_area>
+</translations> 

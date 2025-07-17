@@ -10,16 +10,23 @@ class AdminModule extends ModuleBase {
     
     public function getContent() {
         if (!$this->canAccess()) {
-            return '<div class="alert alert-danger">Zugriff verweigert. Admin-Rechte erforderlich.</div>';
+            return '<div class="alert alert-danger">' . $this->t('access_denied') . '</div>';
         }
         
         try {
             return $this->render('main', [
-                'stats' => $this->getStats()
+                'stats' => $this->getStats(),
+                'translations' => $this->tMultiple([
+                    'module_title', 'manage_vms', 'websites', 'databases', 'emails', 'refresh',
+                    'system_status', 'connected', 'proxmox', 'ispconfig', 'ovh_api', 'database',
+                    'resource_management', 'virtual_machines', 'new_vm', 'new_website', 'new_database', 'new_email_account',
+                    'system_logs', 'load_logs', 'clear_logs', 'loading', 'actions', 'name', 'status', 'created', 'updated',
+                    'edit', 'delete', 'view', 'create', 'save', 'cancel', 'confirm'
+                ])
             ]);
         } catch (Exception $e) {
             error_log("AdminModule getContent error: " . $e->getMessage());
-            return '<div class="alert alert-danger">Fehler beim Laden des Admin-Moduls: ' . htmlspecialchars($e->getMessage()) . '</div>';
+            return '<div class="alert alert-danger">' . $this->t('error_loading_module') . ': ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     }
     
@@ -72,7 +79,7 @@ class AdminModule extends ModuleBase {
             
         } catch (Exception $e) {
             $this->log('Error getting VMs: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_vms') . ': ' . $e->getMessage());
         }
     }
     
@@ -85,7 +92,7 @@ class AdminModule extends ModuleBase {
             
         } catch (Exception $e) {
             $this->log('Error getting websites: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_websites') . ': ' . $e->getMessage());
         }
     }
     
@@ -98,7 +105,7 @@ class AdminModule extends ModuleBase {
             
         } catch (Exception $e) {
             $this->log('Error getting databases: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_databases') . ': ' . $e->getMessage());
         }
     }
     
@@ -111,7 +118,7 @@ class AdminModule extends ModuleBase {
             
         } catch (Exception $e) {
             $this->log('Error getting emails: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_emails') . ': ' . $e->getMessage());
         }
     }
     
@@ -124,7 +131,7 @@ class AdminModule extends ModuleBase {
             
         } catch (Exception $e) {
             $this->log('Error getting domains: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_domains') . ': ' . $e->getMessage());
         }
     }
     
@@ -137,7 +144,7 @@ class AdminModule extends ModuleBase {
             
         } catch (Exception $e) {
             $this->log('Error getting VPS: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_vps') . ': ' . $e->getMessage());
         }
     }
     
@@ -150,7 +157,7 @@ class AdminModule extends ModuleBase {
             
         } catch (Exception $e) {
             $this->log('Error getting activity log: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_getting_logs') . ': ' . $e->getMessage());
         }
     }
     
@@ -161,7 +168,7 @@ class AdminModule extends ModuleBase {
         ]);
         
         if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+            return $this->error($this->t('validation_failed'), $errors);
         }
         
         try {
@@ -170,11 +177,11 @@ class AdminModule extends ModuleBase {
             
             $this->log("VM {$data['vmid']} deleted from node {$data['node']}");
             
-            return $this->success($result, 'VM erfolgreich gelöscht');
+            return $this->success($result, $this->t('vm_deleted_successfully'));
             
         } catch (Exception $e) {
             $this->log('Error deleting VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_deleting_vm') . ': ' . $e->getMessage());
         }
     }
     
@@ -184,7 +191,7 @@ class AdminModule extends ModuleBase {
         ]);
         
         if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+            return $this->error($this->t('validation_failed'), $errors);
         }
         
         try {
@@ -193,11 +200,11 @@ class AdminModule extends ModuleBase {
             
             $this->log("Website {$data['domain_id']} deleted");
             
-            return $this->success($result, 'Website erfolgreich gelöscht');
+            return $this->success($result, $this->t('website_deleted_successfully'));
             
         } catch (Exception $e) {
             $this->log('Error deleting website: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_deleting_website') . ': ' . $e->getMessage());
         }
     }
     
@@ -207,7 +214,7 @@ class AdminModule extends ModuleBase {
         ]);
         
         if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+            return $this->error($this->t('validation_failed'), $errors);
         }
         
         try {
@@ -216,11 +223,11 @@ class AdminModule extends ModuleBase {
             
             $this->log("Database {$data['database_id']} deleted");
             
-            return $this->success($result, 'Datenbank erfolgreich gelöscht');
+            return $this->success($result, $this->t('database_deleted_successfully'));
             
         } catch (Exception $e) {
             $this->log('Error deleting database: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_deleting_database') . ': ' . $e->getMessage());
         }
     }
     
@@ -230,7 +237,7 @@ class AdminModule extends ModuleBase {
         ]);
         
         if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+            return $this->error($this->t('validation_failed'), $errors);
         }
         
         try {
@@ -239,11 +246,11 @@ class AdminModule extends ModuleBase {
             
             $this->log("Email {$data['mailuser_id']} deleted");
             
-            return $this->success($result, 'E-Mail erfolgreich gelöscht');
+            return $this->success($result, $this->t('email_deleted_successfully'));
             
         } catch (Exception $e) {
             $this->log('Error deleting email: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            return $this->error($this->t('error_deleting_email') . ': ' . $e->getMessage());
         }
     }
     

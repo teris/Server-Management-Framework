@@ -438,4 +438,51 @@ function getSessionInfoForJS() {
         'timeout' => SessionManager::SESSION_TIMEOUT
     ];
 }
+
+// ============================================================================
+// HINWEIS: Modul-Funktionen sind bereits in framework.php implementiert
+// ============================================================================
+// 
+// Die folgenden Funktionen sind bereits in framework.php verfügbar:
+// - getModuleConfig()
+// - getModulePermissions()
+// - getModuleSettings()
+// - getModuleLogs()
+// - getModuleStats()
+// - getModuleTranslations()
+// - getModuleAssets()
+// - getModuleTemplates()
+// - getModuleDependencies()
+// - getModuleVersion()
+// - getModuleAuthor()
+// - getModuleDescription()
+// - getModuleLicense()
+// - getModuleSupport()
+// - getModuleChangelog()
+// - getModuleInstallation()
+// - getModuleConfiguration()
+// - getModuleTroubleshooting()
+// - getModuleFAQ()
+// - getModuleExamples()
+// - getModuleAPI()
+// - getModuleTesting()
+// - getModuleDeployment()
+// - getModuleSecurity()
+// - getModulePerformance()
+// - getModuleMonitoring()
+// - getModuleBackup()
+// - getModuleRestore()
+// - getModuleMigration()
+// - getModuleUpgrade()
+// - getModuleDowngrade()
+// - getModuleRollback()
+// - getModuleCleanup()
+// - getModuleOptimization()
+// - getModuleMaintenance()
+// - getModuleHealth()
+// - getModuleDiagnostics()
+//
+// Diese Funktionen werden von ModuleBase.php verwendet und sind bereits
+// vollständig in framework.php implementiert.
+// ============================================================================
 ?>
