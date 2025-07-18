@@ -341,14 +341,12 @@ class AdminCore {
                 $ipReverse = $details['ipReverse'] ?? $ip;
                 $reverse = $details['reverse'] ?? '';
                 $macInfo = $this->findMacAndType($macData, $ipReverse);
-                if ($macInfo['macAddress']) {
-                    $result[] = [
-                        'ipReverse' => $ipReverse,
-                        'reverse' => $reverse,
-                        'macAddress' => $macInfo['macAddress'],
-                        'type' => $macInfo['type']
-                    ];
-                }
+                $result[] = [
+                    'ipReverse' => $ipReverse,
+                    'reverse' => $reverse,
+                    'macAddress' => $macInfo['macAddress'] ? $macInfo['macAddress'] : 'Nicht zugewiesen',
+                    'type' => $macInfo['macAddress'] ? $macInfo['type'] : 'Nicht zugewiesen'
+                ];
             }
         }
         return $result;

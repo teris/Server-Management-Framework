@@ -383,4 +383,21 @@
     <system_settings>System Settings</system_settings>
     <welcome_admin_area>Welcome to the admin area! Please select a function from the menu.</welcome_admin_area>
     <ip>IP Addresses</ip>
+    <clear_logs>Clear Logs</clear_logs>
+    <ip_mac_reverse>IP/MAC Reverse</ip_mac_reverse>
+    <ip_reverse>IP Reverse</ip_reverse>
+    <mac_address>MAC Address</mac_address>
+    <type>Type</type>
+    <not_assigned>Not assigned</not_assigned>
+    <no_matching_combinations>No matching IP/MAC combinations found.</no_matching_combinations>
+    <ip_mac_reverse_table>IP/MAC Reverse Table</ip_mac_reverse_table>
+    <ip_mac_reverse_table_description>This table shows all IP/MAC combinations found in the system.</ip_mac_reverse_table_description>  
+    <error_loading>Error loading</error_loading>
+    <error_saving>Error saving</error_saving>
+    <error_deleting>Error deleting</error_deleting>
+    <error_editing>Error editing</error_editing>
+    <error_adding>Error adding</error_adding>
+    <error_loading_users>Error loading users</error_loading_users>
+    <error_loading_groups>Error loading groups</error_loading_groups>
+    <error_loading_api_credentials>Error loading API credentials</error_loading_api_credentials>
 </translations> 

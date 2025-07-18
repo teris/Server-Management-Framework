@@ -1,7 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/sys.conf.php';
 require_once dirname(__DIR__) . '/config/config.inc.php';
-session_start();
 
 // Prüfe, ob der Nutzer eingeloggt ist
 if (!isset($_SESSION['user_id'])) {
@@ -68,7 +67,7 @@ function formatTimestamp($ts, $format) {
 }
 
 // LanguageManager ist global verfügbar (index.php)
-$lm = isset($languageManager) ? $languageManager : (function_exists('getLanguageManager') ? getLanguageManager() : null);
+$lm = isset($lang) ? $lang : (function_exists('getLanguageManager') ? getLanguageManager() : null);
 function tcore($key, $default = null) {
     global $lm;
     return $lm ? $lm->translateCore($key, $default) : ($default ?? $key);

@@ -1,14 +1,14 @@
 <?php
-require_once __DIR__ . '/../framework.php';
-require_once dirname(__DIR__) . '/core/AdminCore.php';
-$core = new AdminCore();
+//require_once __DIR__ . '/../framework.php';
+//require_once dirname(__DIR__) . '/core/AdminCore.php';
+//$core = new AdminCore();
 
-$vms = $core->getResources('vms');
-$websites = $core->getResources('websites');
-$databases = $core->getResources('databases');
-$emails = $core->getResources('emails');
-$domains = $core->getResources('domains');
-$ip = $core->getResources('ip');
+$vms = $adminCore->getResources('vms');
+$websites = $adminCore->getResources('websites');
+$databases = $adminCore->getResources('databases');
+$emails = $adminCore->getResources('emails');
+$domains = $adminCore->getResources('domains');
+$ip = $adminCore->getResources('ip');
 
 // Websites nach Hauptdomain (system_user/system_group) und Subdomain/AliasDomain gruppieren
 $grouped = [];
@@ -151,11 +151,11 @@ foreach ($websites as $site) {
                                                         $id = $vm['vmid'] ?? $vm['id'] ?? '';
                                                         $node = $vm['node'] ?? '';
                                                         if ($status === 'running') {
-                                                            echo '<a href="?option=resources&action=stop_vm&id=' . urlencode($id) . '&node=' . urlencode($node) . '" class="btn btn-warning btn-sm">Stop</a> ';
+                                                            echo '<a href="?option=resources&action=stop_vm&id=' . urlencode($id) . '&node=' . urlencode($node) . '" class="btn btn-warning btn-sm">'.t('stop').'</a> ';
                                                         } else {
-                                                            echo '<a href="?option=resources&action=start_vm&id=' . urlencode($id) . '&node=' . urlencode($node) . '" class="btn btn-success btn-sm">Start</a> ';
+                                                            echo '<a href="?option=resources&action=start_vm&id=' . urlencode($id) . '&node=' . urlencode($node) . '" class="btn btn-success btn-sm">'.t('start').'</a> ';
                                                         }
-                                                        echo '<a href="?option=resources&action=delete_vm&id=' . urlencode($id) . '&node=' . urlencode($node) . '" class="btn btn-danger btn-sm">Löschen</a>';
+                                                        echo '<a href="?option=resources&action=delete_vm&id=' . urlencode($id) . '&node=' . urlencode($node) . '" class="btn btn-danger btn-sm">'.t('delete').'</a>';
                                                     ?>
                                                 </td>
                                             </tr>
@@ -200,11 +200,11 @@ foreach ($websites as $site) {
                                                     <?php
                                                         $id = $site['id'] ?? $site['domain'] ?? '';
                                                         $isActive = ($active === 'y' || $active === 'active');
-                                                        echo '<a href="?option=resources&action=delete_website&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">Löschen</a> ';
+                                                        echo '<a href="?option=resources&action=delete_website&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">'.t('delete').'</a> ';
                                                         if ($isActive) {
-                                                            echo '<a href="?option=resources&action=deactivate_website&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">Deaktivieren</a>';
+                                                            echo '<a href="?option=resources&action=deactivate_website&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">'.t('deactivate').'</a>';
                                                         } else {
-                                                            echo '<a href="?option=resources&action=activate_website&id=' . urlencode($id) . '" class="btn btn-success btn-sm">Aktivieren</a>';
+                                                            echo '<a href="?option=resources&action=activate_website&id=' . urlencode($id) . '" class="btn btn-success btn-sm">'.t('activate').'</a>';
                                                         }
                                                     ?>
                                                 </td>
@@ -223,11 +223,11 @@ foreach ($websites as $site) {
                                                             <?php
                                                                 $id = $sub['id'] ?? $sub['domain'] ?? '';
                                                                 $isActive = ($active === 'y' || $active === 'active');
-                                                                echo '<a href="?option=resources&action=delete_website&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">Löschen</a> ';
+                                                                echo '<a href="?option=resources&action=delete_website&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">'.t('delete').'</a> ';
                                                                 if ($isActive) {
-                                                                    echo '<a href="?option=resources&action=deactivate_subdomain&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">Deaktivieren</a>';
+                                                                    echo '<a href="?option=resources&action=deactivate_subdomain&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">'.t('deactivate').'</a>';
                                                                 } else {
-                                                                    echo '<a href="?option=resources&action=activate_subdomain&id=' . urlencode($id) . '" class="btn btn-success btn-sm">Aktivieren</a>';
+                                                                    echo '<a href="?option=resources&action=activate_subdomain&id=' . urlencode($id) . '" class="btn btn-success btn-sm">'.t('activate').'</a>';
                                                                 }
                                                             ?>
                                                         </td>
@@ -248,11 +248,11 @@ foreach ($websites as $site) {
                                                     <?php
                                                         $id = $alias['id'] ?? $alias['domain'] ?? '';
                                                         $isActive = ($active === 'y' || $active === 'active');
-                                                        echo '<a href="?option=resources&action=delete_website&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">Löschen</a> ';
+                                                        echo '<a href="?option=resources&action=delete_website&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">'.t('delete').'</a> ';
                                                         if ($isActive) {
-                                                            echo '<a href="?option=resources&action=deactivate_website&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">Deaktivieren</a>';
+                                                            echo '<a href="?option=resources&action=deactivate_website&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">'.t('deactivate').'</a>';
                                                         } else {
-                                                            echo '<a href="?option=resources&action=activate_website&id=' . urlencode($id) . '" class="btn btn-success btn-sm">Aktivieren</a>';
+                                                            echo '<a href="?option=resources&action=activate_website&id=' . urlencode($id) . '" class="btn btn-success btn-sm">'.t('activate').'</a>';
                                                         }
                                                     ?>
                                                 </td>
@@ -308,11 +308,11 @@ foreach ($websites as $site) {
                                                     <?php
                                                         $id = $db['database_id'] ?? $db['id'] ?? $db['name'] ?? '';
                                                         $isActive = ($active === 'y' || $active === 'active');
-                                                        echo '<a href="?option=resources&action=delete_database&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">Löschen</a> ';
+                                                        echo '<a href="?option=resources&action=delete_database&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">'.t('delete').'</a> ';
                                                         if ($isActive) {
-                                                            echo '<a href="?option=resources&action=deactivate_database&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">Deaktivieren</a>';
+                                                            echo '<a href="?option=resources&action=deactivate_database&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">'.t('deactivate').'</a>';
                                                         } else {
-                                                            echo '<a href="?option=resources&action=activate_database&id=' . urlencode($id) . '" class="btn btn-success btn-sm">Aktivieren</a>';
+                                                            echo '<a href="?option=resources&action=activate_database&id=' . urlencode($id) . '" class="btn btn-success btn-sm">'.t('activate').'</a>';
                                                         }
                                                     ?>
                                                 </td>
@@ -383,11 +383,11 @@ foreach ($websites as $site) {
                                                     <?php
                                                         $id = $mail['mailuser_id'] ?? $mail['id'] ?? $mail['email'] ?? '';
                                                         $isActive = ($active === 'y' || $active === 'active');
-                                                        echo '<a href="?option=resources&action=delete_email&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">Löschen</a> ';
+                                                        echo '<a href="?option=resources&action=delete_email&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">'.t('delete').'</a> ';
                                                         if ($isActive) {
-                                                            echo '<a href="?option=resources&action=deactivate_email&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">Deaktivieren</a>';
+                                                            echo '<a href="?option=resources&action=deactivate_email&id=' . urlencode($id) . '" class="btn btn-warning btn-sm">'.t('deactivate').'</a>';
                                                         } else {
-                                                            echo '<a href="?option=resources&action=activate_email&id=' . urlencode($id) . '" class="btn btn-success btn-sm">Aktivieren</a>';
+                                                            echo '<a href="?option=resources&action=activate_email&id=' . urlencode($id) . '" class="btn btn-success btn-sm">'.t('activate').'</a>';
                                                         }
                                                     ?>
                                                 </td>
@@ -450,7 +450,7 @@ foreach ($websites as $site) {
                                                 <td>
                                                     <?php
                                                         $id = $domain['domain'] ?? $domain['name'] ?? '';
-                                                        echo '<a href="?option=resources&action=delete_domain&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">Löschen</a>';
+                                                        echo '<a href="?option=resources&action=delete_domain&id=' . urlencode($id) . '" class="btn btn-danger btn-sm">'.t('delete').'</a>';
                                                     ?>
                                                 </td>
                                             </tr>
@@ -512,26 +512,26 @@ function loadIpMacReverseTable() {
             if (Array.isArray(data) && data.length > 0) {
                 var html = '<table class="table table-bordered table-striped table-sm align-middle">';
                 html += '<thead class="table-light"><tr>' +
-                        '<th>IP</th><th>Reverse-DNS</th><th>MAC-Adresse</th><th>Type</th>' +
+                        '<th>'+t('ip')+'</th><th>'+t('ip_reverse')+'</th><th>'+t('mac_address')+'</th><th>'+t('type')+'</th>' +
                         '</tr></thead><tbody>';
                 data.forEach(function(row) {
                     html += '<tr>' +
                         '<td>' + escapeHtml(row.ipReverse) + '</td>' +
                         '<td>' + escapeHtml(row.reverse) + '</td>' +
-                        '<td>' + escapeHtml(row.macAddress) + '</td>' +
-                        '<td>' + escapeHtml(row.type) + '</td>' +
+                        '<td>' + (row.macAddress === 'Nicht zugewiesen' ? '<span class="text-danger fw-bold">'+escapeHtml('not_assigned')+'</span>' : escapeHtml(row.macAddress)) + '</td>' +
+                        '<td>' + (row.type === 'Nicht zugewiesen' ? '<span class="text-danger fw-bold">'+escapeHtml('not_assigned')+'</span>' : escapeHtml(row.type)) + '</td>' +
                         '</tr>';
                 });
                 html += '</tbody></table>';
                 content.innerHTML = html;
             } else {
-                content.innerHTML = '<div class="alert alert-info">Keine passenden IP/MAC-Kombinationen gefunden.</div>';
+                content.innerHTML = '<div class="alert alert-info">'+escapeHtml('no_matching_combinations')+'</div>';
             }
         })
         .catch(function() {
             clearInterval(fakeInterval);
             bar.style.display = 'none';
-            content.innerHTML = '<div class="alert alert-danger">Fehler beim Laden der Daten.</div>';
+            content.innerHTML = '<div class="alert alert-danger">'+escapeHtml('error_loading')+'</div>';
         });
 }
 function escapeHtml(text) {

@@ -516,7 +516,7 @@
     <system_config_save_error>Fehler beim Speichern der System-Konfiguration! Überprüfen Sie die Dateiberechtigungen.</system_config_save_error>
     <mein_profil>Mein Profil</mein_profil>
     <letzter_login>Letzter Login</letzter_login>
-    <passwort_geaendert>Passwort zuletzt geändert</passwort_geaendert>
+    <passwort_zuletzt_geaendert>Passwort zuletzt geändert</passwort_zuletzt_geaendert>
     <profil_erstellt>Profil erstellt</profil_erstellt>
     <letztes_update>Letztes Update</letztes_update>
     <altes_passwort>Altes Passwort (erforderlich für Änderung)</altes_passwort>
@@ -528,4 +528,13 @@
     <passwort_felder_leer>Bitte beide Passwortfelder ausfüllen, um das Passwort zu ändern.</passwort_felder_leer>
     <welcome_admin_area>Willkommen im Adminbereich! Bitte wählen Sie eine Funktion im Menü.</welcome_admin_area>
     <ip>IP-Adressen</ip>
+    <clear_logs>Logs löschen</clear_logs>
+    <ip_mac_reverse>IP/MAC Reverse</ip_mac_reverse>
+    <ip_reverse>IP Reverse</ip_reverse>
+    <mac_address>MAC Address</mac_address>
+    <type>Type</type>
+    <not_assigned>Nicht zugewiesen</not_assigned>
+    <no_matching_combinations>Keine passenden IP/MAC-Kombinationen gefunden.</no_matching_combinations>
+    <ip_mac_reverse_table>IP/MAC Reverse Table</ip_mac_reverse_table>
+    <ip_mac_reverse_table_description>Diese Tabelle zeigt alle IP/MAC-Kombinationen im System.</ip_mac_reverse_table_description>
 </translations> 

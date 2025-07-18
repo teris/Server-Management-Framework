@@ -108,6 +108,7 @@ try {
     require_once 'core/AdminCore.php';
     require_once 'core/LanguageManager.php';
     $adminCore = new AdminCore();
+    $lang = LanguageManager::getInstance();
     $dashboardStats = $adminCore->getDashboardStats();
 } catch (Exception $e) {
     error_log('Error loading admin stats: ' . $e->getMessage());

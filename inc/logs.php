@@ -1,12 +1,12 @@
 <?php
-$lang = LanguageManager::getInstance();
+//$lang = LanguageManager::getInstance();
 
 $limit = 30;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset = ($page - 1) * $limit;
 
-$core = new AdminCore();
-$logs = $core->getActivityLogs([], $limit, $offset);
+//$core = new AdminCore();
+$logs = $adminCore->getActivityLogs([], $limit, $offset);
 
 $db = Database::getInstance();
 $stmt = $db->getConnection()->query('SELECT COUNT(*) FROM activity_log');
