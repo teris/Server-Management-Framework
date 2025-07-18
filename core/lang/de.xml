@@ -527,4 +527,5 @@
     <passwort_alt_fehler>Das alte Passwort ist nicht korrekt.</passwort_alt_fehler>
     <passwort_felder_leer>Bitte beide Passwortfelder ausfüllen, um das Passwort zu ändern.</passwort_felder_leer>
     <welcome_admin_area>Willkommen im Adminbereich! Bitte wählen Sie eine Funktion im Menü.</welcome_admin_area>
+    <ip>IP-Adressen</ip>
 </translations> 

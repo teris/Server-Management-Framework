@@ -382,4 +382,5 @@
     <passwort_zuletzt_geaendert>Password last changed</passwort_zuletzt_geaendert>
     <system_settings>System Settings</system_settings>
     <welcome_admin_area>Welcome to the admin area! Please select a function from the menu.</welcome_admin_area>
+    <ip>IP Addresses</ip>
 </translations> 

@@ -1935,6 +1935,37 @@ class OVHGet extends BaseAPI {
 
         return false;
     }
+
+    /**
+     * Holt und gibt alle Reverse-DNS-Details für alle IPs dynamisch aus OVH zurück.
+     * Beispiel-Ausgabe:
+    **/
+    public function getAllIPReverseDetails() {
+        $result = [];
+        // Schritt 1: Alle IPs abrufen
+        $url = "https://eu.api.ovh.com/1.0/ip";
+        $ipList = $this->makeRequest('GET', $url);
+        if (is_array($ipList)) {
+            foreach ($ipList as $ip) {
+                $ipEncoded = str_replace('/', '%2F', $ip);
+                // Schritt 2: Reverse-IPs für jede IP abrufen
+                $reverseList = $this->makeRequest('GET', "https://eu.api.ovh.com/1.0/ip/{$ipEncoded}/reverse");
+                if (is_array($reverseList) && count($reverseList) > 0) {
+                    foreach ($reverseList as $ipReverse) {
+                        // Schritt 3: Details für jede Reverse-IP abrufen
+                        $details = $this->makeRequest('GET', "https://eu.api.ovh.com/1.0/ip/{$ipEncoded}/reverse/{$ipReverse}");
+                        $result[$ip][$ipReverse] = $details;
+                    }
+                } else {
+                    $result[$ip] = "Keine Reverse-IPs gefunden";
+                }
+            }
+        } else {
+            $result = "Fehler beim Abrufen der IP-Liste";
+        }
+        return $result;
+        $this->logRequest("/ip/{$ipEncoded}/reverse/{$ipReverse}", 'GET', $response !== false);
+    }
 }
 
 // =============================================================================
@@ -2411,6 +2442,9 @@ class ServiceManager {
         return $this->ovhGet->getVPSList();
     }
 
+    public function getOvhIP(){
+        return $this->ovhGet->getAllIPReverseDetails();
+    }
     public function getOVHFailoverIPs() {
         $failoverIPs = $this->ovhGet->getFailoverIPs();
         $detailedIPs = [];

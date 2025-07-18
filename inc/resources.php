@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../framework.php';
 require_once dirname(__DIR__) . '/core/AdminCore.php';
 $core = new AdminCore();
 
@@ -7,6 +8,7 @@ $websites = $core->getResources('websites');
 $databases = $core->getResources('databases');
 $emails = $core->getResources('emails');
 $domains = $core->getResources('domains');
+$ip = $core->getResources('ip');
 
 // Websites nach Hauptdomain (system_user/system_group) und Subdomain/AliasDomain gruppieren
 $grouped = [];
@@ -61,6 +63,11 @@ foreach ($websites as $site) {
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="domains-tab" data-bs-toggle="pill" data-bs-target="#resource-domains" type="button" role="tab">
                             <i class="bi bi-link-45deg"></i> <?= t('domains') ?>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ip-tab" data-bs-toggle="pill" data-bs-target="#resource-ip" type="button" role="tab">
+                            <i class="bi bi-ip-stack"></i> <?= t('ip') ?>
                         </button>
                     </li>
                 </ul>
@@ -455,8 +462,93 @@ foreach ($websites as $site) {
                             <?php endif; ?>
                         </div>
                     </div>
+                    <!-- IP Management -->
+                    <div class="tab-pane fade" id="resource-ip" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4><?= t('ip') ?></h4>
+                            <a class="btn btn-primary btn-sm" href="?option=resources">
+                                <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
+                            </a>
+                        </div>
+                        <div id="ip-progressbar" class="progress mb-3" style="height: 24px; display: none;">
+                          <div id="ip-progressbar-inner" class="progress-bar progress-bar-striped progress-bar-animated" 
+                               role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                        <div id="ip-content" class="table-responsive">
+                            <!-- Tabelle wird per JS eingefügt -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div> 
+<script>
+function loadIpMacReverseTable() {
+    var bar = document.getElementById('ip-progressbar');
+    var inner = document.getElementById('ip-progressbar-inner');
+    var content = document.getElementById('ip-content');
+    if (!bar || !inner || !content) return;
+    bar.style.display = 'block';
+    inner.style.width = '0%';
+    inner.innerText = '0%';
+    content.innerHTML = '';
+    // Simulierter Fortschritt
+    var percent = 0;
+    var fakeInterval = setInterval(function() {
+        percent += Math.floor(Math.random() * 8) + 2;
+        if (percent > 90) percent = 90;
+        inner.style.width = percent + '%';
+        inner.innerText = percent + '%';
+    }, 80);
+    // AJAX-Request
+    fetch('ajax_ip_mac_reverse.php')
+        .then(response => response.json())
+        .then(data => {
+            clearInterval(fakeInterval);
+            inner.style.width = '100%';
+            inner.innerText = '100%';
+            setTimeout(function() { bar.style.display = 'none'; }, 400);
+            if (Array.isArray(data) && data.length > 0) {
+                var html = '<table class="table table-bordered table-striped table-sm align-middle">';
+                html += '<thead class="table-light"><tr>' +
+                        '<th>IP</th><th>Reverse-DNS</th><th>MAC-Adresse</th><th>Type</th>' +
+                        '</tr></thead><tbody>';
+                data.forEach(function(row) {
+                    html += '<tr>' +
+                        '<td>' + escapeHtml(row.ipReverse) + '</td>' +
+                        '<td>' + escapeHtml(row.reverse) + '</td>' +
+                        '<td>' + escapeHtml(row.macAddress) + '</td>' +
+                        '<td>' + escapeHtml(row.type) + '</td>' +
+                        '</tr>';
+                });
+                html += '</tbody></table>';
+                content.innerHTML = html;
+            } else {
+                content.innerHTML = '<div class="alert alert-info">Keine passenden IP/MAC-Kombinationen gefunden.</div>';
+            }
+        })
+        .catch(function() {
+            clearInterval(fakeInterval);
+            bar.style.display = 'none';
+            content.innerHTML = '<div class="alert alert-danger">Fehler beim Laden der Daten.</div>';
+        });
+}
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/[&<>"']/g, function(m) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m];
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var ipTab = document.getElementById('ip-tab');
+    if (ipTab) {
+        ipTab.addEventListener('shown.bs.tab', function () {
+            loadIpMacReverseTable();
+        });
+    } else {
+        // Falls kein Tab, direkt laden
+        loadIpMacReverseTable();
+    }
+});
+</script> 

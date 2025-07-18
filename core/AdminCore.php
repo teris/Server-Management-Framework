@@ -194,6 +194,8 @@ class AdminCore {
                 return $this->getEmails();
             case 'domains':
                 return $this->getDomains();
+            case 'ip':
+                return $this->getIP();
             default:
                 throw new Exception("Unknown resource type: $type");
         }
@@ -312,6 +314,65 @@ class AdminCore {
             error_log("Error getting domains: " . $e->getMessage());
             return [];
         }
+    }
+
+    private function getIP() {
+        try {   
+            $ip = $this->serviceManager->getOvhIP();
+            return $ip;
+        } catch (Exception $e) {
+            error_log("Error getting IP: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Gibt eine kombinierte Liste aller IPs mit zugehörigem Reverse-DNS, MAC-Adresse und Typ zurück
+     * Nur Einträge mit passender MAC-Adresse werden ausgegeben
+     * Rückgabe: Array mit Schlüsseln: ipReverse, reverse, macAddress, type
+     */
+    public function getIpMacReverseTable() {
+        $macData = $this->serviceManager->getCompleteVirtualMacInfo();
+        $reverseData = $this->serviceManager->getOvhIP();
+        $result = [];
+        foreach ($reverseData as $subnet => $ips) {
+            if (!is_array($ips)) continue;
+            foreach ($ips as $ip => $details) {
+                $ipReverse = $details['ipReverse'] ?? $ip;
+                $reverse = $details['reverse'] ?? '';
+                $macInfo = $this->findMacAndType($macData, $ipReverse);
+                if ($macInfo['macAddress']) {
+                    $result[] = [
+                        'ipReverse' => $ipReverse,
+                        'reverse' => $reverse,
+                        'macAddress' => $macInfo['macAddress'],
+                        'type' => $macInfo['type']
+                    ];
+                }
+            }
+        }
+        return $result;
+    }
+    /**
+     * Hilfsfunktion: Sucht MAC und Typ zu einer IP
+     */
+    private function findMacAndType($macData, $ip) {
+        foreach ($macData as $server) {
+            if (!isset($server['virtualMacs'])) continue;
+            foreach ($server['virtualMacs'] as $macObj) {
+                if (is_object($macObj)) $macObj = (array)$macObj;
+                if (!isset($macObj['ips']) || !is_array($macObj['ips'])) continue;
+                foreach ($macObj['ips'] as $ipEntry) {
+                    if (isset($ipEntry['ipAddress']) && $ipEntry['ipAddress'] === $ip) {
+                        return [
+                            'macAddress' => $macObj['macAddress'] ?? '',
+                            'type' => $macObj['type'] ?? ''
+                        ];
+                    }
+                }
+            }
+        }
+        return ['macAddress' => '', 'type' => ''];
     }
     
     /**
