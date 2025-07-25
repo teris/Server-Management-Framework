@@ -4,9 +4,15 @@
  * Version 3.0 mit integriertem Admin-Modul und Plugin-System
  */
 
-require_once 'framework.php';
-require_once 'auth_handler.php';
 require_once 'sys.conf.php';
+$frameworkFile = 'framework.php';
+if ($modus_type['modus'] === 'mysql') {
+    $frameworkFile = 'core/DatabaseOnlyFramework.php';
+} elseif ($modus_type['modus']  === 'mysql') {
+    $frameworkFile = 'core/DatabaseOnlyFramework.php';
+}
+require_once $frameworkFile;
+require_once 'auth_handler.php';
 
 // Login-Überprüfung
 requireLogin();
@@ -216,9 +222,24 @@ try {
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-3">
+                            
+                               <a href="?option=settings" class="btn btn-outline-warning btn-sm">  
+                                <i class="bi bi-database"></i> <?php
+                                    $anzeigeModus = '';
+                                    if (isset($modus_type['modus'])) {
+                                        $anzeigeModus = ($modus_type['modus'] === 'api') ? 'LIVE' : (($modus_type['modus'] === 'mysql') ? 'CronJob' : $modus_type['modus']);
+                                    }
+                                    echo htmlspecialchars($anzeigeModus);
+                                ?>
+                                </a>
                             <div class="badge bg-info" id="sessionTimer">
                                 <i class="bi bi-clock"></i> <span id="timeRemaining">--:--</span>
                             </div>
+                            <?php if ($modus_type['modus']  === 'mysql'): ?>
+                            <a href="update.php" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-arrow-repeat"></i><?= t('update') ?> 
+                            </a>
+                            <?php endif; ?>
                             <a href="password_change.php" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-key"></i> <?= t('password') ?>
                             </a>

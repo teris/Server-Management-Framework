@@ -537,4 +537,12 @@
     <no_matching_combinations>Keine passenden IP/MAC-Kombinationen gefunden.</no_matching_combinations>
     <ip_mac_reverse_table>IP/MAC Reverse Table</ip_mac_reverse_table>
     <ip_mac_reverse_table_description>Diese Tabelle zeigt alle IP/MAC-Kombinationen im System.</ip_mac_reverse_table_description>
+    <error_loading>Fehler beim Laden</error_loading>
+    <error_saving>Fehler beim Speichern</error_saving>
+    <error_deleting>Fehler beim Löschen</error_deleting>
+    <error_editing>Fehler beim Bearbeiten</error_editing>
+    <error_adding>Fehler beim Hinzufügen</error_adding>
+    <error_loading_users>Fehler beim Laden der Benutzer</error_loading_users>
+    <error_loading_groups>Fehler beim Laden der Gruppen</error_loading_groups>
+    <error_loading_api_credentials>Fehler beim Laden der API-Zugangsdaten</error_loading_api_credentials>
 </translations> 

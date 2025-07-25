@@ -177,6 +177,13 @@ $dashboard_config = [
     'enable_notifications' => true
 ];
 
+$mode = 'api'; //mysql oder api
+
+$modus_type =[
+    'modus' => 'api' //mysql oder api
+];
+
+
 // Helper Functions
 function getEnabledPlugins() {
     global $plugins;

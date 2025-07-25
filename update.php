@@ -16,6 +16,18 @@ if (php_sapi_name() !== 'cli') {
     }
 }
 
+// Hilfsfunktionen für sichere Werte
+function safeString($value, $default = '') {
+    return ($value === null || $value === '') ? $default : $value;
+}
+function safeInt($value, $default = 0, $min = 0, $max = 999999) {
+    if (!is_numeric($value)) return $default;
+    $value = (int)$value;
+    if ($value < $min) return $min;
+    if ($value > $max) return $max;
+    return $value;
+}
+
 class DatabaseUpdater {
     private $db;
     private $serviceManager;
@@ -27,6 +39,21 @@ class DatabaseUpdater {
         'domains' => ['added' => 0, 'updated' => 0, 'errors' => 0],
         'credentials' => ['updated' => 0, 'errors' => 0]
     ];
+    private $debugSql = true; // NEU: Debug-Flag für SQL-Ausgabe
+
+    public function setDebugSql($debug) {
+        $this->debugSql = (bool)$debug;
+    }
+
+    // Hilfsfunktion für SQL-Debug-Ausgabe
+    private function debugSql($sql, $params) {
+        if ($this->debugSql) {
+            $this->output("\n--- SQL-DEBUG ---\n");
+            $this->output("SQL: " . $sql . "\n");
+            $this->output("Parameter: " . var_export($params, true) . "\n");
+            $this->output("--- ENDE SQL-DEBUG ---\n\n");
+        }
+    }
     
     public function __construct() {
         $this->db = Database::getInstance();
@@ -55,6 +82,8 @@ class DatabaseUpdater {
         
         // 4. OVH Domains synchronisieren
         $this->syncOVHDomains();
+        // NEU: Ressourcen aus AdminCore synchronisieren
+        $this->syncResourcesFromAdminCore();
         
         $endTime = microtime(true);
         $duration = round($endTime - $startTime, 2);
@@ -117,7 +146,7 @@ class DatabaseUpdater {
         // Verschlüsselung der sensiblen Daten
         $encryptionKey = $this->getEncryptionKey();
         
-        $stmt = $conn->prepare("
+        $sql = "
             INSERT INTO api_credentials 
             (service_name, endpoint, username, password_encrypted, api_key_encrypted, additional_config, active, updated_at) 
             VALUES (?, ?, ?, ?, ?, ?, 'y', NOW())
@@ -128,19 +157,22 @@ class DatabaseUpdater {
             api_key_encrypted = VALUES(api_key_encrypted),
             additional_config = VALUES(additional_config),
             updated_at = NOW()
-        ");
+        ";
         
         $passwordEncrypted = !empty($data['password']) ? $this->encrypt($data['password'], $encryptionKey) : null;
         $apiKeyEncrypted = !empty($data['api_key']) ? $this->encrypt($data['api_key'], $encryptionKey) : null;
         
-        $stmt->execute([
+        $params = [
             $serviceName,
             $data['endpoint'],
             $data['username'],
             $passwordEncrypted,
             $apiKeyEncrypted,
             $data['additional_config']
-        ]);
+        ];
+        $this->debugSql($sql, $params);
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
         
         $this->stats['credentials']['updated']++;
     }
@@ -177,21 +209,23 @@ class DatabaseUpdater {
                     }
                     
                     // Prüfen ob VM bereits existiert
-                    $stmt = $conn->prepare("SELECT id FROM vms WHERE vm_id = ?");
-                    $stmt->execute([$vm->vmid]);
+                    $sql = "SELECT id FROM vms WHERE vm_id = ?";
+                    $params = [$vm->vmid];
+                    $this->debugSql($sql, $params);
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute($params);
                     $exists = $stmt->fetch();
                     
                     if ($exists) {
                         // Update
-                        $stmt = $conn->prepare("
+                        $sql = "
                             UPDATE vms SET 
                                 name = ?, node = ?, status = ?, cores = ?, 
                                 memory = ?, disk_size = ?, ip_address = ?, 
                                 mac_address = ?, updated_at = NOW()
                             WHERE vm_id = ?
-                        ");
-                        
-                        $stmt->execute([
+                        ";
+                        $params = [
                             $vm->name,
                             $vm->node,
                             $vm->status,
@@ -201,18 +235,20 @@ class DatabaseUpdater {
                             $vm->ip_address,
                             $vm->mac_address,
                             $vm->vmid
-                        ]);
+                        ];
+                        $this->debugSql($sql, $params);
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute($params);
                         
                         $this->stats['vms']['updated']++;
                     } else {
                         // Insert
-                        $stmt = $conn->prepare("
+                        $sql = "
                             INSERT INTO vms 
                             (vm_id, name, node, status, cores, memory, disk_size, ip_address, mac_address, created_at) 
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-                        ");
-                        
-                        $stmt->execute([
+                        ";
+                        $params = [
                             $vm->vmid,
                             $vm->name,
                             $vm->node,
@@ -222,7 +258,10 @@ class DatabaseUpdater {
                             $diskInGB,
                             $vm->ip_address,
                             $vm->mac_address
-                        ]);
+                        ];
+                        $this->debugSql($sql, $params);
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute($params);
                         
                         $this->stats['vms']['added']++;
                     }
@@ -259,21 +298,23 @@ class DatabaseUpdater {
                     $documentRoot = $website->document_root ?: '/var/www/' . $website->domain;
                     
                     // Prüfen ob Website bereits existiert
-                    $stmt = $conn->prepare("SELECT id FROM websites WHERE domain = ?");
-                    $stmt->execute([$website->domain]);
+                    $sql = "SELECT id FROM websites WHERE domain = ?";
+                    $params = [$website->domain];
+                    $this->debugSql($sql, $params);
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute($params);
                     $exists = $stmt->fetch();
                     
                     if ($exists) {
                         // Update
-                        $stmt = $conn->prepare("
+                        $sql = "
                             UPDATE websites SET 
                                 ip_address = ?, system_user = ?, system_group = ?, 
                                 document_root = ?, hd_quota = ?, traffic_quota = ?, 
                                 active = ?, ssl_enabled = ?, updated_at = NOW()
                             WHERE domain = ?
-                        ");
-                        
-                        $stmt->execute([
+                        ";
+                        $params = [
                             $ipAddress,
                             $systemUser,
                             $systemGroup,
@@ -283,19 +324,21 @@ class DatabaseUpdater {
                             $website->active,
                             $website->ssl_enabled,
                             $website->domain
-                        ]);
+                        ];
+                        $this->debugSql($sql, $params);
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute($params);
                         
                         $this->stats['websites']['updated']++;
                     } else {
                         // Insert
-                        $stmt = $conn->prepare("
+                        $sql = "
                             INSERT INTO websites 
                             (domain, ip_address, system_user, system_group, document_root, 
                              hd_quota, traffic_quota, active, ssl_enabled, created_at) 
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-                        ");
-                        
-                        $stmt->execute([
+                        ";
+                        $params = [
                             $website->domain,
                             $ipAddress,
                             $systemUser,
@@ -305,7 +348,10 @@ class DatabaseUpdater {
                             $website->traffic_quota ?: -1,
                             $website->active,
                             $website->ssl_enabled
-                        ]);
+                        ];
+                        $this->debugSql($sql, $params);
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute($params);
                         
                         $this->stats['websites']['added']++;
                     }
@@ -339,20 +385,22 @@ class DatabaseUpdater {
                     $dbUser = $database->database_user ?: $database->database_name; // Verwende DB-Name als User wenn leer
                     
                     // Prüfen ob Datenbank bereits existiert
-                    $stmt = $conn->prepare("SELECT id FROM sm_databases WHERE database_name = ?");
-                    $stmt->execute([$database->database_name]);
+                    $sql = "SELECT id FROM sm_databases WHERE database_name = ?";
+                    $params = [$database->database_name];
+                    $this->debugSql($sql, $params);
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute($params);
                     $exists = $stmt->fetch();
                     
                     if ($exists) {
                         // Update
-                        $stmt = $conn->prepare("
+                        $sql = "
                             UPDATE sm_databases SET 
                                 database_user = ?, database_type = ?, server_id = ?, 
                                 charset = ?, remote_access = ?, active = ?, updated_at = NOW()
                             WHERE database_name = ?
-                        ");
-                        
-                        $stmt->execute([
+                        ";
+                        $params = [
                             $dbUser,
                             $database->database_type ?: 'mysql',
                             $database->server_id ?: 1,
@@ -360,19 +408,21 @@ class DatabaseUpdater {
                             $database->remote_access ?: 'n',
                             $database->active,
                             $database->database_name
-                        ]);
+                        ];
+                        $this->debugSql($sql, $params);
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute($params);
                         
                         $this->stats['databases']['updated']++;
                     } else {
                         // Insert
-                        $stmt = $conn->prepare("
+                        $sql = "
                             INSERT INTO sm_databases 
                             (database_name, database_user, database_type, server_id, 
                              charset, remote_access, active, created_at) 
                             VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
-                        ");
-                        
-                        $stmt->execute([
+                        ";
+                        $params = [
                             $database->database_name,
                             $dbUser,
                             $database->database_type ?: 'mysql',
@@ -380,7 +430,10 @@ class DatabaseUpdater {
                             $database->charset ?: 'utf8',
                             $database->remote_access ?: 'n',
                             $database->active
-                        ]);
+                        ];
+                        $this->debugSql($sql, $params);
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute($params);
                         
                         $this->stats['databases']['added']++;
                     }
@@ -431,21 +484,23 @@ class DatabaseUpdater {
 					$activeStatus = $this->normalizeActiveStatus($email->active);
 					
 					// Prüfen ob E-Mail bereits existiert
-					$stmt = $conn->prepare("SELECT id FROM email_accounts WHERE email_address = ?");
-					$stmt->execute([$email->email]);
+					$sql = "SELECT id FROM email_accounts WHERE email_address = ?";
+					$params = [$email->email];
+					$this->debugSql($sql, $params);
+					$stmt = $conn->prepare($sql);
+					$stmt->execute($params);
 					$exists = $stmt->fetch();
 					
 					if ($exists) {
 						// Update
-						$stmt = $conn->prepare("
+						$sql = "
 							UPDATE email_accounts SET 
 								login_name = ?, full_name = ?, domain = ?, 
 								quota_mb = ?, active = ?, autoresponder = ?, 
 								forward_to = ?, updated_at = NOW()
 							WHERE email_address = ?
-						");
-						
-						$stmt->execute([
+						";
+						$params = [
 							$loginName,
 							$fullName,
 							$domain,
@@ -454,19 +509,21 @@ class DatabaseUpdater {
 							$email->autoresponder ?: 'n',
 							$forwardTo,
 							$email->email
-						]);
+						];
+						$this->debugSql($sql, $params);
+						$stmt = $conn->prepare($sql);
+						$stmt->execute($params);
 						
 						$this->stats['emails']['updated']++;
 					} else {
 						// Insert
-						$stmt = $conn->prepare("
+						$sql = "
 							INSERT INTO email_accounts 
 							(email_address, login_name, full_name, domain, quota_mb, 
 							 active, autoresponder, forward_to, created_at) 
 							VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
-						");
-						
-						$stmt->execute([
+						";
+						$params = [
 							$email->email,
 							$loginName,
 							$fullName,
@@ -475,7 +532,10 @@ class DatabaseUpdater {
 							$activeStatus,
 							$email->autoresponder ?: 'n',
 							$forwardTo
-						]);
+						];
+						$this->debugSql($sql, $params);
+						$stmt = $conn->prepare($sql);
+						$stmt->execute($params);
 						
 						$this->stats['emails']['added']++;
 					}
@@ -681,8 +741,11 @@ class DatabaseUpdater {
 			$conn = $this->db->getConnection();
 			
 			// Prüfe email_accounts Tabelle
-			$stmt = $conn->prepare("DESCRIBE email_accounts");
-			$stmt->execute();
+			$sql = "DESCRIBE email_accounts";
+			$params = [];
+			$this->debugSql($sql, $params);
+			$stmt = $conn->prepare($sql);
+			$stmt->execute($params);
 			$columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
 			
 			$this->output("📋 email_accounts Tabellen-Schema:\n");
@@ -723,8 +786,11 @@ class DatabaseUpdater {
 			$conn = $this->db->getConnection();
 			
 			// Ändere quota_mb zu einem größeren Datentyp
-			$stmt = $conn->prepare("ALTER TABLE email_accounts MODIFY COLUMN quota_mb INT UNSIGNED DEFAULT 1000");
-			$stmt->execute();
+			$sql = "ALTER TABLE email_accounts MODIFY COLUMN quota_mb INT UNSIGNED DEFAULT 1000";
+			$params = [];
+			$this->debugSql($sql, $params);
+			$stmt = $conn->prepare($sql);
+			$stmt->execute($params);
 			
 			$this->output("✅ quota_mb Spalte erfolgreich zu INT UNSIGNED geändert\n");
 			$this->output("   Neuer Wertebereich: 0 - 4,294,967,295 MB\n\n");
@@ -767,46 +833,53 @@ class DatabaseUpdater {
                     }
                     
                     // Prüfen ob Domain bereits existiert
-                    $stmt = $conn->prepare("SELECT id FROM domains WHERE domain_name = ?");
-                    $stmt->execute([$domain->domain]);
+                    $sql = "SELECT id FROM domains WHERE domain_name = ?";
+                    $params = [$domain->domain];
+                    $this->debugSql($sql, $params);
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute($params);
                     $exists = $stmt->fetch();
                     
                     if ($exists) {
                         // Update
-                        $stmt = $conn->prepare("
+                        $sql = "
                             UPDATE domains SET 
                                 registrar = ?, expiration_date = ?, auto_renew = ?, 
                                 nameservers = ?, status = ?, updated_at = NOW()
                             WHERE domain_name = ?
-                        ");
-                        
-                        $stmt->execute([
+                        ";
+                        $params = [
                             $domain->registrar,
                             $expirationDate,
                             $domain->autoRenew ? 'y' : 'n',
                             json_encode($domain->nameServers),
                             $dbStatus,
                             $domain->domain
-                        ]);
+                        ];
+                        $this->debugSql($sql, $params);
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute($params);
                         
                         $this->stats['domains']['updated']++;
                     } else {
                         // Insert
-                        $stmt = $conn->prepare("
+                        $sql = "
                             INSERT INTO domains 
                             (domain_name, registrar, expiration_date, auto_renew, 
                              nameservers, status, created_at) 
                             VALUES (?, ?, ?, ?, ?, ?, NOW())
-                        ");
-                        
-                        $stmt->execute([
+                        ";
+                        $params = [
                             $domain->domain,
                             $domain->registrar,
                             $expirationDate,
                             $domain->autoRenew ? 'y' : 'n',
                             json_encode($domain->nameServers),
                             $dbStatus
-                        ]);
+                        ];
+                        $this->debugSql($sql, $params);
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute($params);
                         
                         $this->stats['domains']['added']++;
                     }
@@ -822,6 +895,323 @@ class DatabaseUpdater {
         } catch (Exception $e) {
             $this->output("   ❌ Fehler beim Abrufen der Domains: " . $e->getMessage() . "\n\n");
         }
+    }
+
+    private function syncResourcesFromAdminCore() {
+        $this->output("🔄 Synchronisiere Ressourcen aus AdminCore...\n");
+        require_once 'core/AdminCore.php';
+        $adminCore = new AdminCore();
+        $conn = $this->db->getConnection();
+        // 1. VMs
+        $vms = $adminCore->getResources('vms');
+        foreach ($vms as $vm) {
+            // Patch: Speicherwerte umrechnen (Bytes → MB)
+            $memory = $vm['memory'] ?? null;
+            if ($memory > 100000) { // vermutlich Bytes
+                $memory = round($memory / 1024 / 1024); // MB
+            }
+            $disk = $vm['disk'] ?? $vm['disk_size'] ?? null;
+            if ($disk > 100000000) { // vermutlich Bytes
+                $disk = round($disk / 1024 / 1024 / 1024); // GB
+            }
+            $ip_address = $vm['ip_address'] ?? '';
+            if ($ip_address === null) $ip_address = '';
+            $stmt = $conn->prepare("SELECT id FROM vms WHERE vm_id = ?");
+            $this->debugSql("SELECT id FROM vms WHERE vm_id = ?", [$vm['vmid'] ?? $vm['id'] ?? null]);
+            $stmt->execute([$vm['vmid'] ?? $vm['id'] ?? null]);
+            $exists = $stmt->fetch();
+            if ($exists) {
+                $sql = "UPDATE vms SET name=?, node=?, status=?, cores=?, memory=?, disk_size=?, ip_address=?, mac_address=?, updated_at=NOW() WHERE vm_id=?";
+                $params = [
+                    $vm['name'] ?? null,
+                    $vm['node'] ?? null,
+                    $vm['status'] ?? null,
+                    $vm['cores'] ?? null,
+                    $memory,
+                    $disk,
+                    $ip_address,
+                    $vm['mac_address'] ?? null,
+                    $vm['vmid'] ?? $vm['id'] ?? null
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            } else {
+                $sql = "INSERT INTO vms (vm_id, name, node, status, cores, memory, disk_size, ip_address, mac_address, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                $params = [
+                    $vm['vmid'] ?? $vm['id'] ?? null,
+                    $vm['name'] ?? null,
+                    $vm['node'] ?? null,
+                    $vm['status'] ?? null,
+                    $vm['cores'] ?? null,
+                    $memory,
+                    $disk,
+                    $ip_address,
+                    $vm['mac_address'] ?? null
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            }
+        }
+        // 2. Websites
+        $websites = $adminCore->getResources('websites');
+        foreach ($websites as $site) {
+            $ip_address = $site['ip_address'] ?? '';
+            if ($ip_address === null) $ip_address = '';
+            $system_user = $site['system_user'] ?? '';
+            if ($system_user === null) $system_user = '';
+            $system_group = $site['system_group'] ?? '';
+            if ($system_group === null) $system_group = '';
+            $document_root = $site['document_root'] ?? '';
+            if ($document_root === null) $document_root = '';
+            $domain = $site['domain'] ?? $site['name'] ?? '';
+            if ($domain === null) $domain = '';
+            $stmt = $conn->prepare("SELECT id FROM websites WHERE domain = ?");
+            $this->debugSql("SELECT id FROM websites WHERE domain = ?", [$domain]);
+            $stmt->execute([$domain]);
+            $exists = $stmt->fetch();
+            if ($exists) {
+                $sql = "UPDATE websites SET ip_address=?, system_user=?, system_group=?, document_root=?, hd_quota=?, traffic_quota=?, active=?, ssl_enabled=?, updated_at=NOW() WHERE domain=?";
+                $params = [
+                    $ip_address,
+                    $system_user,
+                    $system_group,
+                    $document_root,
+                    $site['hd_quota'] ?? 0,
+                    $site['traffic_quota'] ?? 0,
+                    $site['active'] ?? 'y',
+                    $site['ssl_enabled'] ?? 'n',
+                    $domain
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            } else {
+                $sql = "INSERT INTO websites (domain, ip_address, system_user, system_group, document_root, hd_quota, traffic_quota, active, ssl_enabled, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                $params = [
+                    $domain,
+                    $ip_address,
+                    $system_user,
+                    $system_group,
+                    $document_root,
+                    $site['hd_quota'] ?? 0,
+                    $site['traffic_quota'] ?? 0,
+                    $site['active'] ?? 'y',
+                    $site['ssl_enabled'] ?? 'n'
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            }
+        }
+        // 3. Datenbanken
+        $databases = $adminCore->getResources('databases');
+        foreach ($databases as $db) {
+            $database_name = $db['database_name'] ?? $db['name'] ?? '';
+            if ($database_name === null) $database_name = '';
+            $database_user = $db['database_user'] ?? '';
+            if ($database_user === null) $database_user = '';
+            $database_type = $db['database_type'] ?? 'mysql';
+            if ($database_type === null) $database_type = 'mysql';
+            $charset = $db['charset'] ?? 'utf8';
+            if ($charset === null) $charset = 'utf8';
+            $active = $db['active'] ?? 'y';
+            if ($active === null) $active = 'y';
+            $stmt = $conn->prepare("SELECT id FROM sm_databases WHERE database_name = ?");
+            $this->debugSql("SELECT id FROM sm_databases WHERE database_name = ?", [$database_name]);
+            $stmt->execute([$database_name]);
+            $exists = $stmt->fetch();
+            if ($exists) {
+                $sql = "UPDATE sm_databases SET database_user=?, database_type=?, server_id=?, charset=?, remote_access=?, active=?, updated_at=NOW() WHERE database_name=?";
+                $params = [
+                    $database_user,
+                    $database_type,
+                    $db['server_id'] ?? 1,
+                    $charset,
+                    $db['remote_access'] ?? 'n',
+                    $active,
+                    $database_name
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            } else {
+                $sql = "INSERT INTO sm_databases (database_name, database_user, database_type, server_id, charset, remote_access, active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+                $params = [
+                    $database_name,
+                    $database_user,
+                    $database_type,
+                    $db['server_id'] ?? 1,
+                    $charset,
+                    $db['remote_access'] ?? 'n',
+                    $active
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            }
+        }
+        // 4. E-Mails
+        $emails = $adminCore->getResources('emails');
+        foreach ($emails as $email) {
+            $email_address = $email['email'] ?? '';
+            if ($email_address === null) $email_address = '';
+            $login_name = $email['login'] ?? '';
+            if ($login_name === null) $login_name = '';
+            $full_name = $email['name'] ?? '';
+            if ($full_name === null) $full_name = '';
+            $domain = $email['domain'] ?? '';
+            if ($domain === null) $domain = '';
+            // Patch: quota_mb sicher konvertieren und begrenzen
+            $quota_mb = safeInt($this->convertQuotaToMB($email['quota']), 1000, 0, 999999);
+            $active = $email['active'] ?? 'y';
+            if ($active === null) $active = 'y';
+            $autoresponder = $email['autoresponder'] ?? 'n';
+            if ($autoresponder === null) $autoresponder = 'n';
+            $forward_to = $email['forward_to'] ?? '';
+            if ($forward_to === null) $forward_to = '';
+            $stmt = $conn->prepare("SELECT id FROM email_accounts WHERE email_address = ?");
+            $this->debugSql("SELECT id FROM email_accounts WHERE email_address = ?", [$email_address]);
+            $stmt->execute([$email_address]);
+            $exists = $stmt->fetch();
+            if ($exists) {
+                $sql = "UPDATE email_accounts SET login_name=?, full_name=?, domain=?, quota_mb=?, active=?, autoresponder=?, forward_to=?, updated_at=NOW() WHERE email_address=?";
+                $params = [
+                    $login_name,
+                    $full_name,
+                    $domain,
+                    $quota_mb,
+                    $active,
+                    $autoresponder,
+                    $forward_to,
+                    $email_address
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            } else {
+                $sql = "INSERT INTO email_accounts (email_address, login_name, full_name, domain, quota_mb, active, autoresponder, forward_to, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                $params = [
+                    $email_address,
+                    $login_name,
+                    $full_name,
+                    $domain,
+                    $quota_mb,
+                    $active,
+                    $autoresponder,
+                    $forward_to
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            }
+        }
+        // 5. Domains
+        $domains = $adminCore->getResources('domains');
+        foreach ($domains as $domain) {
+            $domain_name = $domain['domain'] ?? '';
+            if ($domain_name === null) $domain_name = '';
+            $owner = $domain['owner'] ?? '';
+            if ($owner === null) $owner = '';
+            $active = $domain['active'] ?? 'y';
+            if ($active === null) $active = 'y';
+            // Patch: auto_renew sicher auf 'y'/'n' mappen
+            $auto_renew = $domain['auto_renew'] ?? 'n';
+            if (is_bool($auto_renew)) {
+                $auto_renew = $auto_renew ? 'y' : 'n';
+            } elseif (is_numeric($auto_renew)) {
+                $auto_renew = $auto_renew ? 'y' : 'n';
+            } elseif (is_string($auto_renew)) {
+                $ar = strtolower($auto_renew);
+                if (in_array($ar, ['1', 'true', 'yes', 'y', 'ja'])) {
+                    $auto_renew = 'y';
+                } else {
+                    $auto_renew = 'n';
+                }
+            } else {
+                $auto_renew = 'n';
+            }
+            // Patch: status auf gültige Werte mappen
+            $status = $domain['state'] ?? $domain['status'] ?? '';
+            if (is_bool($status)) {
+                $status = $status ? 'active' : 'inactive';
+            } elseif (is_numeric($status)) {
+                $status = $status ? 'active' : 'inactive';
+            } elseif (is_string($status)) {
+                $s = strtolower($status);
+                if (in_array($s, ['active', 'enabled', 'ok', '1', 'true', 'y', 'ja'])) {
+                    $status = 'active';
+                } elseif (in_array($s, ['inactive', 'disabled', 'error', '0', 'false', 'n', 'nein'])) {
+                    $status = 'inactive';
+                } else {
+                    $status = 'unknown';
+                }
+            } else {
+                $status = 'unknown';
+            }
+            $stmt = $conn->prepare("SELECT id FROM domains WHERE domain_name = ?");
+            $this->debugSql("SELECT id FROM domains WHERE domain_name = ?", [$domain_name]);
+            $stmt->execute([$domain_name]);
+            $exists = $stmt->fetch();
+            if ($exists) {
+                $sql = "UPDATE domains SET registrar=?, expiration_date=?, auto_renew=?, nameservers=?, status=?, updated_at=NOW() WHERE domain_name=?";
+                $params = [
+                    $domain['registrar'] ?? null,
+                    $domain['expiration'] ?? null,
+                    $auto_renew,
+                    json_encode($domain['nameServers'] ?? []),
+                    $status,
+                    $domain_name
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            } else {
+                $sql = "INSERT INTO domains (domain_name, registrar, expiration_date, auto_renew, nameservers, status, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())";
+                $params = [
+                    $domain_name,
+                    $domain['registrar'] ?? null,
+                    $domain['expiration'] ?? null,
+                    $auto_renew,
+                    json_encode($domain['nameServers'] ?? []),
+                    $status
+                ];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+            }
+        }
+        // 6. IPs (optional, je nach Datenstruktur)
+        $ips = $adminCore->getResources('ip');
+        foreach ($ips as $subnet => $ipEntries) {
+            if (!is_array($ipEntries)) continue;
+            foreach ($ipEntries as $ipReverse => $details) {
+                $reverse = $details['reverse'] ?? null;
+                $ttl = $details['ttl'] ?? null;
+                $sql = "SELECT id FROM ips WHERE subnet = ? AND ip_reverse = ?";
+                $params = [$subnet, $ipReverse];
+                $this->debugSql($sql, $params);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+                $exists = $stmt->fetch();
+                if ($exists) {
+                    $sql = "UPDATE ips SET reverse = ?, ttl = ?, updated_at = NOW() WHERE subnet = ? AND ip_reverse = ?";
+                    $params = [$reverse, $ttl, $subnet, $ipReverse];
+                    $this->debugSql($sql, $params);
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute($params);
+                } else {
+                    $sql = "INSERT INTO ips (subnet, ip_reverse, reverse, ttl, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())";
+                    $params = [$subnet, $ipReverse, $reverse, $ttl];
+                    $this->debugSql($sql, $params);
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute($params);
+                }
+            }
+        }
+        // Hier kannst du nach deinem Datenbankschema für IPs verfahren
+        $this->output("   ✅ Ressourcen aus AdminCore synchronisiert\n\n");
     }
     
     /**

@@ -228,6 +228,7 @@ Bitte verwenden Sie die [GitHub Issues](https://github.com/teris/server-manageme
 - [X] **v2.5** - Plugin System
 - [x] **v2.6** - Use Framework as Single without Interface
 - [x] **v2.7** - Bootstrap 5.3.2 Migration
+- [x] **V2.8** - Databasemodus
 
 ## 🔒 Sicherheit
 

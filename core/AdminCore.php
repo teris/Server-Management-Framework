@@ -202,22 +202,45 @@ class AdminCore {
     }
     
     private function getVMs() {
+        global $modus_type;
         try {
-            $vms = $this->serviceManager->getProxmoxVMs();
-            // Objekte zu Arrays konvertieren
-            $result = [];
-            foreach ($vms as $vm) {
-                if (is_object($vm)) {
-                    if (method_exists($vm, 'toArray')) {
-                        $result[] = $vm->toArray();
-                    } else {
-                        $result[] = (array) $vm;
-                    }
-                } else {
-                    $result[] = $vm;
+            if ($modus_type['modus']  == 'mysql') {
+                $db = Database::getInstance()->getConnection();
+                $sql = "SELECT vm_id, name, node, status, cores, memory, disk_size, ip_address, mac_address FROM vms";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $result = [];
+                foreach ($rows as $row) {
+                    $result[] = [
+                        'vmid' => $row['vm_id'],
+                        'name' => $row['name'],
+                        'node' => $row['node'],
+                        'status' => $row['status'],
+                        'cores' => $row['cores'],
+                        'memory' => $row['memory'],
+                        'disk' => $row['disk_size'],
+                        'ip_address' => $row['ip_address'],
+                        'mac_address' => $row['mac_address']
+                    ];
                 }
+                return $result;
+            } else {
+                $vms = $this->serviceManager->getProxmoxVMs();
+                $result = [];
+                foreach ($vms as $vm) {
+                    if (is_object($vm)) {
+                        if (method_exists($vm, 'toArray')) {
+                            $result[] = $vm->toArray();
+                        } else {
+                            $result[] = (array) $vm;
+                        }
+                    } else {
+                        $result[] = $vm;
+                    }
+                }
+                return $result;
             }
-            return $result;
         } catch (Exception $e) {
             error_log("Error getting VMs: " . $e->getMessage());
             return [];
@@ -225,22 +248,45 @@ class AdminCore {
     }
     
     private function getWebsites() {
+        global $modus_type;
         try {
-            $websites = $this->serviceManager->getISPConfigWebsites();
-            // Objekte zu Arrays konvertieren
-            $result = [];
-            foreach ($websites as $site) {
-                if (is_object($site)) {
-                    if (method_exists($site, 'toArray')) {
-                        $result[] = $site->toArray();
-                    } else {
-                        $result[] = (array) $site;
-                    }
-                } else {
-                    $result[] = $site;
+            if ($modus_type['modus']  === 'mysql') {
+                $db = Database::getInstance()->getConnection();
+                $sql = "SELECT domain, ip_address, system_user, system_group, document_root, hd_quota, traffic_quota, active, ssl_enabled FROM websites";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $result = [];
+                foreach ($rows as $row) {
+                    $result[] = [
+                        'domain' => $row['domain'],
+                        'ip_address' => $row['ip_address'],
+                        'system_user' => $row['system_user'],
+                        'system_group' => $row['system_group'],
+                        'document_root' => $row['document_root'],
+                        'hd_quota' => $row['hd_quota'],
+                        'traffic_quota' => $row['traffic_quota'],
+                        'active' => $row['active'],
+                        'ssl_enabled' => $row['ssl_enabled']
+                    ];
                 }
+                return $result;
+            } else {
+                $websites = $this->serviceManager->getISPConfigWebsites();
+                $result = [];
+                foreach ($websites as $site) {
+                    if (is_object($site)) {
+                        if (method_exists($site, 'toArray')) {
+                            $result[] = $site->toArray();
+                        } else {
+                            $result[] = (array) $site;
+                        }
+                    } else {
+                        $result[] = $site;
+                    }
+                }
+                return $result;
             }
-            return $result;
         } catch (Exception $e) {
             error_log("Error getting websites: " . $e->getMessage());
             return [];
@@ -248,22 +294,43 @@ class AdminCore {
     }
     
     private function getDatabases() {
+        global $modus_type;
         try {
-            $databases = $this->serviceManager->getISPConfigDatabases();
-            // Objekte zu Arrays konvertieren
-            $result = [];
-            foreach ($databases as $db) {
-                if (is_object($db)) {
-                    if (method_exists($db, 'toArray')) {
-                        $result[] = $db->toArray();
-                    } else {
-                        $result[] = (array) $db;
-                    }
-                } else {
-                    $result[] = $db;
+            if ($modus_type['modus']  === 'mysql') {
+                $db = Database::getInstance()->getConnection();
+                $sql = "SELECT database_name, database_user, database_type, server_id, charset, remote_access, active FROM sm_databases";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $result = [];
+                foreach ($rows as $row) {
+                    $result[] = [
+                        'database_name' => $row['database_name'],
+                        'database_user' => $row['database_user'],
+                        'database_type' => $row['database_type'],
+                        'server_id' => $row['server_id'],
+                        'charset' => $row['charset'],
+                        'remote_access' => $row['remote_access'],
+                        'active' => $row['active']
+                    ];
                 }
+                return $result;
+            } else {
+                $databases = $this->serviceManager->getISPConfigDatabases();
+                $result = [];
+                foreach ($databases as $db) {
+                    if (is_object($db)) {
+                        if (method_exists($db, 'toArray')) {
+                            $result[] = $db->toArray();
+                        } else {
+                            $result[] = (array) $db;
+                        }
+                    } else {
+                        $result[] = $db;
+                    }
+                }
+                return $result;
             }
-            return $result;
         } catch (Exception $e) {
             error_log("Error getting databases: " . $e->getMessage());
             return [];
@@ -271,22 +338,44 @@ class AdminCore {
     }
     
     private function getEmails() {
+        global $modus_type;
         try {
-            $emails = $this->serviceManager->getISPConfigEmails();
-            // Objekte zu Arrays konvertieren
-            $result = [];
-            foreach ($emails as $email) {
-                if (is_object($email)) {
-                    if (method_exists($email, 'toArray')) {
-                        $result[] = $email->toArray();
-                    } else {
-                        $result[] = (array) $email;
-                    }
-                } else {
-                    $result[] = $email;
+            if ($modus_type['modus']  === 'mysql') {
+                $db = Database::getInstance()->getConnection();
+                $sql = "SELECT email_address, login_name, full_name, domain, quota_mb, active, autoresponder, forward_to FROM email_accounts";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $result = [];
+                foreach ($rows as $row) {
+                    $result[] = [
+                        'email' => $row['email_address'],
+                        'login' => $row['login_name'],
+                        'name' => $row['full_name'],
+                        'domain' => $row['domain'],
+                        'quota' => $row['quota_mb'],
+                        'active' => $row['active'],
+                        'autoresponder' => $row['autoresponder'],
+                        'forward_to' => $row['forward_to']
+                    ];
                 }
+                return $result;
+            } else {
+                $emails = $this->serviceManager->getISPConfigEmails();
+                $result = [];
+                foreach ($emails as $email) {
+                    if (is_object($email)) {
+                        if (method_exists($email, 'toArray')) {
+                            $result[] = $email->toArray();
+                        } else {
+                            $result[] = (array) $email;
+                        }
+                    } else {
+                        $result[] = $email;
+                    }
+                }
+                return $result;
             }
-            return $result;
         } catch (Exception $e) {
             error_log("Error getting emails: " . $e->getMessage());
             return [];
@@ -294,22 +383,42 @@ class AdminCore {
     }
     
     private function getDomains() {
+        global $modus_type;
         try {
-            $domains = $this->serviceManager->getOVHDomains();
-            // Objekte zu Arrays konvertieren
-            $result = [];
-            foreach ($domains as $domain) {
-                if (is_object($domain)) {
-                    if (method_exists($domain, 'toArray')) {
-                        $result[] = $domain->toArray();
-                    } else {
-                        $result[] = (array) $domain;
-                    }
-                } else {
-                    $result[] = $domain;
+            if ($modus_type['modus'] === 'mysql') {
+                $db = Database::getInstance()->getConnection();
+                $sql = "SELECT domain_name, registrar, expiration_date, auto_renew, nameservers, status FROM domains";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $result = [];
+                foreach ($rows as $row) {
+                    $result[] = [
+                        'domain' => $row['domain_name'],
+                        'registrar' => $row['registrar'],
+                        'expiration' => $row['expiration_date'],
+                        'auto_renew' => $row['auto_renew'],
+                        'nameServers' => json_decode($row['nameservers'], true),
+                        'status' => $row['status']
+                    ];
                 }
+                return $result;
+            } else {
+                $domains = $this->serviceManager->getOVHDomains();
+                $result = [];
+                foreach ($domains as $domain) {
+                    if (is_object($domain)) {
+                        if (method_exists($domain, 'toArray')) {
+                            $result[] = $domain->toArray();
+                        } else {
+                            $result[] = (array) $domain;
+                        }
+                    } else {
+                        $result[] = $domain;
+                    }
+                }
+                return $result;
             }
-            return $result;
         } catch (Exception $e) {
             error_log("Error getting domains: " . $e->getMessage());
             return [];
@@ -317,9 +426,33 @@ class AdminCore {
     }
 
     private function getIP() {
-        try {   
-            $ip = $this->serviceManager->getOvhIP();
-            return $ip;
+        global $modus_type;
+        try {
+            if ($modus_type['modus']  === 'mysql') {
+                // Aus der Datenbank lesen
+                $db = Database::getInstance()->getConnection();
+                $sql = "SELECT subnet, ip_reverse, reverse, ttl FROM ips";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                // Rückgabe wie bisher: [subnet => [ip_reverse => [details...], ...], ...]
+                $result = [];
+                foreach ($rows as $row) {
+                    $subnet = $row['subnet'];
+                    $ipReverse = $row['ip_reverse'];
+                    $result[$subnet][$ipReverse] = [
+                        'ipReverse' => $ipReverse,
+                        'reverse' => $row['reverse'],
+                        'ttl' => $row['ttl'],
+                        'macAddress' => '',
+                        'type' => ''
+                    ];
+                }
+                return $result;
+            } else {
+                $ip = $this->serviceManager->getOvhIP();
+                return $ip;
+            }
         } catch (Exception $e) {
             error_log("Error getting IP: " . $e->getMessage());
             return [];
