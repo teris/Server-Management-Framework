@@ -30,8 +30,40 @@ class EndpointsModule extends ModuleBase {
         ]);
     }
     
+    /**
+     * Gibt den Modul-Inhalt für AJAX-Requests zurück
+     */
+    private function getContentResponse() {
+        $translations = $this->tMultiple([
+            'module_title', 'api_endpoints_tester', 'test_api_endpoints', 'proxmox_api_endpoints',
+            'load_nodes', 'load_storages', 'vm_config', 'vm_status', 'clone_vm',
+            'ispconfig_api_endpoints', 'load_clients', 'server_config', 'website_details',
+            'ftp_user_test', 'ovh_api_endpoints', 'domain_zone', 'dns_records', 'vps_ips',
+            'ip_details', 'vps_control', 'create_dns_record', 'refresh_dns_zone', 'failover_ips',
+            'virtual_mac_api_endpoints', 'all_virtual_macs', 'dedicated_servers', 'mac_details',
+            'create_virtual_mac', 'assign_ip', 'create_reverse_dns', 'database_api_endpoints',
+            'all_databases', 'create_database', 'delete_database', 'email_api_endpoints',
+            'all_emails', 'create_email', 'delete_email', 'system_endpoints', 'activity_log',
+            'session_heartbeat', 'custom_endpoint_test', 'module', 'select_module', 'action',
+            'parameters', 'test_endpoint', 'endpoint_response', 'success', 'error', 'copy',
+            'response_copied', 'copy_failed', 'testing', 'invalid_json', 'total_endpoints',
+            'active_modules', 'save', 'cancel', 'edit', 'delete', 'create', 'refresh', 'actions', 'status'
+        ]);
+        
+        $content = $this->render('main', [
+            'translations' => $translations
+        ]);
+        
+        return [
+            'success' => true,
+            'content' => $content
+        ];
+    }
+    
     public function handleAjaxRequest($action, $data) {
         switch ($action) {
+            case 'getContent':
+                return $this->getContentResponse();
             case 'get_translations':
                 return $this->getTranslations();
             case 'get_stats':

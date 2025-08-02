@@ -400,4 +400,220 @@
     <error_loading_users>Error loading users</error_loading_users>
     <error_loading_groups>Error loading groups</error_loading_groups>
     <error_loading_api_credentials>Error loading API credentials</error_loading_api_credentials>
+    
+    <!-- Virtual MAC Module -->
+    <module_title>Module Title</module_title>
+    <virtual_mac_management>Virtual MAC Management</virtual_mac_management>
+    <overview>Overview</overview>
+    <create>Create</create>
+    <ip_management>IP Management</ip_management>
+    <reverse_dns>Reverse DNS</reverse_dns>
+    <virtual_mac_overview>Virtual MAC Overview</virtual_mac_overview>
+    <total_virtual_macs>Total Virtual MACs</total_virtual_macs>
+    <assigned_ips>Assigned IPs</assigned_ips>
+    <dedicated_servers>Dedicated Servers</dedicated_servers>
+    <search_virtual_macs>Search Virtual MACs</search_virtual_macs>
+    <refresh>Refresh</refresh>
+    <mac_address>MAC Address</mac_address>
+    <vm_name>VM Name</vm_name>
+    <ip_address>IP Address</ip_address>
+    <service_name>Service Name</service_name>
+    <type>Type</type>
+    <created_at>Created At</created_at>
+    <actions>Actions</actions>
+    <create_new_virtual_mac>Create New Virtual MAC</create_new_virtual_mac>
+    <service_name_dedicated_server>Service Name (Dedicated Server)</service_name_dedicated_server>
+    <select_server>Select Server</select_server>
+    <mac_type>MAC Type</mac_type>
+    <ovh_standard>OVH (Standard)</ovh_standard>
+    <vmware>VMware</vmware>
+    <virtual_network_interface>Virtual Network Interface</virtual_network_interface>
+    <create_virtual_mac>Create Virtual MAC</create_virtual_mac>
+    <assign_ip_to_virtual_mac>Assign IP to Virtual MAC</assign_ip_to_virtual_mac>
+    <virtual_machine_name>Virtual Machine Name</virtual_machine_name>
+    <assign_ip_address>Assign IP Address</assign_ip_address>
+    <remove_ip_address>Remove IP Address</remove_ip_address>
+    <remove_ip_from_virtual_mac>Remove IP from Virtual MAC</remove_ip_from_virtual_mac>
+    <reverse_dns_management>Reverse DNS Management</reverse_dns_management>
+    <hostname>Hostname</hostname>
+    <create_reverse_dns>Create Reverse DNS</create_reverse_dns>
+    <query_reverse_dns>Query Reverse DNS</query_reverse_dns>
+    <query_reverse_dns_button>Query Reverse DNS</query_reverse_dns_button>
+    <reverse_dns_information>Reverse DNS Information</reverse_dns_information>
+    <status>Status</status>
+    
+    <!-- Proxmox Module -->
+    <create_vm_proxmox>Create VM with Proxmox</create_vm_proxmox>
+    <vm_name>VM Name</vm_name>
+    <vm_id>VM ID</vm_id>
+    <ram_mb>RAM (MB)</ram_mb>
+    <cpu_cores>CPU Cores</cpu_cores>
+    <disk_gb>Disk (GB)</disk_gb>
+    <proxmox_node>Proxmox Node</proxmox_node>
+    <storage>Storage</storage>
+    <network_bridge>Network Bridge</network_bridge>
+    <iso_image>ISO Image</iso_image>
+    <create_vm>Create VM</create_vm>
+    <extended_features>Extended Features</extended_features>
+    <get_nodes>Get Nodes</get_nodes>
+    <load_storages>Load Storages</load_storages>
+    <clone_vm>Clone VM</clone_vm>
+    <clone_vm_dialog>VM Clone Dialog</clone_vm_dialog>
+    <source_vm_id>Source VM ID</source_vm_id>
+    <new_vm_id>New VM ID</new_vm_id>
+    <new_name>New Name</new_name>
+    
+    <!-- ISPConfig Module -->
+    <create_website_ispconfig>Create Website with ISPConfig</create_website_ispconfig>
+    <domain>Domain</domain>
+    <system_user>System User</system_user>
+    <system_group>System Group</system_group>
+    <hd_quota>HD Quota</hd_quota>
+    <traffic_quota>Traffic Quota</traffic_quota>
+    <create_website>Create Website</create_website>
+    <create_ftp_user>Create FTP User</create_ftp_user>
+    <domain_id>Domain ID</domain_id>
+    <ftp_username>FTP Username</ftp_username>
+    <password>Password</password>
+    <quota>Quota</quota>
+    <create_subdomain>Create Subdomain</create_subdomain>
+    <parent_domain_id>Parent Domain ID</parent_domain_id>
+    <subdomain>Subdomain</subdomain>
+    <redirect_type>Redirect Type</redirect_type>
+    <no_redirect>No Redirect</no_redirect>
+    <redirect_temporary>Temporary Redirect</redirect_temporary>
+    <redirect_permanent>Permanent Redirect</redirect_permanent>
+    <redirect_path>Redirect Path</redirect_path>
+    <quick_actions>Quick Actions</quick_actions>
+    <load_clients>Load Clients</load_clients>
+    <server_config>Server Config</server_config>
+    <website_details>Website Details</website_details>
+    
+    <!-- Network Module -->
+    <vm_network_configuration>VM Network Configuration</vm_network_configuration>
+    <vm_id>VM ID</vm_id>
+    <update_network>Update Network</update_network>
+    <helpful_information>Helpful Information</helpful_information>
+    <mac_address_format>MAC Address Format</mac_address_format>
+    <mac_format_description>MAC Address Format Description</mac_format_description>
+    <examples>Examples</examples>
+    <ovh_virtual_mac>OVH Virtual MAC</ovh_virtual_mac>
+    <vmware_mac>VMware MAC</vmware_mac>
+    <kvm_qemu_mac>KVM/QEMU MAC</kvm_qemu_mac>
+    <ip_configuration>IP Configuration</ip_configuration>
+    <ip_config_description>IP Configuration Description</ip_config_description>
+    <dhcp_mac_binding>DHCP MAC Binding</dhcp_mac_binding>
+    <cloud_init>Cloud-Init</cloud_init>
+    <manual_vm>Manual VM</manual_vm>
+    <advanced_network_options>Advanced Network Options</advanced_network_options>
+    <advanced_network_description>Advanced Network Options Description</advanced_network_description>
+    
+    <!-- General Module Translations -->
+    <unknown_action>Unknown Action</unknown_action>
+    <validation_failed>Validation Failed</validation_failed>
+    <vm_created_successfully>VM created successfully</vm_created_successfully>
+    <error_creating_vm>Error creating VM</error_creating_vm>
+    <network_updated_successfully>Network updated successfully</network_updated_successfully>
+    <error_updating_network>Error updating network</error_updating_network>
+    <vm_network_updated_message>VM network updated successfully</vm_network_updated_message>
+    <unknown_error>Unknown Error</unknown_error>
+    <virtual_mac_created_successfully>Virtual MAC created successfully</virtual_mac_created_successfully>
+    <error_creating_virtual_mac>Error creating virtual MAC</error_creating_virtual_mac>
+    <error_getting_virtual_mac_details>Error getting virtual MAC details</error_getting_virtual_mac_details>
+    <error_getting_all_virtual_macs>Error getting all virtual MACs</error_getting_all_virtual_macs>
+    <virtual_mac_deleted_successfully>Virtual MAC deleted successfully</virtual_mac_deleted_successfully>
+    <error_deleting_virtual_mac>Error deleting virtual MAC</error_deleting_virtual_mac>
+    <ip_address_assigned_successfully>IP address assigned successfully</ip_address_assigned_successfully>
+    <error_assigning_ip>Error assigning IP address</error_assigning_ip>
+    <ip_address_removed_successfully>IP address removed successfully</ip_address_removed_successfully>
+    <error_removing_ip>Error removing IP address</error_removing_ip>
+    <reverse_dns_created_successfully>Reverse DNS created successfully</reverse_dns_created_successfully>
+    <error_creating_reverse_dns>Error creating reverse DNS</error_creating_reverse_dns>
+    <error_querying_reverse_dns>Error querying reverse DNS</error_querying_reverse_dns>
+    <reverse_dns_deleted_successfully>Reverse DNS deleted successfully</reverse_dns_deleted_successfully>
+    <error_deleting_reverse_dns>Error deleting reverse DNS</error_deleting_reverse_dns>
+    <error_getting_dedicated_servers>Error getting dedicated servers</error_getting_dedicated_servers>
+    <error_getting_virtual_macs_for_service>Error getting virtual MACs for service</error_getting_virtual_macs_for_service>
+    <error_loading_virtual_mac_overview>Error loading virtual MAC overview</error_loading_virtual_mac_overview>
+    <loading_virtual_mac_overview>Loading virtual MAC overview</loading_virtual_mac_overview>
+    <no_virtual_macs_found>No virtual MACs found</no_virtual_macs_found>
+    
+    <!-- DNS Module -->
+    <module_title>DNS Management</module_title>
+    <domain_selection>Domain Selection</domain_selection>
+    <select_domain>Select Domain</select_domain>
+    <dns_records>DNS Records</dns_records>
+    <add_record>Add Record</add_record>
+    <edit_record>Edit Record</edit_record>
+    <delete_record>Delete Record</delete_record>
+    <record_type>Record Type</record_type>
+    <subdomain>Subdomain</subdomain>
+    <target>Target</target>
+    <ttl>TTL</ttl>
+    <priority>Priority</priority>
+    <refresh_zone>Refresh Zone</refresh_zone>
+    <export_zone>Export Zone</export_zone>
+    <import_zone>Import Zone</import_zone>
+    <zone_info>Zone Information</zone_info>
+    <zone_content>Zone Content</zone_content>
+    <paste_zone_content>Paste zone content here...</paste_zone_content>
+    <actions>Actions</actions>
+    <status>Status</status>
+    <loading>Loading...</loading>
+    <operation_successful>Operation successful</operation_successful>
+    <operation_failed>Operation failed</operation_failed>
+    <confirm_delete>Confirm Delete</confirm_delete>
+    <validation_failed>Validation failed</validation_failed>
+    <unknown_action>Unknown action</unknown_action>
+    <domain_required>Domain required</domain_required>
+    <record_type_required>Record type required</record_type_required>
+    <target_required>Target required</target_required>
+    <ttl_required>TTL required</ttl_required>
+    <priority_required>Priority required</priority_required>
+    <mx_records>MX Records</mx_records>
+    <a_records>A Records</a_records>
+    <cname_records>CNAME Records</cname_records>
+    <txt_records>TXT Records</txt_records>
+    <ns_records>NS Records</ns_records>
+    <srv_records>SRV Records</srv_records>
+    <caa_records>CAA Records</caa_records>
+    <aaaa_records>AAAA Records</aaaa_records>
+    <ptr_records>PTR Records</ptr_records>
+    <soa_record>SOA Record</soa_record>
+    <zone_transfer>Zone Transfer</zone_transfer>
+    <dnssec_status>DNSSEC Status</dnssec_status>
+    <enable_dnssec>Enable DNSSEC</enable_dnssec>
+    <disable_dnssec>Disable DNSSEC</disable_dnssec>
+    <dnssec_keys>DNSSEC Keys</dnssec_keys>
+    <add_key>Add Key</add_key>
+    <delete_key>Delete Key</delete_key>
+    <key_type>Key Type</key_type>
+    <key_algorithm>Key Algorithm</key_algorithm>
+    <key_size>Key Size</key_size>
+    <zone_updated>Zone updated</zone_updated>
+    <zone_update_failed>Zone update failed</zone_update_failed>
+    <record_added>Record added</record_added>
+    <record_updated>Record updated</record_updated>
+    <record_deleted>Record deleted</record_deleted>
+    <record_add_failed>Record add failed</record_add_failed>
+    <record_update_failed>Record update failed</record_update_failed>
+    <record_delete_failed>Record delete failed</record_delete_failed>
+    <test_api_connection>Test API Connection</test_api_connection>
+    <api_connection_successful>API connection successful</api_connection_successful>
+    <api_connection_failed>API connection failed</api_connection_failed>
+    <domains_loaded>Domains loaded</domains_loaded>
+    <dns_records_loaded>DNS records loaded</dns_records_loaded>
+    <dnssec_enabled>DNSSEC enabled</dnssec_enabled>
+    <dnssec_disabled>DNSSEC disabled</dnssec_disabled>
+    <zone_exported>Zone exported</zone_exported>
+    <zone_imported>Zone imported</zone_imported>
+    <no_domains_available>No domains available</no_domains_available>
+    <no_records_found>No records found</no_records_found>
+    <no_dnssec_keys_found>No DNSSEC keys found</no_dnssec_keys_found>
+    <weight>Weight</weight>
+    <port>Port</port>
+    <key_id>ID</key_id>
+    <algorithm>Algorithm</algorithm>
+    <select>Select</select>
+    <dnssec_not_available>DNSSEC not available</dnssec_not_available>
 </translations> 

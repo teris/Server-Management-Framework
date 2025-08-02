@@ -5,46 +5,31 @@
                 <div class="card-header">
                     <ul class="nav nav-tabs card-header-tabs" id="pluginTabs" role="tablist">
                         <?php 
-                        $first = true;
                         foreach ($pluginManager->getEnabledPlugins() as $plugin_key => $plugin_info): 
                         ?>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link <?= $first ? 'active' : '' ?>" 
-                                    id="<?= $plugin_key ?>-tab" 
-                                    data-bs-toggle="tab" 
-                                    data-bs-target="#<?= $plugin_key ?>-content" 
-                                    type="button" 
-                                    role="tab"
-                                    onclick="loadPluginContent('<?= $plugin_key ?>')">
+                            <a class="nav-link <?= $_GET['mod'] == $plugin_key ? 'active' : '' ?>" 
+                               href="?option=modules&mod=<?= $plugin_key ?>"
+                               role="tab">
                                 <?= htmlspecialchars($plugin_info['name'] ?? $plugin_key) ?>
-                            </button>
+                            </a>
                         </li>
                         <?php 
-                        $first = false;
                         endforeach; 
                         ?>
                     </ul>
                 </div>
                 <div class="card-body">
-                    <div class="tab-content" id="pluginTabContent">
+                    
                         <?php 
-                        $first = true;
-                        foreach ($pluginManager->getEnabledPlugins() as $plugin_key => $plugin_info): 
+                        if(isset($_GET['mod'])){    
+                            include('module/'.$_GET['mod'].'/templates/main.php'); 
+                        } else {
+                            echo '<div class="alert alert-info text-center">';
+                            echo t('select_module_from_tabs_above');
+                            echo '</div>';
+                        } ;
                         ?>
-                        <div class="tab-pane fade <?= $first ? 'show active' : '' ?>" 
-                                id="<?= $plugin_key ?>-content" 
-                                role="tabpanel">
-                            <div class="text-center py-4">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden"><?= t('loading') ?></span>
-                                </div>
-                            </div>
-                        </div>
-                        <?php 
-                        $first = false;
-                        endforeach; 
-                        ?>
-                    </div>
                 </div>
             </div>
         </div>

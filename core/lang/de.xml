@@ -545,4 +545,220 @@
     <error_loading_users>Fehler beim Laden der Benutzer</error_loading_users>
     <error_loading_groups>Fehler beim Laden der Gruppen</error_loading_groups>
     <error_loading_api_credentials>Fehler beim Laden der API-Zugangsdaten</error_loading_api_credentials>
+    
+    <!-- Virtual MAC Module -->
+    <module_title>Modul-Titel</module_title>
+    <virtual_mac_management>Virtual MAC Verwaltung</virtual_mac_management>
+    <overview>Übersicht</overview>
+    <create>Erstellen</create>
+    <ip_management>IP-Verwaltung</ip_management>
+    <reverse_dns>Reverse DNS</reverse_dns>
+    <virtual_mac_overview>Virtual MAC Übersicht</virtual_mac_overview>
+    <total_virtual_macs>Gesamt Virtual MACs</total_virtual_macs>
+    <assigned_ips>Zugewiesene IPs</assigned_ips>
+    <dedicated_servers>Dedicated Server</dedicated_servers>
+    <search_virtual_macs>Virtual MACs durchsuchen</search_virtual_macs>
+    <refresh>Aktualisieren</refresh>
+    <mac_address>MAC-Adresse</mac_address>
+    <vm_name>VM-Name</vm_name>
+    <ip_address>IP-Adresse</ip_address>
+    <service_name>Service Name</service_name>
+    <type>Typ</type>
+    <created_at>Erstellt am</created_at>
+    <actions>Aktionen</actions>
+    <create_new_virtual_mac>Neue Virtual MAC erstellen</create_new_virtual_mac>
+    <service_name_dedicated_server>Service Name (Dedicated Server)</service_name_dedicated_server>
+    <select_server>Server auswählen</select_server>
+    <mac_type>MAC-Typ</mac_type>
+    <ovh_standard>OVH (Standard)</ovh_standard>
+    <vmware>VMware</vmware>
+    <virtual_network_interface>Virtual Network Interface</virtual_network_interface>
+    <create_virtual_mac>Virtual MAC erstellen</create_virtual_mac>
+    <assign_ip_to_virtual_mac>IP-Adresse zuweisen</assign_ip_to_virtual_mac>
+    <virtual_machine_name>Virtual Machine Name</virtual_machine_name>
+    <assign_ip_address>IP-Adresse zuweisen</assign_ip_address>
+    <remove_ip_address>IP-Adresse entfernen</remove_ip_address>
+    <remove_ip_from_virtual_mac>IP-Adresse von Virtual MAC entfernen</remove_ip_from_virtual_mac>
+    <reverse_dns_management>Reverse DNS Verwaltung</reverse_dns_management>
+    <hostname>Hostname</hostname>
+    <create_reverse_dns>Reverse DNS erstellen</create_reverse_dns>
+    <query_reverse_dns>Reverse DNS abfragen</query_reverse_dns>
+    <query_reverse_dns_button>Reverse DNS abfragen</query_reverse_dns_button>
+    <reverse_dns_information>Reverse DNS Informationen</reverse_dns_information>
+    <status>Status</status>
+    
+    <!-- Proxmox Module -->
+    <create_vm_proxmox>VM mit Proxmox erstellen</create_vm_proxmox>
+    <vm_name>VM-Name</vm_name>
+    <vm_id>VM-ID</vm_id>
+    <ram_mb>RAM (MB)</ram_mb>
+    <cpu_cores>CPU-Kerne</cpu_cores>
+    <disk_gb>Festplatte (GB)</disk_gb>
+    <proxmox_node>Proxmox Node</proxmox_node>
+    <storage>Storage</storage>
+    <network_bridge>Netzwerk-Bridge</network_bridge>
+    <iso_image>ISO-Image</iso_image>
+    <create_vm>VM erstellen</create_vm>
+    <extended_features>Erweiterte Features</extended_features>
+    <get_nodes>Nodes abrufen</get_nodes>
+    <load_storages>Storages laden</load_storages>
+    <clone_vm>VM klonen</clone_vm>
+    <clone_vm_dialog>VM-Klon Dialog</clone_vm_dialog>
+    <source_vm_id>Quell-VM-ID</source_vm_id>
+    <new_vm_id>Neue VM-ID</new_vm_id>
+    <new_name>Neuer Name</new_name>
+    
+    <!-- ISPConfig Module -->
+    <create_website_ispconfig>Website mit ISPConfig erstellen</create_website_ispconfig>
+    <domain>Domain</domain>
+    <system_user>System-Benutzer</system_user>
+    <system_group>System-Gruppe</system_group>
+    <hd_quota>Festplatten-Quota</hd_quota>
+    <traffic_quota>Traffic-Quota</traffic_quota>
+    <create_website>Website erstellen</create_website>
+    <create_ftp_user>FTP-Benutzer erstellen</create_ftp_user>
+    <domain_id>Domain-ID</domain_id>
+    <ftp_username>FTP-Benutzername</ftp_username>
+    <password>Passwort</password>
+    <quota>Quota</quota>
+    <create_subdomain>Subdomain erstellen</create_subdomain>
+    <parent_domain_id>Parent-Domain-ID</parent_domain_id>
+    <subdomain>Subdomain</subdomain>
+    <redirect_type>Redirect-Typ</redirect_type>
+    <no_redirect>Kein Redirect</no_redirect>
+    <redirect_temporary>Temporärer Redirect</redirect_temporary>
+    <redirect_permanent>Permanenter Redirect</redirect_permanent>
+    <redirect_path>Redirect-Pfad</redirect_path>
+    <quick_actions>Schnellaktionen</quick_actions>
+    <load_clients>Clients laden</load_clients>
+    <server_config>Server-Konfiguration</server_config>
+    <website_details>Website-Details</website_details>
+    
+    <!-- Network Module -->
+    <vm_network_configuration>VM-Netzwerk-Konfiguration</vm_network_configuration>
+    <vm_id>VM-ID</vm_id>
+    <update_network>Netzwerk aktualisieren</update_network>
+    <helpful_information>Hilfreiche Informationen</helpful_information>
+    <mac_address_format>MAC-Adress-Format</mac_address_format>
+    <mac_format_description>Beschreibung des MAC-Adress-Formats</mac_format_description>
+    <examples>Beispiele</examples>
+    <ovh_virtual_mac>OVH Virtual MAC</ovh_virtual_mac>
+    <vmware_mac>VMware MAC</vmware_mac>
+    <kvm_qemu_mac>KVM/QEMU MAC</kvm_qemu_mac>
+    <ip_configuration>IP-Konfiguration</ip_configuration>
+    <ip_config_description>IP-Konfigurations-Beschreibung</ip_config_description>
+    <dhcp_mac_binding>DHCP MAC-Binding</dhcp_mac_binding>
+    <cloud_init>Cloud-Init</cloud_init>
+    <manual_vm>Manuelle VM</manual_vm>
+    <advanced_network_options>Erweiterte Netzwerk-Optionen</advanced_network_options>
+    <advanced_network_description>Beschreibung erweiterter Netzwerk-Optionen</advanced_network_description>
+    
+    <!-- Allgemeine Modul-Übersetzungen -->
+    <unknown_action>Unbekannte Aktion</unknown_action>
+    <validation_failed>Validierung fehlgeschlagen</validation_failed>
+    <vm_created_successfully>VM erfolgreich erstellt</vm_created_successfully>
+    <error_creating_vm>Fehler beim Erstellen der VM</error_creating_vm>
+    <network_updated_successfully>Netzwerk erfolgreich aktualisiert</network_updated_successfully>
+    <error_updating_network>Fehler beim Aktualisieren des Netzwerks</error_updating_network>
+    <vm_network_updated_message>VM-Netzwerk erfolgreich aktualisiert</vm_network_updated_message>
+    <unknown_error>Unbekannter Fehler</unknown_error>
+    <virtual_mac_created_successfully>Virtual MAC erfolgreich erstellt</virtual_mac_created_successfully>
+    <error_creating_virtual_mac>Fehler beim Erstellen der Virtual MAC</error_creating_virtual_mac>
+    <error_getting_virtual_mac_details>Fehler beim Abrufen der Virtual MAC-Details</error_getting_virtual_mac_details>
+    <error_getting_all_virtual_macs>Fehler beim Abrufen aller Virtual MACs</error_getting_all_virtual_macs>
+    <virtual_mac_deleted_successfully>Virtual MAC erfolgreich gelöscht</virtual_mac_deleted_successfully>
+    <error_deleting_virtual_mac>Fehler beim Löschen der Virtual MAC</error_deleting_virtual_mac>
+    <ip_address_assigned_successfully>IP-Adresse erfolgreich zugewiesen</ip_address_assigned_successfully>
+    <error_assigning_ip>Fehler beim Zuweisen der IP-Adresse</error_assigning_ip>
+    <ip_address_removed_successfully>IP-Adresse erfolgreich entfernt</ip_address_removed_successfully>
+    <error_removing_ip>Fehler beim Entfernen der IP-Adresse</error_removing_ip>
+    <reverse_dns_created_successfully>Reverse DNS erfolgreich erstellt</reverse_dns_created_successfully>
+    <error_creating_reverse_dns>Fehler beim Erstellen des Reverse DNS</error_creating_reverse_dns>
+    <error_querying_reverse_dns>Fehler beim Abfragen des Reverse DNS</error_querying_reverse_dns>
+    <reverse_dns_deleted_successfully>Reverse DNS erfolgreich gelöscht</reverse_dns_deleted_successfully>
+    <error_deleting_reverse_dns>Fehler beim Löschen des Reverse DNS</error_deleting_reverse_dns>
+    <error_getting_dedicated_servers>Fehler beim Abrufen der Dedicated Server</error_getting_dedicated_servers>
+    <error_getting_virtual_macs_for_service>Fehler beim Abrufen der Virtual MACs für den Service</error_getting_virtual_macs_for_service>
+    <error_loading_virtual_mac_overview>Fehler beim Laden der Virtual MAC-Übersicht</error_loading_virtual_mac_overview>
+    <loading_virtual_mac_overview>Lade Virtual MAC-Übersicht</loading_virtual_mac_overview>
+    <no_virtual_macs_found>Keine Virtual MACs gefunden</no_virtual_macs_found>
+    
+    <!-- DNS Module -->
+    <module_title>DNS Verwaltung</module_title>
+    <domain_selection>Domain Auswahl</domain_selection>
+    <select_domain>Domain auswählen</select_domain>
+    <dns_records>DNS Records</dns_records>
+    <add_record>Record hinzufügen</add_record>
+    <edit_record>Record bearbeiten</edit_record>
+    <delete_record>Record löschen</delete_record>
+    <record_type>Record Typ</record_type>
+    <subdomain>Subdomain</subdomain>
+    <target>Ziel</target>
+    <ttl>TTL</ttl>
+    <priority>Priorität</priority>
+    <refresh_zone>Zone aktualisieren</refresh_zone>
+    <export_zone>Zone exportieren</export_zone>
+    <import_zone>Zone importieren</import_zone>
+    <zone_info>Zone Informationen</zone_info>
+    <zone_content>Zone-Inhalt</zone_content>
+    <paste_zone_content>Zone-Inhalt hier einfügen...</paste_zone_content>
+    <actions>Aktionen</actions>
+    <status>Status</status>
+    <loading>Laden...</loading>
+    <operation_successful>Operation erfolgreich</operation_successful>
+    <operation_failed>Operation fehlgeschlagen</operation_failed>
+    <confirm_delete>Löschen bestätigen</confirm_delete>
+    <validation_failed>Validierung fehlgeschlagen</validation_failed>
+    <unknown_action>Unbekannte Aktion</unknown_action>
+    <domain_required>Domain erforderlich</domain_required>
+    <record_type_required>Record-Typ erforderlich</record_type_required>
+    <target_required>Ziel erforderlich</target_required>
+    <ttl_required>TTL erforderlich</ttl_required>
+    <priority_required>Priorität erforderlich</priority_required>
+    <mx_records>MX Records</mx_records>
+    <a_records>A Records</a_records>
+    <cname_records>CNAME Records</cname_records>
+    <txt_records>TXT Records</txt_records>
+    <ns_records>NS Records</ns_records>
+    <srv_records>SRV Records</srv_records>
+    <caa_records>CAA Records</caa_records>
+    <aaaa_records>AAAA Records</aaaa_records>
+    <ptr_records>PTR Records</ptr_records>
+    <soa_record>SOA Record</soa_record>
+    <zone_transfer>Zone Transfer</zone_transfer>
+    <dnssec_status>DNSSEC-Status</dnssec_status>
+    <enable_dnssec>DNSSEC aktivieren</enable_dnssec>
+    <disable_dnssec>DNSSEC deaktivieren</disable_dnssec>
+    <dnssec_keys>DNSSEC-Schlüssel</dnssec_keys>
+    <add_key>Schlüssel hinzufügen</add_key>
+    <delete_key>Schlüssel löschen</delete_key>
+    <key_type>Schlüssel-Typ</key_type>
+    <key_algorithm>Schlüssel-Algorithmus</key_algorithm>
+    <key_size>Schlüssel-Größe</key_size>
+    <zone_updated>Zone aktualisiert</zone_updated>
+    <zone_update_failed>Zone-Update fehlgeschlagen</zone_update_failed>
+    <record_added>Record hinzugefügt</record_added>
+    <record_updated>Record aktualisiert</record_updated>
+    <record_deleted>Record gelöscht</record_deleted>
+    <record_add_failed>Record-Hinzufügung fehlgeschlagen</record_add_failed>
+    <record_update_failed>Record-Update fehlgeschlagen</record_update_failed>
+    <record_delete_failed>Record-Löschung fehlgeschlagen</record_delete_failed>
+    <test_api_connection>API-Verbindung testen</test_api_connection>
+    <api_connection_successful>API-Verbindung erfolgreich</api_connection_successful>
+    <api_connection_failed>API-Verbindung fehlgeschlagen</api_connection_failed>
+    <domains_loaded>Domains geladen</domains_loaded>
+    <dns_records_loaded>DNS Records geladen</dns_records_loaded>
+    <dnssec_enabled>DNSSEC aktiviert</dnssec_enabled>
+    <dnssec_disabled>DNSSEC deaktiviert</dnssec_disabled>
+    <zone_exported>Zone exportiert</zone_exported>
+    <zone_imported>Zone importiert</zone_imported>
+    <no_domains_available>Keine Domains verfügbar</no_domains_available>
+    <no_records_found>Keine Records gefunden</no_records_found>
+    <no_dnssec_keys_found>Keine DNSSEC-Schlüssel gefunden</no_dnssec_keys_found>
+    <weight>Gewichtung</weight>
+    <port>Port</port>
+    <key_id>ID</key_id>
+    <algorithm>Algorithmus</algorithm>
+    <select>Auswählen</select>
+    <dnssec_not_available>DNSSEC nicht verfügbar</dnssec_not_available>
 </translations> 

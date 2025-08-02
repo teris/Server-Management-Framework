@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <module_title>DNS Verwaltung</module_title>
+    <domain_selection>Domain-Auswahl</domain_selection>
+    <select_domain>Domain auswählen</select_domain>
+    <dns_records>DNS-Records</dns_records>
+    <add_record>Record hinzufügen</add_record>
+    <edit_record>Record bearbeiten</edit_record>
+    <delete_record>Record löschen</delete_record>
+    <record_type>Record-Typ</record_type>
+    <subdomain>Subdomain</subdomain>
+    <target>Ziel</target>
+    <ttl>TTL (Sekunden)</ttl>
+    <priority>Priorität</priority>
+    <refresh_zone>Zone aktualisieren</refresh_zone>
+    <export_zone>Zone exportieren</export_zone>
+    <import_zone>Zone importieren</import_zone>
+    <zone_info>Zone-Informationen</zone_info>
+    <save>Speichern</save>
+    <cancel>Abbrechen</cancel>
+    <edit>Bearbeiten</edit>
+    <delete>Löschen</delete>
+    <create>Erstellen</create>
+    <refresh>Aktualisieren</refresh>
+    <actions>Aktionen</actions>
+    <status>Status</status>
+    <loading>Laden...</loading>
+    <operation_successful>Operation erfolgreich</operation_successful>
+    <operation_failed>Operation fehlgeschlagen</operation_failed>
+    <confirm_delete>Möchten Sie wirklich löschen?</confirm_delete>
+    <validation_failed>Validierung fehlgeschlagen</validation_failed>
+    <unknown_action>Unbekannte Aktion</unknown_action>
+    <domain_required>Domain ist erforderlich</domain_required>
+    <record_type_required>Record-Typ ist erforderlich</record_type_required>
+    <target_required>Ziel ist erforderlich</target_required>
+    <ttl_required>TTL ist erforderlich</ttl_required>
+    <priority_required>Priorität ist erforderlich</priority_required>
+    <mx_records>MX-Records</mx_records>
+    <a_records>A-Records</a_records>
+    <cname_records>CNAME-Records</cname_records>
+    <txt_records>TXT-Records</txt_records>
+    <ns_records>NS-Records</ns_records>
+    <srv_records>SRV-Records</srv_records>
+    <caa_records>CAA-Records</caa_records>
+    <aaaa_records>AAAA-Records</aaaa_records>
+    <ptr_records>PTR-Records</ptr_records>
+    <soa_record>SOA-Record</soa_record>
+    <zone_transfer>Zone-Transfer</zone_transfer>
+    <dnssec_status>DNSSEC-Status</dnssec_status>
+    <enable_dnssec>DNSSEC aktivieren</enable_dnssec>
+    <disable_dnssec>DNSSEC deaktivieren</disable_dnssec>
+    <dnssec_keys>DNSSEC-Schlüssel</dnssec_keys>
+    <add_key>Schlüssel hinzufügen</add_key>
+    <delete_key>Schlüssel löschen</delete_key>
+    <key_type>Schlüssel-Typ</key_type>
+    <key_algorithm>Schlüssel-Algorithmus</key_algorithm>
+    <key_size>Schlüssel-Größe</key_size>
+    <zone_updated>Zone erfolgreich aktualisiert</zone_updated>
+    <zone_update_failed>Zone-Aktualisierung fehlgeschlagen</zone_update_failed>
+    <record_added>Record erfolgreich hinzugefügt</record_added>
+    <record_updated>Record erfolgreich aktualisiert</record_updated>
+    <record_deleted>Record erfolgreich gelöscht</record_deleted>
+    <record_add_failed>Record-Hinzufügung fehlgeschlagen</record_add_failed>
+    <record_update_failed>Record-Aktualisierung fehlgeschlagen</record_update_failed>
+    <record_delete_failed>Record-Löschung fehlgeschlagen</record_delete_failed>
+    <domains_loaded>Domains geladen</domains_loaded>
+    <zone_loaded>Zone geladen</zone_loaded>
+    <dns_records_loaded>DNS-Records geladen</dns_records_loaded>
+    <zone_exported>Zone exportiert</zone_exported>
+    <zone_imported>Zone importiert</zone_imported>
+    <dnssec_status_loaded>DNSSEC-Status geladen</dnssec_status_loaded>
+    <dnssec_enabled>DNSSEC aktiviert</dnssec_enabled>
+    <dnssec_disabled>DNSSEC deaktiviert</dnssec_disabled>
+    <dnssec_keys_loaded>DNSSEC-Schlüssel geladen</dnssec_keys_loaded>
+    <dnssec_key_added>DNSSEC-Schlüssel hinzugefügt</dnssec_key_added>
+    <dnssec_key_deleted>DNSSEC-Schlüssel gelöscht</dnssec_key_deleted>
+    <error_loading_domains>Fehler beim Laden der Domains</error_loading_domains>
+    <error_loading_zone>Fehler beim Laden der Zone</error_loading_zone>
+    <error_loading_dns_records>Fehler beim Laden der DNS-Records</error_loading_dns_records>
+    <error_exporting_zone>Fehler beim Exportieren der Zone</error_exporting_zone>
+    <error_importing_zone>Fehler beim Importieren der Zone</error_importing_zone>
+    <error_loading_dnssec_status>Fehler beim Laden des DNSSEC-Status</error_loading_dnssec_status>
+    <error_enabling_dnssec>Fehler beim Aktivieren von DNSSEC</error_enabling_dnssec>
+    <error_disabling_dnssec>Fehler beim Deaktivieren von DNSSEC</error_disabling_dnssec>
+    <error_loading_dnssec_keys>Fehler beim Laden der DNSSEC-Schlüssel</error_loading_dnssec_keys>
+    <error_adding_dnssec_key>Fehler beim Hinzufügen des DNSSEC-Schlüssels</error_adding_dnssec_key>
+    <error_deleting_dnssec_key>Fehler beim Löschen des DNSSEC-Schlüssels</error_deleting_dnssec_key>
+    <weight>Gewichtung</weight>
+    <port>Port</port>
+    <zone_file>Zone-Datei</zone_file>
+    <upload_zone_file>Zone-Datei hochladen</upload_zone_file>
+    <zone_content>Zone-Inhalt</zone_content>
+    <paste_zone_content>Zone-Inhalt einfügen</paste_zone_content>
+    <record_id>Record-ID</record_id>
+    <field_type>Feld-Typ</field_type>
+    <sub_domain>Sub-Domain</sub_domain>
+    <zone_name>Zone-Name</zone_name>
+    <name_servers>Nameserver</name_servers>
+    <master_server>Master-Server</master_server>
+    <last_update>Letzte Aktualisierung</last_update>
+    <serial_number>Seriennummer</serial_number>
+    <refresh_interval>Refresh-Intervall</refresh_interval>
+    <retry_interval>Retry-Intervall</retry_interval>
+    <expire_interval>Expire-Intervall</expire_interval>
+    <minimum_ttl>Minimum-TTL</minimum_ttl>
+    <dnssec_enabled_status>DNSSEC aktiviert</dnssec_enabled_status>
+    <dnssec_disabled_status>DNSSEC deaktiviert</dnssec_disabled_status>
+    <dnssec_not_available>DNSSEC nicht verfügbar</dnssec_not_available>
+    <key_id>Schlüssel-ID</key_id>
+    <algorithm>Algorithmus</algorithm>
+    <flags>Flags</flags>
+    <public_key>Öffentlicher Schlüssel</public_key>
+    <key_tag>Schlüssel-Tag</key_tag>
+    <digest_type>Digest-Typ</digest_type>
+    <digest>Digest</digest>
+    <zone_signing_key>Zone-Signing-Key</zone_signing_key>
+    <key_signing_key>Key-Signing-Key</key_signing_key>
+    <secure_entry_point>Secure-Entry-Point</secure_entry_point>
+    <ds_records>DS-Records</ds_records>
+    <rrsig_records>RRSIG-Records</rrsig_records>
+    <nsec_records>NSEC-Records</nsec_records>
+    <nsec3_records>NSEC3-Records</nsec3_records>
+    <dnssec_chain>DNSSEC-Kette</dnssec_chain>
+    <trust_anchor>Trust-Anchor</trust_anchor>
+    <validation_status>Validierungsstatus</validation_status>
+    <valid>Gültig</valid>
+    <invalid>Ungültig</invalid>
+    <unknown>Unbekannt</unknown>
+    <chain_of_trust>Vertrauenskette</chain_of_trust>
+    <broken_chain>Gebrochene Kette</broken_chain>
+    <incomplete_chain>Unvollständige Kette</incomplete_chain>
+    <dnssec_validation>DNSSEC-Validierung</dnssec_validation>
+    <dnssec_validation_enabled>DNSSEC-Validierung aktiviert</dnssec_validation_enabled>
+    <dnssec_validation_disabled>DNSSEC-Validierung deaktiviert</dnssec_validation_disabled>
+    <dnssec_validation_unknown>DNSSEC-Validierung unbekannt</dnssec_validation_unknown>
+    <dnssec_validation_failed>DNSSEC-Validierung fehlgeschlagen</dnssec_validation_failed>
+    <dnssec_validation_successful>DNSSEC-Validierung erfolgreich</dnssec_validation_successful>
+    <dnssec_validation_pending>DNSSEC-Validierung ausstehend</dnssec_validation_pending>
+    <dnssec_validation_error>DNSSEC-Validierungsfehler</dnssec_validation_error>
+    <dnssec_validation_warning>DNSSEC-Validierungswarnung</dnssec_validation_warning>
+    <dnssec_validation_info>DNSSEC-Validierungsinfo</dnssec_validation_info>
+    <dnssec_validation_debug>DNSSEC-Validierungsdebug</dnssec_validation_debug>
+    <dnssec_validation_trace>DNSSEC-Validierungstrace</dnssec_validation_trace>
+    <dnssec_validation_verbose>DNSSEC-Validierung ausführlich</dnssec_validation_verbose>
+    <dnssec_validation_quiet>DNSSEC-Validierung ruhig</dnssec_validation_quiet>
+    <dnssec_validation_silent>DNSSEC-Validierung still</dnssec_validation_silent>
+    <dnssec_validation_force>DNSSEC-Validierung erzwingen</dnssec_validation_force>
+    <dnssec_validation_ignore>DNSSEC-Validierung ignorieren</dnssec_validation_ignore>
+    <dnssec_validation_skip>DNSSEC-Validierung überspringen</dnssec_validation_skip>
+    <dnssec_validation_continue>DNSSEC-Validierung fortsetzen</dnssec_validation_continue>
+    <dnssec_validation_stop>DNSSEC-Validierung stoppen</dnssec_validation_stop>
+    <dnssec_validation_abort>DNSSEC-Validierung abbrechen</dnssec_validation_abort>
+    <dnssec_validation_cancel>DNSSEC-Validierung abbrechen</dnssec_validation_cancel>
+    <dnssec_validation_retry>DNSSEC-Validierung wiederholen</dnssec_validation_retry>
+    <dnssec_validation_reset>DNSSEC-Validierung zurücksetzen</dnssec_validation_reset>
+    <dnssec_validation_clear>DNSSEC-Validierung löschen</dnssec_validation_clear>
+    <dnssec_validation_refresh>DNSSEC-Validierung aktualisieren</dnssec_validation_refresh>
+    <dnssec_validation_reload>DNSSEC-Validierung neu laden</dnssec_validation_reload>
+    <dnssec_validation_restart>DNSSEC-Validierung neu starten</dnssec_validation_restart>
+    <dnssec_validation_shutdown>DNSSEC-Validierung herunterfahren</dnssec_validation_shutdown>
+    <dnssec_validation_exit>DNSSEC-Validierung beenden</dnssec_validation_exit>
+    <dnssec_validation_quit>DNSSEC-Validierung beenden</dnssec_validation_quit>
+    <dnssec_validation_close>DNSSEC-Validierung schließen</dnssec_validation_close>
+    <dnssec_validation_open>DNSSEC-Validierung öffnen</dnssec_validation_open>
+    <dnssec_validation_new>DNSSEC-Validierung neu</dnssec_validation_new>
+    <dnssec_validation_old>DNSSEC-Validierung alt</dnssec_validation_old>
+    <dnssec_validation_current>DNSSEC-Validierung aktuell</dnssec_validation_current>
+    <dnssec_validation_previous>DNSSEC-Validierung vorherig</dnssec_validation_previous>
+    <dnssec_validation_next>DNSSEC-Validierung nächste</dnssec_validation_next>
+    <dnssec_validation_first>DNSSEC-Validierung erste</dnssec_validation_first>
+    <dnssec_validation_last>DNSSEC-Validierung letzte</dnssec_validation_last>
+    <dnssec_validation_all>DNSSEC-Validierung alle</dnssec_validation_all>
+    <dnssec_validation_none>DNSSEC-Validierung keine</dnssec_validation_none>
+    <dnssec_validation_some>DNSSEC-Validierung einige</dnssec_validation_some>
+    <dnssec_validation_many>DNSSEC-Validierung viele</dnssec_validation_many>
+    <dnssec_validation_few>DNSSEC-Validierung wenige</dnssec_validation_few>
+    <dnssec_validation_several>DNSSEC-Validierung mehrere</dnssec_validation_several>
+    <dnssec_validation_couple>DNSSEC-Validierung paar</dnssec_validation_couple>
+    <dnssec_validation_dozen>DNSSEC-Validierung dutzend</dnssec_validation_dozen>
+    <dnssec_validation_hundred>DNSSEC-Validierung hundert</dnssec_validation_hundred>
+    <dnssec_validation_thousand>DNSSEC-Validierung tausend</dnssec_validation_thousand>
+    <dnssec_validation_million>DNSSEC-Validierung million</dnssec_validation_million>
+    <dnssec_validation_billion>DNSSEC-Validierung milliarde</dnssec_validation_billion>
+    <dnssec_validation_trillion>DNSSEC-Validierung billion</dnssec_validation_trillion>
+    <dnssec_validation_quadrillion>DNSSEC-Validierung billiarde</dnssec_validation_quadrillion>
+    <dnssec_validation_quintillion>DNSSEC-Validierung trillion</dnssec_validation_quintillion>
+    <dnssec_validation_sextillion>DNSSEC-Validierung trilliarde</dnssec_validation_sextillion>
+    <dnssec_validation_septillion>DNSSEC-Validierung quadrillion</dnssec_validation_septillion>
+    <dnssec_validation_octillion>DNSSEC-Validierung quadrilliarde</dnssec_validation_octillion>
+    <dnssec_validation_nonillion>DNSSEC-Validierung quintillion</dnssec_validation_nonillion>
+    <dnssec_validation_decillion>DNSSEC-Validierung quintilliarde</dnssec_validation_decillion>
+</translations> 

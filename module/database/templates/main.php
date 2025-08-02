@@ -1,34 +1,34 @@
 <div id="database-content">
     <div class="card">
         <div class="card-header">
-            <h2 class="mb-0">🗄️ <?php echo $translations['module_title']; ?></h2>
+            <h2 class="mb-0">🗄️ <?= t('module_title') ?></h2>
         </div>
         <div class="card-body">
             <form onsubmit="createDatabase(event)">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label for="db_name"><?php echo $translations['database_name']; ?></label>
+                            <label for="db_name"><?= t('database_name') ?></label>
                             <input type="text" class="form-control" id="db_name" name="name" required placeholder="my_database" pattern="[a-zA-Z0-9_]+" title="Nur Buchstaben, Zahlen und Unterstriche">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label for="db_user"><?php echo $translations['database_user']; ?></label>
+                            <label for="db_user"><?= t('database_user') ?></label>
                             <input type="text" class="form-control" id="db_user" name="user" required placeholder="db_user" pattern="[a-zA-Z0-9_]+" title="Nur Buchstaben, Zahlen und Unterstriche">
                         </div>
                     </div>
                 </div>
                 
                 <div class="form-group mb-3">
-                    <label for="db_password"><?php echo $translations['password']; ?></label>
+                    <label for="db_password"><?= t('password') ?></label>
                     <input type="password" class="form-control" id="db_password" name="password" required minlength="6">
-                    <small class="form-text text-muted"><?php echo $translations['password_min_length']; ?></small>
+                    <small class="form-text text-muted"><?= t('password_min_length') ?></small>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">
                     <span class="loading hidden"></span>
-                    <?php echo $translations['create_database']; ?>
+                    <?= t('create_database') ?>
                 </button>
             </form>
         </div>
@@ -38,24 +38,24 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="mb-0">💡 <?php echo $translations['connection_info']; ?></h3>
+                    <h3 class="mb-0">💡 <?= t('connection_info') ?></h3>
                 </div>
                 <div class="card-body">
-                    <h4><?php echo $translations['connection_details']; ?></h4>
+                    <h4><?= t('connection_details') ?></h4>
                     <ul class="list-unstyled">
-                        <li><strong><?php echo $translations['host']; ?>:</strong> <?php echo $translations['host_info']; ?></li>
-                        <li><strong><?php echo $translations['port']; ?>:</strong> <?php echo $translations['port_info']; ?></li>
-                        <li><strong><?php echo $translations['database_name']; ?>:</strong> Der von Ihnen gewählte Name</li>
-                        <li><strong><?php echo $translations['database_user']; ?>:</strong> Der von Ihnen gewählte Benutzername</li>
-                        <li><strong><?php echo $translations['password']; ?>:</strong> Das von Ihnen gewählte Passwort</li>
+                        <li><strong><?= t('host') ?>:</strong> <?= t('host_info') ?></li>
+                        <li><strong><?= t('port') ?>:</strong> <?= t('port_info') ?></li>
+                        <li><strong><?= t('database_name') ?>:</strong> Der von Ihnen gewählte Name</li>
+                        <li><strong><?= t('database_user') ?>:</strong> Der von Ihnen gewählte Benutzername</li>
+                        <li><strong><?= t('password') ?>:</strong> Das von Ihnen gewählte Passwort</li>
                     </ul>
                     
                     <h4>phpMyAdmin</h4>
-                    <p><?php echo $translations['phpmyadmin_info']; ?></p>
-                    <p><code><?php echo $translations['phpmyadmin_url']; ?></code></p>
+                    <p><?= t('phpmyadmin_info') ?></p>
+                    <p><code><?= t('phpmyadmin_url') ?></code></p>
                     
-                    <h4><?php echo $translations['charset']; ?></h4>
-                    <p><?php echo $translations['charset_info']; ?></p>
+                    <h4><?= t('charset') ?></h4>
+                    <p><?= t('charset_info') ?></p>
                 </div>
             </div>
         </div>
@@ -63,15 +63,15 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="mb-0">🔧 <?php echo $translations['advanced_options']; ?></h3>
+                    <h3 class="mb-0">🔧 <?= t('advanced_options') ?></h3>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         <button class="btn btn-outline-secondary" onclick="showDatabaseInfo()">
-                            📊 <?php echo $translations['database_server_info']; ?>
+                                📊 <?= t('database_server_info') ?>
                         </button>
                         <button class="btn btn-outline-secondary" onclick="generatePassword()">
-                            🔐 <?php echo $translations['generate_secure_password']; ?>
+                            🔐 <?= t('generate_secure_password') ?>
                         </button>
                     </div>
                 </div>

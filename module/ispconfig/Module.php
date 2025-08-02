@@ -23,8 +23,34 @@ class IspconfigModule extends ModuleBase {
         ]);
     }
     
+    /**
+     * Gibt den Modul-Inhalt für AJAX-Requests zurück
+     */
+    private function getContentResponse() {
+        $translations = $this->tMultiple([
+            'module_title', 'create_website_ispconfig', 'domain', 'ip_address', 'system_user',
+            'system_group', 'hd_quota', 'traffic_quota', 'create_website', 'create_ftp_user',
+            'domain_id', 'ftp_username', 'password', 'quota', 'create_subdomain', 'parent_domain_id',
+            'subdomain', 'redirect_type', 'no_redirect', 'redirect_temporary', 'redirect_permanent',
+            'redirect_path', 'quick_actions', 'load_clients', 'server_config', 'website_details',
+            'save', 'cancel', 'edit', 'delete', 'create', 'refresh', 'actions', 'status'
+        ]);
+        
+        $content = $this->render('main', [
+            'translations' => $translations
+        ]);
+        
+        return [
+            'success' => true,
+            'content' => $content
+        ];
+    }
+    
     public function handleAjaxRequest($action, $data) {
         switch ($action) {
+            case 'getContent':
+                return $this->getContentResponse();
+                
             case 'create_website':
                 return $this->createWebsite($data);
                 

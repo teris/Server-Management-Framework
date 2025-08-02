@@ -30,14 +30,130 @@ class VirtualMacModule extends ModuleBase {
         // Lade Dedicated Servers für Dropdowns
         $servers = $this->getDedicatedServersList();
         
+        // Lade Virtual MAC Übersicht direkt
+        $virtualMacOverview = $this->loadVirtualMacOverviewData();
+        
         return $this->render('main', [
             'servers' => $servers,
-            'translations' => $translations
+            'translations' => $translations,
+            'virtualMacOverview' => $virtualMacOverview
         ]);
+    }
+    
+    /**
+     * Gibt den Modul-Inhalt für AJAX-Requests zurück
+     */
+    private function getContentResponse() {
+        $translations = $this->tMultiple([
+            'module_title', 'virtual_mac_management', 'overview', 'create', 'ip_management',
+            'reverse_dns', 'virtual_mac_overview', 'total_virtual_macs', 'assigned_ips',
+            'dedicated_servers', 'search_virtual_macs', 'refresh', 'mac_address', 'vm_name',
+            'ip_address', 'service_name', 'type', 'created_at', 'actions', 'create_new_virtual_mac',
+            'service_name_dedicated_server', 'select_server', 'mac_type', 'ovh_standard', 'vmware',
+            'virtual_network_interface', 'create_virtual_mac', 'assign_ip_to_virtual_mac',
+            'virtual_machine_name', 'assign_ip_address', 'remove_ip_address', 'remove_ip_from_virtual_mac',
+            'reverse_dns_management', 'hostname', 'create_reverse_dns', 'query_reverse_dns',
+            'query_reverse_dns_button', 'reverse_dns_information', 'save', 'cancel', 'edit',
+            'delete', 'create', 'refresh', 'actions', 'status'
+        ]);
+        
+        // Lade Dedicated Servers für Dropdowns
+        $servers = $this->getDedicatedServersList();
+        
+        // Lade Virtual MAC Übersicht direkt
+        $virtualMacOverview = $this->loadVirtualMacOverviewData();
+        
+        $content = $this->render('main', [
+            'servers' => $servers,
+            'translations' => $translations,
+            'virtualMacOverview' => $virtualMacOverview
+        ]);
+        
+        return [
+            'success' => true,
+            'content' => $content
+        ];
+    }
+    
+    /**
+     * Lädt Virtual MAC Übersicht Daten direkt (ohne AJAX)
+     */
+    private function loadVirtualMacOverviewData() {
+        try {
+            $serviceManager = new ServiceManager();
+            
+            // Alle Dedicated Servers abrufen
+            $servers = $serviceManager->OvhAPI('get', '/dedicated/server');
+            $all_macs = [];
+            
+            foreach ($servers as $server) {
+                try {
+                    $server_macs = $serviceManager->getVirtualMacAddresses($server);
+                    
+                    foreach ($server_macs as $mac) {
+                        // Wenn $mac bereits ein VirtualMac Objekt ist, verwende es direkt
+                        if (is_object($mac) && method_exists($mac, 'toArray')) {
+                            $mac_details = $mac->toArray();
+                            $mac_details['service_name'] = $server;
+                            $all_macs[] = $mac_details;
+                        } else {
+                            // Stelle sicher, dass $mac ein String ist
+                            $macAddress = is_object($mac) ? $mac->macAddress : $mac;
+                            $mac_details = $serviceManager->getVirtualMacDetails($server, $macAddress);
+                            if ($mac_details) {
+                                $mac_details['service_name'] = $server;
+                                $all_macs[] = $mac_details;
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
+                    // Server ohne Virtual MACs überspringen
+                    continue;
+                }
+            }
+            
+            $stats = [
+                'total_macs' => count($all_macs),
+                'total_ips' => 0,
+                'servers' => []
+            ];
+            
+            foreach ($all_macs as $mac) {
+                if (isset($mac['ipAddresses'])) {
+                    $stats['total_ips'] += count($mac['ipAddresses']);
+                }
+                
+                if (!in_array($mac['service_name'], $stats['servers'])) {
+                    $stats['servers'][] = $mac['service_name'];
+                }
+            }
+            
+            $stats['total_servers'] = count($stats['servers']);
+            
+            return [
+                'macs' => $all_macs,
+                'stats' => $stats
+            ];
+            
+        } catch (Exception $e) {
+            $this->log('Error loading virtual MAC overview: ' . $e->getMessage(), 'ERROR');
+            return [
+                'macs' => [],
+                'stats' => [
+                    'total_macs' => 0,
+                    'total_ips' => 0,
+                    'servers' => [],
+                    'total_servers' => 0
+                ]
+            ];
+        }
     }
     
     public function handleAjaxRequest($action, $data) {
         switch ($action) {
+            case 'getContent':
+                return $this->getContentResponse();
+                
             // Virtual MAC Management
             case 'create_virtual_mac':
                 return $this->createVirtualMac($data);

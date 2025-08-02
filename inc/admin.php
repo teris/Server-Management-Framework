@@ -125,9 +125,9 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
                                     <div class="card-body">
                                         <h5 class="card-title"><?= htmlspecialchars($plugin_info['name'] ?? $plugin_key) ?></h5>
                                         <p class="card-text text-muted"><?= htmlspecialchars($plugin_info['description'] ?? t('no_description_available')) ?></p>
-                                        <button class="btn btn-primary btn-sm" onclick="loadPluginContent('<?= $plugin_key ?>')">
+                                        <a href="?option=<?= $plugin_key ?>" class="btn btn-primary btn-sm">
                                             <i class="bi bi-box-arrow-up-right"></i> <?= t('open') ?>
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                             </div>

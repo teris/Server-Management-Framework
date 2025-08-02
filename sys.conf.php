@@ -48,6 +48,15 @@ $plugins = [
         'description' => 'OVH Domains, VPS und Failover IPs verwalten'
     ],
     
+    'dns' => [
+        'enabled' => true,
+        'name' => 'DNS Verwaltung',
+        'icon' => '🌐',
+        'path' => 'module/dns',
+        'version' => '1.0.0',
+        'description' => 'DNS-Records und DNSSEC für OVH-Domains verwalten'
+    ],
+    
     'virtual-mac' => [
         'enabled' => true,
         'name' => 'Virtual MAC Management',

@@ -24,8 +24,35 @@ class OvhModule extends ModuleBase {
         ]);
     }
     
+    /**
+     * Gibt den Modul-Inhalt für AJAX-Requests zurück
+     */
+    private function getContentResponse() {
+        $translations = $this->tMultiple([
+            'module_title', 'order_domain_ovh', 'domain_name', 'duration', 'order_domain',
+            'get_vps_info', 'vps_name', 'get_vps_info_button', 'vps_information', 'ip_address',
+            'mac_address', 'dns_management', 'create_dns_record', 'domain', 'record_type',
+            'subdomain', 'target', 'ttl_seconds', 'vps_control', 'action', 'reboot', 'start',
+            'stop', 'reset', 'execute_vps_action', 'failover_ips', 'load_failover_ips',
+            'quick_actions', 'check_domain_availability', 'show_dns_records', 'refresh_dns_zone',
+            'save', 'cancel', 'edit', 'delete', 'create', 'refresh', 'actions', 'status'
+        ]);
+        
+        $content = $this->render('main', [
+            'translations' => $translations
+        ]);
+        
+        return [
+            'success' => true,
+            'content' => $content
+        ];
+    }
+    
     public function handleAjaxRequest($action, $data) {
         switch ($action) {
+            case 'getContent':
+                return $this->getContentResponse();
+                
             // Domain Management
             case 'order_domain':
                 return $this->orderDomain($data);

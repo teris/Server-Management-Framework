@@ -1,260 +1,238 @@
 <div id="endpoints-content">
+    <!-- Aktionsergebnis anzeigen -->
+    <div id="action-result" style="display: none;"></div>
+    
     <div class="card">
         <div class="card-header">
-            <h2 class="mb-0">🔌 <?php echo $translations['api_endpoints_tester']; ?></h2>
+            <h2 class="mb-0">🔌 <?= t('api_endpoints_tester') ?></h2>
         </div>
         <div class="card-body">
-            <p><?php echo $translations['test_api_endpoints']; ?></p>
+            <p><?= t('test_api_endpoints') ?></p>
         </div>
     </div>
     
     <!-- Proxmox Endpoints -->
     <div class="card mt-4">
         <div class="card-header">
-            <h3 class="mb-0">🖥️ <?php echo $translations['proxmox_api_endpoints']; ?></h3>
+            <h3 class="mb-0">🖥️ <?= t('proxmox_api_endpoints') ?></h3>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-2 mb-2">
-                    <button class="btn btn-outline-primary w-100" onclick="testEndpoint('proxmox', 'get_proxmox_nodes')">📡 <?php echo $translations['load_nodes']; ?></button>
+                    <button class="btn btn-outline-primary w-100 endpoints-test-btn" data-module="proxmox" data-action="get_proxmox_nodes">📡 <?= t('load_nodes') ?></button>
                 </div>
                 <div class="col-md-2 mb-2">
-                    <button class="btn btn-outline-primary w-100" onclick="testEndpointWithParam('proxmox', 'get_proxmox_storages', 'node', 'pve')">💾 <?php echo $translations['load_storages']; ?></button>
+                    <button class="btn btn-outline-primary w-100 endpoints-test-btn" data-module="proxmox" data-action="get_proxmox_storages" data-param-name="node" data-param-value="pve">💾 <?= t('load_storages') ?></button>
                 </div>
                 <div class="col-md-2 mb-2">
-                    <button class="btn btn-outline-primary w-100" onclick="testEndpointWithParams('proxmox', 'get_vm_config', {node: 'pve', vmid: '100'})">⚙️ <?php echo $translations['vm_config']; ?></button>
+                    <button class="btn btn-outline-primary w-100 endpoints-test-btn" data-module="proxmox" data-action="get_vm_config" data-params='{"node": "pve", "vmid": "100"}'>⚙️ <?= t('vm_config')    ?></button>
                 </div>
                 <div class="col-md-2 mb-2">
-                    <button class="btn btn-outline-primary w-100" onclick="testEndpointWithParams('proxmox', 'get_vm_status', {node: 'pve', vmid: '100'})">📊 <?php echo $translations['vm_status']; ?></button>
+                                <button class="btn btn-outline-primary w-100 endpoints-test-btn" data-module="proxmox" data-action="get_vm_status" data-params='{"node": "pve", "vmid": "100"}'>📊 <?= t('vm_status') ?></button>
                 </div>
                 <div class="col-md-2 mb-2">
-                    <button class="btn btn-outline-primary w-100" onclick="testEndpointWithParams('proxmox', 'clone_vm', {node: 'pve', vmid: '100', newid: '101', name: 'clone-test'})">📋 <?php echo $translations['clone_vm']; ?></button>
+                    <button class="btn btn-outline-primary w-100 endpoints-test-btn" data-module="proxmox" data-action="clone_vm" data-params='{"node": "pve", "vmid": "100", "newid": "101", "name": "clone-test"}'>📋 <?= t('clone_vm') ?></button>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- ISPConfig Endpoints -->
-    <div class="endpoint-section">
-        <h3>🌐 ISPConfig API Endpoints</h3>
-        <div class="endpoint-buttons">
-            <button class="btn" onclick="testEndpoint('ispconfig', 'get_ispconfig_clients')">👥 Clients laden</button>
-            <button class="btn" onclick="testEndpoint('ispconfig', 'get_ispconfig_server_config')">⚙️ Server Config</button>
-            <button class="btn" onclick="testEndpointWithParam('ispconfig', 'get_website_details', 'domain_id', '1')">🌐 Website Details</button>
-            <button class="btn" onclick="testEndpointWithParams('ispconfig', 'create_ftp_user', {domain_id: '1', username: 'test', password: 'test123', quota: '500'})">👤 FTP User Test</button>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="mb-0">🌐 ISPConfig API Endpoints</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-secondary w-100 endpoints-test-btn" data-module="ispconfig" data-action="get_ispconfig_clients">👥 <?= t('load_clients') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-secondary w-100 endpoints-test-btn" data-module="ispconfig" data-action="get_ispconfig_server_config">⚙️ <?= t('server_config') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-secondary w-100 endpoints-test-btn" data-module="ispconfig" data-action="get_website_details" data-param-name="domain_id" data-param-value="1">🌐 <?= t('website_details') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-secondary w-100 endpoints-test-btn" data-module="ispconfig" data-action="create_ftp_user" data-params='{"domain_id": "1", "username": "test", "password": "test123", "quota": "500"}'>👤 <?= t('ftp_user_test') ?></button>
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- OVH Endpoints -->
-    <div class="endpoint-section">
-        <h3>🔗 OVH API Endpoints</h3>
-        <div class="endpoint-buttons">
-            <button class="btn" onclick="testEndpointWithParam('ovh', 'get_ovh_domain_zone', 'domain', 'example.com')">🌐 Domain Zone</button>
-            <button class="btn" onclick="testEndpointWithParam('ovh', 'get_ovh_dns_records', 'domain', 'example.com')">📝 DNS Records</button>
-            <button class="btn" onclick="testEndpointWithParam('ovh', 'get_vps_ips', 'vps_name', 'vpsXXXXX.ovh.net')">🌐 VPS IPs</button>
-            <button class="btn" onclick="testEndpointWithParams('ovh', 'get_vps_ip_details', {vps_name: 'vpsXXXXX.ovh.net', ip: '1.2.3.4'})">📊 IP Details</button>
-            <button class="btn" onclick="testEndpointWithParams('ovh', 'control_ovh_vps', {vps_name: 'vpsXXXXX.ovh.net', vps_action: 'reboot'})">🔄 VPS Control</button>
-            <button class="btn" onclick="testEndpointWithParams('ovh', 'create_dns_record', {domain: 'example.com', type: 'A', subdomain: 'test', target: '1.2.3.4'})">➕ DNS Record</button>
-            <button class="btn" onclick="testEndpointWithParam('ovh', 'refresh_dns_zone', 'domain', 'example.com')">🔄 DNS Refresh</button>
-            <button class="btn" onclick="testEndpoint('ovh', 'get_ovh_failover_ips')">📋 Failover IPs</button>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="mb-0">🔗 <?= t('ovh_api_endpoints') ?></h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-info w-100 endpoints-test-btn" data-module="ovh" data-action="get_ovh_domain_zone" data-param-name="domain" data-param-value="example.com">🌐 <?= t('domain_zone') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-info w-100 endpoints-test-btn" data-module="ovh" data-action="get_ovh_dns_records" data-param-name="domain" data-param-value="example.com">📝 <?= t('dns_records') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-info w-100 endpoints-test-btn" data-module="ovh" data-action="get_vps_ips" data-param-name="vps_name" data-param-value="vpsXXXXX.ovh.net">🌐 <?= t('vps_ips') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-info w-100 endpoints-test-btn" data-module="ovh" data-action="get_vps_ip_details" data-params='{"vps_name": "vpsXXXXX.ovh.net", "ip": "1.2.3.4"}'>📊 <?= t('ip_details') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-info w-100 endpoints-test-btn" data-module="ovh" data-action="control_ovh_vps" data-params='{"vps_name": "vpsXXXXX.ovh.net", "vps_action": "reboot"}'>🔄 <?= t('vps_control') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-info w-100 endpoints-test-btn" data-module="ovh" data-action="create_dns_record" data-params='{"domain": "example.com", "type": "A", "subdomain": "test", "target": "1.2.3.4"}'>➕ <?= t('dns_record') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-info w-100 endpoints-test-btn" data-module="ovh" data-action="refresh_dns_zone" data-param-name="domain" data-param-value="example.com">🔄 <?= t('dns_refresh') ?></button>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-outline-info w-100 endpoints-test-btn" data-module="ovh" data-action="get_ovh_failover_ips">📋 <?= t('failover_ips') ?></button>
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- Virtual MAC Endpoints -->
-    <div class="endpoint-section">
-        <h3>🔌 Virtual MAC API Endpoints</h3>
-        <div class="endpoint-buttons">
-            <button class="btn" onclick="testEndpoint('virtual-mac', 'get_all_virtual_macs')">📋 Alle Virtual MACs</button>
-            <button class="btn" onclick="testEndpoint('virtual-mac', 'get_dedicated_servers')">🖥️ Dedicated Servers</button>
-            <button class="btn" onclick="testEndpointWithParam('virtual-mac', 'get_virtual_mac_details', 'service_name', 'ns3112327.ip-54-36-111.eu')">🔍 MAC Details</button>
-            <button class="btn" onclick="testEndpointWithParams('virtual-mac', 'create_virtual_mac', {service_name: 'ns3112327.ip-54-36-111.eu', virtual_network_interface: 'eth0', type: 'ovh'})">➕ Virtual MAC</button>
-            <button class="btn" onclick="testEndpointWithParams('virtual-mac', 'assign_ip_to_virtual_mac', {service_name: 'ns3112327.ip-54-36-111.eu', mac_address: '02:00:00:96:1f:85', ip_address: '192.168.1.100', virtual_machine_name: 'test-vm'})">🌐 IP zuweisen</button>
-            <button class="btn" onclick="testEndpointWithParams('virtual-mac', 'create_reverse_dns', {ip_address: '192.168.1.100', reverse: 'test.example.com'})">🔄 Reverse DNS</button>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="mb-0">🔌 <?= t('virtual_mac_api_endpoints') ?></h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-warning w-100 endpoints-test-btn" data-module="virtual-mac" data-action="get_all_virtual_macs">📋 <?= t('all_virtual_macs') ?></button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-warning w-100 endpoints-test-btn" data-module="virtual-mac" data-action="get_dedicated_servers">🖥️ <?= t('dedicated_servers') ?></button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-warning w-100 endpoints-test-btn" data-module="virtual-mac" data-action="get_virtual_mac_details" data-param-name="service_name" data-param-value="ns3112327.ip-54-36-111.eu">🔍 <?= t('mac_details') ?></button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-warning w-100 endpoints-test-btn" data-module="virtual-mac" data-action="create_virtual_mac" data-params='{"service_name": "ns3112327.ip-54-36-111.eu", "virtual_network_interface": "eth0", "type": "ovh"}'>➕ <?= t('virtual_mac') ?></button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-warning w-100 endpoints-test-btn" data-module="virtual-mac" data-action="assign_ip_to_virtual_mac" data-params='{"service_name": "ns3112327.ip-54-36-111.eu", "mac_address": "02:00:00:96:1f:85", "ip_address": "192.168.1.100", "virtual_machine_name": "test-vm"}'>🌐 <?= t('assign_ip') ?></button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-outline-warning w-100 endpoints-test-btn" data-module="virtual-mac" data-action="create_reverse_dns" data-params='{"ip_address": "192.168.1.100", "reverse": "test.example.com"}'>🔄 <?= t('reverse_dns') ?></button>
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- Database Endpoints -->
-    <div class="endpoint-section">
-        <h3>🗄️ Database API Endpoints</h3>
-        <div class="endpoint-buttons">
-            <button class="btn" onclick="testEndpoint('admin', 'get_all_databases')">📋 Alle Datenbanken</button>
-            <button class="btn" onclick="testEndpointWithParams('database', 'create_database', {name: 'test_db', user: 'test_user', password: 'test123'})">➕ DB erstellen</button>
-            <button class="btn" onclick="testEndpointWithParam('admin', 'delete_database', 'database_id', '1')">🗑️ DB löschen</button>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="mb-0">🗄️ <?= t('database_api_endpoints') ?></h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <button class="btn btn-outline-success w-100 endpoints-test-btn" data-module="admin" data-action="get_all_databases">📋 <?= t('all_databases') ?></button>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <button class="btn btn-outline-success w-100 endpoints-test-btn" data-module="database" data-action="create_database" data-params='{"name": "test_db", "user": "test_user", "password": "test123"}'>➕ <?= t('create_database') ?></button>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <button class="btn btn-outline-success w-100 endpoints-test-btn" data-module="admin" data-action="delete_database" data-param-name="database_id" data-param-value="1">🗑️ <?= t('delete_database') ?></button>
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- Email Endpoints -->
-    <div class="endpoint-section">
-        <h3>📧 Email API Endpoints</h3>
-        <div class="endpoint-buttons">
-            <button class="btn" onclick="testEndpoint('admin', 'get_all_emails')">📋 Alle E-Mails</button>
-            <button class="btn" onclick="testEndpointWithParams('email', 'create_email', {email: 'test@example.com', login: 'test', password: 'test123', quota: '1000', domain: 'example.com'})">➕ Email erstellen</button>
-            <button class="btn" onclick="testEndpointWithParam('admin', 'delete_email', 'mailuser_id', '1')">🗑️ Email löschen</button>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="mb-0">📧 <?= t('email_api_endpoints') ?></h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <button class="btn btn-outline-danger w-100 endpoints-test-btn" data-module="admin" data-action="get_all_emails">📋 <?= t('all_emails') ?></button>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <button class="btn btn-outline-danger w-100 endpoints-test-btn" data-module="email" data-action="create_email" data-params='{"email": "test@example.com", "login": "test", "password": "test123", "quota": "1000", "domain": "example.com"}'>➕ <?= t('create_email') ?></button>
+                </div>
+                <div class="col-md-4 mb-2">
+                        <button class="btn btn-outline-danger w-100 endpoints-test-btn" data-module="admin" data-action="delete_email" data-param-name="mailuser_id" data-param-value="1">🗑️ <?= t('delete_email') ?></button>
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- System Endpoints -->
-    <div class="endpoint-section">
-        <h3>⚙️ System Endpoints</h3>
-        <div class="endpoint-buttons">
-            <button class="btn" onclick="testEndpoint('admin', 'get_activity_log')">📜 Activity Log</button>
-            <button class="btn" onclick="testHeartbeat()">💓 Session Heartbeat</button>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="mb-0">⚙️ <?= t('system_endpoints') ?></h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-2">
+                    <button class="btn btn-outline-dark w-100 endpoints-test-btn" data-module="admin" data-action="get_activity_log">📜 <?= t('activity_log') ?></button>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <button class="btn btn-outline-dark w-100 endpoints-test-btn" data-action="testHeartbeat">💓 <?= t('session_heartbeat') ?></button>
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- Custom Test -->
-    <div class="endpoint-section">
-        <h3>🔧 Custom Endpoint Test</h3>
-        <form onsubmit="testCustomEndpoint(event)">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="custom_module">Module</label>
-                    <select id="custom_module" name="module" required>
-                        <option value="">Module wählen...</option>
-                        <?php foreach (getEnabledModules() as $key => $module): ?>
-                        <option value="<?= $key ?>"><?= $module['name'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="mb-0">🔧 <?= t('custom_endpoint_test') ?></h3>
+        </div>
+        <div class="card-body">
+            <form class="endpoints-custom-form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="custom_module"><?= t('module') ?></label>
+                            <select class="form-control" id="custom_module" name="module" required>
+                                <option value=""><?= t('select_module') ?></option>
+                                <?php foreach (getEnabledModules() as $key => $module): ?>
+                                <option value="<?= $key ?>"><?= $module['name'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="custom_action"><?= t('action') ?></label>
+                            <input type="text" class="form-control" id="custom_action" name="action" required placeholder="get_all_items">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="custom_action">Action</label>
-                    <input type="text" id="custom_action" name="action" required placeholder="get_all_items">
+                
+                <div class="form-group mb-3">
+                    <label for="custom_params">Parameters (JSON)</label>
+                    <textarea class="form-control" id="custom_params" name="params" rows="3" placeholder='{"param1": "value1", "param2": "value2"}'></textarea>
                 </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="custom_params">Parameters (JSON)</label>
-                <textarea id="custom_params" name="params" rows="3" placeholder='{"param1": "value1", "param2": "value2"}'></textarea>
-            </div>
-            
-            <button type="submit" class="btn">
-                Test Endpoint
-            </button>
-        </form>
+                
+                <button type="submit" class="btn btn-primary">
+                    <?= t('test_endpoint') ?>
+                </button>
+            </form>
+        </div>
     </div>
     
     <!-- Result Display -->
-    <div id="endpoint-result" class="result-box hidden">
-        <h4>🔍 Endpoint Response:</h4>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span id="response-status" style="font-weight: bold;"></span>
-            <button class="btn btn-secondary" onclick="copyResponse()">📋 Kopieren</button>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="mb-0">🔍 <?= t('endpoint_response') ?></h4>
         </div>
-        <pre id="endpoint-response" style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; max-height: 400px;"></pre>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span id="endpoint-status" class="fw-bold"></span>
+                    <button class="btn btn-secondary endpoints-test-btn" data-action="copyResponse">📋 <?= t('copy') ?></button>
+            </div>
+            <pre id="endpoint-response" class="bg-light p-3 rounded" style="overflow-x: auto; max-height: 400px; white-space: pre-wrap;"></pre>
+        </div>
     </div>
 </div>
 
-<script>
-// Endpoints Module JavaScript
-window.endpointsModule = {
-    init: function() {
-        console.log('Endpoints module initialized');
-    },
-    
-    lastResponse: null,
-    
-    displayResult: function(module, action, result) {
-        document.getElementById('endpoint-result').classList.remove('hidden');
-        
-        const statusEl = document.getElementById('response-status');
-        if (result.success) {
-            statusEl.textContent = '✅ Success';
-            statusEl.style.color = '#10b981';
-        } else {
-            statusEl.textContent = '❌ Error';
-            statusEl.style.color = '#ef4444';
-        }
-        
-        const response = {
-            module: module,
-            action: action,
-            timestamp: new Date().toISOString(),
-            response: result
-        };
-        
-        this.lastResponse = JSON.stringify(response, null, 2);
-        document.getElementById('endpoint-response').textContent = this.lastResponse;
-    },
-    
-    copyResponse: function() {
-        if (this.lastResponse) {
-            navigator.clipboard.writeText(this.lastResponse).then(() => {
-                showNotification('Response kopiert!', 'success');
-            }).catch(() => {
-                showNotification('Kopieren fehlgeschlagen', 'error');
-            });
-        }
-    }
-};
-
-// Test Functions
-async function testEndpoint(module, action) {
-    try {
-        showNotification(`Testing ${module}.${action}...`, 'info');
-        const result = await ModuleManager.makeRequest(module, action);
-        endpointsModule.displayResult(module, action, result);
-    } catch (error) {
-        endpointsModule.displayResult(module, action, {success: false, error: error.message});
-    }
-}
-
-async function testEndpointWithParam(module, action, paramName, paramValue) {
-    try {
-        showNotification(`Testing ${module}.${action}...`, 'info');
-        const params = {};
-        params[paramName] = paramValue;
-        const result = await ModuleManager.makeRequest(module, action, params);
-        endpointsModule.displayResult(module, action, result);
-    } catch (error) {
-        endpointsModule.displayResult(module, action, {success: false, error: error.message});
-    }
-}
-
-async function testEndpointWithParams(module, action, params) {
-    try {
-        showNotification(`Testing ${module}.${action}...`, 'info');
-        const result = await ModuleManager.makeRequest(module, action, params);
-        endpointsModule.displayResult(module, action, result);
-    } catch (error) {
-        endpointsModule.displayResult(module, action, {success: false, error: error.message});
-    }
-}
-
-async function testHeartbeat() {
-    try {
-        const response = await fetch('?heartbeat=1');
-        const result = await response.json();
-        endpointsModule.displayResult('system', 'heartbeat', result);
-    } catch (error) {
-        endpointsModule.displayResult('system', 'heartbeat', {success: false, error: error.message});
-    }
-}
-
-async function testCustomEndpoint(event) {
-    event.preventDefault();
-    const form = event.target;
-    const module = form.module.value;
-    const action = form.action.value;
-    let params = {};
-    
-    if (form.params.value) {
-        try {
-            params = JSON.parse(form.params.value);
-        } catch (e) {
-            showNotification('Invalid JSON in parameters', 'error');
-            return;
-        }
-    }
-    
-    await testEndpointWithParams(module, action, params);
-}
-
-function copyResponse() {
-    endpointsModule.copyResponse();
-}
-
-// Legacy support for old calls
-function displayEndpointResult(action, result) {
-    endpointsModule.displayResult('unknown', action, result);
-}
-</script>
+<script src="module/endpoints/assets/module.js"></script>

@@ -1,7 +1,7 @@
 <?php
 /**
- * Debug Tools Index - Übersicht aller verfügbaren Debug-Tools
- * Zentrale Anlaufstelle für Entwicklung und Fehleranalyse
+ * Debug Tools Index - Zentrale Anlaufstelle für alle Debug-Funktionen
+ * Integriert alle Debug-Tools in eine übersichtliche Oberfläche
  */
 
 error_reporting(E_ALL);
@@ -20,7 +20,54 @@ if ($auth_exists) {
     require_once '../auth_handler.php';
 }
 
-// Quick Status Check
+// AJAX Handler für verschiedene Debug-Funktionen
+if (isset($_POST['action'])) {
+    header('Content-Type: application/json');
+    
+    switch ($_POST['action']) {
+        case 'system_status':
+            echo json_encode(getSystemStatus());
+            break;
+            
+        case 'test_endpoint':
+            $endpoint = $_POST['endpoint'] ?? '';
+            $method = $_POST['method'] ?? 'GET';
+            $params = json_decode($_POST['params'] ?? '{}', true);
+            echo json_encode(testEndpoint($endpoint, $method, $params));
+            break;
+            
+        case 'database_test':
+            echo json_encode(testDatabase());
+            break;
+            
+        case 'soap_test':
+            echo json_encode(testSOAP());
+            break;
+            
+        case 'ispconfig_test':
+            echo json_encode(testISPConfig());
+            break;
+            
+        case 'clear_logs':
+            echo json_encode(clearLogs());
+            break;
+            
+        case 'quick_fix':
+            echo json_encode(runQuickFix());
+            break;
+            
+        case 'view_logs':
+            $type = $_POST['type'] ?? 'error';
+            echo json_encode(['content' => getLogContent($type)]);
+            break;
+            
+        default:
+            echo json_encode(['error' => 'Unbekannte Aktion']);
+    }
+    exit;
+}
+
+// System Status Funktion
 function getSystemStatus() {
     $status = [
         'php_version' => PHP_VERSION,
@@ -28,7 +75,8 @@ function getSystemStatus() {
         'extensions' => [],
         'database' => 'unknown',
         'session' => 'unknown',
-        'framework' => 'unknown'
+        'framework' => 'unknown',
+        'files' => []
     ];
     
     // PHP Extensions
@@ -50,7 +98,7 @@ function getSystemStatus() {
     }
     
     // Session Check
-    if (function_exists('SessionManager::startSession')) {
+    if (class_exists('SessionManager')) {
         try {
             SessionManager::startSession();
             $status['session'] = SessionManager::isLoggedIn() ? 'logged_in' : 'not_logged_in';
@@ -68,7 +116,470 @@ function getSystemStatus() {
         $status['framework'] = 'not loaded';
     }
     
+    // File Checks
+    $status['files'] = [
+        'framework.php' => file_exists('../framework.php'),
+        'auth_handler.php' => file_exists('../auth_handler.php'),
+        'index.php' => file_exists('../index.php'),
+        'config.inc.php' => file_exists('../config/config.inc.php')
+    ];
+    
     return $status;
+}
+
+// Endpoint Test Funktion
+function testEndpoint($endpoint, $method = 'GET', $params = []) {
+    try {
+        switch ($endpoint) {
+            case 'proxmox_nodes':
+                if (class_exists('ProxmoxGet')) {
+                    $proxmox = new ProxmoxGet();
+                    return ['success' => true, 'data' => $proxmox->getNodes()];
+                }
+                return ['success' => false, 'error' => 'ProxmoxGet class not found'];
+                
+            case 'ispconfig_test':
+                return testISPConfig();
+                
+            case 'database_test':
+                return testDatabase();
+                
+            default:
+                return ['success' => false, 'error' => 'Unknown endpoint'];
+        }
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
+    }
+}
+
+// Database Test Funktion
+function testDatabase() {
+    try {
+        if (!class_exists('Database')) {
+            return ['success' => false, 'error' => 'Database class not found'];
+        }
+        
+        $db = Database::getInstance();
+        $connection = $db->getConnection();
+        
+        // Test query
+        $stmt = $connection->query("SELECT VERSION() as version");
+        $version = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Check tables
+        $stmt = $connection->query("SHOW TABLES");
+        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        return [
+            'success' => true,
+            'version' => $version['version'],
+            'tables' => $tables,
+            'table_count' => count($tables)
+        ];
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
+    }
+}
+
+// SOAP Test Funktion
+function testSOAP() {
+    $results = [];
+    
+    // Check SOAP extension
+    $results['soap_extension'] = extension_loaded('soap');
+    
+    // Check SOAP functions
+    $results['soap_functions'] = function_exists('soap_create_client');
+    
+    // Test SOAP client creation
+    if ($results['soap_extension']) {
+        try {
+            $client = new SoapClient(null, ['location' => 'http://localhost', 'uri' => 'http://localhost']);
+            $results['soap_client'] = true;
+        } catch (Exception $e) {
+            $results['soap_client'] = false;
+            $results['soap_error'] = $e->getMessage();
+        }
+    }
+    
+    return $results;
+}
+
+// ISPConfig Test Funktion
+function testISPConfig() {
+    try {
+        if (!class_exists('ISPConfigAPI')) {
+            return ['success' => false, 'error' => 'ISPConfigAPI class not found'];
+        }
+        
+        $ispconfig = new ISPConfigAPI();
+        $result = $ispconfig->testConnection();
+        
+        return ['success' => true, 'data' => $result];
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
+    }
+}
+
+// Log Content Funktion
+function getLogContent($type) {
+    switch ($type) {
+        case 'error':
+            return showErrorLog();
+        case 'access':
+            return showAccessLog();
+        case 'activity':
+            return showActivityLog();
+        default:
+            return "Unbekannter Log-Typ: $type";
+    }
+}
+
+function showErrorLog() {
+    $error_log = ini_get('error_log');
+    
+    if (empty($error_log)) {
+        $error_log = '/var/log/apache2/error.log';
+        if (!file_exists($error_log)) {
+            $error_log = '/var/log/nginx/error.log';
+        }
+        if (!file_exists($error_log)) {
+            $error_log = sys_get_temp_dir() . '/php_errors.log';
+        }
+    }
+    
+    if (!file_exists($error_log)) {
+        return "Error log file not found!\nPossible locations:\n- /var/log/apache2/error.log\n- /var/log/nginx/error.log\n- " . sys_get_temp_dir() . "/php_errors.log";
+    }
+    
+    if (!is_readable($error_log)) {
+        return "Error log file not readable!";
+    }
+    
+    $content = "=== PHP ERROR LOG ===\n";
+    $content .= "Log file: $error_log\n";
+    $content .= "File size: " . formatBytes(filesize($error_log)) . "\n";
+    $content .= str_repeat("-", 50) . "\n";
+    
+    $lines = file($error_log);
+    $recent_lines = array_slice($lines, -50);
+    
+    foreach ($recent_lines as $line) {
+        $content .= $line;
+    }
+    
+    return $content;
+}
+
+function showAccessLog() {
+    $access_logs = [
+        '/var/log/apache2/access.log',
+        '/var/log/nginx/access.log',
+        '/var/log/httpd/access_log'
+    ];
+    
+    $log_file = null;
+    foreach ($access_logs as $log) {
+        if (file_exists($log) && is_readable($log)) {
+            $log_file = $log;
+            break;
+        }
+    }
+    
+    if (!$log_file) {
+        return "No accessible access log found!\nChecked locations:\n" . implode("\n", array_map(function($log) { return "- $log"; }, $access_logs));
+    }
+    
+    $content = "=== ACCESS LOG ===\n";
+    $content .= "Log file: $log_file\n";
+    $content .= "File size: " . formatBytes(filesize($log_file)) . "\n";
+    $content .= str_repeat("-", 50) . "\n";
+    
+    $lines = file($log_file);
+    $recent_lines = array_slice($lines, -100);
+    
+    foreach ($recent_lines as $line) {
+        $content .= $line;
+    }
+    
+    return $content;
+}
+
+function showActivityLog() {
+    try {
+        if (!class_exists('Database')) {
+            return "Database class not found!";
+        }
+        
+        $db = Database::getInstance();
+        $connection = $db->getConnection();
+        
+        $stmt = $connection->prepare("SELECT id, action, details, status, created_at FROM activity_log ORDER BY created_at DESC LIMIT 50");
+        $stmt->execute();
+        $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $content = "=== ACTIVITY LOG ===\n";
+        $content .= "Total entries: " . count($logs) . "\n";
+        $content .= str_repeat("-", 50) . "\n";
+        
+        foreach ($logs as $log) {
+            $content .= sprintf("[%s] %s - %s (%s)\n", 
+                $log['created_at'], 
+                $log['action'], 
+                $log['details'], 
+                $log['status']
+            );
+        }
+        
+        return $content;
+    } catch (Exception $e) {
+        return "Error reading activity log: " . $e->getMessage();
+    }
+}
+
+function formatBytes($size, $precision = 2) {
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    
+    for ($i = 0; $size > 1024 && $i < count($units) - 1; $i++) {
+        $size /= 1024;
+    }
+    
+    return round($size, $precision) . ' ' . $units[$i];
+}
+
+// Clear Logs Funktion
+function clearLogs() {
+    $cleared = [];
+    $errors = [];
+
+    try {
+        // Clear PHP error log
+        $error_log = ini_get('error_log');
+        if (!empty($error_log) && file_exists($error_log)) {
+            if (is_writable($error_log)) {
+                if (file_put_contents($error_log, '') !== false) {
+                    $cleared[] = 'PHP Error Log';
+                } else {
+                    $errors[] = 'Failed to clear PHP Error Log';
+                }
+            } else {
+                $errors[] = 'PHP Error Log not writable';
+            }
+        }
+        
+        // Clear activity log in database
+        try {
+            if (class_exists('Database')) {
+                $db = Database::getInstance()->getConnection();
+                
+                // Keep last 10 entries, delete the rest
+                $stmt = $db->prepare("DELETE FROM activity_log WHERE id NOT IN (SELECT id FROM (SELECT id FROM activity_log ORDER BY created_at DESC LIMIT 10) as keeper)");
+                
+                if ($stmt->execute()) {
+                    $affected = $stmt->rowCount();
+                    $cleared[] = "Database Activity Log ($affected entries removed)";
+                }
+            }
+        } catch (Exception $e) {
+            $errors[] = 'Database Activity Log: ' . $e->getMessage();
+        }
+        
+        // Clear old session files
+        $session_path = session_save_path();
+        if (empty($session_path)) {
+            $session_path = sys_get_temp_dir();
+        }
+        
+        $session_files = glob($session_path . '/sess_*');
+        $cleared_sessions = 0;
+        $session_errors = 0;
+        
+        foreach ($session_files as $file) {
+            // Only delete old session files (older than 1 hour)
+            if (file_exists($file) && (time() - filemtime($file)) > 3600) {
+                if (unlink($file)) {
+                    $cleared_sessions++;
+                } else {
+                    $session_errors++;
+                }
+            }
+        }
+        
+        if ($cleared_sessions > 0) {
+            $cleared[] = "Old Session Files ($cleared_sessions files)";
+        }
+        
+        if ($session_errors > 0) {
+            $errors[] = "Could not delete $session_errors session files";
+        }
+        
+        // Clear debug log files
+        $debug_files = [
+            __DIR__ . '/debug.log',
+            __DIR__ . '/ajax_debug.log',
+            __DIR__ . '/test.log'
+        ];
+        
+        $cleared_debug = 0;
+        foreach ($debug_files as $file) {
+            if (file_exists($file) && is_writable($file)) {
+                if (file_put_contents($file, '') !== false) {
+                    $cleared_debug++;
+                }
+            }
+        }
+        
+        if ($cleared_debug > 0) {
+            $cleared[] = "Debug Log Files ($cleared_debug files)";
+        }
+        
+        // Clear temp files
+        $temp_path = sys_get_temp_dir();
+        $temp_files = glob($temp_path . '/server_mgmt_*');
+        $cleared_temp = 0;
+        
+        foreach ($temp_files as $file) {
+            if (file_exists($file) && is_writable($file)) {
+                if (unlink($file)) {
+                    $cleared_temp++;
+                }
+            }
+        }
+        
+        if ($cleared_temp > 0) {
+            $cleared[] = "Temp Files ($cleared_temp files)";
+        }
+        
+    } catch (Exception $e) {
+        $errors[] = 'General error: ' . $e->getMessage();
+    }
+    
+    return [
+        'success' => count($errors) === 0,
+        'cleared' => $cleared,
+        'errors' => $errors,
+        'message' => count($cleared) . ' items cleared, ' . count($errors) . ' errors'
+    ];
+}
+
+// Quick Fix Funktion
+function runQuickFix() {
+    $fixes = [];
+    $errors = [];
+    
+    // Check and fix session directory
+    $session_dir = session_save_path();
+    if (!is_dir($session_dir)) {
+        if (mkdir($session_dir, 0755, true)) {
+            $fixes[] = "Session-Verzeichnis erstellt: $session_dir";
+        } else {
+            $errors[] = "Konnte Session-Verzeichnis nicht erstellen: $session_dir";
+        }
+    }
+    
+    // Check and fix log directory
+    $log_dir = '../logs';
+    if (!is_dir($log_dir)) {
+        if (mkdir($log_dir, 0755, true)) {
+            $fixes[] = "Log-Verzeichnis erstellt: $log_dir";
+        } else {
+            $errors[] = "Konnte Log-Verzeichnis nicht erstellen: $log_dir";
+        }
+    }
+    
+    // Check database connection and repair if needed
+    try {
+        if (class_exists('Database')) {
+            $db = Database::getInstance();
+            $connection = $db->getConnection();
+            
+            // Test basic query
+            $stmt = $connection->query("SELECT 1");
+            $fixes[] = "Datenbank-Verbindung erfolgreich";
+            
+            // Check and repair activity_log table
+            try {
+                $stmt = $connection->query("SELECT COUNT(*) FROM activity_log");
+                $fixes[] = "Activity Log Tabelle OK";
+            } catch (Exception $e) {
+                // Try to repair activity_log table
+                try {
+                    $connection->exec("CREATE TABLE IF NOT EXISTS activity_log (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        action VARCHAR(255) NOT NULL,
+                        details TEXT,
+                        status VARCHAR(50) DEFAULT 'success',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )");
+                    $fixes[] = "Activity Log Tabelle erstellt/repariert";
+                } catch (Exception $e2) {
+                    $errors[] = "Konnte Activity Log Tabelle nicht reparieren: " . $e2->getMessage();
+                }
+            }
+            
+            // Check and repair users table
+            try {
+                $stmt = $connection->query("SELECT COUNT(*) FROM users");
+                $fixes[] = "Users Tabelle OK";
+            } catch (Exception $e) {
+                try {
+                    $connection->exec("CREATE TABLE IF NOT EXISTS users (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(50) UNIQUE NOT NULL,
+                        email VARCHAR(100) UNIQUE NOT NULL,
+                        password_hash VARCHAR(255) NOT NULL,
+                        role ENUM('admin', 'user') DEFAULT 'user',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_login TIMESTAMP NULL
+                    )");
+                    $fixes[] = "Users Tabelle erstellt/repariert";
+                } catch (Exception $e2) {
+                    $errors[] = "Konnte Users Tabelle nicht reparieren: " . $e2->getMessage();
+                }
+            }
+            
+        } else {
+            $errors[] = "Database-Klasse nicht gefunden";
+        }
+    } catch (Exception $e) {
+        $errors[] = "Datenbank-Fehler: " . $e->getMessage();
+    }
+    
+    // Check PHP extensions
+    $required_extensions = ['curl', 'soap', 'pdo_mysql', 'json', 'session'];
+    foreach ($required_extensions as $ext) {
+        if (!extension_loaded($ext)) {
+            $errors[] = "PHP Extension fehlt: $ext";
+        } else {
+            $fixes[] = "PHP Extension OK: $ext";
+        }
+    }
+    
+    // Check file permissions
+    $files_to_check = [
+        '../config/config.inc.php' => 'Config-Datei',
+        '../framework.php' => 'Framework-Datei',
+        '../auth_handler.php' => 'Auth-Handler'
+    ];
+    
+    foreach ($files_to_check as $file => $description) {
+        if (file_exists($file)) {
+            if (is_readable($file)) {
+                $fixes[] = "$description lesbar";
+            } else {
+                $errors[] = "$description nicht lesbar";
+            }
+        } else {
+            $errors[] = "$description nicht gefunden";
+        }
+    }
+    
+    return [
+        'success' => count($errors) === 0,
+        'fixes' => $fixes,
+        'errors' => $errors,
+        'message' => count($fixes) . ' Fixes angewendet, ' . count($errors) . ' Fehler gefunden'
+    ];
 }
 
 $system_status = getSystemStatus();
@@ -177,19 +688,22 @@ $system_status = getSystemStatus();
             padding-bottom: 10px;
         }
         
-        .tool-link {
+        .tool-button {
             display: block;
+            width: 100%;
+            background: rgba(78, 205, 196, 0.1);
             color: #4ecdc4;
             text-decoration: none;
             padding: 12px 15px;
             margin: 8px 0;
-            background: rgba(78, 205, 196, 0.1);
             border-radius: 8px;
             transition: all 0.3s ease;
-            border-left: 4px solid #4ecdc4;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            cursor: pointer;
+            text-align: left;
         }
         
-        .tool-link:hover {
+        .tool-button:hover {
             background: rgba(78, 205, 196, 0.2);
             transform: translateX(5px);
             box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
@@ -253,6 +767,56 @@ $system_status = getSystemStatus();
             margin-top: 15px;
         }
         
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        
+        .modal-content {
+            background: #2d2d2d;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #fff;
+        }
+        
+        .test-result {
+            background: #1a1a1a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #4ecdc4;
+        }
+        
+        .test-result.error {
+            border-left-color: #ff6b6b;
+        }
+        
+        .test-result.success {
+            border-left-color: #51cf66;
+        }
+        
         @media (max-width: 768px) {
             .tools-grid {
                 grid-template-columns: 1fr;
@@ -267,7 +831,7 @@ $system_status = getSystemStatus();
     <div class="container">
         <div class="header">
             <h1>🔧 Debug Tools</h1>
-            <p>Server Management Framework - Entwickler-Tools und Fehleranalyse</p>
+            <p>Server Management Framework - Zentrale Debug-Anlaufstelle</p>
         </div>
         
         <!-- System Status -->
@@ -312,30 +876,14 @@ $system_status = getSystemStatus();
             
             <div class="status-card">
                 <h3>📁 File Status</h3>
+                <?php foreach ($system_status['files'] as $file => $exists): ?>
                 <div class="status-item">
-                    <span>framework.php:</span>
-                    <span class="<?= $framework_exists ? 'status-ok' : 'status-error' ?>">
-                        <?= $framework_exists ? '✅ Found' : '❌ Missing' ?>
+                    <span><?= $file ?>:</span>
+                    <span class="<?= $exists ? 'status-ok' : 'status-error' ?>">
+                        <?= $exists ? '✅ Found' : '❌ Missing' ?>
                     </span>
                 </div>
-                <div class="status-item">
-                    <span>auth_handler.php:</span>
-                    <span class="<?= $auth_exists ? 'status-ok' : 'status-error' ?>">
-                        <?= $auth_exists ? '✅ Found' : '❌ Missing' ?>
-                    </span>
-                </div>
-                <div class="status-item">
-                    <span>index.php:</span>
-                    <span class="<?= $main_index_exists ? 'status-ok' : 'status-error' ?>">
-                        <?= $main_index_exists ? '✅ Found' : '❌ Missing' ?>
-                    </span>
-                </div>
-                <div class="status-item">
-                    <span>Framework:</span>
-                    <span class="<?= $system_status['framework'] === 'loaded' ? 'status-ok' : 'status-error' ?>">
-                        <?= $system_status['framework'] ?>
-                    </span>
-                </div>
+                <?php endforeach; ?>
             </div>
         </div>
         
@@ -344,107 +892,91 @@ $system_status = getSystemStatus();
             <a href="../index.php" class="quick-btn">🏠 Zur Hauptseite</a>
             <a href="../login.php" class="quick-btn">🔐 Login-Seite</a>
             <a href="../setup.php" class="quick-btn">⚙️ Setup</a>
-            <a href="endpoints_test.php" class="quick-btn">🔌 Endpoint Tester</a>
-            <a href="quick_fixes.php" class="quick-btn">🔧 Quick Fix</a>
-            <a href="../auth.php" class="quick-btn">🔍 Auth Test</a>
+            <button onclick="runQuickFix()" class="quick-btn">🔧 Auto-Fix</button>
+            <button onclick="testAll()" class="quick-btn">🧪 Volltest</button>
+            <button onclick="clearLogs()" class="quick-btn">🗑️ Logs löschen</button>
         </div>
         
         <!-- Debug Tools -->
         <div class="tools-grid">
             <div class="tool-category">
-                <h3>🔍 Allgemeine Debug-Tools</h3>
-                <a href="debug.php" class="tool-link">
-                    🐛 Allgemeiner Debug
-                    <div class="tool-description">Umfassende System-Informationen und JavaScript-Konsole</div>
-                </a>
-                <a href="ajax_debug.php" class="tool-link">
-                    📡 AJAX Debug Tool
-                    <div class="tool-description">Detaillierte AJAX-Request Analyse und Response-Debugging</div>
-                </a>
-                <a href="safe_handler.php" class="tool-link">
-                    🛡️ Sicherer Handler
-                    <div class="tool-description">Isolierter Handler mit verbesserter Fehlerbehandlung</div>
-                </a>
-                <a href="quick_fixes.php" class="tool-link">
-                    ⚡ Quick Fixes
-                    <div class="tool-description">Automatische Reparatur häufiger Probleme</div>
-                </a>
-            </div>
-            
-            <div class="tool-category">
-                <h3>🗄️ Datenbank Debug-Tools</h3>
-                <a href="database_fix.php" class="tool-link">
-                    🔧 Database Fix
-                    <div class="tool-description">SQL-Syntaxfehler korrigieren und Activity Log reparieren</div>
-                </a>
-                <a href="database_fix.php?test=1" class="tool-link">
-                    🧪 Database Test
-                    <div class="tool-description">Datenbank-Verbindung und Tabellen testen</div>
-                </a>
-            </div>
-            
-            <div class="tool-category">
-                <h3>🌐 API Debug-Tools</h3>
-                <a href="ispconfig_debug.php" class="tool-link">
-                    🌐 ISPConfig Debug
-                    <div class="tool-description">Systematisches ISPConfig-API Debugging</div>
-                </a>
-                <a href="soap_test.php" class="tool-link">
-                    🧼 SOAP Test
-                    <div class="tool-description">SOAP-Extension und ISPConfig-Verbindung testen</div>
-                </a>
-                <a href="endpoints_test.php" class="tool-link">
-                    🔌 Endpoint Tester
-                    <div class="tool-description">Alle verfügbaren API-Endpoints direkt testen</div>
-                </a>
-            </div>
-            
-            <div class="tool-category">
-                <h3>🔐 Authentication Debug</h3>
-                <a href="../auth.php?mode=full" class="tool-link">
-                    🔍 Vollständiger Auth Test
-                    <div class="tool-description">Komplette API-Authentifizierung testen</div>
-                </a>
-                <a href="../auth.php?mode=quick" class="tool-link">
-                    ⚡ Schneller Auth Test
-                    <div class="tool-description">Basis-Verbindungen zu allen APIs prüfen</div>
-                </a>
-                <a href="../auth.php?mode=config" class="tool-link">
-                    ⚙️ Konfiguration prüfen
-                    <div class="tool-description">API-Konfiguration und Zugangsdaten validieren</div>
-                </a>
-            </div>
-            
-            <div class="tool-category">
-                <h3>📊 Log und Monitoring</h3>
-                <a href="javascript:viewLogs('error')" class="tool-link">
+                <h3>🔍 System Debug</h3>
+                <button class="tool-button" onclick="showSystemInfo()">
+                    🐛 System-Informationen
+                    <div class="tool-description">Detaillierte PHP- und Server-Informationen</div>
+                </button>
+                <button class="tool-button" onclick="showSessionInfo()">
+                    🔑 Session-Informationen
+                    <div class="tool-description">Session-Status und Benutzer-Daten</div>
+                </button>
+                <button class="tool-button" onclick="testDatabase()">
+                    🗄️ Datenbank-Test
+                    <div class="tool-description">Datenbank-Verbindung und Tabellen prüfen</div>
+                </button>
+                <button class="tool-button" onclick="showLogs('error')">
                     📝 Error Logs
                     <div class="tool-description">PHP Error Log anzeigen</div>
-                </a>
-                <a href="javascript:viewLogs('access')" class="tool-link">
-                    📈 Access Logs
-                    <div class="tool-description">Apache/Nginx Access Log anzeigen</div>
-                </a>
-                <a href="javascript:viewLogs('activity')" class="tool-link">
-                    🎯 Activity Log
-                    <div class="tool-description">Anwendungs-Activity Log anzeigen</div>
-                </a>
+                </button>
             </div>
             
             <div class="tool-category">
-                <h3>🔧 Spezielle Tools</h3>
-                <a href="javascript:runQuickFix()" class="tool-link">
-                    🔧 Auto-Fix ausführen
-                    <div class="tool-description">Automatische Problemlösung starten</div>
-                </a>
-                <a href="javascript:clearLogs()" class="tool-link">
-                    🗑️ Logs löschen
-                    <div class="tool-description">Alle Log-Dateien leeren</div>
-                </a>
-                <a href="javascript:testAll()" class="tool-link">
-                    🧪 Volltest
-                    <div class="tool-description">Alle verfügbaren Tests ausführen</div>
-                </a>
+                <h3>🌐 API Debug</h3>
+                <button class="tool-button" onclick="testSOAP()">
+                    🧼 SOAP Test
+                    <div class="tool-description">SOAP-Extension und ISPConfig-Verbindung</div>
+                </button>
+                <button class="tool-button" onclick="testISPConfig()">
+                    🌐 ISPConfig API
+                    <div class="tool-description">ISPConfig-API-Verbindung testen</div>
+                </button>
+                <button class="tool-button" onclick="testProxmox()">
+                    🖥️ Proxmox API
+                    <div class="tool-description">Proxmox-API-Verbindung testen</div>
+                </button>
+                <button class="tool-button" onclick="testOVH()">
+                    ☁️ OVH API
+                    <div class="tool-description">OVH-API-Verbindung testen</div>
+                </button>
+            </div>
+            
+            <div class="tool-category">
+                <h3>🔧 Endpoint Tests</h3>
+                <button class="tool-button" onclick="testEndpoint('proxmox_nodes')">
+                    🖥️ Proxmox Nodes
+                    <div class="tool-description">Proxmox-Knoten abrufen</div>
+                </button>
+                <button class="tool-button" onclick="testEndpoint('proxmox_vms')">
+                    💻 Proxmox VMs
+                    <div class="tool-description">Virtuelle Maschinen auflisten</div>
+                </button>
+                <button class="tool-button" onclick="testEndpoint('ispconfig_sites')">
+                    🌐 ISPConfig Sites
+                    <div class="tool-description">ISPConfig-Websites abrufen</div>
+                </button>
+                <button class="tool-button" onclick="testEndpoint('ovh_servers')">
+                    ☁️ OVH Server
+                    <div class="tool-description">OVH-Server auflisten</div>
+                </button>
+            </div>
+            
+            <div class="tool-category">
+                <h3>📊 Monitoring</h3>
+                <button class="tool-button" onclick="showLogs('access')">
+                    📈 Access Logs
+                    <div class="tool-description">Apache/Nginx Access Log</div>
+                </button>
+                <button class="tool-button" onclick="showLogs('activity')">
+                    🎯 Activity Log
+                    <div class="tool-description">Anwendungs-Activity Log</div>
+                </button>
+                <button class="tool-button" onclick="showPerformance()">
+                    ⚡ Performance
+                    <div class="tool-description">System-Performance-Metriken</div>
+                </button>
+                <button class="tool-button" onclick="showMemoryUsage()">
+                    💾 Speicher-Nutzung
+                    <div class="tool-description">PHP-Speicher und Cache-Status</div>
+                </button>
             </div>
         </div>
         
@@ -463,62 +995,195 @@ $system_status = getSystemStatus();
                 <li><strong>ISPConfig API:</strong> Remote API aktivieren und Benutzer-Berechtigung prüfen</li>
                 <li><strong>AJAX-Fehler:</strong> Browser-Entwicklertools → Network Tab für Details</li>
             </ul>
-            
-            <div id="logViewer" class="log-viewer" style="display: none;">
-                <div id="logContent">Log-Viewer bereit...</div>
-            </div>
+        </div>
+    </div>
+
+    <!-- Modal für Ergebnisse -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Ergebnis</h2>
+            <div id="modalContent"></div>
         </div>
     </div>
 
     <script>
-        // Log Viewer
-        async function viewLogs(type) {
-            const logViewer = document.getElementById('logViewer');
-            const logContent = document.getElementById('logContent');
-            
-            logViewer.style.display = 'block';
-            logContent.textContent = 'Lade Logs...';
-            
+        // Modal Funktionen
+        function showModal(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('resultModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+        
+        // AJAX Helper
+        async function makeRequest(action, data = {}) {
             try {
-                const response = await fetch(`log_viewer.php?type=${type}`);
-                const text = await response.text();
-                logContent.textContent = text || 'Keine Logs verfügbar';
+                const response = await fetch('', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        action: action,
+                        ...data
+                    })
+                });
+                
+                return await response.json();
             } catch (error) {
-                logContent.textContent = 'Fehler beim Laden der Logs: ' + error.message;
+                return { success: false, error: error.message };
             }
         }
         
-        // Quick Fix ausführen
+        // System Info
+        async function showSystemInfo() {
+            const result = await makeRequest('system_status');
+            let content = '<div class="test-result success">';
+            content += '<h3>System-Informationen</h3>';
+            content += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            content += '</div>';
+            showModal('System-Informationen', content);
+        }
+        
+        // Session Info
+        async function showSessionInfo() {
+            let content = '<div class="test-result">';
+            content += '<h3>Session-Informationen</h3>';
+            content += '<pre>';
+            content += 'Session Status: ' + (<?= session_status() === PHP_SESSION_ACTIVE ? 'true' : 'false' ?>) + '\n';
+            content += 'Session ID: ' + '<?= session_id() ?>' + '\n';
+            content += 'Session Name: ' + '<?= session_name() ?>' + '\n';
+            content += '</pre>';
+            content += '</div>';
+            showModal('Session-Informationen', content);
+        }
+        
+        // Database Test
+        async function testDatabase() {
+            const result = await makeRequest('database_test');
+            let content = '<div class="test-result ' + (result.success ? 'success' : 'error') + '">';
+            content += '<h3>Datenbank-Test</h3>';
+            content += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            content += '</div>';
+            showModal('Datenbank-Test', content);
+        }
+        
+        // SOAP Test
+        async function testSOAP() {
+            const result = await makeRequest('soap_test');
+            let content = '<div class="test-result">';
+            content += '<h3>SOAP Test</h3>';
+            content += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            content += '</div>';
+            showModal('SOAP Test', content);
+        }
+        
+        // ISPConfig Test
+        async function testISPConfig() {
+            const result = await makeRequest('ispconfig_test');
+            let content = '<div class="test-result ' + (result.success ? 'success' : 'error') + '">';
+            content += '<h3>ISPConfig API Test</h3>';
+            content += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            content += '</div>';
+            showModal('ISPConfig API Test', content);
+        }
+        
+        // Proxmox Test
+        async function testProxmox() {
+            const result = await makeRequest('test_endpoint', { endpoint: 'proxmox_nodes' });
+            let content = '<div class="test-result ' + (result.success ? 'success' : 'error') + '">';
+            content += '<h3>Proxmox API Test</h3>';
+            content += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            content += '</div>';
+            showModal('Proxmox API Test', content);
+        }
+        
+        // OVH Test
+        async function testOVH() {
+            let content = '<div class="test-result warning">';
+            content += '<h3>OVH API Test</h3>';
+            content += '<p>OVH API Test noch nicht implementiert</p>';
+            content += '</div>';
+            showModal('OVH API Test', content);
+        }
+        
+        // Endpoint Tests
+        async function testEndpoint(endpoint) {
+            const result = await makeRequest('test_endpoint', { endpoint: endpoint });
+            let content = '<div class="test-result ' + (result.success ? 'success' : 'error') + '">';
+            content += '<h3>Endpoint Test: ' + endpoint + '</h3>';
+            content += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            content += '</div>';
+            showModal('Endpoint Test: ' + endpoint, content);
+        }
+        
+        // Logs anzeigen
+        async function showLogs(type) {
+            const result = await makeRequest('view_logs', { type: type });
+            let content = '<div class="test-result">';
+            content += '<h3>Logs: ' + type + '</h3>';
+            content += '<div class="log-viewer">' + (result.content || 'Keine Logs verfügbar') + '</div>';
+            content += '</div>';
+            showModal('Logs: ' + type, content);
+        }
+        
+        // Performance
+        async function showPerformance() {
+            let content = '<div class="test-result">';
+            content += '<h3>Performance-Metriken</h3>';
+            content += '<pre>';
+            content += 'Memory Usage: ' + (memory_get_usage(true) / 1024 / 1024).toFixed(2) + ' MB\n';
+            content += 'Peak Memory: ' + (memory_get_peak_usage(true) / 1024 / 1024).toFixed(2) + ' MB\n';
+            content += 'Execution Time: ' + (microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) + ' seconds\n';
+            content += '</pre>';
+            content += '</div>';
+            showModal('Performance-Metriken', content);
+        }
+        
+        // Memory Usage
+        async function showMemoryUsage() {
+            let content = '<div class="test-result">';
+            content += '<h3>Speicher-Nutzung</h3>';
+            content += '<pre>';
+            content += 'Current Memory: ' + (memory_get_usage(true) / 1024 / 1024).toFixed(2) + ' MB\n';
+            content += 'Peak Memory: ' + (memory_get_peak_usage(true) / 1024 / 1024).toFixed(2) + ' MB\n';
+            content += 'Memory Limit: ' + ini_get('memory_limit') + '\n';
+            content += 'Max Execution Time: ' + ini_get('max_execution_time') + ' seconds\n';
+            content += '</pre>';
+            content += '</div>';
+            showModal('Speicher-Nutzung', content);
+        }
+        
+        // Quick Fix
         async function runQuickFix() {
             if (!confirm('Auto-Fix ausführen? Dies kann System-Einstellungen ändern.')) {
                 return;
             }
             
-            try {
-                const response = await fetch('quick_fixes.php?autofix=1');
-                const text = await response.text();
-                alert('Auto-Fix abgeschlossen. Details in der Konsole.');
-                console.log(text);
-                location.reload();
-            } catch (error) {
-                alert('Fehler beim Auto-Fix: ' + error.message);
-            }
+            const result = await makeRequest('quick_fix');
+            let content = '<div class="test-result ' + (result.success ? 'success' : 'error') + '">';
+            content += '<h3>Auto-Fix Ergebnis</h3>';
+            content += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            content += '</div>';
+            showModal('Auto-Fix Ergebnis', content);
         }
         
-        // Logs löschen
+        // Clear Logs
         async function clearLogs() {
             if (!confirm('Alle Logs löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
                 return;
             }
             
-            try {
-                const response = await fetch('clear_logs.php');
-                const result = await response.json();
-                alert(result.message || 'Logs gelöscht');
-                location.reload();
-            } catch (error) {
-                alert('Fehler beim Löschen der Logs: ' + error.message);
-            }
+            const result = await makeRequest('clear_logs');
+            let content = '<div class="test-result ' + (result.success ? 'success' : 'error') + '">';
+            content += '<h3>Logs löschen</h3>';
+            content += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            content += '</div>';
+            showModal('Logs löschen', content);
         }
         
         // Volltest
@@ -527,46 +1192,40 @@ $system_status = getSystemStatus();
                 return;
             }
             
-            const logViewer = document.getElementById('logViewer');
-            const logContent = document.getElementById('logContent');
-            
-            logViewer.style.display = 'block';
-            logContent.textContent = 'Volltest läuft...\n';
+            let content = '<div class="test-result">';
+            content += '<h3>Volltest läuft...</h3>';
+            content += '<div id="testProgress">';
             
             const tests = [
-                'debug.php',
-                'database_fix.php?test=1',
-                'soap_test.php',
-                '../auth.php?mode=quick'
+                { name: 'System Status', func: () => makeRequest('system_status') },
+                { name: 'Database Test', func: () => makeRequest('database_test') },
+                { name: 'SOAP Test', func: () => makeRequest('soap_test') },
+                { name: 'ISPConfig Test', func: () => makeRequest('ispconfig_test') }
             ];
             
             for (const test of tests) {
+                content += '<p>Testing ' + test.name + '...</p>';
                 try {
-                    logContent.textContent += `\n--- Testing ${test} ---\n`;
-                    const response = await fetch(test);
-                    const text = await response.text();
-                    logContent.textContent += text.substring(0, 500) + '...\n';
+                    const result = await test.func();
+                    content += '<p class="' + (result.success ? 'success' : 'error') + '">' + test.name + ': ' + (result.success ? 'OK' : 'FAILED') + '</p>';
                 } catch (error) {
-                    logContent.textContent += `ERROR: ${error.message}\n`;
+                    content += '<p class="error">' + test.name + ': ERROR - ' + error.message + '</p>';
                 }
             }
             
-            logContent.textContent += '\n=== Volltest abgeschlossen ===';
+            content += '<p><strong>Volltest abgeschlossen!</strong></p>';
+            content += '</div></div>';
+            
+            showModal('Volltest Ergebnis', content);
         }
         
-        // Auto-refresh System Status
-        setInterval(async () => {
-            try {
-                const response = await fetch('?ajax=status');
-                if (response.ok) {
-                    const data = await response.json();
-                    // Update status indicators
-                    console.log('Status updated:', data);
-                }
-            } catch (error) {
-                console.warn('Status update failed:', error);
+        // Modal schließen bei Klick außerhalb
+        window.onclick = function(event) {
+            const modal = document.getElementById('resultModal');
+            if (event.target === modal) {
+                closeModal();
             }
-        }, 30000); // Alle 30 Sekunden
+        }
         
         // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
@@ -574,35 +1233,30 @@ $system_status = getSystemStatus();
                 switch (e.key) {
                     case '1':
                         e.preventDefault();
-                        window.open('debug.php', '_blank');
+                        showSystemInfo();
                         break;
                     case '2':
                         e.preventDefault();
-                        window.open('ajax_debug.php', '_blank');
+                        testDatabase();
                         break;
                     case '3':
                         e.preventDefault();
-                        window.open('endpoints_test.php', '_blank');
+                        testSOAP();
                         break;
                     case 'r':
                         e.preventDefault();
                         location.reload();
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        closeModal();
                         break;
                 }
             }
         });
         
         console.log('🔧 Debug Tools loaded');
-        console.log('Shortcuts: Ctrl+1 (Debug), Ctrl+2 (AJAX), Ctrl+3 (Endpoints), Ctrl+R (Reload)');
+        console.log('Shortcuts: Ctrl+1 (System), Ctrl+2 (DB), Ctrl+3 (SOAP), Ctrl+R (Reload), Esc (Close Modal)');
     </script>
 </body>
 </html>
-
-<?php
-// AJAX Status Update
-if (isset($_GET['ajax']) && $_GET['ajax'] === 'status') {
-    header('Content-Type: application/json');
-    echo json_encode(getSystemStatus());
-    exit;
-}
-?>

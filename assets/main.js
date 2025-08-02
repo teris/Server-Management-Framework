@@ -113,50 +113,8 @@ function setLoading(form, isLoading) {
     }
 }
 
-// Plugin-Inhalte laden
-function loadPluginContent(pluginKey) {
-    const contentDiv = document.getElementById(pluginKey + '-content');
-    if (!contentDiv) {
-        console.error('Content div not found for plugin:', pluginKey);
-        return;
-    }
-    contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Laden...</span></div></div>';
-    ModuleManager.request(pluginKey, 'getContent')
-        .done(function(response) {
-            if (response.success) {
-                contentDiv.innerHTML = response.content;
-                let moduleName;
-                if (pluginKey === 'custom-module') {
-                    moduleName = 'customModuleModule';
-                } else {
-                    moduleName = pluginKey.replace('-', '') + 'Module';
-                }
-                setTimeout(function() {
-                    if (window[moduleName] && typeof window[moduleName].init === 'function') {
-                        console.log('Initializing module:', moduleName);
-                        window[moduleName].init();
-                    } else {
-                        console.log('Module not found or no init function:', moduleName);
-                        const directModuleName = pluginKey.replace('-', '') + 'Module';
-                        if (window[directModuleName] && typeof window[directModuleName].init === 'function') {
-                            console.log('Direct initializing module:', directModuleName);
-                            window[directModuleName].init();
-                        }
-                    }
-                }, 50);
-                console.log('Plugin content loaded successfully:', pluginKey);
-            } else {
-                const errorMsg = (window.jsTranslations && window.jsTranslations.js_plugin_load_error) ? window.jsTranslations.js_plugin_load_error : 'Fehler beim Laden des Plugins';
-                const unknownError = (window.jsTranslations && window.jsTranslations.js_unknown_error) ? window.jsTranslations.js_unknown_error : 'Unbekannter Fehler';
-                contentDiv.innerHTML = '<div class="alert alert-danger">' + errorMsg + ': ' + (response.error || unknownError) + '</div>';
-            }
-        })
-        .fail(function(xhr, status, error) {
-            const errorMsg = (window.jsTranslations && window.jsTranslations.js_plugin_load_error) ? window.jsTranslations.js_plugin_load_error : 'Fehler beim Laden des Plugins';
-            contentDiv.innerHTML = '<div class="alert alert-danger">' + errorMsg + ': ' + error + '</div>';
-            console.error('Plugin load failed:', pluginKey, error);
-        });
-}
+// Plugin-Inhalte werden jetzt direkt über URL-Parameter geladen
+// Die loadPluginContent Funktion wurde entfernt, da Module jetzt direkt über ?option=pluginname geladen werden
 
 // Admin-Funktionen
 function refreshAllStats() {

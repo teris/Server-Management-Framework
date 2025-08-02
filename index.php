@@ -269,7 +269,10 @@ try {
                 <!-- Haupt-Admin-Dashboard (immer sichtbar) -->
                 <?php
                     try {
-                        switch((isset($_GET['option']) ? $_GET['option'] : '')) {
+                        $option = isset($_GET['option']) ? $_GET['option'] : '';
+                        
+                        // Statische Optionen zuerst prüfen
+                        switch($option) {
                             case 'admin':
                                 include('inc/admin.php');
                                 break;
@@ -292,12 +295,17 @@ try {
                                 include('inc/system.php');
                                 break;
                             default:
-                                echo'<!-- Willkommensbereich (Standard) -->
-                                <div id="welcome-area" class="mt-5">
-                                    <div class="alert alert-info text-center">
-                                        '.t('welcome_admin_area').' 
-                                    </div>
-                                </div>';
+                                
+                                
+                                // Wenn keine Plugin-Option gefunden wurde, Standard-Willkommensbereich anzeigen
+                                if (!$pluginFound) {
+                                    echo'<!-- Willkommensbereich (Standard) -->
+                                    <div id="welcome-area" class="mt-5">
+                                        <div class="alert alert-info text-center">
+                                            '.t('welcome_admin_area').' 
+                                        </div>
+                                    </div>';
+                                }
                         }   
 
                     } catch (Exception $e) {
@@ -370,26 +378,6 @@ try {
             'name', 'domain', 'status', 'actions', 'active', 'inactive', 'edit', 'delete'
         ])) ?>;
 
-        function loadSettingsContent() {
-            const settingsDiv = document.getElementById('settings-content');
-            if (!settingsDiv) return;
-            settingsDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Laden...</span></div></div>';
-            fetch('inc/settings.php')
-                .then(response => response.text())
-                .then(html => {
-                    settingsDiv.innerHTML = html;
-                })
-                .catch(err => {
-                    settingsDiv.innerHTML = '<div class="alert alert-danger">Fehler beim Laden der Einstellungen.</div>';
-                });
-        }
-        // Tab-Event für Einstellungen
-        const settingsTab = document.getElementById('settings-tab');
-        if (settingsTab) {
-            settingsTab.addEventListener('shown.bs.tab', function (e) {
-                loadSettingsContent();
-            });
-        }
         // URL-Parameter auswerten
         function getUrlParameter(name) {
             name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -397,39 +385,23 @@ try {
             const results = regex.exec(window.location.search);
             return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
-        // Wenn ?option=settings, Tab automatisch öffnen und laden
-        if (getUrlParameter('option') === 'settings') {
-            const tab = document.getElementById('settings-tab');
-            if (tab) {
-                var bsTab = new bootstrap.Tab(tab);
-                bsTab.show();
-                loadSettingsContent();
-            }
-        }
 
-        // Sidebar-Navigation Umschalten
-        function showArea(area) {
-            document.getElementById('welcome-area').style.display = 'none';
-            document.getElementById('admin-dashboard').style.display = 'none';
-            document.getElementById('plugin-area').style.display = 'none';
-            if (area === 'dashboard') {
-                document.getElementById('admin-dashboard').style.display = 'block';
-            } else if (area === 'modules') {
-                document.getElementById('plugin-area').style.display = 'block';
-            } else {
-                document.getElementById('welcome-area').style.display = 'block';
-            }
+        // Sidebar-Navigation - Aktive Links hervorheben
+        function highlightActiveNavLink() {
+            const currentOption = getUrlParameter('option');
+            const navLinks = document.querySelectorAll('#sidebarMenu .nav-link');
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const href = link.getAttribute('href');
+                if (href && href.includes('option=' + currentOption)) {
+                    link.classList.add('active');
+                }
+            });
         }
-        document.getElementById('show-dashboard').addEventListener('click', function(e) {
-            e.preventDefault();
-            showArea('dashboard');
-        });
-        document.getElementById('show-modules').addEventListener('click', function(e) {
-            e.preventDefault();
-            showArea('modules');
-        });
-        // Beim Laden nur Willkommensbereich anzeigen
-        showArea();
+        
+        // Beim Laden aktive Links hervorheben
+        highlightActiveNavLink();
     </script>
 </body>
 </html>
