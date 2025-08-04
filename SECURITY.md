@@ -5,7 +5,7 @@
 Wenn Sie eine Sicherheitslücke in diesem Projekt gefunden haben, melden Sie diese bitte **nicht** über öffentliche GitHub Issues.
 
 ### Kontakt
-- **E-Mail:** [Ihre E-Mail-Adresse hier]
+- **E-Mail:** Sec.Git [at] orga-consult [dot] eu
 - **Private Issue:** Erstellen Sie ein privates GitHub Issue mit dem Label "security"
 
 ### Was zu melden ist
