@@ -136,14 +136,84 @@ php debug.php
    - **🔐 Auth Status** - API-Verbindungstests
 
 ### Programmatische Verwendung
-Verwenden Sie dazu das [FrameWorkShema](FramWorkShema)
 
-## 📚 Dokumentation
+#### ServiceManager API
 
-- **[API Dokumentation](how_to_use.md)** - Vollständige API-Referenz und Verwendungsbeispiele
-- **[Bootstrap Migration](BOOTSTRAP_MIGRATION.md)** - Details zur UI-Migration
-- **[Contributing Guide](CONTRIBUTING.md)** - Richtlinien für Beiträge
-- **[FrameWorkShema](FramWorkShema)** - Codebeispiele und Dokumentation des Frameworks
+```php
+<?php
+require_once 'framework.php';
+
+$serviceManager = new ServiceManager();
+
+// Proxmox VM erstellen
+$vmData = [
+    'vmid' => '101',
+    'name' => 'test-server',
+    'node' => 'pve',
+    'memory' => '4096',
+    'cores' => '2',
+    'disk' => '20',
+    'storage' => 'local-lvm',
+    'bridge' => 'vmbr0',
+    'iso' => 'local:iso/ubuntu-22.04.iso'
+];
+$result = $serviceManager->createProxmoxVM($vmData);
+
+// VM steuern
+$serviceManager->controlProxmoxVM('pve', '100', 'start');
+$serviceManager->controlProxmoxVM('pve', '100', 'stop');
+
+// ISPConfig Website erstellen
+$websiteData = [
+    'domain' => 'example.com',
+    'ip' => '192.168.1.100',
+    'user' => 'web1',
+    'group' => 'client1',
+    'quota' => 1000,
+    'traffic' => 10000
+];
+$result = $serviceManager->createISPConfigWebsite($websiteData);
+
+// OVH Domain bestellen
+$result = $serviceManager->orderOVHDomain('example.com', 1);
+?>
+```
+
+#### Direkte API-Klassen
+
+```php
+// ProxmoxGet für erweiterte Abfragen
+$proxmoxGet = new ProxmoxGet();
+$vms = $proxmoxGet->getVMs('pve');
+$vmStatus = $proxmoxGet->getVMStatus('pve', '100');
+
+// ISPConfigGet für erweiterte Abfragen
+$ispconfigGet = new ISPConfigGet();
+$websites = $ispconfigGet->getWebsites(['domain' => 'example.com']);
+$databases = $ispconfigGet->getDatabases();
+
+// OVHGet für erweiterte Abfragen
+$ovhGet = new OVHGet();
+$domains = $ovhGet->getDomains();
+$vpsList = $ovhGet->getVPS();
+```
+
+## 🎨 UI Framework
+
+Das Framework verwendet **Bootstrap 5.3.2** und **jQuery 3.7.1** für eine moderne, responsive Benutzeroberfläche:
+
+### Bootstrap Features
+- Responsive Grid-System
+- Bootstrap Tabs und Pills
+- Toast-Benachrichtigungen
+- Bootstrap Icons
+- Moderne Card-Layouts
+
+### JavaScript Features
+- jQuery AJAX-Handler
+- Bootstrap Toast-Integration
+- Modulare JavaScript-Struktur
+- Real-time Updates
 
 ## 🏗️ Architektur
 
@@ -174,9 +244,22 @@ Beiträge sind willkommen! Bitte lesen Sie [CONTRIBUTING.md](CONTRIBUTING.md) f�
 4. **Push** zum Branch (`git push origin feature/amazing-feature`)
 5. **Öffnen** Sie eine Pull Request
 
-## 🐛 Bug Reports
+## 📚 Dokumentation
 
-Bitte verwenden Sie die [GitHub Issues](https://github.com/teris/server-management-framework/issues) für Bug Reports und Feature Requests.
+- **[GitHub Wiki](https://github.com/teris/Server-Management-Framework/wiki)** - Vollständige Dokumentation
+- **[FrameWorkShema](FrameWorkShema/)** - HTML-Version der Dokumentation
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Richtlinien für Beiträge
+- **[CHANGELOG.md](CHANGELOG.md)** - Versionshistorie
+- **[SECURITY.md](SECURITY.md)** - Sicherheitsrichtlinien
+- **[SUPPORT.md](SUPPORT.md)** - Support und Troubleshooting
+
+## 🐛 Bug Reports & Support
+
+Bitte verwenden Sie das [GitHub Issues System](https://github.com/teris/Server-Management-Framework/issues) für:
+- Bug Reports
+- Feature Requests
+- Support-Anfragen
+- Verbesserungsvorschläge
 
 **Bug Report Template:**
 - **Beschreibung:** Was ist passiert?
@@ -196,7 +279,7 @@ Bitte verwenden Sie die [GitHub Issues](https://github.com/teris/server-manageme
 - [x] **v2.6** - Use Framework as Single without Interface
 - [x] **v2.7** - Bootstrap 5.3.2 Migration
 - [x] **V2.8** - Databasemodus
-- [ ] **V3.0** - Gameserver Verwalrung
+- [ ] **V3.0** - Gameserver Verwaltung
 
 ## 🔒 Sicherheit
 
