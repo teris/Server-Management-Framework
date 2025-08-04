@@ -2152,6 +2152,402 @@ class OVHPost extends OVHGet {
 }
 
 // =============================================================================
+// OGP GET CLASS
+// =============================================================================
+class OGPGet extends BaseAPI {
+    protected $token;
+
+    public function __construct() {
+        $this->host = Config::OGP_HOST;
+        $this->user = Config::OGP_USER;
+        $this->password = Config::OGP_PASSWORD;
+        $this->token = Config::OGP_TOKEN;
+        $this->testToken();
+    }
+
+    protected function authenticate() {
+        // Token erstellen für OGP API
+        $url = $this->host . "/ogp_api.php?token/create/" . urlencode($this->user) . "/" . urlencode($this->password);
+        $response = $this->makeRequest('GET', $url);
+        
+        if ($response && isset($response['message'])) {
+            $this->token = $response['message'];
+        } else {
+            throw new Exception("OGP Authentifizierung fehlgeschlagen");
+        }
+    }
+
+    public function testToken() {
+        $url = $this->host . "/ogp_api.php?token/test/" . urlencode($this->token);
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest('token/test', 'GET', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // REMOTE SERVERS
+    // =============================================================================
+    public function getServerList() {
+        $url = $this->host . "/ogp_api.php?server/list";
+        $data = ['token' => $this->token];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest('server/list', 'POST', $response !== false);
+        return $response;
+    }
+
+    public function getServerStatus($remoteServerId) {
+        $url = $this->host . "/ogp_api.php?server/status";
+        $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("server/status/$remoteServerId", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function getServerIPs($remoteServerId) {
+        $url = $this->host . "/ogp_api.php?server/list_ips";
+        $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("server/list_ips/$remoteServerId", 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // GAME SERVERS
+    // =============================================================================
+    public function getGamesList($system = 'linux', $architecture = '64') {
+        $url = $this->host . "/ogp_api.php?user_games/list_games";
+        $data = ['token' => $this->token, 'system' => $system, 'architecture' => $architecture];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("user_games/list_games/$system/$architecture", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function getGameServers() {
+        $url = $this->host . "/ogp_api.php?user_games/list_servers";
+        $data = ['token' => $this->token];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest('user_games/list_servers', 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // USERS
+    // =============================================================================
+    public function getUsers() {
+        $url = $this->host . "/ogp_api.php?user_admin/list";
+        $data = ['token' => $this->token];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest('user_admin/list', 'POST', $response !== false);
+        return $response;
+    }
+
+    public function getUser($email) {
+        $url = $this->host . "/ogp_api.php?user_admin/get";
+        $data = ['token' => $this->token, 'email' => $email];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("user_admin/get/$email", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function getUserAssigned($email) {
+        $url = $this->host . "/ogp_api.php?user_admin/list_assigned";
+        $data = ['token' => $this->token, 'email' => $email];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("user_admin/list_assigned/$email", 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // ADDONS MANAGER
+    // =============================================================================
+    public function getAddonsList() {
+        $url = $this->host . "/ogp_api.php?addonsmanager/list";
+        $data = ['token' => $this->token];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest('addonsmanager/list', 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // PANEL SETTINGS
+    // =============================================================================
+    public function getSetting($settingName) {
+        $url = $this->host . "/ogp_api.php?setting/get";
+        $data = ['token' => $this->token, 'setting_name' => $settingName];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("setting/get/$settingName", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function makeRequest($method, $url, $data = null) {
+        $ch = curl_init();
+        
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        
+        if ($method === 'POST' && $data) {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        }
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        if ($error) {
+            error_log("OGP API cURL Error: $error");
+            return false;
+        }
+        
+        if ($httpCode >= 200 && $httpCode < 300) {
+            $decoded = json_decode($response, true);
+            return $decoded !== null ? $decoded : $response;
+        } else {
+            error_log("OGP API HTTP Error: $httpCode - $response");
+            return false;
+        }
+    }
+}
+
+// =============================================================================
+// OGP POST CLASS
+// =============================================================================
+class OGPPost extends OGPGet {
+    
+    // =============================================================================
+    // REMOTE SERVERS
+    // =============================================================================
+    public function restartServer($remoteServerId) {
+        $url = $this->host . "/ogp_api.php?server/restart";
+        $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("server/restart/$remoteServerId", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function createServer($serverData) {
+        $url = $this->host . "/ogp_api.php?server/create";
+        $data = array_merge(['token' => $this->token], $serverData);
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest('server/create', 'POST', $response !== false);
+        return $response;
+    }
+
+    public function removeServer($remoteServerId) {
+        $url = $this->host . "/ogp_api.php?server/remove";
+        $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("server/remove/$remoteServerId", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function addServerIP($remoteServerId, $ip) {
+        $url = $this->host . "/ogp_api.php?server/add_ip";
+        $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId, 'ip' => $ip];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("server/add_ip/$remoteServerId/$ip", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function removeServerIP($remoteServerId, $ip) {
+        $url = $this->host . "/ogp_api.php?server/remove_ip";
+        $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId, 'ip' => $ip];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("server/remove_ip/$remoteServerId/$ip", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function editServerIP($remoteServerId, $oldIp, $newIp) {
+        $url = $this->host . "/ogp_api.php?server/edit_ip";
+        $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId, 'old_ip' => $oldIp, 'new_ip' => $newIp];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("server/edit_ip/$remoteServerId/$oldIp/$newIp", 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // GAME SERVERS
+    // =============================================================================
+    public function createGameServer($gameServerData) {
+        $url = $this->host . "/ogp_api.php?user_games/create";
+        $data = array_merge(['token' => $this->token], $gameServerData);
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest('user_games/create', 'POST', $response !== false);
+        return $response;
+    }
+
+    public function cloneGameServer($cloneData) {
+        $url = $this->host . "/ogp_api.php?user_games/clone";
+        $data = array_merge(['token' => $this->token], $cloneData);
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest('user_games/clone', 'POST', $response !== false);
+        return $response;
+    }
+
+    public function setGameServerExpiration($homeId, $timestamp) {
+        $url = $this->host . "/ogp_api.php?user_games/set_expiration";
+        $data = ['token' => $this->token, 'home_id' => $homeId, 'timestamp' => $timestamp];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("user_games/set_expiration/$homeId", 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // USERS
+    // =============================================================================
+    public function createUser($userData) {
+        $url = $this->host . "/ogp_api.php?user_admin/create";
+        $data = array_merge(['token' => $this->token], $userData);
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest('user_admin/create', 'POST', $response !== false);
+        return $response;
+    }
+
+    public function removeUser($email) {
+        $url = $this->host . "/ogp_api.php?user_admin/remove";
+        $data = ['token' => $this->token, 'email' => $email];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("user_admin/remove/$email", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function setUserExpiration($email, $timestamp) {
+        $url = $this->host . "/ogp_api.php?user_admin/set_expiration";
+        $data = ['token' => $this->token, 'email' => $email, 'timestamp' => $timestamp];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("user_admin/set_expiration/$email", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function assignUser($email, $homeId, $timestamp = null) {
+        $url = $this->host . "/ogp_api.php?user_admin/assign";
+        $data = ['token' => $this->token, 'email' => $email, 'home_id' => $homeId];
+        if ($timestamp) {
+            $data['timestamp'] = $timestamp;
+        }
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("user_admin/assign/$email/$homeId", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function removeUserAssignment($email, $homeId) {
+        $url = $this->host . "/ogp_api.php?user_admin/remove_assign";
+        $data = ['token' => $this->token, 'email' => $email, 'home_id' => $homeId];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("user_admin/remove_assign/$email/$homeId", 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // GAME MANAGER
+    // =============================================================================
+    public function startGameManager($ip, $port, $modKey) {
+        $url = $this->host . "/ogp_api.php?gamemanager/start";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("gamemanager/start/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function stopGameManager($ip, $port, $modKey) {
+        $url = $this->host . "/ogp_api.php?gamemanager/stop";
+        $data = ['token' => $this->token, 'ip' => $port, 'port' => $port, 'mod_key' => $modKey];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("gamemanager/stop/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function restartGameManager($ip, $port, $modKey) {
+        $url = $this->host . "/ogp_api.php?gamemanager/restart";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("gamemanager/restart/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function sendRconCommand($ip, $port, $modKey, $command) {
+        $url = $this->host . "/ogp_api.php?gamemanager/rcon";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey, 'command' => $command];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("gamemanager/rcon/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function updateGameManager($ip, $port, $modKey, $type, $manualUrl = null) {
+        $url = $this->host . "/ogp_api.php?gamemanager/update";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey, 'type' => $type];
+        if ($manualUrl) {
+            $data['manual_url'] = $manualUrl;
+        }
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("gamemanager/update/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // LITE FILE MANAGER
+    // =============================================================================
+    public function listFiles($ip, $port, $relativePath) {
+        $url = $this->host . "/ogp_api.php?litefm/list";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'relative_path' => $relativePath];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("litefm/list/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function getFile($ip, $port, $relativePath) {
+        $url = $this->host . "/ogp_api.php?litefm/get";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'relative_path' => $relativePath];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("litefm/get/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function saveFile($ip, $port, $relativePath, $contents) {
+        $url = $this->host . "/ogp_api.php?litefm/save";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'relative_path' => $relativePath, 'contents' => $contents];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("litefm/save/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function removeFile($ip, $port, $relativePath) {
+        $url = $this->host . "/ogp_api.php?litefm/remove";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'relative_path' => $relativePath];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("litefm/remove/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // ADDONS MANAGER
+    // =============================================================================
+    public function installAddon($ip, $port, $modKey, $addonId) {
+        $url = $this->host . "/ogp_api.php?addonsmanager/install";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey, 'addon_id' => $addonId];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("addonsmanager/install/$ip/$port/$addonId", 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // STEAM WORKSHOP
+    // =============================================================================
+    public function installSteamWorkshop($ip, $port, $modsList) {
+        $url = $this->host . "/ogp_api.php?steam_workshop/install";
+        $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mods_list' => $modsList];
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("steam_workshop/install/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+}
+
+// =============================================================================
 // SERVICE MANAGER CLASS - ERWEITERT
 // =============================================================================
 class ServiceManager {
@@ -2161,14 +2557,278 @@ class ServiceManager {
     private $ispconfigPost;
     private $ovhGet;
     private $ovhPost;
+    private $ogpGet;
+    private $ogpPost;
 
     public function __construct() {
-        $this->proxmoxGet = new ProxmoxGet();
-        $this->proxmoxPost = new ProxmoxPost();
-        $this->ispconfigGet = new ISPConfigGet();
-        $this->ispconfigPost = new ISPConfigPost();
-        $this->ovhGet = new OVHGet();
-        $this->ovhPost = new OVHPost();
+        // Proxmox API initialisieren nur wenn aktiviert
+        if (Config::PROXMOX_USEING) {
+            try {
+                $this->proxmoxGet = new ProxmoxGet();
+                $this->proxmoxPost = new ProxmoxPost();
+            } catch (Exception $e) {
+                error_log("Proxmox API Initialisierung fehlgeschlagen: " . $e->getMessage());
+                // Setze die Objekte auf null, damit checkAPIEnabled() sie als nicht initialisiert erkennt
+                $this->proxmoxGet = null;
+                $this->proxmoxPost = null;
+            }
+        }
+        
+        // ISPConfig nur initialisieren wenn SOAP verfügbar ist und aktiviert
+        if (Config::ISPCONFIG_USEING && class_exists('SoapClient')) {
+            try {
+                $this->ispconfigGet = new ISPConfigGet();
+                $this->ispconfigPost = new ISPConfigPost();
+            } catch (Exception $e) {
+                error_log("ISPConfig API Initialisierung fehlgeschlagen: " . $e->getMessage());
+                $this->ispconfigGet = null;
+                $this->ispconfigPost = null;
+            }
+        } else if (Config::ISPCONFIG_USEING && !class_exists('SoapClient')) {
+            error_log("SOAP nicht verfügbar - ISPConfig wird nicht initialisiert");
+        }
+        
+        // OVH API initialisieren nur wenn aktiviert
+        if (Config::OVH_USEING) {
+            try {
+                $this->ovhGet = new OVHGet();
+                $this->ovhPost = new OVHPost();
+            } catch (Exception $e) {
+                error_log("OVH API Initialisierung fehlgeschlagen: " . $e->getMessage());
+                $this->ovhGet = null;
+                $this->ovhPost = null;
+            }
+        }
+        
+        // OGP API initialisieren nur wenn aktiviert
+        if (Config::OGP_USEING) {
+            try {
+                $this->ogpGet = new OGPGet();
+                $this->ogpPost = new OGPPost();
+            } catch (Exception $e) {
+                error_log("OGP API Initialisierung fehlgeschlagen: " . $e->getMessage());
+                $this->ogpGet = null;
+                $this->ogpPost = null;
+            }
+        }
+    }
+    
+    /**
+     * Prüft ob eine API aktiviert ist
+     * @param string $apiName Name der API (proxmox, ispconfig, ovh, ogp)
+     * @return array|true Gibt true zurück wenn API aktiviert ist, sonst strukturierte Fehlermeldung
+     */
+    private function checkAPIEnabled($apiName) {
+        $db = Database::getInstance();
+        $apiNameLower = strtolower($apiName);
+        
+        switch ($apiNameLower) {
+            case 'proxmox':
+                if (!Config::PROXMOX_USEING) {
+                    $errorResponse = [
+                        'success' => false,
+                        'error' => 'API_NOT_ENABLED',
+                        'message' => 'Proxmox API ist in der config.inc.php deaktiviert',
+                        'api' => 'proxmox',
+                        'config_key' => 'PROXMOX_USEING',
+                        'solution' => 'Setzen Sie PROXMOX_USEING = true in der config.inc.php'
+                    ];
+                    
+                    // Log API check failure to database
+                    $db->logAction(
+                        "API Check: Proxmox",
+                        "API deaktiviert - Config: PROXMOX_USEING = false",
+                        'error'
+                    );
+                    
+                    return $errorResponse;
+                }
+                if (!isset($this->proxmoxGet) || !isset($this->proxmoxPost)) {
+                    $errorResponse = [
+                        'success' => false,
+                        'error' => 'API_NOT_INITIALIZED',
+                        'message' => 'Proxmox API konnte nicht initialisiert werden',
+                        'api' => 'proxmox',
+                        'solution' => 'Überprüfen Sie die Proxmox-Konfiguration in der config.inc.php'
+                    ];
+                    
+                    // Log API initialization failure to database
+                    $db->logAction(
+                        "API Check: Proxmox",
+                        "API nicht initialisiert - ProxmoxGet/Post Objekte fehlen",
+                        'error'
+                    );
+                    
+                    return $errorResponse;
+                }
+                
+                // Log successful API check to database
+                $db->logAction(
+                    "API Check: Proxmox",
+                    "API aktiviert und initialisiert",
+                    'success'
+                );
+                break;
+                
+            case 'ispconfig':
+                if (!Config::ISPCONFIG_USEING) {
+                    $errorResponse = [
+                        'success' => false,
+                        'error' => 'API_NOT_ENABLED',
+                        'message' => 'ISPConfig API ist in der config.inc.php deaktiviert',
+                        'api' => 'ispconfig',
+                        'config_key' => 'ISPCONFIG_USEING',
+                        'solution' => 'Setzen Sie ISPCONFIG_USEING = true in der config.inc.php'
+                    ];
+                    
+                    // Log API check failure to database
+                    $db->logAction(
+                        "API Check: ISPConfig",
+                        "API deaktiviert - Config: ISPCONFIG_USEING = false",
+                        'error'
+                    );
+                    
+                    return $errorResponse;
+                }
+                if (!isset($this->ispconfigGet) || !isset($this->ispconfigPost)) {
+                    $errorResponse = [
+                        'success' => false,
+                        'error' => 'API_NOT_INITIALIZED',
+                        'message' => 'ISPConfig API konnte nicht initialisiert werden',
+                        'api' => 'ispconfig',
+                        'solution' => 'Überprüfen Sie die ISPConfig-Konfiguration in der config.inc.php'
+                    ];
+                    
+                    // Log API initialization failure to database
+                    $db->logAction(
+                        "API Check: ISPConfig",
+                        "API nicht initialisiert - ISPConfigGet/Post Objekte fehlen",
+                        'error'
+                    );
+                    
+                    return $errorResponse;
+                }
+                
+                // Log successful API check to database
+                $db->logAction(
+                    "API Check: ISPConfig",
+                    "API aktiviert und initialisiert",
+                    'success'
+                );
+                break;
+                
+            case 'ovh':
+                if (!Config::OVH_USEING) {
+                    $errorResponse = [
+                        'success' => false,
+                        'error' => 'API_NOT_ENABLED',
+                        'message' => 'OVH API ist in der config.inc.php deaktiviert',
+                        'api' => 'ovh',
+                        'config_key' => 'OVH_USEING',
+                        'solution' => 'Setzen Sie OVH_USEING = true in der config.inc.php'
+                    ];
+                    
+                    // Log API check failure to database
+                    $db->logAction(
+                        "API Check: OVH",
+                        "API deaktiviert - Config: OVH_USEING = false",
+                        'error'
+                    );
+                    
+                    return $errorResponse;
+                }
+                if (!isset($this->ovhGet) || !isset($this->ovhPost)) {
+                    $errorResponse = [
+                        'success' => false,
+                        'error' => 'API_NOT_INITIALIZED',
+                        'message' => 'OVH API konnte nicht initialisiert werden',
+                        'api' => 'ovh',
+                        'solution' => 'Überprüfen Sie die OVH-Konfiguration in der config.inc.php'
+                    ];
+                    
+                    // Log API initialization failure to database
+                    $db->logAction(
+                        "API Check: OVH",
+                        "API nicht initialisiert - OVHGet/Post Objekte fehlen",
+                        'error'
+                    );
+                    
+                    return $errorResponse;
+                }
+                
+                // Log successful API check to database
+                $db->logAction(
+                    "API Check: OVH",
+                    "API aktiviert und initialisiert",
+                    'success'
+                );
+                break;
+                
+            case 'ogp':
+                if (!Config::OGP_USEING) {
+                    $errorResponse = [
+                        'success' => false,
+                        'error' => 'API_NOT_ENABLED',
+                        'message' => 'OGP API ist in der config.inc.php deaktiviert',
+                        'api' => 'ogp',
+                        'config_key' => 'OGP_USEING',
+                        'solution' => 'Setzen Sie OGP_USEING = true in der config.inc.php'
+                    ];
+                    
+                    // Log API check failure to database
+                    $db->logAction(
+                        "API Check: OGP",
+                        "API deaktiviert - Config: OGP_USEING = false",
+                        'error'
+                    );
+                    
+                    return $errorResponse;
+                }
+                if (!isset($this->ogpGet) || !isset($this->ogpPost)) {
+                    $errorResponse = [
+                        'success' => false,
+                        'error' => 'API_NOT_INITIALIZED',
+                        'message' => 'OGP API konnte nicht initialisiert werden',
+                        'api' => 'ogp',
+                        'solution' => 'Überprüfen Sie die OGP-Konfiguration in der config.inc.php'
+                    ];
+                    
+                    // Log API initialization failure to database
+                    $db->logAction(
+                        "API Check: OGP",
+                        "API nicht initialisiert - OGPGet/Post Objekte fehlen",
+                        'error'
+                    );
+                    
+                    return $errorResponse;
+                }
+                
+                // Log successful API check to database
+                $db->logAction(
+                    "API Check: OGP",
+                    "API aktiviert und initialisiert",
+                    'success'
+                );
+                break;
+                
+            default:
+                $errorResponse = [
+                    'success' => false,
+                    'error' => 'UNKNOWN_API',
+                    'message' => 'Unbekannte API: ' . $apiName,
+                    'api' => $apiName
+                ];
+                
+                // Log unknown API check to database
+                $db->logAction(
+                    "API Check: Unknown",
+                    "Unbekannte API angefragt: " . $apiName,
+                    'error'
+                );
+                
+                return $errorResponse;
+        }
+        return true;
     }
 	
 	// =============================================================================
@@ -2188,7 +2848,11 @@ class ServiceManager {
      * $serviceManager->ProxmoxAPI('delete', '/nodes/pve/qemu/100');
      */
     public function ProxmoxAPI($type, $url, $code = null) {
-		$this->host = Config::PROXMOX_HOST;
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
         try {
             $type = strtoupper($type);
             $fullUrl = $this->proxmoxGet->host . "/api2/json" . $url;
@@ -2202,7 +2866,12 @@ class ServiceManager {
             return $response;
         } catch (Exception $e) {
             error_log("ProxmoxAPI Error: " . $e->getMessage());
-            return false;
+            return [
+                'success' => false,
+                'error' => 'API_REQUEST_FAILED',
+                'message' => 'Proxmox API Anfrage fehlgeschlagen: ' . $e->getMessage(),
+                'api' => 'proxmox'
+            ];
         }
     }    
     /**
@@ -2219,6 +2888,11 @@ class ServiceManager {
      * $serviceManager->OvhAPI('delete', '/domain/zone/example.com/record/12345');
      */
     public function OvhAPI($type, $url, $code = null) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
         try {
             $type = strtoupper($type);
             $endpoint = "https://eu.api.ovh.com/1.0";
@@ -2233,7 +2907,12 @@ class ServiceManager {
             return $response;
         } catch (Exception $e) {
             error_log("OvhAPI Error: " . $e->getMessage());
-            return false;
+            return [
+                'success' => false,
+                'error' => 'API_REQUEST_FAILED',
+                'message' => 'OVH API Anfrage fehlgeschlagen: ' . $e->getMessage(),
+                'api' => 'ovh'
+            ];
         }
     }
     
@@ -2251,6 +2930,11 @@ class ServiceManager {
      * $serviceManager->IspconfigAPI('delete', 'sites_web_domain', 123);
      */
     public function IspconfigAPI($type, $url, $code = null) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
         try {
             $type = strtolower($type);
             
@@ -2336,7 +3020,14 @@ class ServiceManager {
             
         } catch (Exception $e) {
             error_log("IspconfigAPI Error: " . $e->getMessage());
-            return false;
+            return [
+                'success' => false,
+                'error' => 'ISPCONFIG_API_ERROR',
+                'message' => 'ISPConfig API Fehler: ' . $e->getMessage(),
+                'api' => 'ispconfig',
+                'function' => $function,
+                'type' => $type
+            ];
         }
     }
     
@@ -2345,6 +3036,11 @@ class ServiceManager {
      * Erlaubt direkten Zugriff auf SOAP-Funktionen
      */
     public function IspconfigSOAP($function, $params = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
         try {
             // Füge session_id als ersten Parameter hinzu
             array_unshift($params, $this->ispconfigGet->session_id);
@@ -2358,20 +3054,116 @@ class ServiceManager {
             return $result;
         } catch (Exception $e) {
             error_log("IspconfigSOAP Error: " . $e->getMessage());
-            return false;
+            return [
+                'success' => false,
+                'error' => 'SOAP_REQUEST_FAILED',
+                'message' => 'ISPConfig SOAP Anfrage fehlgeschlagen: ' . $e->getMessage(),
+                'api' => 'ispconfig',
+                'function' => $function
+            ];
+        }
+    }
+    
+    /**
+     * Generische OGP API Funktion
+     * @param string $type HTTP-Methode (get, post, delete, put)
+     * @param string $url API-Pfad (z.B. "server/list", "user_games/create")
+     * @param mixed $code Optionale Daten für POST/PUT Requests
+     * @return mixed API Response oder false bei Fehler
+     * 
+     * Beispiele:
+     * $serviceManager->OGPAPI('get', 'server/list');
+     * $serviceManager->OGPAPI('post', 'server/create', $serverData);
+     * $serviceManager->OGPAPI('post', 'user_games/create', $gameServerData);
+     * $serviceManager->OGPAPI('post', 'gamemanager/start', ['ip' => '1.2.3.4', 'port' => 27015, 'mod_key' => 'csgo']);
+     */
+    public function OGPAPI($type, $url, $code = null) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        try {
+            $type = strtoupper($type);
+            $fullUrl = $this->ogpGet->host . "/ogp_api.php?" . $url;
+            
+            // Verwende die makeRequest Methode der OGP Klasse
+            $response = $this->ogpGet->makeRequest($type, $fullUrl, $code);
+            
+            // Logging
+            $this->ogpGet->logRequest($url, $type, $response !== false);
+            
+            return $response;
+        } catch (Exception $e) {
+            error_log("OGPAPI Error: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => 'API_REQUEST_FAILED',
+                'message' => 'OGP API Anfrage fehlgeschlagen: ' . $e->getMessage(),
+                'api' => 'ogp'
+            ];
         }
     }
 
     // Proxmox Methods
     public function getProxmoxVMs() {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->proxmoxGet->getVMs();
     }
+    public function getProxmoxNodes() {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->proxmoxGet->getNodes();
+    }
+    public function getProxmoxStorage() {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->proxmoxGet->getStorages();
+    }
 
+    public function getProxmoxNetwork() {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        $networks = [];
+        $nodes = $this->getProxmoxNodes();
+        
+        foreach ($nodes as $nodeData) {
+            $nodeName = is_array($nodeData) ? $nodeData['node'] : $nodeData;
+            $nodeNetworks = $this->proxmoxGet->getNetworks($nodeName);
+            
+            if (!empty($nodeNetworks)) {
+                foreach ($nodeNetworks as $network) {
+                    $network['node'] = $nodeName;
+                    $networks[] = $network;
+                }
+            }
+        }
+        
+        return $networks;
+    }
     public function createProxmoxVM($vmData) {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->proxmoxPost->createVM($vmData);
     }
 
     public function controlProxmoxVM($node, $vmid, $action) {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         switch ($action) {
             case 'start':
                 return $this->proxmoxPost->startVM($node, $vmid);
@@ -2384,68 +3176,134 @@ class ServiceManager {
             case 'resume':
                 return $this->proxmoxPost->resumeVM($node, $vmid);
             default:
-                return false;
+                return [
+                    'success' => false,
+                    'error' => 'INVALID_ACTION',
+                    'message' => 'Ungültige Aktion: ' . $action,
+                    'api' => 'proxmox',
+                    'valid_actions' => ['start', 'stop', 'reset', 'suspend', 'resume']
+                ];
         }
     }
 
     public function deleteProxmoxVM($node, $vmid) {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->proxmoxPost->deleteVM($node, $vmid);
     }
 
     // ISPConfig Methods
     public function getISPConfigWebsites() {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ispconfigGet->getWebsites(['active' => 'y']);
     }
 
     public function createISPConfigWebsite($websiteData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ispconfigPost->createWebsite($websiteData);
     }
 
     public function deleteISPConfigWebsite($domainId) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ispconfigPost->deleteWebsite($domainId);
     }
 
     public function getISPConfigDatabases() {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ispconfigGet->getDatabases(['active' => 'y']);
     }
 
     public function createISPConfigDatabase($dbData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ispconfigPost->createDatabase($dbData);
     }
 
     public function deleteISPConfigDatabase($databaseId) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ispconfigPost->deleteDatabase($databaseId);
     }
 
     public function getISPConfigEmails() {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ispconfigGet->getEmailAccounts(['active' => 'y']);
     }
 
     public function createISPConfigEmail($emailData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ispconfigPost->createEmailAccount($emailData);
     }
 
     public function deleteISPConfigEmail($mailuserId) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ispconfigPost->deleteEmailAccount($mailuserId);
     }
 
     // OVH Methods
     public function getOVHDomains() {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhGet->getDomains();
     }
 
     public function orderOVHDomain($domain, $duration) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhPost->orderDomain($domain, $duration);
     }
 
     public function getOVHVPS() {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhGet->getVPSList();
     }
 
     public function getOvhIP(){
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhGet->getAllIPReverseDetails();
     }
     public function getOVHFailoverIPs() {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         $failoverIPs = $this->ovhGet->getFailoverIPs();
         $detailedIPs = [];
 
@@ -2466,6 +3324,10 @@ class ServiceManager {
     }
 
     public function getOVHVPSMacAddress($vpsName) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         $vps = $this->ovhGet->getVPS($vpsName);
         if ($vps && !empty($vps->ips) && !empty($vps->mac_addresses)) {
             $firstIp = $vps->ips[0];
@@ -2485,6 +3347,10 @@ class ServiceManager {
      * Holt alle Virtual MAC-Adressen für einen bestimmten Service
      */
     public function getVirtualMacAddresses($serviceName = null) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         if ($serviceName) {
             return $this->ovhGet->getAllVirtualMacDetailsWithIPs($serviceName);
         } else {
@@ -2496,6 +3362,10 @@ class ServiceManager {
      * Holt Details zu einer Virtual MAC-Adresse
      */
     public function getVirtualMacDetails($serviceName, $macAddress) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhGet->getVirtualMacDetails($serviceName, $macAddress);
     }
 
@@ -2503,6 +3373,10 @@ class ServiceManager {
      * Erstellt eine neue Virtual MAC-Adresse
      */
     public function createVirtualMac($serviceName, $virtualNetworkInterface, $type = 'ovh') {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhPost->createVirtualMac($serviceName, $virtualNetworkInterface, $type);
     }
 
@@ -2510,6 +3384,10 @@ class ServiceManager {
      * Löscht eine Virtual MAC-Adresse
      */
     public function deleteVirtualMac($serviceName, $macAddress) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhPost->deleteVirtualMac($serviceName, $macAddress);
     }
 
@@ -2517,6 +3395,10 @@ class ServiceManager {
      * Fügt IP zu Virtual MAC hinzu
      */
     public function addIPToVirtualMac($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhPost->addVirtualMacIP($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface);
     }
 
@@ -2524,23 +3406,43 @@ class ServiceManager {
      * Entfernt IP von Virtual MAC
      */
     public function removeIPFromVirtualMac($serviceName, $macAddress, $ipAddress) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhPost->removeVirtualMacIP($serviceName, $macAddress, $ipAddress);
     }
 
     // Reverse DNS Methods
     public function getIPReverse($ipAddress) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhGet->getIPReverse($ipAddress);
     }
 
     public function createIPReverse($ipAddress, $reverse) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhPost->createIPReverse($ipAddress, $reverse);
     }
 
     public function updateIPReverse($ipAddress, $reverseIP, $newReverse) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhPost->updateIPReverse($ipAddress, $reverseIP, $newReverse);
     }
 
     public function deleteIPReverse($ipAddress, $reverseIP) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
         return $this->ovhPost->deleteIPReverse($ipAddress, $reverseIP);
     }
 
@@ -2574,6 +3476,307 @@ class ServiceManager {
         }
 
         return $result;
+    }
+    
+    // =============================================================================
+    // OGP METHODS
+    // =============================================================================
+    
+    // Token Management
+    public function testOGPToken() {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->testToken();
+    }
+    
+    // Remote Servers
+    public function getOGPServerList() {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getServerList();
+    }
+    
+    public function getOGPServerStatus($remoteServerId) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getServerStatus($remoteServerId);
+    }
+    
+    public function getOGPServerIPs($remoteServerId) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getServerIPs($remoteServerId);
+    }
+    
+    public function restartOGPServer($remoteServerId) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->restartServer($remoteServerId);
+    }
+    
+    public function createOGPServer($serverData) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->createServer($serverData);
+    }
+    
+    public function removeOGPServer($remoteServerId) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->removeServer($remoteServerId);
+    }
+    
+    public function addOGPServerIP($remoteServerId, $ip) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->addServerIP($remoteServerId, $ip);
+    }
+    
+    public function removeOGPServerIP($remoteServerId, $ip) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->removeServerIP($remoteServerId, $ip);
+    }
+    
+    public function editOGPServerIP($remoteServerId, $oldIp, $newIp) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->editServerIP($remoteServerId, $oldIp, $newIp);
+    }
+    
+    // Game Servers
+    public function getOGPGamesList($system = 'linux', $architecture = '64') {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getGamesList($system, $architecture);
+    }
+    
+    public function getOGPGameServers() {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getGameServers();
+    }
+    
+    public function createOGPGameServer($gameServerData) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->createGameServer($gameServerData);
+    }
+    
+    public function cloneOGPGameServer($cloneData) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->cloneGameServer($cloneData);
+    }
+    
+    public function setOGPGameServerExpiration($homeId, $timestamp) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->setGameServerExpiration($homeId, $timestamp);
+    }
+    
+    // Users
+    public function getOGPUsers() {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getUsers();
+    }
+    
+    public function getOGPUser($email) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getUser($email);
+    }
+    
+    public function getOGPUserAssigned($email) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getUserAssigned($email);
+    }
+    
+    public function createOGPUser($userData) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->createUser($userData);
+    }
+    
+    public function removeOGPUser($email) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->removeUser($email);
+    }
+    
+    public function setOGPUserExpiration($email, $timestamp) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->setUserExpiration($email, $timestamp);
+    }
+    
+    public function assignOGPUser($email, $homeId, $timestamp = null) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->assignUser($email, $homeId, $timestamp);
+    }
+    
+    public function removeOGPUserAssignment($email, $homeId) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->removeUserAssignment($email, $homeId);
+    }
+    
+    // Game Manager
+    public function startOGPGameManager($ip, $port, $modKey) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->startGameManager($ip, $port, $modKey);
+    }
+    
+    public function stopOGPGameManager($ip, $port, $modKey) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->stopGameManager($ip, $port, $modKey);
+    }
+    
+    public function restartOGPGameManager($ip, $port, $modKey) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->restartGameManager($ip, $port, $modKey);
+    }
+    
+    public function sendOGPRconCommand($ip, $port, $modKey, $command) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->sendRconCommand($ip, $port, $modKey, $command);
+    }
+    
+    public function updateOGPGameManager($ip, $port, $modKey, $type, $manualUrl = null) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->updateGameManager($ip, $port, $modKey, $type, $manualUrl);
+    }
+    
+    // Lite File Manager
+    public function listOGPFiles($ip, $port, $relativePath) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->listFiles($ip, $port, $relativePath);
+    }
+    
+    public function getOGPFile($ip, $port, $relativePath) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->getFile($ip, $port, $relativePath);
+    }
+    
+    public function saveOGPFile($ip, $port, $relativePath, $contents) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->saveFile($ip, $port, $relativePath, $contents);
+    }
+    
+    public function removeOGPFile($ip, $port, $relativePath) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->removeFile($ip, $port, $relativePath);
+    }
+    
+    // Addons Manager
+    public function getOGPAddonsList() {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getAddonsList();
+    }
+    
+    public function installOGPAddon($ip, $port, $modKey, $addonId) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->installAddon($ip, $port, $modKey, $addonId);
+    }
+    
+    // Steam Workshop
+    public function installOGPSteamWorkshop($ip, $port, $modsList) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpPost->installSteamWorkshop($ip, $port, $modsList);
+    }
+    
+    // Panel Settings
+    public function getOGPSetting($settingName) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ogpGet->getSetting($settingName);
     }
 }
 

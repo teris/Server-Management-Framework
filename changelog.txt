@@ -1,0 +1,52 @@
+Version 2.9.5
+
+- Addition OGP extension
+- Addition of the OpenGamePanel API
+- Addition of a locking option for APIs
+- Creation of documentation for the framework.php file
+- Addition of additional ServerManager functions for simplified use
+- Integration of a DNS manager for OVH in the admin panel
+- Example file created for using the Framework in Standalone Mode
+- Bug fixes in the ISPCONFIG API and Proxmox API
+- Bug fixes in all constructs
+
+Version 2.9.1
+- add ajax ip reverse loader
+- add function in AdminCore
+- add languages
+- add framwork functions getAllReverseDetails for OVH Dedicaded Server and FailoverIPs
+- add IP-Adresses Sector
+! change info.php for example Output
+
+Version 2.8.5
+PHP Parse error:  syntax error, unexpected 'elseif' (T_ELSEIF)
+
+Version 2.8.0
+! Bugfix in framework
+! Bugfix in handler
+! Bugfix database-structure
++ add User control
++ add module control
++ add sys.conf.php control
++ add Modus Switch
+
+Version 2.5.0
+Update Ajax Requests
++ add ajax ip reverse loader
++ add function in AdminCore
++ add languages
++ add framwork functions getAllReverseDetails for OVH Dedicaded Server and FailoverIPs
++ add IP-Adresses Sector
+! change info.php for example output
+
+Version 2.0.0
+BugFixex and adding an LoginSystem
+
+Version 1.0.0
+- Add admin interface
+- Add OVH failover IP functionality
+- Feat install script
+- Update framework.php 
+
+Version First Release
+- Create framework

@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Framework.php - Vollständige Dokumentation</title>
+    <link rel="stylesheet" href="styles.css">
+        
+
+
+</head>
+<body>
+    <!-- Sidebar Toggle Button für Mobile -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Navigation</h2>
+        </div>
+        <div class="sidebar-nav">
+            <ul>
+                <li><a href="#overview" onclick="setActiveLink(this)">Übersicht</a></li>
+                <li><a href="#database" onclick="setActiveLink(this)">Database Klasse</a></li>
+                <li><a href="#data-models" onclick="setActiveLink(this)">Datenmodelle</a></li>
+                <li><a href="#data-mapper" onclick="setActiveLink(this)">DataMapper</a></li>
+                <li><a href="#base-api" onclick="setActiveLink(this)">BaseAPI</a></li>
+                <li><a href="#proxmox" onclick="setActiveLink(this)">Proxmox API</a></li>
+                <li><a href="#ispconfig" onclick="setActiveLink(this)">ISPConfig API</a></li>
+                <li><a href="#ovh" onclick="setActiveLink(this)">OVH API</a></li>
+                <li><a href="#ogp" onclick="setActiveLink(this)">OGP API</a></li>
+                <li><a href="#service-manager" onclick="setActiveLink(this)">ServiceManager</a></li>
+                <li><a href="#module-functions" onclick="setActiveLink(this)">Modul-Funktionen</a></li>
+                <li><a href="#examples" onclick="setActiveLink(this)">Beispielskripte</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Framework.php</h1>
+            <p>Vollständige Dokumentation für das Server Management Framework</p>
+            <p>Modulares Framework für Proxmox, ISPConfig, OVH API und OGP Integration</p>
+        </div>
+
+        <div class="section" id="overview">
+            <h2>Übersicht</h2>
+            <p>Das Framework.php ist ein umfassendes Server Management Framework, das die Integration verschiedener APIs ermöglicht:</p>
+            
+            <div class="class-info">
+                <h3>Unterstützte APIs</h3>
+                <ul>
+                    <li><strong>Proxmox:</strong> Virtualisierung und Container-Management</li>
+                    <li><strong>ISPConfig:</strong> Webhosting und E-Mail-Management</li>
+                    <li><strong>OVH:</strong> Cloud-Services, Domains und Virtual MAC</li>
+                    <li><strong>OGP:</strong> Game Server Management</li>
+                </ul>
+            </div>
+
+            <div class="info">
+                <strong>Wichtig:</strong> Das Framework verwendet eine modulare Architektur, bei der jede API unabhängig aktiviert oder deaktiviert werden kann.
+            </div>
+
+            <h3>Hauptkomponenten</h3>
+            <ul>
+                <li><strong>Database:</strong> Singleton-Pattern für Datenbankverbindungen</li>
+                <li><strong>DataMapper:</strong> Mapping zwischen API-Daten und Objekten</li>
+                <li><strong>BaseAPI:</strong> Abstrakte Basisklasse für alle APIs</li>
+                <li><strong>ServiceManager:</strong> Zentrale Verwaltungsklasse</li>
+            </ul>
+        </div>
+
+        <div class="section" id="database">
+            <h2>Database Klasse</h2>
+            <p>Singleton-Pattern für Datenbankverbindungen mit PDO.</p>
+
+            <div class="method">
+                <h4>getInstance()</h4>
+                <div class="signature">public static function getInstance()</div>
+                <div class="description">Gibt die einzige Instanz der Database-Klasse zurück.</div>
+                <div class="example">
+                    <h5>Beispiel:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Code anzeigen/verstecken
+                        </button>
+                        <div class="code-content">
+                            <pre>$db = Database::getInstance();
+$connection = $db->getConnection();</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>logAction()</h4>
+                <div class="signature">public function logAction($action, $details, $status)</div>
+                <div class="description">Loggt eine Aktion in der activity_log Tabelle.</div>
+                <div class="parameters">
+                    <h5>Parameter:</h5>
+                    <ul>
+                        <li><code>$action</code> - Name der Aktion</li>
+                        <li><code>$details</code> - Details der Aktion</li>
+                        <li><code>$status</code> - Status (success/error)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>getActivityLog()</h4>
+                <div class="signature">public function getActivityLog($limit = 50, $offset = 0)</div>
+                <div class="description">Holt die letzten Aktivitäts-Logs aus der Datenbank.</div>
+            </div>
+        </div>
+
+        <div class="section" id="data-models">
+            <h2>Datenmodelle</h2>
+            <p>Verschiedene Datenmodelle für die API-Integration.</p>
+
+            <h3>VM Klasse</h3>
+            <div class="class-info">
+                <h4>Eigenschaften:</h4>
+                <div class="properties">
+                    <div class="property">public $vmid</div>
+                    <div class="property">public $name</div>
+                    <div class="property">public $node</div>
+                    <div class="property">public $status</div>
+                    <div class="property">public $cores</div>
+                    <div class="property">public $memory</div>
+                    <div class="property">public $disk</div>
+                    <div class="property">public $ip_address</div>
+                    <div class="property">public $mac_address</div>
+                    <div class="property">public $uptime</div>
+                    <div class="property">public $cpu_usage</div>
+                    <div class="property">public $memory_usage</div>
+                </div>
+            </div>
+
+            <h3>VirtualMac Klasse</h3>
+            <div class="class-info">
+                <h4>Eigenschaften:</h4>
+                <div class="properties">
+                    <div class="property">public $macAddress</div>
+                    <div class="property">public $serviceName</div>
+                    <div class="property">public $ipAddress</div>
+                    <div class="property">public $virtualNetworkInterface</div>
+                    <div class="property">public $type</div>
+                    <div class="property">public $reverse</div>
+                    <div class="property">public $ips</div>
+                    <div class="property">public $reverseEntries</div>
+                </div>
+            </div>
+
+            <h3>Website Klasse</h3>
+            <div class="class-info">
+                <h4>Eigenschaften:</h4>
+                <div class="properties">
+                    <div class="property">public $domain_id</div>
+                    <div class="property">public $domain</div>
+                    <div class="property">public $ip_address</div>
+                    <div class="property">public $system_user</div>
+                    <div class="property">public $system_group</div>
+                    <div class="property">public $active</div>
+                    <div class="property">public $hd_quota</div>
+                    <div class="property">public $traffic_quota</div>
+                    <div class="property">public $document_root</div>
+                    <div class="property">public $ssl_enabled</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="data-mapper">
+            <h2>DataMapper Klasse</h2>
+            <p>Statische Klasse zum Mapping von API-Daten zu Objekten.</p>
+
+            <div class="method">
+                <h4>mapToVM()</h4>
+                <div class="signature">public static function mapToVM($data)</div>
+                <div class="description">Mappt Proxmox VM-Daten zu einem VM-Objekt.</div>
+            </div>
+
+            <div class="method">
+                <h4>mapToVirtualMac()</h4>
+                <div class="signature">public static function mapToVirtualMac($data, $serviceName = null, $macAddress = null)</div>
+                <div class="description">Mappt OVH Virtual MAC-Daten zu einem VirtualMac-Objekt.</div>
+            </div>
+
+            <div class="method">
+                <h4>mapToWebsite()</h4>
+                <div class="signature">public static function mapToWebsite($data)</div>
+                <div class="description">Mappt ISPConfig Website-Daten zu einem Website-Objekt.</div>
+            </div>
+        </div>
+
+        <div class="section" id="base-api">
+            <h2>BaseAPI Klasse</h2>
+            <p>Abstrakte Basisklasse für alle API-Implementierungen.</p>
+
+            <div class="method">
+                <h4>authenticate()</h4>
+                <div class="signature">abstract protected function authenticate()</div>
+                <div class="description">Muss von jeder API-Klasse implementiert werden.</div>
+            </div>
+
+            <div class="method">
+                <h4>makeRequest()</h4>
+                <div class="signature">abstract protected function makeRequest($method, $url, $data = null)</div>
+                <div class="description">Muss von jeder API-Klasse implementiert werden.</div>
+            </div>
+
+            <div class="method">
+                <h4>logRequest()</h4>
+                <div class="signature">public function logRequest($endpoint, $method, $success)</div>
+                <div class="description">Loggt API-Requests in der Datenbank.</div>
+            </div>
+        </div>
+
+        <div class="section" id="proxmox">
+            <h2>Proxmox API</h2>
+            <p>Integration mit Proxmox Virtual Environment.</p>
+
+            <div class="class-info">
+                <h3>ProxmoxGet Klasse</h3>
+                <p>Lese-Operationen für Proxmox.</p>
+            </div>
+
+            <div class="method">
+                <h4>getNodes()</h4>
+                <div class="signature">public function getNodes()</div>
+                <div class="description">Holt alle verfügbaren Nodes.</div>
+                <div class="example">
+                    <h5>Beispiel:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Code anzeigen/verstecken
+                        </button>
+                        <div class="code-content">
+                            <pre>$proxmox = new ProxmoxGet();
+$nodes = $proxmox->getNodes();
+foreach ($nodes as $node) {
+    echo "Node: " . $node['node'] . "\n";
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>getVMs()</h4>
+                <div class="signature">public function getVMs($node = null)</div>
+                <div class="description">Holt alle VMs von allen Nodes oder einem spezifischen Node.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVM()</h4>
+                <div class="signature">public function getVM($node, $vmid)</div>
+                <div class="description">Holt Details einer spezifischen VM.</div>
+            </div>
+
+            <div class="class-info">
+                <h3>ProxmoxPost Klasse</h3>
+                <p>Schreib-Operationen für Proxmox.</p>
+            </div>
+
+            <div class="method">
+                <h4>createVM()</h4>
+                <div class="signature">public function createVM($vmData)</div>
+                <div class="description">Erstellt eine neue VM.</div>
+                <div class="example">
+                    <h5>Beispiel:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Code anzeigen/verstecken
+                        </button>
+                        <div class="code-content">
+                            <pre>$vmData = [
+    'vmid' => 100,
+    'name' => 'test-vm',
+    'node' => 'pve',
+    'memory' => 1024,
+    'cores' => 2,
+    'bridge' => 'vmbr0',
+    'storage' => 'local',
+    'disk' => '10',
+    'iso' => 'local:iso/ubuntu-20.04-server-amd64.iso'
+];
+
+$proxmox = new ProxmoxPost();
+$result = $proxmox->createVM($vmData);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>controlProxmoxVM()</h4>
+                <div class="signature">public function controlProxmoxVM($node, $vmid, $action)</div>
+                <div class="description">Steuert eine VM (start, stop, reset, suspend, resume).</div>
+            </div>
+        </div>
+
+        <div class="section" id="ispconfig">
+            <h2>ISPConfig API</h2>
+            <p>Integration mit ISPConfig Webhosting-Panel.</p>
+
+            <div class="warning">
+                <strong>Hinweis:</strong> ISPConfig benötigt SOAP-Erweiterung für PHP.
+                <br><br>
+                <strong>Installation der PHP SOAP-Erweiterung:</strong>
+                <ul>
+                    <li><strong>Ubuntu/Debian:</strong> <code>sudo apt-get install php-soap</code></li>
+                    <li><strong>CentOS/RHEL:</strong> <code>sudo yum install php-soap</code></li>
+                    <li><strong>Windows:</strong> Entfernen Sie das Semikolon vor <code>extension=soap</code> in der php.ini</li>
+                    <li><strong>macOS (Homebrew):</strong> <code>brew install php@8.x</code> (SOAP ist standardmäßig enthalten)</li>
+                </ul>
+                <br>
+                <strong>Weitere Informationen:</strong> <a href="https://www.php.net/manual/de/book.soap.php" target="_blank">PHP SOAP Dokumentation</a>
+            </div>
+
+            <div class="class-info">
+                <h3>ISPConfigGet Klasse</h3>
+                <p>Lese-Operationen für ISPConfig.</p>
+            </div>
+
+            <div class="method">
+                <h4>getWebsites()</h4>
+                <div class="signature">public function getWebsites($filter = [])</div>
+                <div class="description">Holt alle Websites.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDatabases()</h4>
+                <div class="signature">public function getDatabases($filter = [])</div>
+                <div class="description">Holt alle Datenbanken.</div>
+            </div>
+
+            <div class="method">
+                <h4>getEmailAccounts()</h4>
+                <div class="signature">public function getEmailAccounts($filter = [])</div>
+                <div class="description">Holt alle E-Mail-Accounts.</div>
+            </div>
+
+            <div class="class-info">
+                <h3>ISPConfigPost Klasse</h3>
+                <p>Schreib-Operationen für ISPConfig.</p>
+            </div>
+
+            <div class="method">
+                <h4>createWebsite()</h4>
+                <div class="signature">public function createWebsite($websiteData)</div>
+                <div class="description">Erstellt eine neue Website.</div>
+                <div class="example">
+                    <h5>Beispiel:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Code anzeigen/verstecken
+                        </button>
+                        <div class="code-content">
+                            <pre>$websiteData = [
+    'ip' => '192.168.1.100',
+    'domain' => 'example.com',
+    'user' => 'webuser',
+    'group' => 'webgroup',
+    'quota' => 1000,
+    'traffic' => 10000
+];
+
+$ispconfig = new ISPConfigPost();
+$result = $ispconfig->createWebsite($websiteData);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="ovh">
+            <h2>OVH API</h2>
+            <p>Integration mit OVH Cloud-Services.</p>
+
+            <div class="class-info">
+                <h3>OVHGet Klasse</h3>
+                <p>Lese-Operationen für OVH.</p>
+            </div>
+
+            <div class="method">
+                <h4>getDomains()</h4>
+                <div class="signature">public function getDomains()</div>
+                <div class="description">Holt alle Domains.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVPSList()</h4>
+                <div class="signature">public function getVPSList()</div>
+                <div class="description">Holt alle VPS-Instanzen.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacAddresses()</h4>
+                <div class="signature">public function getVirtualMacAddresses($serviceName)</div>
+                <div class="description">Holt alle Virtual MAC-Adressen für einen Service.</div>
+            </div>
+
+            <div class="class-info">
+                <h3>OVHPost Klasse</h3>
+                <p>Schreib-Operationen für OVH.</p>
+            </div>
+
+            <div class="method">
+                <h4>createVirtualMac()</h4>
+                <div class="signature">public function createVirtualMac($serviceName, $virtualNetworkInterface, $type = 'ovh')</div>
+                <div class="description">Erstellt eine neue Virtual MAC-Adresse.</div>
+            </div>
+
+            <div class="method">
+                <h4>addVirtualMacIP()</h4>
+                <div class="signature">public function addVirtualMacIP($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface)</div>
+                <div class="description">Fügt eine IP-Adresse zu einer Virtual MAC hinzu.</div>
+            </div>
+        </div>
+
+        <div class="section" id="ogp">
+            <h2>OGP API</h2>
+            <p>Integration mit Open Game Panel.</p>
+
+            <div class="class-info">
+                <h3>OGPGet Klasse</h3>
+                <p>Lese-Operationen für OGP.</p>
+            </div>
+
+            <div class="method">
+                <h4>getServerList()</h4>
+                <div class="signature">public function getServerList()</div>
+                <div class="description">Holt alle Remote-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>getGameServers()</h4>
+                <div class="signature">public function getGameServers()</div>
+                <div class="description">Holt alle Game-Server.</div>
+            </div>
+
+            <div class="class-info">
+                <h3>OGPPost Klasse</h3>
+                <p>Schreib-Operationen für OGP.</p>
+            </div>
+
+            <div class="method">
+                <h4>createGameServer()</h4>
+                <div class="signature">public function createGameServer($gameServerData)</div>
+                <div class="description">Erstellt einen neuen Game-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>sendRconCommand()</h4>
+                <div class="signature">public function sendRconCommand($ip, $port, $modKey, $command)</div>
+                <div class="description">Sendet einen RCON-Befehl an einen Game-Server.</div>
+            </div>
+        </div>
+
+        <div class="section" id="service-manager">
+            <h2>ServiceManager Klasse</h2>
+            <p>Zentrale Verwaltungsklasse für alle APIs.</p>
+
+            <div class="method">
+                <h4>__construct()</h4>
+                <div class="signature">public function __construct()</div>
+                <div class="description">Initialisiert alle aktivierten APIs.</div>
+            </div>
+
+            <div class="method">
+                <h4>checkAPIEnabled()</h4>
+                <div class="signature">private function checkAPIEnabled($apiName)</div>
+                <div class="description">Prüft ob eine API aktiviert ist.</div>
+            </div>
+
+            <div class="method">
+                <h4>ProxmoxAPI()</h4>
+                <div class="signature">public function ProxmoxAPI($type, $url, $code = null)</div>
+                <div class="description">Generische Proxmox API-Funktion.</div>
+                <div class="example">
+                    <h5>Beispiel:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Code anzeigen/verstecken
+                        </button>
+                        <div class="code-content">
+                            <pre>$serviceManager = new ServiceManager();
+
+// Alle Nodes abrufen
+$nodes = $serviceManager->ProxmoxAPI('get', '/nodes');
+
+// VM starten
+$result = $serviceManager->ProxmoxAPI('post', '/nodes/pve/qemu/100/status/start');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>OvhAPI()</h4>
+                <div class="signature">public function OvhAPI($type, $url, $code = null)</div>
+                <div class="description">Generische OVH API-Funktion.</div>
+            </div>
+
+            <div class="method">
+                <h4>IspconfigAPI()</h4>
+                <div class="signature">public function IspconfigAPI($type, $url, $code = null)</div>
+                <div class="description">Generische ISPConfig API-Funktion.</div>
+            </div>
+
+            <div class="method">
+                <h4>OGPAPI()</h4>
+                <div class="signature">public function OGPAPI($type, $url, $code = null)</div>
+                <div class="description">Generische OGP API-Funktion.</div>
+            </div>
+        </div>
+
+        <div class="section" id="module-functions">
+            <h2>Modul-Funktionen</h2>
+            <p>Hilfsfunktionen für das Modul-System.</p>
+
+            <div class="method">
+                <h4>getAllModules()</h4>
+                <div class="signature">function getAllModules()</div>
+                <div class="description">Gibt alle verfügbaren Module zurück.</div>
+            </div>
+
+            <div class="method">
+                <h4>getEnabledModules()</h4>
+                <div class="signature">function getEnabledModules()</div>
+                <div class="description">Gibt nur die aktivierten Module zurück.</div>
+            </div>
+
+            <div class="method">
+                <h4>canAccessModule()</h4>
+                <div class="signature">function canAccessModule($module_key, $user_role)</div>
+                <div class="description">Prüft ob ein Benutzer auf ein Modul zugreifen darf.</div>
+            </div>
+        </div>
+
+        <div class="section" id="examples">
+            <h2>Beispielskripte</h2>
+            <p>Praktische Beispiele für die Verwendung des Frameworks.</p>
+
+            <h3>1. Proxmox VM-Management</h3>
+            
+            <div class="warning">
+                <strong>Proxmox VM-Management:</strong><br>
+                Das Framework ermöglicht die vollständige Verwaltung von virtuellen Maschinen über die Proxmox API.<br><br>
+                <strong>Wichtige Parameter für createProxmoxVM():</strong>
+                <ul>
+                    <li><b>vmid</b> (Pflicht): Eindeutige ID der VM (100-999999)</li>
+                    <li><b>name</b> (Pflicht): Name der virtuellen Maschine</li>
+                    <li><b>node</b> (Pflicht): Name des Proxmox-Nodes (z.B. 'pve')</li>
+                    <li><b>memory</b> (Pflicht): RAM in MB</li>
+                    <li><b>cores</b> (Pflicht): Anzahl der CPU-Kerne</li>
+                    <li><b>bridge</b> (Optional): Netzwerk-Bridge (Standard: 'vmbr0')</li>
+                    <li><b>mac</b> (Optional): MAC-Adresse für das Netzwerk</li>
+                    <li><b>storage</b> (Pflicht): Name des Storage (z.B. 'local')</li>
+                    <li><b>disk</b> (Pflicht): Größe der Festplatte in GB</li>
+                    <li><b>iso</b> (Optional): ISO-Image für Installation</li>
+                </ul>
+                <strong>Verfügbare VM-Aktionen:</strong> start, stop, reset, suspend, resume
+            </div>
+
+            <div class="code-block">
+                <button class="code-toggle" onclick="toggleCode(this)">
+                    <span class="toggle-icon">▼</span>
+                    Code anzeigen/verstecken
+                </button>
+                <div class="code-content">
+                    <pre>&lt;?php
+require_once 'framework.php';
+
+// ServiceManager initialisieren
+$serviceManager = new ServiceManager();
+
+// Alle VMs abrufen
+$vms = $serviceManager->getProxmoxVMs();
+foreach ($vms as $vm) {
+    echo "VM: {$vm->name} (ID: {$vm->vmid}) - Status: {$vm->status}\n";
+}
+
+// Neue VM erstellen
+$vmData = [
+    'vmid' => 101,
+    'name' => 'webserver',
+    'node' => 'pve',
+    'memory' => 2048,
+    'cores' => 2,
+    'bridge' => 'vmbr0',
+    'storage' => 'local',
+    'disk' => '20',
+    'iso' => 'local:iso/ubuntu-20.04-server-amd64.iso'
+];
+
+$result = $serviceManager->createProxmoxVM($vmData);
+if ($result) {
+    echo "VM erfolgreich erstellt!\n";
+}
+
+// VM starten
+$serviceManager->controlProxmoxVM('pve', 101, 'start');
+?&gt;</pre>
+                </div>
+            </div>
+
+            <h3>2. ISPConfig Website-Management</h3>
+            
+            <div class="warning">
+                <strong>ISPConfig Website-Management:</strong><br>
+                Verwaltung von Websites, Datenbanken und E-Mail-Accounts über die ISPConfig SOAP API.<br><br>
+                <strong>Wichtige Parameter für createISPConfigWebsite():</strong>
+                <ul>
+                    <li><b>ip</b> (Pflicht): IP-Adresse für die Website</li>
+                    <li><b>domain</b> (Pflicht): Domain-Name der Website</li>
+                    <li><b>user</b> (Pflicht): System-Benutzer für die Website</li>
+                    <li><b>group</b> (Pflicht): System-Gruppe für die Website</li>
+                    <li><b>quota</b> (Pflicht): Speicherplatz in MB</li>
+                    <li><b>traffic</b> (Pflicht): Traffic-Limit in MB</li>
+                </ul>
+                <strong>Hinweis:</strong> ISPConfig benötigt eine gültige SOAP-Verbindung und Session-ID.
+            </div>
+
+            <div class="code-block">
+                <button class="code-toggle" onclick="toggleCode(this)">
+                    <span class="toggle-icon">▼</span>
+                    Code anzeigen/verstecken
+                </button>
+                <div class="code-content">
+                    <pre>&lt;?php
+require_once 'framework.php';
+
+$serviceManager = new ServiceManager();
+
+// Alle Websites abrufen
+$websites = $serviceManager->getISPConfigWebsites();
+foreach ($websites as $website) {
+    echo "Website: {$website->domain} - IP: {$website->ip_address}\n";
+}
+
+// Neue Website erstellen
+$websiteData = [
+    'ip' => '192.168.1.100',
+    'domain' => 'meine-website.de',
+    'user' => 'webuser',
+    'group' => 'webgroup',
+    'quota' => 2000,
+    'traffic' => 20000
+];
+
+$result = $serviceManager->createISPConfigWebsite($websiteData);
+if ($result) {
+    echo "Website erfolgreich erstellt!\n";
+}
+?&gt;</pre>
+                </div>
+            </div>
+
+            <h3>3. OVH Virtual MAC-Management</h3>
+            
+            <div class="warning">
+                <strong>OVH Virtual MAC-Management:</strong><br>
+                Verwaltung von Virtual MAC-Adressen und IP-Zuweisungen für OVH Dedicated Server.<br><br>
+                <strong>Wichtige Parameter für createVirtualMac():</strong>
+                <ul>
+                    <li><b>serviceName</b> (Pflicht): Name des OVH Dedicated Servers</li>
+                    <li><b>virtualNetworkInterface</b> (Pflicht): Netzwerk-Interface (z.B. 'eth0')</li>
+                    <li><b>type</b> (Optional): MAC-Typ (Standard: 'ovh')</li>
+                </ul>
+                <strong>Wichtige Parameter für addIPToVirtualMac():</strong>
+                <ul>
+                    <li><b>serviceName</b> (Pflicht): Name des OVH Dedicated Servers</li>
+                    <li><b>macAddress</b> (Pflicht): MAC-Adresse im Format '00:1a:2b:3c:4d:5e'</li>
+                    <li><b>ipAddress</b> (Pflicht): IP-Adresse die zugewiesen werden soll</li>
+                    <li><b>virtualNetworkInterface</b> (Pflicht): Netzwerk-Interface</li>
+                </ul>
+                <strong>Hinweis:</strong> Virtual MAC-Adressen ermöglichen die flexible IP-Zuweisung zwischen verschiedenen Servern.
+            </div>
+
+            <div class="code-block">
+                <button class="code-toggle" onclick="toggleCode(this)">
+                    <span class="toggle-icon">▼</span>
+                    Code anzeigen/verstecken
+                </button>
+                <div class="code-content">
+                    <pre>&lt;?php
+require_once 'framework.php';
+
+$serviceManager = new ServiceManager();
+
+// Alle Virtual MAC-Adressen abrufen
+$virtualMacs = $serviceManager->getVirtualMacAddresses('mein-server');
+foreach ($virtualMacs as $mac) {
+    echo "MAC: {$mac->macAddress} - Service: {$mac->serviceName}\n";
+    foreach ($mac->ips as $ip) {
+        echo "  IP: {$ip['ipAddress']}\n";
+    }
+}
+
+// Neue Virtual MAC erstellen
+$result = $serviceManager->createVirtualMac('mein-server', 'eth0', 'ovh');
+if ($result) {
+    echo "Virtual MAC erfolgreich erstellt!\n";
+}
+
+// IP zu Virtual MAC hinzufügen
+$serviceManager->addIPToVirtualMac('mein-server', '00:1a:2b:3c:4d:5e', '192.168.1.100', 'eth0');
+?&gt;</pre>
+                </div>
+            </div>
+
+            <h3>4. OGP Game-Server-Management</h3>
+            
+            <div class="warning">
+                <strong>OGP Game-Server-Management:</strong><br>
+                Verwaltung von Game-Servern über die Open Game Panel (OGP) API.<br><br>
+                <strong>Wichtige Parameter für createOGPGameServer():</strong>
+                <ul>
+                    <li><b>remote_server_id</b> (Pflicht): ID des Remote-Servers</li>
+                    <li><b>game_key</b> (Pflicht): Spiel-Identifier (z.B. 'csgo', 'minecraft')</li>
+                    <li><b>name</b> (Pflicht): Name des Game-Servers</li>
+                    <li><b>port</b> (Pflicht): Hauptport des Servers</li>
+                    <li><b>query_port</b> (Optional): Query-Port für Server-Status</li>
+                    <li><b>rcon_port</b> (Optional): RCON-Port für Remote-Commands</li>
+                    <li><b>rcon_password</b> (Optional): RCON-Passwort</li>
+                </ul>
+                <strong>Wichtige Parameter für sendOGPRconCommand():</strong>
+                <ul>
+                    <li><b>ip</b> (Pflicht): Server-IP-Adresse</li>
+                    <li><b>port</b> (Pflicht): Server-Port</li>
+                    <li><b>modKey</b> (Pflicht): Spiel-Modul-Key</li>
+                    <li><b>command</b> (Pflicht): RCON-Befehl</li>
+                </ul>
+                <strong>Hinweis:</strong> OGP benötigt einen gültigen API-Token für die Authentifizierung.
+            </div>
+
+            <div class="code-block">
+                <button class="code-toggle" onclick="toggleCode(this)">
+                    <span class="toggle-icon">▼</span>
+                    Code anzeigen/verstecken
+                </button>
+                <div class="code-content">
+                    <pre>&lt;?php
+require_once 'framework.php';
+
+$serviceManager = new ServiceManager();
+
+// Token testen
+$tokenStatus = $serviceManager->testOGPToken();
+if ($tokenStatus) {
+    echo "OGP Token ist gültig!\n";
+}
+
+// Alle Game-Server abrufen
+$gameServers = $serviceManager->getOGPGameServers();
+foreach ($gameServers as $server) {
+    echo "Game-Server: {$server['name']} - Status: {$server['status']}\n";
+}
+
+// Neuen Game-Server erstellen
+$gameServerData = [
+    'remote_server_id' => 1,
+    'game_key' => 'csgo',
+    'name' => 'Mein CS:GO Server',
+    'port' => 27015,
+    'query_port' => 27016,
+    'rcon_port' => 27017,
+    'rcon_password' => 'meinpasswort'
+];
+
+$result = $serviceManager->createOGPGameServer($gameServerData);
+if ($result) {
+    echo "Game-Server erfolgreich erstellt!\n";
+}
+
+// RCON-Befehl senden
+$serviceManager->sendOGPRconCommand('192.168.1.100', 27015, 'csgo', 'say Hallo Welt!');
+?&gt;</pre>
+                </div>
+            </div>
+
+            <h3>5. Generische API-Aufrufe</h3>
+            
+            <div class="warning">
+                <strong>Generische API-Aufrufe:</strong><br>
+                Das Framework bietet generische API-Funktionen für direkten Zugriff auf alle verfügbaren API-Endpunkte.<br><br>
+                <strong>Wichtige Parameter für alle generischen API-Funktionen:</strong>
+                <ul>
+                    <li><b>type</b> (Pflicht): HTTP-Methode ('get', 'post', 'put', 'delete')</li>
+                    <li><b>url</b> (Pflicht): API-Endpunkt-Pfad</li>
+                    <li><b>code</b> (Optional): Zusätzliche Parameter oder Daten</li>
+                </ul>
+                <strong>Verfügbare generische Funktionen:</strong>
+                <ul>
+                    <li><b>ProxmoxAPI()</b>: Direkter Zugriff auf Proxmox API</li>
+                    <li><b>OvhAPI()</b>: Direkter Zugriff auf OVH API</li>
+                    <li><b>IspconfigAPI()</b>: Direkter Zugriff auf ISPConfig API</li>
+                    <li><b>OGPAPI()</b>: Direkter Zugriff auf OGP API</li>
+                </ul>
+                <strong>Hinweis:</strong> Diese Funktionen ermöglichen den Zugriff auf alle API-Features, die nicht durch spezifische Wrapper-Funktionen abgedeckt sind.
+            </div>
+
+            <div class="code-block">
+                <button class="code-toggle" onclick="toggleCode(this)">
+                    <span class="toggle-icon">▼</span>
+                    Code anzeigen/verstecken
+                </button>
+                <div class="code-content">
+                    <pre>&lt;?php
+require_once 'framework.php';
+
+$serviceManager = new ServiceManager();
+
+// Proxmox - Alle Nodes abrufen
+$nodes = $serviceManager->ProxmoxAPI('get', '/nodes');
+
+// Proxmox - VM-Konfiguration abrufen
+$vmConfig = $serviceManager->ProxmoxAPI('get', '/nodes/pve/qemu/100/config');
+
+// OVH - Alle Domains abrufen
+$domains = $serviceManager->OvhAPI('get', '/domain');
+
+// OVH - DNS-Record erstellen
+$dnsData = [
+    'fieldType' => 'A',
+    'target' => '192.168.1.100',
+    'ttl' => 3600
+];
+$result = $serviceManager->OvhAPI('post', '/domain/zone/example.com/record', $dnsData);
+
+// ISPConfig - Website erstellen
+$websiteData = [
+    'server_id' => 1,
+    'ip_address' => '192.168.1.100',
+    'domain' => 'example.com',
+    'type' => 'vhost',
+    'active' => 'y'
+];
+$result = $serviceManager->IspconfigAPI('post', 'sites_web_domain', $websiteData);
+
+// OGP - Server-Status abrufen
+$serverStatus = $serviceManager->OGPAPI('post', 'server/status', ['remote_server_id' => 1]);
+?&gt;</pre>
+                </div>
+            </div>
+
+            <h3>6. Aktivitäts-Logging</h3>
+            
+            <div class="warning">
+                <strong>Aktivitäts-Logging:</strong><br>
+                Das Framework bietet ein integriertes Logging-System für alle API-Aktivitäten und benutzerdefinierte Aktionen.<br><br>
+                <strong>Wichtige Parameter für logAction():</strong>
+                <ul>
+                    <li><b>action</b> (Pflicht): Name der Aktion (z.B. 'VM erstellt', 'Website gelöscht')</li>
+                    <li><b>details</b> (Pflicht): Detaillierte Beschreibung der Aktion</li>
+                    <li><b>status</b> (Pflicht): Status der Aktion ('success', 'error', 'warning')</li>
+                </ul>
+                <strong>Wichtige Parameter für getActivityLog():</strong>
+                <ul>
+                    <li><b>limit</b> (Optional): Anzahl der Log-Einträge (Standard: 50, Max: 1000)</li>
+                    <li><b>offset</b> (Optional): Offset für Paginierung (Standard: 0)</li>
+                </ul>
+                <strong>Verfügbare Funktionen:</strong>
+                <ul>
+                    <li><b>logAction()</b>: Neue Aktion loggen</li>
+                    <li><b>getActivityLog()</b>: Log-Einträge abrufen</li>
+                    <li><b>clearActivityLogs()</b>: Alle Logs löschen</li>
+                </ul>
+                <strong>Hinweis:</strong> Alle API-Aufrufe werden automatisch geloggt. Zusätzlich können benutzerdefinierte Aktionen manuell protokolliert werden.
+            </div>
+
+            <div class="code-block">
+                <button class="code-toggle" onclick="toggleCode(this)">
+                    <span class="toggle-icon">▼</span>
+                    Code anzeigen/verstecken
+                </button>
+                <div class="code-content">
+                    <pre>&lt;?php
+require_once 'framework.php';
+
+// Datenbank-Instanz holen
+$db = Database::getInstance();
+
+// Aktion loggen
+$db->logAction(
+    'VM erstellt',
+    'Neue VM "webserver" mit ID 101 erstellt',
+    'success'
+);
+
+// Aktivitäts-Logs abrufen
+$logs = $db->getActivityLog(10, 0);
+foreach ($logs as $log) {
+    echo "Aktion: {$log['action']} - Status: {$log['status']} - Zeit: {$log['created_at_formatted']}\n";
+}
+?&gt;</pre>
+                </div>
+            </div>
+
+            <h3>7. Fehlerbehandlung</h3>
+            
+            <div class="warning">
+                <strong>Fehlerbehandlung:</strong><br>
+                Das Framework bietet umfassende Fehlerbehandlung und API-Status-Überprüfung für robuste Anwendungen.<br><br>
+                <strong>Wichtige Parameter für checkAPIEnabled():</strong>
+                <ul>
+                    <li><b>apiName</b> (Pflicht): Name der API ('proxmox', 'ovh', 'ispconfig', 'ogp')</li>
+                </ul>
+                <strong>Rückgabewerte von checkAPIEnabled():</strong>
+                <ul>
+                    <li><b>true</b>: API ist verfügbar und funktionsfähig</li>
+                    <li><b>array</b>: Fehler-Objekt mit 'message' und 'solution'</li>
+                </ul>
+                <strong>Verfügbare API-Namen:</strong>
+                <ul>
+                    <li><b>'proxmox'</b>: Proxmox Virtual Environment API</li>
+                    <li><b>'ovh'</b>: OVH Cloud API</li>
+                    <li><b>'ispconfig'</b>: ISPConfig Web Hosting Control Panel API</li>
+                    <li><b>'ogp'</b>: Open Game Panel API</li>
+                </ul>
+                <strong>Hinweis:</strong> Es wird empfohlen, vor jedem API-Aufruf den Status zu prüfen und entsprechende Fehlerbehandlung zu implementieren.
+            </div>
+
+            <div class="code-block">
+                <button class="code-toggle" onclick="toggleCode(this)">
+                    <span class="toggle-icon">▼</span>
+                    Code anzeigen/verstecken
+                </button>
+                <div class="code-content">
+                    <pre>&lt;?php
+require_once 'framework.php';
+
+$serviceManager = new ServiceManager();
+
+try {
+    // API-Status prüfen
+    $apiCheck = $serviceManager->checkAPIEnabled('proxmox');
+    if ($apiCheck !== true) {
+        echo "Proxmox API Fehler: " . $apiCheck['message'] . "\n";
+        echo "Lösung: " . $apiCheck['solution'] . "\n";
+        exit;
+    }
+
+    // VMs abrufen
+    $vms = $serviceManager->getProxmoxVMs();
+    if (is_array($vms)) {
+        foreach ($vms as $vm) {
+            echo "VM: {$vm->name}\n";
+        }
+    } else {
+        echo "Fehler beim Abrufen der VMs: " . $vms['message'] . "\n";
+    }
+
+} catch (Exception $e) {
+    echo "Exception: " . $e->getMessage() . "\n";
+    error_log("Framework Error: " . $e->getMessage());
+}
+?&gt;</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Konfiguration</h2>
+            <p>Das Framework benötigt eine config.inc.php Datei mit den API-Zugangsdaten.</p>
+
+            <div class="code-block">
+                <button class="code-toggle" onclick="toggleCode(this)">
+                    <span class="toggle-icon">▼</span>
+                    Code anzeigen/verstecken
+                </button>
+                <div class="code-content">
+                    <pre>&lt;?php
+// config.inc.php
+class Config {
+    // Datenbank
+    const DB_HOST = 'localhost';
+    const DB_NAME = 'framework_db';
+    const DB_USER = 'username';
+    const DB_PASS = 'password';
+
+    // Proxmox
+    const PROXMOX_USEING = true;
+    const PROXMOX_HOST = 'https://pve.example.com:8006';
+    const PROXMOX_USER = 'root@pam';
+    const PROXMOX_PASSWORD = 'password';
+
+    // ISPConfig
+    const ISPCONFIG_USEING = true;
+    const ISPCONFIG_HOST = 'https://ispconfig.example.com';
+    const ISPCONFIG_USER = 'admin';
+    const ISPCONFIG_PASSWORD = 'password';
+
+    // OVH
+    const OVH_USEING = true;
+    const OVH_APPLICATION_KEY = 'your_app_key';
+    const OVH_APPLICATION_SECRET = 'your_app_secret';
+    const OVH_CONSUMER_KEY = 'your_consumer_key';
+    const OVH_ENDPOINT = 'https://eu.api.ovh.com/1.0';
+
+    // OGP
+    const OGP_USEING = true;
+    const OGP_HOST = 'https://ogp.example.com';
+    const OGP_USER = 'admin';
+    const OGP_PASSWORD = 'password';
+    const OGP_TOKEN = 'your_token';
+}
+?&gt;</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Datenbankstruktur</h2>
+            <p>Das Framework benötigt eine activity_log Tabelle für das Logging.</p>
+
+            <div class="code-block">
+                <button class="code-toggle" onclick="toggleCode(this)">
+                    <span class="toggle-icon">▼</span>
+                    Code anzeigen/verstecken
+                </button>
+                <div class="code-content">
+                    <pre>CREATE TABLE `activity_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `action` varchar(255) NOT NULL,
+  `details` text,
+  `status` enum('success','error') NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Hinweise und Best Practices</h2>
+
+            <div class="info">
+                <h3>API-Aktivierung</h3>
+                <p>Jede API kann unabhängig aktiviert oder deaktiviert werden. Setzen Sie die entsprechenden USEING-Konstanten in der config.inc.php.</p>
+            </div>
+
+            <div class="warning">
+                <h3>Fehlerbehandlung</h3>
+                <p>Immer die Rückgabewerte der API-Methoden prüfen. Bei Fehlern wird ein strukturiertes Array mit Fehlerinformationen zurückgegeben.</p>
+            </div>
+
+            <div class="success">
+                <h3>Logging</h3>
+                <p>Alle API-Aufrufe werden automatisch in der activity_log Tabelle protokolliert.</p>
+            </div>
+
+            <div class="info">
+                <h3>Performance</h3>
+                <p>Verwenden Sie die generischen API-Methoden (ProxmoxAPI, OvhAPI, etc.) für optimale Performance und Flexibilität.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Toggle für Mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+        
+        // Aktiven Link setzen
+        function setActiveLink(link) {
+            // Alle Links zurücksetzen
+            document.querySelectorAll('.sidebar-nav a').forEach(a => {
+                a.classList.remove('active');
+            });
+            
+            // Aktiven Link markieren
+            link.classList.add('active');
+            
+            // Auf Mobile die Sidebar schließen
+            if (window.innerWidth <= 768) {
+                setTimeout(() => {
+                    document.getElementById('sidebar').classList.remove('open');
+                }, 300);
+            }
+        }
+        
+        // Smooth Scrolling für Anker-Links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Aktiven Link basierend auf Scroll-Position setzen
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.section');
+            const navLinks = document.querySelectorAll('.sidebar-nav a');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // Sidebar schließen wenn außerhalb geklickt wird (Mobile)
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.querySelector('.sidebar-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !sidebarToggle.contains(e.target) &&
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        // Code-Block ein- und ausklappen
+        function toggleCode(button) {
+            const codeContent = button.nextElementSibling;
+            const toggleIcon = button.querySelector('.toggle-icon');
+            
+            if (codeContent.classList.contains('collapsed')) {
+                // Code anzeigen
+                codeContent.classList.remove('collapsed');
+                button.classList.remove('collapsed');
+                toggleIcon.textContent = '▼';
+            } else {
+                // Code verstecken
+                codeContent.classList.add('collapsed');
+                button.classList.add('collapsed');
+                toggleIcon.textContent = '▶';
+            }
+        }
+        
+        // Alle Code-Blöcke standardmäßig einklappen
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeContents = document.querySelectorAll('.code-content');
+            const codeToggles = document.querySelectorAll('.code-toggle');
+            const toggleIcons = document.querySelectorAll('.toggle-icon');
+            
+            codeContents.forEach(content => {
+                content.classList.add('collapsed');
+            });
+            
+            codeToggles.forEach(toggle => {
+                toggle.classList.add('collapsed');
+            });
+            
+            toggleIcons.forEach(icon => {
+                icon.textContent = '▶';
+            });
+        });
+    </script>
+</body>
+</html> 

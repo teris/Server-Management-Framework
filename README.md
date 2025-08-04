@@ -11,6 +11,7 @@ Ein professionelles PHP-Framework für die Verwaltung von Proxmox VMs, ISPConfig
 - **🖥️ Proxmox VE Integration** - Vollständige VM-Verwaltung (Erstellen, Starten, Stoppen, Klonen)
 - **🌐 ISPConfig Integration** - Website, Datenbank und E-Mail Management
 - **🔗 OVH API Integration** - Domain, VPS und Dedicated Server Verwaltung
+- **🔗 OPG API Integration** - GameServer Verwaltung
 - **📊 Admin Dashboard** - Moderne Web-Oberfläche mit Real-time Updates
 - **🔐 Authentication Testing** - Umfassende API-Verbindungstests
 - **📝 Activity Logging** - Vollständige Protokollierung aller Aktionen
@@ -89,23 +90,6 @@ php -S localhost:8000
 
 Tragen Sie Ihre API-Credentials in `config/config.inc.php` ein:
 
-```php
-// Proxmox Configuration
-const PROXMOX_HOST = 'https://your-proxmox-host:8006';
-const PROXMOX_USER = 'root@pam';
-const PROXMOX_PASSWORD = 'your_password';
-
-// ISPConfig Configuration
-const ISPCONFIG_HOST = 'https://your-ispconfig-host:8080';
-const ISPCONFIG_USER = 'admin';
-const ISPCONFIG_PASSWORD = 'your_password';
-
-// OVH Configuration
-const OVH_APPLICATION_KEY = 'your_app_key';
-const OVH_APPLICATION_SECRET = 'your_app_secret';
-const OVH_CONSUMER_KEY = 'your_consumer_key';
-```
-
 ### OVH Consumer Key erstellen
 
 1. Besuchen Sie: https://eu.api.ovh.com/createToken/
@@ -152,31 +136,14 @@ php debug.php
    - **🔐 Auth Status** - API-Verbindungstests
 
 ### Programmatische Verwendung
-
-```php
-require_once 'framework.php';
-
-$serviceManager = new ServiceManager();
-
-// VMs verwalten
-$vms = $serviceManager->getProxmoxVMs();
-$serviceManager->createProxmoxVM($vmData);
-$serviceManager->controlProxmoxVM('pve', '100', 'start');
-
-// Websites verwalten
-$websites = $serviceManager->getISPConfigWebsites();
-$serviceManager->createISPConfigWebsite($websiteData);
-
-// Domains verwalten
-$domains = $serviceManager->getOVHDomains();
-$serviceManager->orderOVHDomain('example.com', 1);
-```
+Verwenden Sie dazu das [FrameWorkShema](FramWorkShema)
 
 ## 📚 Dokumentation
 
 - **[API Dokumentation](how_to_use.md)** - Vollständige API-Referenz und Verwendungsbeispiele
 - **[Bootstrap Migration](BOOTSTRAP_MIGRATION.md)** - Details zur UI-Migration
 - **[Contributing Guide](CONTRIBUTING.md)** - Richtlinien für Beiträge
+- **[FrameWorkShema](FramWorkShema)** - Codebeispiele und Dokumentation des Frameworks
 
 ## 🏗️ Architektur
 
@@ -229,6 +196,7 @@ Bitte verwenden Sie die [GitHub Issues](https://github.com/teris/server-manageme
 - [x] **v2.6** - Use Framework as Single without Interface
 - [x] **v2.7** - Bootstrap 5.3.2 Migration
 - [x] **V2.8** - Databasemodus
+- [ ] **V3.0** - Gameserver Verwalrung
 
 ## 🔒 Sicherheit
 
