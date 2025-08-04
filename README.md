@@ -136,14 +136,14 @@ php debug.php
    - **🔐 Auth Status** - API-Verbindungstests
 
 ### Programmatische Verwendung
-Verwenden Sie dazu das [FrameWorkShema](FramWorkShema)
+Verwenden Sie dazu das [FrameWorkShema](FrameWorkShema)
 
 ## 📚 Dokumentation
 
 - **[API Dokumentation](how_to_use.md)** - Vollständige API-Referenz und Verwendungsbeispiele
 - **[Bootstrap Migration](BOOTSTRAP_MIGRATION.md)** - Details zur UI-Migration
 - **[Contributing Guide](CONTRIBUTING.md)** - Richtlinien für Beiträge
-- **[FrameWorkShema](FramWorkShema)** - Codebeispiele und Dokumentation des Frameworks
+- **[FrameWorkShema](FrameWorkShema)** - Codebeispiele und Dokumentation des Frameworks
 
 ## 🏗️ Architektur
 
