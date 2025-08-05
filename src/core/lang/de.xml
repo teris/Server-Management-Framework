@@ -761,4 +761,44 @@
     <algorithm>Algorithmus</algorithm>
     <select>Auswählen</select>
     <dnssec_not_available>DNSSEC nicht verfügbar</dnssec_not_available>
+    
+    <!-- OGP GameServer -->
+    <ogp_servers>OGP Server</ogp_servers>
+    <ogp_gameservers>GameServer</ogp_gameservers>
+    <ogp_games>Spiele</ogp_games>
+    <remote_server>Remote Server</remote_server>
+    <server_name>Server Name</server_name>
+    <agent_ip>Agent IP</agent_ip>
+    <agent_port>Agent Port</agent_port>
+    <ftp_port>FTP Port</ftp_port>
+    <encryption_key>Verschlüsselungsschlüssel</encryption_key>
+    <timeout>Timeout</timeout>
+    <use_nat>NAT verwenden</use_nat>
+    <ftp_ip>FTP IP</ftp_ip>
+    <firewall_settings>Firewall-Einstellungen</firewall_settings>
+    <display_public_ip>Öffentliche IP</display_public_ip>
+    <home_id>Home ID</home_id>
+    <user_id_main>Hauptbenutzer ID</user_id_main>
+    <home_path>Home Pfad</home_path>
+    <home_cfg_id>Home Config ID</home_cfg_id>
+    <home_name>Home Name</home_name>
+    <control_password>Kontrollpasswort</control_password>
+    <ftp_password>FTP Passwort</ftp_password>
+    <last_param>Letzte Parameter</last_param>
+    <ftp_login>FTP Login</ftp_login>
+    <ftp_status>FTP Status</ftp_status>
+    <custom_fields>Benutzerdefinierte Felder</custom_fields>
+    <server_expiration_date>Server Ablaufdatum</server_expiration_date>
+    <home_user_order>Home Benutzer Reihenfolge</home_user_order>
+    <game_key>Spiel-Schlüssel</game_key>
+    <game_name>Spielname</game_name>
+    <home_cfg_file>Home Config Datei</home_cfg_file>
+    <system>System</system>
+    <architecture>Architektur</architecture>
+    <variants>Varianten</variants>
+    <mods>Mods</mods>
+    <mod_key>Mod-Schlüssel</mod_key>
+    <mod_name>Mod-Name</mod_name>
+    <def_precmd>Standard Pre-Cmd</def_precmd>
+    <def_postcmd>Standard Post-Cmd</def_postcmd>
 </translations> 

@@ -9,6 +9,16 @@ $databases = $adminCore->getResources('databases');
 $emails = $adminCore->getResources('emails');
 $domains = $adminCore->getResources('domains');
 $ip = $adminCore->getResources('ip');
+$ogpServers = $adminCore->getResources('ogp_servers');
+$ogpGameServers = $adminCore->getResources('ogp_gameservers');
+$ogpGames = $adminCore->getResources('ogp_games');
+
+// Sicherheitsmaßnahme: Stelle sicher, dass Arrays sind
+if (!is_array($ogpServers)) $ogpServers = [];
+if (!is_array($ogpGameServers)) $ogpGameServers = [];
+if (!is_array($ogpGames)) $ogpGames = [];
+
+
 
 // Websites nach Hauptdomain (system_user/system_group) und Subdomain/AliasDomain gruppieren
 $grouped = [];
@@ -68,6 +78,21 @@ foreach ($websites as $site) {
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="ip-tab" data-bs-toggle="pill" data-bs-target="#resource-ip" type="button" role="tab">
                             <i class="bi bi-ip-stack"></i> <?= t('ip') ?>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ogp-servers-tab" data-bs-toggle="pill" data-bs-target="#resource-ogp-servers" type="button" role="tab">
+                            <i class="bi bi-server"></i> <?= t('ogp_servers') ?>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ogp-gameservers-tab" data-bs-toggle="pill" data-bs-target="#resource-ogp-gameservers" type="button" role="tab">
+                            <i class="bi bi-controller"></i> <?= t('ogp_gameservers') ?>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ogp-games-tab" data-bs-toggle="pill" data-bs-target="#resource-ogp-games" type="button" role="tab">
+                            <i class="bi bi-gamepad"></i> <?= t('ogp_games') ?>
                         </button>
                     </li>
                 </ul>
@@ -476,6 +501,223 @@ foreach ($websites as $site) {
                         </div>
                         <div id="ip-content" class="table-responsive">
                             <!-- Tabelle wird per JS eingefügt -->
+                        </div>
+                    </div>
+                    <!-- OGP Server Management -->
+                    <div class="tab-pane fade" id="resource-ogp-servers" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4><?= t('ogp_servers') ?></h4>
+                            <a class="btn btn-primary btn-sm" href="?option=resources">
+                                <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
+                            </a>
+                        </div>
+                        <div id="ogp-servers-content" class="table-responsive">
+
+                            <?php if (!empty($ogpServers)): ?>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th><?= t('server_name') ?></th>
+                                            <th><?= t('display_public_ip') ?></th>
+                                            <th><?= t('use_nat') ?></th>
+                                            <th><?= t('timeout') ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($ogpServers as $server): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($server['remote_server_name'] ?? '-') ?></td>
+                                                <td><?= htmlspecialchars($server['display_public_ip'] ?? '-') ?></td>
+                                                <td><?= ($server['use_nat'] ?? 0) ? 'Ja' : 'Nein' ?></td>
+                                                <td><?= htmlspecialchars($server['timeout'] ?? '-') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php else: ?>
+                                <div class="alert alert-info"><?= t('no_data') ?></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <!-- OGP GameServer Management -->
+                    <div class="tab-pane fade" id="resource-ogp-gameservers" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4><?= t('ogp_gameservers') ?></h4>
+                            <a class="btn btn-primary btn-sm" href="?option=resources">
+                                <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
+                            </a>
+                        </div>
+                        <div id="ogp-gameservers-content" class="table-responsive">
+
+                            <?php if (!empty($ogpGameServers)): ?>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th><?= t('game_name') ?></th>
+                                            <th><?= t('remote_server_name') ?></th>
+                                            <th><?= t('agent_ip') ?></th>
+                                            <th><?= t('server_expiration_date') ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($ogpGameServers as $gameServer): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($gameServer['game_name'] ?? '-') ?></td>
+                                                <td><?= htmlspecialchars($gameServer['remote_server_name'] ?? '-') ?></td>
+                                                <td><?= htmlspecialchars($gameServer['agent_ip'] ?? '-') ?></td>
+                                                <td><?= htmlspecialchars($gameServer['server_expiration_date'] ?? '-') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php else: ?>
+                                <div class="alert alert-info"><?= t('no_data') ?></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <!-- OGP Games Management -->
+                    <div class="tab-pane fade" id="resource-ogp-games" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4><?= t('ogp_games') ?></h4>
+                            <a class="btn btn-primary btn-sm" href="?option=resources">
+                                <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
+                            </a>
+                        </div>
+                        <div id="ogp-games-content" class="table-responsive">
+
+                            <?php if (!empty($ogpGames)): ?>
+                                <?php
+                                // Gruppiere Spiele nach Namen
+                                $groupedGames = [];
+                                foreach ($ogpGames as $game) {
+                                    $gameName = $game['game_name'] ?? '';
+                                    if (!isset($groupedGames[$gameName])) {
+                                        $groupedGames[$gameName] = [
+                                            'game_name' => $gameName,
+                                            'variants' => [],
+                                            'all_mods' => []
+                                        ];
+                                    }
+                                    
+                                    // Sammle alle Varianten und Mods für dieses Spiel
+                                    if (!empty($game['variants'])) {
+                                        foreach ($game['variants'] as $variant) {
+                                            $groupedGames[$gameName]['variants'][] = $variant;
+                                            
+                                            // Sammle Mods
+                                            if (!empty($variant['mods'])) {
+                                                foreach ($variant['mods'] as $mod) {
+                                                    $modKey = $mod['mod_key'] ?? '';
+                                                    $modName = $mod['mod_name'] ?? '';
+                                                    if ($modKey && $modName) {
+                                                        $groupedGames[$gameName]['all_mods'][$modKey] = $modName;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                ?>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th><?= t('game_name') ?></th>
+                                            <th><?= t('variants') ?></th>
+                                            <th><?= t('mods') ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($groupedGames as $gameName => $gameData): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($gameName) ?></td>
+                                                <td>
+                                                    <?php 
+                                                                                                        $variantTypes = [];
+                                                    foreach ($gameData['variants'] as $variant) {
+                                                        // Extrahiere Variantentyp aus system und architecture
+                                                        $system = $variant['system'] ?? '';
+                                                        $architecture = $variant['architecture'] ?? '';
+                                                        
+                                                        if ($system && $architecture) {
+                                                            $systemName = ($system === 'linux') ? 'Linux' : 'Windows';
+                                                            $archName = $architecture . '-bit';
+                                                            $variantKey = $systemName . ' ' . $archName;
+                                                            $variantTypes[$variantKey] = true;
+                                                        }
+                                                    }
+                                                    
+                                                    // Alternative: Direkte Verarbeitung der ursprünglichen Spiele
+                                                    if (empty($variantTypes)) {
+                                                        foreach ($ogpGames as $originalGame) {
+                                                            if (($originalGame['game_name'] ?? '') === $gameName) {
+                                                                foreach ($originalGame['variants'] ?? [] as $variant) {
+                                                                    // Extrahiere Variantentyp aus system und architecture (Alternative)
+                                                                    $system = $variant['system'] ?? '';
+                                                                    $architecture = $variant['architecture'] ?? '';
+                                                                    
+                                                                    if ($system && $architecture) {
+                                                                        $systemName = ($system === 'linux') ? 'Linux' : 'Windows';
+                                                                        $archName = $architecture . '-bit';
+                                                                        $variantKey = $systemName . ' ' . $archName;
+                                                                        $variantTypes[$variantKey] = true;
+                                                                    }
+                                                                }
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    if (!empty($variantTypes)): ?>
+                                                        <ul class="list-unstyled mb-0">
+                                                            <?php foreach (array_keys($variantTypes) as $variantType): ?>
+                                                                <li>
+                                                                    <?php
+                                                                    // Bestimme Farbe und Symbol basierend auf der Variante
+                                                                    $badgeClass = '';
+                                                                    $icon = '';
+                                                                    
+                                                                    if (strpos($variantType, 'Linux') !== false) {
+                                                                        $badgeClass = 'bg-warning text-dark';
+                                                                        $icon = 'bi-ubuntu';
+                                                                    } elseif (strpos($variantType, 'Windows') !== false) {
+                                                                        $badgeClass = 'bg-success';
+                                                                        $icon = 'bi-windows';
+                                                                    } else {
+                                                                        $badgeClass = 'bg-primary';
+                                                                        $icon = 'bi-cpu';
+                                                                    }
+                                                                    ?>
+                                                                    <span class="badge <?= $badgeClass ?>">
+                                                                        <i class="bi <?= $icon ?> me-1"></i>
+                                                                        <?= htmlspecialchars($variantType) ?>
+                                                                    </span>
+                                                                </li>
+                                                            <?php endforeach; ?>
+                                                        </ul>
+                                                    <?php else: ?>
+                                                       -
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <?php if (!empty($gameData['all_mods'])): ?>
+                                                        <ul class="list-unstyled mb-0">
+                                                            <?php foreach ($gameData['all_mods'] as $modKey => $modName): ?>
+                                                                <li>
+                                                                    <small class="text-muted"><?= htmlspecialchars($modKey) ?>:</small> <?= htmlspecialchars($modName) ?>
+                                                                </li>
+                                                            <?php endforeach; ?>
+                                                        </ul>
+                                                    <?php else: ?>
+                                                        -
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php else: ?>
+                                <div class="alert alert-info"><?= t('no_data') ?></div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

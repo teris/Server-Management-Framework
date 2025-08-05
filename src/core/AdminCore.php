@@ -196,6 +196,12 @@ class AdminCore {
                 return $this->getDomains();
             case 'ip':
                 return $this->getIP();
+            case 'ogp_servers':
+                return $this->getOGPServers();
+            case 'ogp_gameservers':
+                return $this->getOGPGameServers();
+            case 'ogp_games':
+                return $this->getOGPGames();
             default:
                 throw new Exception("Unknown resource type: $type");
         }
@@ -455,6 +461,103 @@ class AdminCore {
             }
         } catch (Exception $e) {
             error_log("Error getting IP: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Hole OGP Server-Liste
+     */
+    private function getOGPServers() {
+        try {
+            $servers = $this->serviceManager->getOGPServerList();
+
+            if (isset($servers['status']) && $servers['status'] == 200 && isset($servers['message'])) {
+                // Nach IP-Adresse sortieren
+                $serverList = $servers['message'];
+                usort($serverList, function($a, $b) {
+                    return ip2long($a['agent_ip']) - ip2long($b['agent_ip']);
+                });
+
+                return $serverList;
+            }
+            error_log("OGP Servers: No valid data returned");
+            return [];
+        } catch (Exception $e) {
+            error_log("Error getting OGP servers: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Hole OGP GameServer-Liste
+     */
+    private function getOGPGameServers() {
+        try {
+            $gameServers = $this->serviceManager->getOGPGameServers();
+
+            if (isset($gameServers['status']) && $gameServers['status'] == 200 && isset($gameServers['message'])) {
+                // Nach IP-Adresse sortieren
+                $serverList = $gameServers['message'];
+                usort($serverList, function($a, $b) {
+                    return ip2long($a['agent_ip']) - ip2long($b['agent_ip']);
+                });
+
+                return $serverList;
+            }
+            error_log("OGP GameServers: No valid data returned");
+            return [];
+        } catch (Exception $e) {
+            error_log("Error getting OGP game servers: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Hole OGP Games-Liste
+     */
+    private function getOGPGames() {
+        try {
+            $games = [];
+            $systems = ['linux', 'windows'];
+            $architectures = ['32', '64'];
+            
+            // Hole Spiele für alle Systeme und Architekturen
+            foreach ($systems as $system) {
+                foreach ($architectures as $architecture) {
+                    $gameList = $this->serviceManager->getOGPGamesList($system, $architecture);
+                    
+                    if (isset($gameList['status']) && $gameList['status'] == 200 && isset($gameList['message'])) {
+                        foreach ($gameList['message'] as $game) {
+                            $gameKey = $game['game_key'];
+                            if (!isset($games[$gameKey])) {
+                                $games[$gameKey] = [
+                                    'game_name' => $game['game_name'],
+                                    'game_key' => $gameKey,
+                                    'variants' => []
+                                ];
+                            }
+                            
+                            $variant = [
+                                'home_cfg_id' => $game['home_cfg_id'],
+                                'home_cfg_file' => $game['home_cfg_file'],
+                                'system' => $system,
+                                'architecture' => $architecture,
+                                'mods' => isset($game['mods']) ? $game['mods'] : []
+                            ];
+                            
+                            $games[$gameKey]['variants'][] = $variant;
+                        }
+                    }
+                }
+            }
+            
+            // Sortiere nach Game-Name
+            ksort($games);
+            
+            return array_values($games);
+        } catch (Exception $e) {
+            error_log("Error getting OGP games: " . $e->getMessage());
             return [];
         }
     }

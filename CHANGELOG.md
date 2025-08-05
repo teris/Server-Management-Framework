@@ -2,6 +2,35 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [2.9.8]
+
+### Hinzugefügt
+- Verbesserte OGP Games Tabelle mit gruppierten Spielen nach Namen
+- Automatische Zusammenfassung von Spielvarianten (Linux/Windows, 32/64-bit)
+- Farbkodierte Badges für verschiedene Betriebssystem-Varianten
+- Bootstrap Icons für visuelle Unterscheidung der Varianten
+
+### Geändert
+- OGP Games Ressourcen-Anzeige: Spiele werden jetzt nach Namen gruppiert statt als separate Einträge
+- Varianten-Extraktion aus `system` und `architecture` Feldern statt `game_key`
+- Badge-Styling: Linux-Varianten (gelb), Windows-Varianten (grün)
+- Mods werden über alle Varianten eines Spiels hinweg zusammengefasst
+
+### Behoben
+- Duplikate in der OGP Games Tabelle entfernt
+- Korrekte Erkennung von Linux/Windows Varianten basierend auf Datenstruktur
+- Verbesserte Benutzerfreundlichkeit durch übersichtlichere Darstellung
+
+## [2.9.7]
+
+### Hinzugefügt
+- Gameserver-Abruf im Ressourcen-Bereich implementiert
+- Erweiterte Gameserver-Funktionen für die Ausgabe
+- Neue AdminCore-Funktionen für Gameserver-Management
+
+### Behoben
+- Fehler in der admincore.php behoben
+
 ## [2.9.6]
 
 ### Geändert
