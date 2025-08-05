@@ -616,4 +616,128 @@
     <algorithm>Algorithm</algorithm>
     <select>Select</select>
     <dnssec_not_available>DNSSEC not available</dnssec_not_available>
+    
+    <!-- User Management -->
+    <users>Users</users>
+    <create_user>Create User</create_user>
+    <user_list>User List</user_list>
+    <user_creation>User Creation</user_creation>
+    <user_management>User Management</user_management>
+    <system_selection>System Selection</system_selection>
+    <basic_information>Basic Information</basic_information>
+    <contact_information>Contact Information</contact_information>
+    <address>Address</address>
+    <contact_details>Contact Details</contact_details>
+    <server_settings>Server Settings</server_settings>
+    <first_name>First Name</first_name>
+    <last_name>Last Name</last_name>
+    <company_name>Company Name</company_name>
+    <street>Street</street>
+    <zip_code>ZIP Code</zip_code>
+    <city>City</city>
+    <state>State</state>
+    <country>Country</country>
+    <language>Language</language>
+    <select_language>Select Language</select_language>
+    <telephone>Telephone</telephone>
+    <mobile>Mobile</mobile>
+    <fax>Fax</fax>
+    <website>Website</website>
+    <notes>Notes</notes>
+    <role>Role</role>
+    <role_user>User</role_user>
+    <role_admin>Administrator</role_admin>
+    <role_moderator>Moderator</role_moderator>
+    <user_group>User Group</user_group>
+    <no_group>No Group</no_group>
+    <admin_dashboard_settings>Admin Dashboard Settings</admin_dashboard_settings>
+    <expiration_date>Expiration Date</expiration_date>
+    <optional>Optional</optional>
+    <home_id_placeholder>Enter Home ID</home_id_placeholder>
+    <ogp_info>OGP Information</ogp_info>
+    <ogp_user_info>User will be created in OpenGamePanel</ogp_user_info>
+    <ogp_expiration_help>Leave empty for unlimited validity</ogp_expiration_help>
+    <ogp_home_id_help>Home ID for OGP user</ogp_home_id_help>
+    <ispconfig_info>ISPConfig Information</ispconfig_info>
+    <ispconfig_user_info>User will be created in ISPConfig</ispconfig_user_info>
+    <proxmox_info>Proxmox Information</proxmox_info>
+    <proxmox_user_info>User will be created in Proxmox</proxmox_user_info>
+    <realm>Realm</realm>
+    <proxmox_realm_help>Authentication realm for Proxmox</proxmox_realm_help>
+    <comment>Comment</comment>
+    <always_included>always included</always_included>
+    <default_mailserver>Default Mailserver</default_mailserver>
+    <default_webserver>Default Webserver</default_webserver>
+    <default_dnsserver>Default DNS Server</default_dnsserver>
+    <limit_client>Client Limit</limit_client>
+    <limit_client_help>0 = Normal Client, >0 = Reseller</limit_client_help>
+    <web_php_options>Web PHP Options</web_php_options>
+    <no_php>No PHP</no_php>
+    <ssh_chroot>SSH Chroot</ssh_chroot>
+    <no_chroot>No Chroot</no_chroot>
+    <user_theme>User Theme</user_theme>
+    <tips>Tips</tips>
+    <user_creation_tip_1>Select the systems where the user should be created</user_creation_tip_1>
+    <user_creation_tip_2>All users are automatically created in the Admin Dashboard</user_creation_tip_2>
+    <user_creation_tip_3>Fill in all required fields for the selected systems</user_creation_tip_3>
+    <important>Important</important>
+    <user_creation_warning>Users will be created in all selected systems. Please check the data carefully.</user_creation_warning>
+    <passwords_dont_match>Passwords do not match</passwords_dont_match>
+    <password_too_short>Password must be at least 8 characters long</password_too_short>
+    <select_at_least_one_system>Please select at least one system</select_at_least_one_system>
+    <ogp_expiration_invalid>OGP expiration date must be in the future</ogp_expiration_invalid>
+    <ispconfig_required_fields_missing>Please fill in all required ISPConfig fields</ispconfig_required_fields_missing>
+    <proxmox_realm_required>Proxmox realm is required</proxmox_realm_required>
+    <user_creation_success>User created successfully</user_creation_success>
+    <user_list_refreshed>User list refreshed</user_list_refreshed>
+    <export_started>Export started</export_started>
+    <no_users_found>No users found</no_users_found>
+    <created>Created</created>
+    <actions>Actions</actions> 
+    <create_new_user>Create New User</create_new_user>
+    <select_system>Select System</select_system>
+    <proxmox_comment_help>Proxmox Comment</proxmox_comment_help>
+    <ispconfig_comment_help>ISPConfig Comment</ispconfig_comment_help>
+    <ogp_comment_help>OGP Comment</ogp_comment_help>
+    <admin_dashboard_comment_help>Admin Dashboard Comment</admin_dashboard_comment_help>
+    <admin_dashboard>Admin Dashboard</admin_dashboard>
+    <admin_dashboard_settings>Admin Dashboard Settings</admin_dashboard_settings>
+    <admin_dashboard_settings_description>Admin Dashboard Settings Description</admin_dashboard_settings_description>
+    
+    <!-- User List and Editing -->
+    <api_connection_issues>API Connection Issues</api_connection_issues>
+    <error_loading_users>Error loading users</error_loading_users>
+    <no_ogp_users_found>No OGP users found</no_ogp_users_found>
+    <no_proxmox_users_found>No Proxmox users found</no_proxmox_users_found>
+    <no_ispconfig_clients_found>No ISPConfig clients found</no_ispconfig_clients_found>
+    <edit_user>Edit User</edit_user>
+    <delete_user>Delete User</delete_user>
+    <confirm_delete_user>Do you really want to delete this user?</confirm_delete_user>
+    <deleting_user>Deleting user...</deleting_user>
+    <user_deleted_successfully>User deleted successfully</user_deleted_successfully>
+    <loading_user_data>Loading user data...</loading_user_data>
+    <saving_changes>Saving changes...</saving_changes>
+    <changes_saved_successfully>Changes saved successfully</changes_saved_successfully>
+    <creating_user>Creating user...</creating_user>
+    <user_created_successfully>User created successfully</user_created_successfully>
+    <refreshing>Refreshing...</refreshing>
+    <user_list_updated>User list updated</user_list_updated>
+    <loading>Loading...</loading>
+    <unlimited>Unlimited</unlimited>
+    <userid>User ID</userid>
+    <clients>Clients</clients>
+    <status>Status</status>
+    <basic_user_data>Basic User Data</basic_user_data>
+    <password_confirm>Confirm Password</password_confirm>
+    <select_group>Select Group</select_group>
+    <select_realm>Select Realm</select_realm>
+    <expiration>Expiration</expiration>
+    <home_id>Home ID</home_id>
+    <contact_name>Contact Name</contact_name>
+    <opengamepanel>OpenGamePanel</opengamepanel>
+    <ogp_expiration_must_be_future>OGP expiration date must be in the future</ogp_expiration_must_be_future>
+    <proxmox_realm_required>Proxmox realm is required</proxmox_realm_required>
+    <ispconfig_required_fields_missing>Please fill in all required ISPConfig fields</ispconfig_required_fields_missing>
+    <select_at_least_one_system>Please select at least one system</select_at_least_one_system>
+    <passwords_do_not_match>Passwords do not match</passwords_do_not_match>
 </translations> 

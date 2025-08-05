@@ -300,6 +300,64 @@ $result = $proxmox->createVM($vmData);</pre>
                 <div class="signature">public function controlProxmoxVM($node, $vmid, $action)</div>
                 <div class="description">Controls a VM (start, stop, reset, suspend, resume).</div>
             </div>
+
+            <div class="class-info">
+                <h3>Proxmox User Management</h3>
+                <p>New functions for user management in Proxmox.</p>
+            </div>
+
+            <div class="method">
+                <h4>createProxmoxUser()</h4>
+                <div class="signature">public function createProxmoxUser($userData)</div>
+                <div class="description">Creates a new Proxmox user.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$userData = [
+    'username' => 'testuser',
+    'realm' => 'pve',
+    'password' => 'securepassword',
+    'comment' => 'Test User',
+    'email' => 'test@example.com',
+    'first_name' => 'Test',
+    'last_name' => 'User'
+];
+
+$proxmox = new ProxmoxPost();
+$result = $proxmox->createProxmoxUser($userData);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>deleteProxmoxUser()</h4>
+                <div class="signature">public function deleteProxmoxUser($userid)</div>
+                <div class="description">Deletes a Proxmox user.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateProxmoxUser()</h4>
+                <div class="signature">public function updateProxmoxUser($userid, $userData)</div>
+                <div class="description">Updates a Proxmox user.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxUsers()</h4>
+                <div class="signature">public function getProxmoxUsers()</div>
+                <div class="description">Gets all Proxmox users.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxUser()</h4>
+                <div class="signature">public function getProxmoxUser($userid)</div>
+                <div class="description">Gets details of a specific Proxmox user.</div>
+            </div>
         </div>
 
         <div class="section" id="ispconfig">
@@ -374,6 +432,150 @@ $result = $ispconfig->createWebsite($websiteData);</pre>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="section" id="ogp">
+            <h2>OGP API (OpenGamePanel)</h2>
+            <p>Integration with OpenGamePanel for Game Server Management.</p>
+
+            <div class="class-info">
+                <h3>OGPGet Class</h3>
+                <p>Read operations for OGP.</p>
+            </div>
+
+            <div class="method">
+                <h4>testToken()</h4>
+                <div class="signature">public function testToken()</div>
+                <div class="description">Tests the validity of the OGP token.</div>
+            </div>
+
+            <div class="method">
+                <h4>getServerList()</h4>
+                <div class="signature">public function getServerList()</div>
+                <div class="description">Gets all remote servers.</div>
+            </div>
+
+            <div class="method">
+                <h4>getServerStatus()</h4>
+                <div class="signature">public function getServerStatus($remoteServerId)</div>
+                <div class="description">Gets the status of a remote server.</div>
+            </div>
+
+            <div class="method">
+                <h4>getGamesList()</h4>
+                <div class="signature">public function getGamesList($system = 'linux', $architecture = '64')</div>
+                <div class="description">Gets the list of available games.</div>
+            </div>
+
+            <div class="method">
+                <h4>getGameServers()</h4>
+                <div class="signature">public function getGameServers()</div>
+                <div class="description">Gets all game servers.</div>
+            </div>
+
+            <div class="method">
+                <h4>getUsers()</h4>
+                <div class="signature">public function getUsers()</div>
+                <div class="description">Gets all OGP users.</div>
+            </div>
+
+            <div class="method">
+                <h4>getUser()</h4>
+                <div class="signature">public function getUser($email)</div>
+                <div class="description">Gets details of a specific user.</div>
+            </div>
+
+            <div class="class-info">
+                <h3>OGPPost Class</h3>
+                <p>Write operations for OGP.</p>
+            </div>
+
+            <div class="method">
+                <h4>createUser()</h4>
+                <div class="signature">public function createUser($userData)</div>
+                <div class="description">Creates a new OGP user.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$userData = [
+    'email' => 'user@example.com',
+    'login' => 'username',
+    'password' => 'securepassword',
+    'name' => 'User Name',
+    'expiration' => '2024-12-31 23:59:59'
+];
+
+$ogp = new OGPPost();
+$result = $ogp->createUser($userData);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>removeUser()</h4>
+                <div class="signature">public function removeUser($email)</div>
+                <div class="description">Removes an OGP user.</div>
+            </div>
+
+            <div class="method">
+                <h4>setUserExpiration()</h4>
+                <div class="signature">public function setUserExpiration($email, $timestamp)</div>
+                <div class="description">Sets the expiration date for a user.</div>
+            </div>
+
+            <div class="method">
+                <h4>createGameServer()</h4>
+                <div class="signature">public function createGameServer($gameServerData)</div>
+                <div class="description">Creates a new game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>cloneGameServer()</h4>
+                <div class="signature">public function cloneGameServer($cloneData)</div>
+                <div class="description">Clones an existing game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>setGameServerExpiration()</h4>
+                <div class="signature">public function setGameServerExpiration($homeId, $timestamp)</div>
+                <div class="description">Sets the expiration date for a game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>assignUser()</h4>
+                <div class="signature">public function assignUser($email, $homeId, $timestamp = null)</div>
+                <div class="description">Assigns a user to a game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>removeUserAssignment()</h4>
+                <div class="signature">public function removeUserAssignment($email, $homeId)</div>
+                <div class="description">Removes the assignment of a user to a game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>startGameManager()</h4>
+                <div class="signature">public function startGameManager($ip, $port, $modKey)</div>
+                <div class="description">Starts the game manager.</div>
+            </div>
+
+            <div class="method">
+                <h4>stopGameManager()</h4>
+                <div class="signature">public function stopGameManager($ip, $port, $modKey)</div>
+                <div class="description">Stops the game manager.</div>
+            </div>
+
+            <div class="method">
+                <h4>sendRconCommand()</h4>
+                <div class="signature">public function sendRconCommand($ip, $port, $modKey, $command)</div>
+                <div class="description">Sends an RCON command to a game server.</div>
             </div>
         </div>
 

@@ -801,4 +801,122 @@
     <mod_name>Mod-Name</mod_name>
     <def_precmd>Standard Pre-Cmd</def_precmd>
     <def_postcmd>Standard Post-Cmd</def_postcmd>
+    
+    <!-- Benutzer-Management -->
+    <users>Benutzer</users>
+    <create_user>Benutzer erstellen</create_user>
+    <user_list>Benutzerliste</user_list>
+    <user_creation>Benutzer-Erstellung</user_creation>
+    <user_management>Benutzer-Verwaltung</user_management>
+    <system_selection>System-Auswahl</system_selection>
+    <basic_information>Grundinformationen</basic_information>
+    <contact_information>Kontaktinformationen</contact_information>
+    <address>Adresse</address>
+    <contact_details>Kontaktdetails</contact_details>
+    <server_settings>Server-Einstellungen</server_settings>
+    <first_name>Vorname</first_name>
+    <last_name>Nachname</last_name>
+    <company_name>Firmenname</company_name>
+    <street>Straße</street>
+    <zip_code>PLZ</zip_code>
+    <city>Stadt</city>
+    <state>Bundesland</state>
+    <country>Land</country>
+    <language>Sprache</language>
+    <select_language>Sprache auswählen</select_language>
+    <telephone>Telefon</telephone>
+    <mobile>Mobil</mobile>
+    <fax>Fax</fax>
+    <website>Website</website>
+    <notes>Notizen</notes>
+    <role>Rolle</role>
+    <role_user>Benutzer</role_user>
+    <role_admin>Administrator</role_admin>
+    <role_moderator>Moderator</role_moderator>
+    <user_group>Benutzergruppe</user_group>
+    <no_group>Keine Gruppe</no_group>
+    <admin_dashboard_settings>Admin Dashboard Einstellungen</admin_dashboard_settings>
+    <expiration_date>Ablaufdatum</expiration_date>
+    <optional>Optional</optional>
+    <home_id_placeholder>Home ID eingeben</home_id_placeholder>
+    <ogp_info>OGP Information</ogp_info>
+    <ogp_user_info>Benutzer wird in OpenGamePanel erstellt</ogp_user_info>
+    <ogp_expiration_help>Leer lassen für unbegrenzte Gültigkeit</ogp_expiration_help>
+    <ogp_home_id_help>Home ID für OGP-Benutzer</ogp_home_id_help>
+    <ispconfig_info>ISPConfig Information</ispconfig_info>
+    <ispconfig_user_info>Benutzer wird in ISPConfig erstellt</ispconfig_user_info>
+    <proxmox_info>Proxmox Information</proxmox_info>
+    <proxmox_user_info>Benutzer wird in Proxmox erstellt</proxmox_user_info>
+    <realm>Realm</realm>
+    <proxmox_realm_help>Authentifizierungsrealm für Proxmox</proxmox_realm_help>
+    <comment>Kommentar</comment>
+    <always_included>immer inbegriffen</always_included>
+    <default_mailserver>Standard Mailserver</default_mailserver>
+    <default_webserver>Standard Webserver</default_webserver>
+    <default_dnsserver>Standard DNS-Server</default_dnsserver>
+    <limit_client>Client-Limit</limit_client>
+    <limit_client_help>0 = Normaler Client, >0 = Reseller</limit_client_help>
+    <web_php_options>Web PHP-Optionen</web_php_options>
+    <no_php>Kein PHP</no_php>
+    <ssh_chroot>SSH Chroot</ssh_chroot>
+    <no_chroot>Kein Chroot</no_chroot>
+    <user_theme>Benutzer-Theme</user_theme>
+    <tips>Tipps</tips>
+    <user_creation_tip_1>Wählen Sie die Systeme aus, in denen der Benutzer erstellt werden soll</user_creation_tip_1>
+    <user_creation_tip_2>Alle Benutzer werden automatisch im Admin Dashboard erstellt</user_creation_tip_2>
+    <user_creation_tip_3>Füllen Sie alle erforderlichen Felder für die ausgewählten Systeme aus</user_creation_tip_3>
+    <important>Wichtig</important>
+    <user_creation_warning>Benutzer werden in allen ausgewählten Systemen erstellt. Überprüfen Sie die Daten sorgfältig.</user_creation_warning>
+    <passwords_dont_match>Passwörter stimmen nicht überein</passwords_dont_match>
+    <password_too_short>Passwort muss mindestens 8 Zeichen lang sein</password_too_short>
+    <select_at_least_one_system>Bitte wählen Sie mindestens ein System aus</select_at_least_one_system>
+    <ogp_expiration_invalid>OGP Ablaufdatum muss in der Zukunft liegen</ogp_expiration_invalid>
+    <ispconfig_required_fields_missing>Bitte füllen Sie alle erforderlichen ISPConfig-Felder aus</ispconfig_required_fields_missing>
+    <proxmox_realm_required>Proxmox Realm ist erforderlich</proxmox_realm_required>
+    <user_creation_success>Benutzer erfolgreich erstellt</user_creation_success>
+    <user_list_refreshed>Benutzerliste aktualisiert</user_list_refreshed>
+    <export_started>Export gestartet</export_started>
+    <no_users_found>Keine Benutzer gefunden</no_users_found>
+    <created>Erstellt</created>
+    <actions>Aktionen</actions>
+    <create_new_user>Neuen Benutzer erstellen</create_new_user>
+    <select_system>System auswählen</select_system>
+    <proxmox_comment_help>Proxmox Kommentar</proxmox_comment_help>
+    
+    <!-- Benutzerliste und Bearbeitung -->
+    <api_connection_issues>API-Verbindungsprobleme</api_connection_issues>
+    <error_loading_users>Fehler beim Laden der Benutzer</error_loading_users>
+    <no_ogp_users_found>Keine OGP-Benutzer gefunden</no_ogp_users_found>
+    <no_proxmox_users_found>Keine Proxmox-Benutzer gefunden</no_proxmox_users_found>
+    <no_ispconfig_clients_found>Keine ISPConfig-Clients gefunden</no_ispconfig_clients_found>
+    <edit_user>Benutzer bearbeiten</edit_user>
+    <delete_user>Benutzer löschen</delete_user>
+    <confirm_delete_user>Möchten Sie diesen Benutzer wirklich löschen?</confirm_delete_user>
+    <deleting_user>Benutzer wird gelöscht...</deleting_user>
+    <user_deleted_successfully>Benutzer erfolgreich gelöscht</user_deleted_successfully>
+    <loading_user_data>Benutzerdaten werden geladen...</loading_user_data>
+    <saving_changes>Änderungen werden gespeichert...</saving_changes>
+    <changes_saved_successfully>Änderungen erfolgreich gespeichert</changes_saved_successfully>
+    <creating_user>Benutzer wird erstellt...</creating_user>
+    <user_created_successfully>Benutzer erfolgreich erstellt</user_created_successfully>
+    <refreshing>Aktualisiere...</refreshing>
+    <user_list_updated>Benutzerliste aktualisiert</user_list_updated>
+    <loading>Lade...</loading>
+    <unlimited>Unbegrenzt</unlimited>
+    <userid>Benutzer-ID</userid>
+    <clients>Clients</clients>
+    <status>Status</status>
+    <basic_user_data>Grundlegende Benutzerdaten</basic_user_data>
+    <password_confirm>Passwort bestätigen</password_confirm>
+    <select_group>Gruppe auswählen</select_group>
+    <select_realm>Realm auswählen</select_realm>
+    <expiration>Ablauf</expiration>
+    <home_id>Home ID</home_id>
+    <contact_name>Kontaktname</contact_name>
+    <opengamepanel>OpenGamePanel</opengamepanel>
+    <ogp_expiration_must_be_future>OGP-Ablaufdatum muss in der Zukunft liegen</ogp_expiration_must_be_future>
+    <proxmox_realm_required>Proxmox Realm ist erforderlich</proxmox_realm_required>
+    <ispconfig_required_fields_missing>Bitte füllen Sie alle erforderlichen ISPConfig-Felder aus</ispconfig_required_fields_missing>
+    <select_at_least_one_system>Bitte wählen Sie mindestens ein System aus</select_at_least_one_system>
+    <passwords_do_not_match>Passwörter stimmen nicht überein</passwords_do_not_match>
 </translations> 

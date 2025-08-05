@@ -185,6 +185,11 @@ try {
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="?option=users">
+                        <i class="bi bi-people"></i> <?= t('users') ?>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="?option=system">
                         <i class="bi bi-sliders"></i> <?= t('system_settings') ?>
                     </a>
@@ -290,6 +295,9 @@ try {
                                 break;
                             case 'resources':
                                 include('inc/resources.php');
+                                break;
+                            case 'users':
+                                include('inc/users.php');
                                 break;
                             case 'system':
                                 include('inc/system.php');

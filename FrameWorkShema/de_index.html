@@ -300,6 +300,64 @@ $result = $proxmox->createVM($vmData);</pre>
                 <div class="signature">public function controlProxmoxVM($node, $vmid, $action)</div>
                 <div class="description">Steuert eine VM (start, stop, reset, suspend, resume).</div>
             </div>
+
+            <div class="class-info">
+                <h3>Proxmox User Management</h3>
+                <p>Neue Funktionen für die Benutzerverwaltung in Proxmox.</p>
+            </div>
+
+            <div class="method">
+                <h4>createProxmoxUser()</h4>
+                <div class="signature">public function createProxmoxUser($userData)</div>
+                <div class="description">Erstellt einen neuen Proxmox-Benutzer.</div>
+                <div class="example">
+                    <h5>Beispiel:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Code anzeigen/verstecken
+                        </button>
+                        <div class="code-content">
+                            <pre>$userData = [
+    'username' => 'testuser',
+    'realm' => 'pve',
+    'password' => 'securepassword',
+    'comment' => 'Test User',
+    'email' => 'test@example.com',
+    'first_name' => 'Test',
+    'last_name' => 'User'
+];
+
+$proxmox = new ProxmoxPost();
+$result = $proxmox->createProxmoxUser($userData);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>deleteProxmoxUser()</h4>
+                <div class="signature">public function deleteProxmoxUser($userid)</div>
+                <div class="description">Löscht einen Proxmox-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateProxmoxUser()</h4>
+                <div class="signature">public function updateProxmoxUser($userid, $userData)</div>
+                <div class="description">Aktualisiert einen Proxmox-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxUsers()</h4>
+                <div class="signature">public function getProxmoxUsers()</div>
+                <div class="description">Holt alle Proxmox-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxUser()</h4>
+                <div class="signature">public function getProxmoxUser($userid)</div>
+                <div class="description">Holt Details eines spezifischen Proxmox-Benutzers.</div>
+            </div>
         </div>
 
         <div class="section" id="ispconfig">
@@ -377,6 +435,150 @@ $result = $ispconfig->createWebsite($websiteData);</pre>
             </div>
         </div>
 
+        <div class="section" id="ogp">
+            <h2>OGP API (OpenGamePanel)</h2>
+            <p>Integration mit OpenGamePanel für Game Server Management.</p>
+
+            <div class="class-info">
+                <h3>OGPGet Klasse</h3>
+                <p>Lese-Operationen für OGP.</p>
+            </div>
+
+            <div class="method">
+                <h4>testToken()</h4>
+                <div class="signature">public function testToken()</div>
+                <div class="description">Testet die Gültigkeit des OGP-Tokens.</div>
+            </div>
+
+            <div class="method">
+                <h4>getServerList()</h4>
+                <div class="signature">public function getServerList()</div>
+                <div class="description">Holt alle Remote-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>getServerStatus()</h4>
+                <div class="signature">public function getServerStatus($remoteServerId)</div>
+                <div class="description">Holt den Status eines Remote-Servers.</div>
+            </div>
+
+            <div class="method">
+                <h4>getGamesList()</h4>
+                <div class="signature">public function getGamesList($system = 'linux', $architecture = '64')</div>
+                <div class="description">Holt die Liste verfügbarer Spiele.</div>
+            </div>
+
+            <div class="method">
+                <h4>getGameServers()</h4>
+                <div class="signature">public function getGameServers()</div>
+                <div class="description">Holt alle Game-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>getUsers()</h4>
+                <div class="signature">public function getUsers()</div>
+                <div class="description">Holt alle OGP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getUser()</h4>
+                <div class="signature">public function getUser($email)</div>
+                <div class="description">Holt Details eines spezifischen Benutzers.</div>
+            </div>
+
+            <div class="class-info">
+                <h3>OGPPost Klasse</h3>
+                <p>Schreib-Operationen für OGP.</p>
+            </div>
+
+            <div class="method">
+                <h4>createUser()</h4>
+                <div class="signature">public function createUser($userData)</div>
+                <div class="description">Erstellt einen neuen OGP-Benutzer.</div>
+                <div class="example">
+                    <h5>Beispiel:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Code anzeigen/verstecken
+                        </button>
+                        <div class="code-content">
+                            <pre>$userData = [
+    'email' => 'user@example.com',
+    'login' => 'username',
+    'password' => 'securepassword',
+    'name' => 'User Name',
+    'expiration' => '2024-12-31 23:59:59'
+];
+
+$ogp = new OGPPost();
+$result = $ogp->createUser($userData);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>removeUser()</h4>
+                <div class="signature">public function removeUser($email)</div>
+                <div class="description">Löscht einen OGP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>setUserExpiration()</h4>
+                <div class="signature">public function setUserExpiration($email, $timestamp)</div>
+                <div class="description">Setzt das Ablaufdatum für einen Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>createGameServer()</h4>
+                <div class="signature">public function createGameServer($gameServerData)</div>
+                <div class="description">Erstellt einen neuen Game-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>cloneGameServer()</h4>
+                <div class="signature">public function cloneGameServer($cloneData)</div>
+                <div class="description">Klont einen bestehenden Game-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>setGameServerExpiration()</h4>
+                <div class="signature">public function setGameServerExpiration($homeId, $timestamp)</div>
+                <div class="description">Setzt das Ablaufdatum für einen Game-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>assignUser()</h4>
+                <div class="signature">public function assignUser($email, $homeId, $timestamp = null)</div>
+                <div class="description">Weist einen Benutzer einem Game-Server zu.</div>
+            </div>
+
+            <div class="method">
+                <h4>removeUserAssignment()</h4>
+                <div class="signature">public function removeUserAssignment($email, $homeId)</div>
+                <div class="description">Entfernt die Zuweisung eines Benutzers zu einem Game-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>startGameManager()</h4>
+                <div class="signature">public function startGameManager($ip, $port, $modKey)</div>
+                <div class="description">Startet den Game Manager.</div>
+            </div>
+
+            <div class="method">
+                <h4>stopGameManager()</h4>
+                <div class="signature">public function stopGameManager($ip, $port, $modKey)</div>
+                <div class="description">Stoppt den Game Manager.</div>
+            </div>
+
+            <div class="method">
+                <h4>sendRconCommand()</h4>
+                <div class="signature">public function sendRconCommand($ip, $port, $modKey, $command)</div>
+                <div class="description">Sendet einen RCON-Befehl an einen Game-Server.</div>
+            </div>
+        </div>
+
         <div class="section" id="ovh">
             <h2>OVH API</h2>
             <p>Integration mit OVH Cloud-Services.</p>
@@ -399,9 +601,87 @@ $result = $ispconfig->createWebsite($websiteData);</pre>
             </div>
 
             <div class="method">
+                <h4>getDedicatedServers()</h4>
+                <div class="signature">public function getDedicatedServers()</div>
+                <div class="description">Holt alle Dedicated Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDedicatedServer()</h4>
+                <div class="signature">public function getDedicatedServer($serverName)</div>
+                <div class="description">Holt Details eines spezifischen Dedicated Servers.</div>
+            </div>
+
+            <div class="method">
                 <h4>getVirtualMacAddresses()</h4>
                 <div class="signature">public function getVirtualMacAddresses($serviceName)</div>
                 <div class="description">Holt alle Virtual MAC-Adressen für einen Service.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacDetails()</h4>
+                <div class="signature">public function getVirtualMacDetails($serviceName, $macAddress)</div>
+                <div class="description">Holt Details zu einer bestimmten Virtual MAC-Adresse.</div>
+            </div>
+
+            <div class="method">
+                <h4>getAllVirtualMacDetails()</h4>
+                <div class="signature">public function getAllVirtualMacDetails($serviceName)</div>
+                <div class="description">Holt alle Virtual MAC-Adressen mit Details für einen Service.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacIPs()</h4>
+                <div class="signature">public function getVirtualMacIPs($serviceName, $macAddress)</div>
+                <div class="description">Holt alle IPs für eine Virtual MAC-Adresse.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacIPDetails()</h4>
+                <div class="signature">public function getVirtualMacIPDetails($serviceName, $macAddress, $ipAddress)</div>
+                <div class="description">Holt Details zu einer bestimmten IP einer Virtual MAC.</div>
+            </div>
+
+            <div class="method">
+                <h4>getAllVirtualMacAddresses()</h4>
+                <div class="signature">public function getAllVirtualMacAddresses()</div>
+                <div class="description">Holt alle Virtual MAC-Adressen für alle Dedicated Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>getAllVirtualMacDetailsWithIPs()</h4>
+                <div class="signature">public function getAllVirtualMacDetailsWithIPs($serviceName)</div>
+                <div class="description">Holt alle Virtual MAC-Adressen mit ihren IPs und Reverse-DNS für einen Service.</div>
+            </div>
+
+            <div class="method">
+                <h4>getIPReverse()</h4>
+                <div class="signature">public function getIPReverse($ipAddress)</div>
+                <div class="description">Holt Reverse-DNS Informationen für eine IP-Adresse.</div>
+            </div>
+
+            <div class="method">
+                <h4>getIPReverseDetails()</h4>
+                <div class="signature">public function getIPReverseDetails($ipAddress, $reverseIP)</div>
+                <div class="description">Holt Details zu einem bestimmten Reverse-DNS Eintrag.</div>
+            </div>
+
+            <div class="method">
+                <h4>getAllIPReverseDetails()</h4>
+                <div class="signature">public function getAllIPReverseDetails()</div>
+                <div class="description">Holt und gibt alle Reverse-DNS-Details für alle IPs dynamisch aus OVH zurück.</div>
+            </div>
+
+            <div class="method">
+                <h4>getFailoverIPs()</h4>
+                <div class="signature">public function getFailoverIPs()</div>
+                <div class="description">Holt alle Failover-IPs.</div>
+            </div>
+
+            <div class="method">
+                <h4>getFailoverIPDetails()</h4>
+                <div class="signature">public function getFailoverIPDetails($ip)</div>
+                <div class="description">Holt Details zu einer spezifischen Failover-IP.</div>
             </div>
 
             <div class="class-info">
@@ -416,50 +696,43 @@ $result = $ispconfig->createWebsite($websiteData);</pre>
             </div>
 
             <div class="method">
+                <h4>deleteVirtualMac()</h4>
+                <div class="signature">public function deleteVirtualMac($serviceName, $macAddress)</div>
+                <div class="description">Löscht eine Virtual MAC-Adresse.</div>
+            </div>
+
+            <div class="method">
                 <h4>addVirtualMacIP()</h4>
                 <div class="signature">public function addVirtualMacIP($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface)</div>
                 <div class="description">Fügt eine IP-Adresse zu einer Virtual MAC hinzu.</div>
             </div>
+
+            <div class="method">
+                <h4>removeVirtualMacIP()</h4>
+                <div class="signature">public function removeVirtualMacIP($serviceName, $macAddress, $ipAddress)</div>
+                <div class="description">Entfernt eine IP-Adresse von einer Virtual MAC.</div>
+            </div>
+
+            <div class="method">
+                <h4>createIPReverse()</h4>
+                <div class="signature">public function createIPReverse($ipAddress, $reverse)</div>
+                <div class="description">Erstellt einen Reverse-DNS Eintrag.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateIPReverse()</h4>
+                <div class="signature">public function updateIPReverse($ipAddress, $reverseIP, $newReverse)</div>
+                <div class="description">Aktualisiert einen Reverse-DNS Eintrag.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteIPReverse()</h4>
+                <div class="signature">public function deleteIPReverse($ipAddress, $reverseIP)</div>
+                <div class="description">Löscht einen Reverse-DNS Eintrag.</div>
+            </div>
         </div>
 
-        <div class="section" id="ogp">
-            <h2>OGP API</h2>
-            <p>Integration mit Open Game Panel.</p>
 
-            <div class="class-info">
-                <h3>OGPGet Klasse</h3>
-                <p>Lese-Operationen für OGP.</p>
-            </div>
-
-            <div class="method">
-                <h4>getServerList()</h4>
-                <div class="signature">public function getServerList()</div>
-                <div class="description">Holt alle Remote-Server.</div>
-            </div>
-
-            <div class="method">
-                <h4>getGameServers()</h4>
-                <div class="signature">public function getGameServers()</div>
-                <div class="description">Holt alle Game-Server.</div>
-            </div>
-
-            <div class="class-info">
-                <h3>OGPPost Klasse</h3>
-                <p>Schreib-Operationen für OGP.</p>
-            </div>
-
-            <div class="method">
-                <h4>createGameServer()</h4>
-                <div class="signature">public function createGameServer($gameServerData)</div>
-                <div class="description">Erstellt einen neuen Game-Server.</div>
-            </div>
-
-            <div class="method">
-                <h4>sendRconCommand()</h4>
-                <div class="signature">public function sendRconCommand($ip, $port, $modKey, $command)</div>
-                <div class="description">Sendet einen RCON-Befehl an einen Game-Server.</div>
-            </div>
-        </div>
 
         <div class="section" id="service-manager">
             <h2>ServiceManager Klasse</h2>
@@ -499,6 +772,141 @@ $result = $serviceManager->ProxmoxAPI('post', '/nodes/pve/qemu/100/status/start'
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="class-info">
+                <h3>Proxmox User Management</h3>
+                <p>Neue Funktionen für die Benutzerverwaltung in Proxmox.</p>
+            </div>
+
+            <div class="method">
+                <h4>createProxmoxUser()</h4>
+                <div class="signature">public function createProxmoxUser($userData)</div>
+                <div class="description">Erstellt einen neuen Proxmox-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteProxmoxUser()</h4>
+                <div class="signature">public function deleteProxmoxUser($userid)</div>
+                <div class="description">Löscht einen Proxmox-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateProxmoxUser()</h4>
+                <div class="signature">public function updateProxmoxUser($userid, $userData)</div>
+                <div class="description">Aktualisiert einen Proxmox-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxUsers()</h4>
+                <div class="signature">public function getProxmoxUsers()</div>
+                <div class="description">Holt alle Proxmox-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxUser()</h4>
+                <div class="signature">public function getProxmoxUser($userid)</div>
+                <div class="description">Holt Details eines spezifischen Proxmox-Benutzers.</div>
+            </div>
+
+            <div class="class-info">
+                <h3>OGP API Integration</h3>
+                <p>Neue Funktionen für OpenGamePanel Integration.</p>
+            </div>
+
+            <div class="method">
+                <h4>testOGPToken()</h4>
+                <div class="signature">public function testOGPToken()</div>
+                <div class="description">Testet die Gültigkeit des OGP-Tokens.</div>
+            </div>
+
+            <div class="method">
+                <h4>getOGPServerList()</h4>
+                <div class="signature">public function getOGPServerList()</div>
+                <div class="description">Holt alle OGP Remote-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>getOGPGameServers()</h4>
+                <div class="signature">public function getOGPGameServers()</div>
+                <div class="description">Holt alle OGP Game-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>getOGPUsers()</h4>
+                <div class="signature">public function getOGPUsers()</div>
+                <div class="description">Holt alle OGP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>createOGPUser()</h4>
+                <div class="signature">public function createOGPUser($userData)</div>
+                <div class="description">Erstellt einen neuen OGP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>removeOGPUser()</h4>
+                <div class="signature">public function removeOGPUser($email)</div>
+                <div class="description">Löscht einen OGP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>createOGPGameServer()</h4>
+                <div class="signature">public function createOGPGameServer($gameServerData)</div>
+                <div class="description">Erstellt einen neuen OGP Game-Server.</div>
+            </div>
+
+            <div class="method">
+                <h4>assignOGPUser()</h4>
+                <div class="signature">public function assignOGPUser($email, $homeId, $timestamp = null)</div>
+                <div class="description">Weist einen OGP-Benutzer einem Game-Server zu.</div>
+            </div>
+
+            <div class="class-info">
+                <h3>Erweiterte Virtual MAC Funktionen</h3>
+                <p>Neue Funktionen für erweiterte Virtual MAC Verwaltung.</p>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacAddresses()</h4>
+                <div class="signature">public function getVirtualMacAddresses($serviceName = null)</div>
+                <div class="description">Holt alle Virtual MAC-Adressen für einen oder alle Services.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacDetails()</h4>
+                <div class="signature">public function getVirtualMacDetails($serviceName, $macAddress)</div>
+                <div class="description">Holt Details zu einer bestimmten Virtual MAC-Adresse.</div>
+            </div>
+
+            <div class="method">
+                <h4>createVirtualMac()</h4>
+                <div class="signature">public function createVirtualMac($serviceName, $virtualNetworkInterface, $type = 'ovh')</div>
+                <div class="description">Erstellt eine neue Virtual MAC-Adresse.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteVirtualMac()</h4>
+                <div class="signature">public function deleteVirtualMac($serviceName, $macAddress)</div>
+                <div class="description">Löscht eine Virtual MAC-Adresse.</div>
+            </div>
+
+            <div class="method">
+                <h4>addIPToVirtualMac()</h4>
+                <div class="signature">public function addIPToVirtualMac($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface)</div>
+                <div class="description">Fügt eine IP-Adresse zu einer Virtual MAC hinzu.</div>
+            </div>
+
+            <div class="method">
+                <h4>removeIPFromVirtualMac()</h4>
+                <div class="signature">public function removeIPFromVirtualMac($serviceName, $macAddress, $ipAddress)</div>
+                <div class="description">Entfernt eine IP-Adresse von einer Virtual MAC.</div>
+            </div>
+
+            <div class="method">
+                <h4>getCompleteVirtualMacInfo()</h4>
+                <div class="signature">public function getCompleteVirtualMacInfo($serviceName = null)</div>
+                <div class="description">Holt vollständige Virtual MAC Informationen mit IPs und Reverse-DNS.</div>
             </div>
 
             <div class="method">

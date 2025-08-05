@@ -442,12 +442,17 @@ abstract class BaseAPI {
     abstract protected function makeRequest($method, $url, $data = null);
 
     public function logRequest($endpoint, $method, $success) {
-        $db = Database::getInstance();
-        $db->logAction(
-            "API Request: " . static::class,
-            "$method $endpoint",
-            $success ? 'success' : 'error'
-        );
+        try {
+            $db = Database::getInstance();
+            $db->logAction(
+                "API Request: " . static::class,
+                "$method $endpoint",
+                $success ? 'success' : 'error'
+            );
+        } catch (Exception $e) {
+            // If database connection fails, skip logging but continue
+            error_log("Database connection failed in logRequest: " . $e->getMessage());
+        }
     }
 }
 
@@ -671,6 +676,64 @@ class ProxmoxPost extends ProxmoxGet {
 
         $response = $this->makeRequest('POST', $url, $data);
         $this->logRequest("/nodes/$node/qemu/$vmid/clone", 'POST', $response !== false);
+        return $response;
+    }
+
+    // =============================================================================
+    // PROXMOX USER MANAGEMENT
+    // =============================================================================
+    
+    public function createProxmoxUser($userData) {
+        $url = $this->host . "/api2/json/access/users";
+        
+        // Proxmox API erwartet: userid, password, comment (optional), email (optional), firstname (optional), lastname (optional)
+        $data = [
+            'userid' => $userData['username'] . '@' . $userData['realm'],
+            'password' => $userData['password'],
+            'comment' => $userData['comment'] ?? '',
+            'email' => $userData['email'] ?? '',
+            'firstname' => $userData['first_name'] ?? '',
+            'lastname' => $userData['last_name'] ?? ''
+        ];
+
+        $response = $this->makeRequest('POST', $url, $data);
+        $this->logRequest("/access/users", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function deleteProxmoxUser($userid) {
+        $url = $this->host . "/api2/json/access/users/$userid";
+        $response = $this->makeRequest('DELETE', $url);
+        $this->logRequest("/access/users/$userid", 'DELETE', $response !== false);
+        return $response;
+    }
+
+    public function updateProxmoxUser($userid, $userData) {
+        $url = $this->host . "/api2/json/access/users/$userid";
+        
+        $data = [];
+        if (isset($userData['password'])) $data['password'] = $userData['password'];
+        if (isset($userData['comment'])) $data['comment'] = $userData['comment'];
+        if (isset($userData['email'])) $data['email'] = $userData['email'];
+        if (isset($userData['firstname'])) $data['firstname'] = $userData['firstname'];
+        if (isset($userData['lastname'])) $data['lastname'] = $userData['lastname'];
+
+        $response = $this->makeRequest('PUT', $url, $data);
+        $this->logRequest("/access/users/$userid", 'PUT', $response !== false);
+        return $response;
+    }
+
+    public function getProxmoxUsers() {
+        $url = $this->host . "/api2/json/access/users";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/access/users", 'GET', $response !== false);
+        return $response;
+    }
+
+    public function getProxmoxUser($userid) {
+        $url = $this->host . "/api2/json/access/users/$userid";
+        $response = $this->makeRequest('GET', $url);
+        $this->logRequest("/access/users/$userid", 'GET', $response !== false);
         return $response;
     }
 }
@@ -1594,6 +1657,39 @@ class ISPConfigPost extends ISPConfigGet {
             return false;
         }
     }
+    
+    public function createClient($clientData) {
+        try {
+            $result = $this->client->client_add($this->session_id, $clientData);
+            $this->logRequest('/client/add', 'POST', $result !== false);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Client creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    public function updateClient($clientId, $clientData) {
+        try {
+            $result = $this->client->client_update($this->session_id, $clientId, $clientData);
+            $this->logRequest("/client/$clientId", 'PUT', $result !== false);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Client update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    public function deleteClient($clientId) {
+        try {
+            $result = $this->client->client_delete($this->session_id, $clientId);
+            $this->logRequest("/client/$clientId", 'DELETE', $result !== false);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Client deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
 }
 
 // =============================================================================
@@ -2162,7 +2258,8 @@ class OGPGet extends BaseAPI {
         $this->user = Config::OGP_USER;
         $this->password = Config::OGP_PASSWORD;
         $this->token = Config::OGP_TOKEN;
-        $this->testToken();
+        // Don't test token automatically to avoid hanging
+        // $this->testToken();
     }
 
     protected function authenticate() {
@@ -2619,7 +2716,13 @@ class ServiceManager {
      * @return array|true Gibt true zurück wenn API aktiviert ist, sonst strukturierte Fehlermeldung
      */
     private function checkAPIEnabled($apiName) {
-        $db = Database::getInstance();
+        try {
+            $db = Database::getInstance();
+        } catch (Exception $e) {
+            // If database connection fails, skip logging but continue with API check
+            error_log("Database connection failed in checkAPIEnabled: " . $e->getMessage());
+            $db = null;
+        }
         $apiNameLower = strtolower($apiName);
         
         switch ($apiNameLower) {
@@ -2634,12 +2737,14 @@ class ServiceManager {
                         'solution' => 'Setzen Sie PROXMOX_USEING = true in der config.inc.php'
                     ];
                     
-                    // Log API check failure to database
-                    $db->logAction(
-                        "API Check: Proxmox",
-                        "API deaktiviert - Config: PROXMOX_USEING = false",
-                        'error'
-                    );
+                    // Log API check failure to database (disabled for now)
+                    // if ($db !== null) {
+                    //     $db->logAction(
+                    //         "API Check: Proxmox",
+                    //         "API deaktiviert - Config: PROXMOX_USEING = false",
+                    //         'error'
+                    //     );
+                    // }
                     
                     return $errorResponse;
                 }
@@ -2652,22 +2757,22 @@ class ServiceManager {
                         'solution' => 'Überprüfen Sie die Proxmox-Konfiguration in der config.inc.php'
                     ];
                     
-                    // Log API initialization failure to database
-                    $db->logAction(
-                        "API Check: Proxmox",
-                        "API nicht initialisiert - ProxmoxGet/Post Objekte fehlen",
-                        'error'
-                    );
+                    // Log API initialization failure to database (disabled for now)
+                    // $db->logAction(
+                    //     "API Check: Proxmox",
+                    //     "API nicht initialisiert - ProxmoxGet/Post Objekte fehlen",
+                    //     'error'
+                    // );
                     
                     return $errorResponse;
                 }
                 
-                // Log successful API check to database
-                $db->logAction(
-                    "API Check: Proxmox",
-                    "API aktiviert und initialisiert",
-                    'success'
-                );
+                // Log successful API check to database (disabled for now)
+                // $db->logAction(
+                //     "API Check: Proxmox",
+                //     "API aktiviert und initialisiert",
+                //     'success'
+                // );
                 break;
                 
             case 'ispconfig':
@@ -2803,12 +2908,12 @@ class ServiceManager {
                     return $errorResponse;
                 }
                 
-                // Log successful API check to database
-                $db->logAction(
-                    "API Check: OGP",
-                    "API aktiviert und initialisiert",
-                    'success'
-                );
+                // Log successful API check to database (disabled for now)
+                // $db->logAction(
+                //     "API Check: OGP",
+                //     "API aktiviert und initialisiert",
+                //     'success'
+                // );
                 break;
                 
             default:
@@ -2819,12 +2924,12 @@ class ServiceManager {
                     'api' => $apiName
                 ];
                 
-                // Log unknown API check to database
-                $db->logAction(
-                    "API Check: Unknown",
-                    "Unbekannte API angefragt: " . $apiName,
-                    'error'
-                );
+                // Log unknown API check to database (disabled for now)
+                // $db->logAction(
+                //     "API Check: Unknown",
+                //     "Unbekannte API angefragt: " . $apiName,
+                //     'error'
+                // );
                 
                 return $errorResponse;
         }
@@ -3266,6 +3371,38 @@ class ServiceManager {
         }
         return $this->ispconfigPost->deleteEmailAccount($mailuserId);
     }
+    
+    public function getISPConfigClients($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ispconfigGet->getClients($filter);
+    }
+    
+    public function createISPConfigClient($clientData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ispconfigPost->createClient($clientData);
+    }
+    
+    public function updateISPConfigClient($clientId, $clientData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ispconfigPost->updateClient($clientId, $clientData);
+    }
+    
+    public function deleteISPConfigClient($clientId) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->ispconfigPost->deleteClient($clientId);
+    }
 
     // OVH Methods
     public function getOVHDomains() {
@@ -3668,6 +3805,50 @@ class ServiceManager {
             return $apiCheck;
         }
         return $this->ogpPost->removeUserAssignment($email, $homeId);
+    }
+
+    // =============================================================================
+    // PROXMOX USER MANAGEMENT
+    // =============================================================================
+    
+    public function createProxmoxUser($userData) {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->proxmoxPost->createProxmoxUser($userData);
+    }
+
+    public function deleteProxmoxUser($userid) {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->proxmoxPost->deleteProxmoxUser($userid);
+    }
+
+    public function updateProxmoxUser($userid, $userData) {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->proxmoxPost->updateProxmoxUser($userid, $userData);
+    }
+
+    public function getProxmoxUsers() {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->proxmoxPost->getProxmoxUsers();
+    }
+
+    public function getProxmoxUser($userid) {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        return $this->proxmoxPost->getProxmoxUser($userid);
     }
     
     // Game Manager

@@ -2,6 +2,64 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.0.0-beta]
+
+### Hinzugefügt
+- **Benutzerliste und Bearbeitung** - Vollständige Anzeige bereits registrierter Benutzer aus allen Systemen
+- **Multi-System Benutzerverwaltung** - Anzeige von Admin Dashboard, OGP, Proxmox und ISPConfig Benutzern
+- **API-Verbindungsfehlerbehandlung** - Graceful Handling von API-Verbindungsproblemen mit Benutzerbenachrichtigungen
+- **Benutzer-Bearbeitungsmodal** - Dynamisches Modal für die Bearbeitung von Benutzerdaten
+- **System-spezifische Benutzerlisten** - Separate Tabellen für jedes System mit relevanten Feldern
+- **Refresh-Funktionalität** - Aktualisierung der Benutzerlisten für jedes System
+- **Löschfunktionalität** - Bestätigungsdialoge für sicheres Löschen von Benutzern
+- **Erweiterte Übersetzungen** - Neue Sprachdateien für Benutzerliste und Bearbeitung
+- **ISPConfig Client-Funktionen** - Vollständige CRUD-Operationen für ISPConfig Clients
+- **ServiceManager Erweiterungen** - Neue Wrapper-Funktionen für ISPConfig Client-Management
+
+### Geändert
+- `users.php` erweitert um Benutzerliste-Tab mit realen Daten
+- ServiceManager um ISPConfig Client-Funktionen erweitert
+- Framework.php um ISPConfig Client CRUD-Operationen erweitert
+- Sprachdateien um neue Übersetzungen für Benutzerliste erweitert
+- Benutzerliste zeigt API-Fehler an und behandelt leere Ergebnisse gracefully
+
+### Behoben
+- Korrekte Verwendung der ServiceManager-Funktionen für ISPConfig Clients
+- Einheitliche Fehlerbehandlung für alle API-Aufrufe
+- Konsistente Benutzeroberfläche für alle Systeme
+
+## [2.9.9-beta]
+
+### Hinzugefügt
+- Neues Benutzer-Management-System mit `users.php`
+- Dynamisches Multi-System-Benutzer-Erstellungsformular
+- System-Auswahl für Admin Dashboard, OGP, ISPConfig und Proxmox
+- **Automatische Admin Dashboard Integration** - Benutzer werden immer im Admin Dashboard erstellt
+- System-spezifische Parameter und Validierung
+- Admin Dashboard Integration mit Benutzergruppen
+- OGP Benutzer-Erstellung mit Ablaufdatum und Home-ID
+- ISPConfig Benutzer-Integration mit Client-ID
+- Proxmox Benutzer-Erstellung mit Realm-Auswahl (PAM, PVE, PBS)
+- **Proxmox API Integration** - Vollständige Benutzer-Management-Funktionen basierend auf offizieller API
+- **Einheitliche Benutzerdaten** - Alle Systeme verwenden die gleichen Grunddaten (Username, Email, Passwort)
+- **Unbegrenzte Ablaufdaten** - OGP-Benutzer haben standardmäßig keine Ablaufdaten
+- Erweiterte Client-seitige Validierung für alle Systeme
+- Dynamische Anzeige/Ausblendung von System-spezifischen Feldern
+- Tab-Navigation für Benutzer-Erstellung und Benutzerliste
+- Toast-Benachrichtigungssystem für Benutzer-Feedback
+- Informationsbereich mit Tipps und Warnungen
+
+### Geändert
+- Navigation erweitert um "Benutzer"-Link mit `bi-people` Icon
+- Routing-System um `?option=users` erweitert
+- Switch-Statement in `index.php` um Benutzer-Option ergänzt
+- Formular-Struktur für Multi-System-Unterstützung angepasst
+
+### Behoben
+- Konsistente Integration in bestehende Framework-Struktur
+- Einhaltung der etablierten `inc` Datei-Struktur
+- System-spezifische Validierung und Datenverarbeitung
+
 ## [2.9.8]
 
 ### Hinzugefügt
