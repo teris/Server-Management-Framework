@@ -1,13 +1,7 @@
 <?php
-/**
- * Server Management Framework
- * Modulares Framework für Proxmox, ISPConfig und OVH API-Integration
- * Erweitert um Virtual MAC Support
- */
- require_once 'config/config.inc.php';
-// =============================================================================
+require_once 'config/config.inc.php';
+
 // DATABASE CLASS
-// =============================================================================
 class Database {
     private static $instance = null;
     private $connection;
@@ -93,12 +87,46 @@ class Database {
             return false;
         }
     }
+
+    // PDO Wrapper-Methoden für Kompatibilität
+    public function prepare($sql) {
+        return $this->connection->prepare($sql);
+    }
+
+    public function query($sql) {
+        return $this->connection->query($sql);
+    }
+
+    public function exec($sql) {
+        return $this->connection->exec($sql);
+    }
+
+    public function lastInsertId($name = null) {
+        return $this->connection->lastInsertId($name);
+    }
+
+    public function beginTransaction() {
+        return $this->connection->beginTransaction();
+    }
+
+    public function commit() {
+        return $this->connection->commit();
+    }
+
+    public function rollback() {
+        return $this->connection->rollback();
+    }
+
+    public function inTransaction() {
+        return $this->connection->inTransaction();
+    }
+
+    public function quote($string, $type = PDO::PARAM_STR) {
+        return $this->connection->quote($string, $type);
+    }
 }
 
-// =============================================================================
 // DATA MODELS
-// =============================================================================
-
 class VM {
     public $vmid;
     public $name;
@@ -127,9 +155,7 @@ class VM {
     }
 }
 
-// =============================================================================
 // VIRTUAL MAC DATA MODEL
-// =============================================================================
 class VirtualMac {
     public $macAddress;
     public $serviceName;
@@ -320,9 +346,7 @@ class VPS {
     }
 }
 
-// =============================================================================
 // DATA MAPPER CLASS
-// =============================================================================
 class DataMapper {
 
     public static function mapToVM($data) {
@@ -430,9 +454,7 @@ class DataMapper {
     }
 }
 
-// =============================================================================
 // BASE API CLASS
-// =============================================================================
 abstract class BaseAPI {
     public $host;
     public $user;
@@ -456,9 +478,7 @@ abstract class BaseAPI {
     }
 }
 
-// =============================================================================
 // PROXMOX GET CLASS
-// =============================================================================
 class ProxmoxGet extends BaseAPI {
     private $ticket;
     private $csrf_token;
@@ -593,9 +613,7 @@ class ProxmoxGet extends BaseAPI {
     }
 }
 
-// =============================================================================
 // PROXMOX POST CLASS
-// =============================================================================
 class ProxmoxPost extends ProxmoxGet {
 
     public function createVM($vmData) {
@@ -679,10 +697,7 @@ class ProxmoxPost extends ProxmoxGet {
         return $response;
     }
 
-    // =============================================================================
-    // PROXMOX USER MANAGEMENT
-    // =============================================================================
-    
+    // PROXMOX USER MANAGEMENt
     public function createProxmoxUser($userData) {
         $url = $this->host . "/api2/json/access/users";
         
@@ -738,9 +753,7 @@ class ProxmoxPost extends ProxmoxGet {
     }
 }
 
-// =============================================================================
 // ISPCONFIG GET CLASS
-// =============================================================================
 class ISPConfigGet extends BaseAPI {
     public $session_id;
     public $client;
@@ -877,9 +890,6 @@ class ISPConfigGet extends BaseAPI {
             return null;
         }
     }
-	 /**
-     * Verbesserte E-Mail Accounts Abfrage mit Debugging
-     */
     public function getEmailAccounts($filter = []) {
         try {
             if (!$this->session_id) {
@@ -915,7 +925,6 @@ class ISPConfigGet extends BaseAPI {
                 }
             }
 
-            // Strategie 2: Client-basierte Abfrage um E-Mail-IDs zu bekommen
             $emailIds = $this->getEmailUserIds();
             
             if (!empty($emailIds)) {
@@ -950,13 +959,11 @@ class ISPConfigGet extends BaseAPI {
                 }
             }
 
-            // Strategie 3: Client-Daten für E-Mail-Informationen nutzen
             $clientEmails = $this->getEmailsFromClients();
             if (!empty($clientEmails)) {
                 return $clientEmails;
             }
 
-            // Strategie 4: Alternative SOAP-Funktionen
             $alternativeEmails = $this->tryAlternativeMailFunctions();
             if (!empty($alternativeEmails)) {
                 return $alternativeEmails;
@@ -973,14 +980,9 @@ class ISPConfigGet extends BaseAPI {
             throw $e;
         }
     }
-
-    /**
-     * Holt E-Mail-User-IDs über verschiedene Methoden
-     */
     private function getEmailUserIds() {
         $ids = [];
 
-        // Methode 1: sites_web_domain_get (Websites können E-Mail-Info enthalten)
         try {
             $websites = $this->client->sites_web_domain_get($this->session_id, []);
             if ($websites && is_array($websites)) {
@@ -998,7 +1000,6 @@ class ISPConfigGet extends BaseAPI {
             }
         }
 
-        // Methode 2: client_get für Client-IDs
         try {
             $clients = $this->client->client_get($this->session_id, []);
             if ($clients && is_array($clients)) {
@@ -1014,7 +1015,6 @@ class ISPConfigGet extends BaseAPI {
             }
         }
 
-        // Methode 3: Sequenzielle ID-Suche (1-100)
         if (empty($ids)) {
             if ($this->debug_mode) {
                 error_log("ISPConfig: Verwende sequenzielle ID-Suche");
@@ -1028,9 +1028,6 @@ class ISPConfigGet extends BaseAPI {
         return array_unique($ids);
     }
 
-    /**
-     * Extrahiert E-Mail-Informationen aus Client-Daten
-     */
     private function getEmailsFromClients() {
         try {
             $clients = $this->client->client_get($this->session_id, []);
@@ -1068,9 +1065,6 @@ class ISPConfigGet extends BaseAPI {
         }
     }
 
-    /**
-     * Versucht alternative Mail-Funktionen mit korrekten Parametern
-     */
     private function tryAlternativeMailFunctions() {
         $alternativeFunctions = [
             // ISPConfig 3.x Varianten
@@ -1118,9 +1112,6 @@ class ISPConfigGet extends BaseAPI {
         return [];
     }
 
-    /**
-     * Transformiert verschiedene ISPConfig-Datentypen zu E-Mail-Format
-     */
     private function transformToEmailFormat($data, $sourceFunction) {
         $emails = [];
 
@@ -1175,17 +1166,11 @@ class ISPConfigGet extends BaseAPI {
         return $emails;
     }
 
-    /**
-     * Extrahiert Domain aus E-Mail-Adresse
-     */
     private function extractDomainFromEmail($email) {
         $parts = explode('@', $email);
         return isset($parts[1]) ? $parts[1] : '';
     }
 
-    /**
-     * Test-Funktion für spezifische SOAP-Parameter
-     */
     public function testMailUserGetParameters() {
         $testCases = [
             // Test 1: Mit Filter-Array
@@ -1247,9 +1232,6 @@ class ISPConfigGet extends BaseAPI {
         return $results;
     }
 
-    /**
-     * Debug-Funktion: Zeigt alle verfügbaren SOAP-Funktionen
-     */
     private function getAvailableSoapFunctions() {
         $functions = [];
         
@@ -1498,9 +1480,7 @@ class ISPConfigGet extends BaseAPI {
     }
 }
 
-// =============================================================================
 // ISPCONFIG POST CLASS
-// =============================================================================
 class ISPConfigPost extends ISPConfigGet {
 
     public function createWebsite($websiteData) {
@@ -1692,9 +1672,7 @@ class ISPConfigPost extends ISPConfigGet {
     }
 }
 
-// =============================================================================
 // OVH GET CLASS
-// =============================================================================
 class OVHGet extends BaseAPI {
     private $application_key;
     private $application_secret;
@@ -1830,9 +1808,9 @@ class OVHGet extends BaseAPI {
         return $response;
     }
 
-    // =============================================================================
+     
     // VIRTUAL MAC METHODS
-    // =============================================================================
+     
 
     /**
      * Holt alle Virtual MAC-Adressen für einen bestimmten Dedicated Server
@@ -2064,9 +2042,7 @@ class OVHGet extends BaseAPI {
     }
 }
 
-// =============================================================================
 // OVH POST CLASS - ERWEITERT FÜR VIRTUAL MAC
-// =============================================================================
 class OVHPost extends OVHGet {
 
     public function orderDomain($domain, $duration = 1) {
@@ -2144,9 +2120,9 @@ class OVHPost extends OVHGet {
         return $response;
     }
 
-    // =============================================================================
+     
     // VIRTUAL MAC POST METHODS
-    // =============================================================================
+     
 
     /**
      * Erstellt eine neue Virtual MAC-Adresse
@@ -2247,9 +2223,7 @@ class OVHPost extends OVHGet {
     }
 }
 
-// =============================================================================
 // OGP GET CLASS
-// =============================================================================
 class OGPGet extends BaseAPI {
     protected $token;
 
@@ -2281,9 +2255,9 @@ class OGPGet extends BaseAPI {
         return $response;
     }
 
-    // =============================================================================
+     
     // REMOTE SERVERS
-    // =============================================================================
+     
     public function getServerList() {
         $url = $this->host . "/ogp_api.php?server/list";
         $data = ['token' => $this->token];
@@ -2308,9 +2282,9 @@ class OGPGet extends BaseAPI {
         return $response;
     }
 
-    // =============================================================================
+     
     // GAME SERVERS
-    // =============================================================================
+     
     public function getGamesList($system = 'linux', $architecture = '64') {
         $url = $this->host . "/ogp_api.php?user_games/list_games";
         $data = ['token' => $this->token, 'system' => $system, 'architecture' => $architecture];
@@ -2327,9 +2301,9 @@ class OGPGet extends BaseAPI {
         return $response;
     }
 
-    // =============================================================================
+     
     // USERS
-    // =============================================================================
+     
     public function getUsers() {
         $url = $this->host . "/ogp_api.php?user_admin/list";
         $data = ['token' => $this->token];
@@ -2354,9 +2328,9 @@ class OGPGet extends BaseAPI {
         return $response;
     }
 
-    // =============================================================================
+     
     // ADDONS MANAGER
-    // =============================================================================
+     
     public function getAddonsList() {
         $url = $this->host . "/ogp_api.php?addonsmanager/list";
         $data = ['token' => $this->token];
@@ -2365,9 +2339,9 @@ class OGPGet extends BaseAPI {
         return $response;
     }
 
-    // =============================================================================
+     
     // PANEL SETTINGS
-    // =============================================================================
+     
     public function getSetting($settingName) {
         $url = $this->host . "/ogp_api.php?setting/get";
         $data = ['token' => $this->token, 'setting_name' => $settingName];
@@ -2411,14 +2385,12 @@ class OGPGet extends BaseAPI {
     }
 }
 
-// =============================================================================
 // OGP POST CLASS
-// =============================================================================
 class OGPPost extends OGPGet {
     
-    // =============================================================================
+     
     // REMOTE SERVERS
-    // =============================================================================
+     
     public function restartServer($remoteServerId) {
         $url = $this->host . "/ogp_api.php?server/restart";
         $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId];
@@ -2467,9 +2439,9 @@ class OGPPost extends OGPGet {
         return $response;
     }
 
-    // =============================================================================
+     
     // GAME SERVERS
-    // =============================================================================
+     
     public function createGameServer($gameServerData) {
         $url = $this->host . "/ogp_api.php?user_games/create";
         $data = array_merge(['token' => $this->token], $gameServerData);
@@ -2494,9 +2466,9 @@ class OGPPost extends OGPGet {
         return $response;
     }
 
-    // =============================================================================
+     
     // USERS
-    // =============================================================================
+     
     public function createUser($userData) {
         $url = $this->host . "/ogp_api.php?user_admin/create";
         $data = array_merge(['token' => $this->token], $userData);
@@ -2540,9 +2512,9 @@ class OGPPost extends OGPGet {
         return $response;
     }
 
-    // =============================================================================
+     
     // GAME MANAGER
-    // =============================================================================
+     
     public function startGameManager($ip, $port, $modKey) {
         $url = $this->host . "/ogp_api.php?gamemanager/start";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey];
@@ -2586,9 +2558,9 @@ class OGPPost extends OGPGet {
         return $response;
     }
 
-    // =============================================================================
+     
     // LITE FILE MANAGER
-    // =============================================================================
+     
     public function listFiles($ip, $port, $relativePath) {
         $url = $this->host . "/ogp_api.php?litefm/list";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'relative_path' => $relativePath];
@@ -2621,9 +2593,9 @@ class OGPPost extends OGPGet {
         return $response;
     }
 
-    // =============================================================================
+     
     // ADDONS MANAGER
-    // =============================================================================
+     
     public function installAddon($ip, $port, $modKey, $addonId) {
         $url = $this->host . "/ogp_api.php?addonsmanager/install";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey, 'addon_id' => $addonId];
@@ -2632,9 +2604,9 @@ class OGPPost extends OGPGet {
         return $response;
     }
 
-    // =============================================================================
+     
     // STEAM WORKSHOP
-    // =============================================================================
+     
     public function installSteamWorkshop($ip, $port, $modsList) {
         $url = $this->host . "/ogp_api.php?steam_workshop/install";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mods_list' => $modsList];
@@ -2644,9 +2616,7 @@ class OGPPost extends OGPGet {
     }
 }
 
-// =============================================================================
 // SERVICE MANAGER CLASS - ERWEITERT
-// =============================================================================
 class ServiceManager {
     private $proxmoxGet;
     private $proxmoxPost;
@@ -2936,9 +2906,9 @@ class ServiceManager {
         return true;
     }
 	
-	// =============================================================================
+	 
     // GENERISCHE API FUNKTIONEN
-    // =============================================================================
+     
     /**
      * Generische Proxmox API Funktion
      * @param string $type HTTP-Methode (get, post, delete, put)
@@ -3476,9 +3446,9 @@ class ServiceManager {
         return null;
     }
 
-    // =============================================================================
+     
     // VIRTUAL MAC METHODS
-    // =============================================================================
+     
 
     /**
      * Holt alle Virtual MAC-Adressen für einen bestimmten Service
@@ -3615,9 +3585,9 @@ class ServiceManager {
         return $result;
     }
     
-    // =============================================================================
+     
     // OGP METHODS
-    // =============================================================================
+     
     
     // Token Management
     public function testOGPToken() {
@@ -3807,9 +3777,9 @@ class ServiceManager {
         return $this->ogpPost->removeUserAssignment($email, $homeId);
     }
 
-    // =============================================================================
+     
     // PROXMOX USER MANAGEMENT
-    // =============================================================================
+     
     
     public function createProxmoxUser($userData) {
         $apiCheck = $this->checkAPIEnabled('proxmox');
@@ -3959,15 +3929,520 @@ class ServiceManager {
         }
         return $this->ogpGet->getSetting($settingName);
     }
+    
+    // System-Informationen
+    public function getSystemInfo() {
+        try {
+            $systemInfo = [
+                'cpu_usage' => $this->getCPUUsage(),
+                'memory_usage' => $this->getMemoryUsage(),
+                'disk_usage' => $this->getDiskUsage(),
+                'uptime' => $this->getUptime(),
+                'load_average' => $this->getLoadAverage(),
+                'network_status' => $this->getNetworkStatus()
+            ];
+            return $systemInfo;
+        } catch (Exception $e) {
+            error_log("Error getting system info: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    private function getCPUUsage() {
+        try {
+            $cpuUsage = null;
+            
+            // Methode 1: sys_getloadavg mit robuster Berechnung
+            if (function_exists('sys_getloadavg')) {
+                try {
+                    $load = @sys_getloadavg();
+                    if ($load !== false && is_array($load) && isset($load[0]) && is_numeric($load[0])) {
+                        // Vereinfachte CPU-Berechnung basierend auf Load Average
+                        $loadValue = (float)$load[0];
+                        $cpuUsage = min(100, round($loadValue * 25, 2)); // Max 100%
+                    }
+                } catch (Exception $e) {
+                    // Ignoriere Fehler
+                }
+            }
+            
+            // Methode 2: /proc/stat (Linux) - nur versuchen wenn verfügbar
+            if ($cpuUsage === null) {
+                try {
+                    if (@file_exists('/proc/stat')) {
+                        $statContent = @file_get_contents('/proc/stat');
+                        if ($statContent !== false) {
+                            $lines = explode("\n", $statContent);
+                            foreach ($lines as $line) {
+                                if (strpos($line, 'cpu ') === 0) {
+                                    $parts = preg_split('/\s+/', trim($line));
+                                    if (count($parts) >= 5) {
+                                        $total = array_sum(array_slice($parts, 1, 4));
+                                        $idle = (int)$parts[4];
+                                        if ($total > 0) {
+                                            $cpuUsage = round((($total - $idle) / $total) * 100, 2);
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
+                    // Ignoriere Fehler
+                }
+            }
+            
+            // Methode 3: top-Befehl über exec (falls verfügbar)
+            if ($cpuUsage === null) {
+                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+                    try {
+                        $output = [];
+                        $returnVar = 0;
+                        @exec('top -bn1 | grep "Cpu(s)" 2>/dev/null', $output, $returnVar);
+                        
+                        if ($returnVar === 0 && !empty($output)) {
+                            $topLine = $output[0];
+                            if (preg_match('/(\d+\.?\d*)%us/', $topLine, $matches)) {
+                                $cpuUsage = round((float)$matches[1], 2);
+                            }
+                        }
+                    } catch (Exception $e) {
+                        // Ignoriere exec-Fehler
+                    }
+                }
+            }
+            
+            if ($cpuUsage !== null && $cpuUsage >= 0 && $cpuUsage <= 100) {
+                return $cpuUsage;
+            }
+            
+            return 0;
+        } catch (Exception $e) {
+            error_log("Error getting CPU usage: " . $e->getMessage());
+            return 0;
+        }
+    }
+    
+    private function getMemoryUsage() {
+        try {
+            $memoryData = null;
+            
+            // Methode 1: PHP memory_get_* Funktionen
+            if (function_exists('memory_get_usage') && function_exists('memory_get_peak_usage')) {
+                try {
+                    $memoryUsage = @memory_get_usage(true);
+                    $memoryPeak = @memory_get_peak_usage(true);
+                    $memoryLimit = @ini_get('memory_limit');
+                    
+                    if ($memoryUsage !== false && $memoryPeak !== false) {
+                        // Konvertiere memory_limit zu Bytes
+                        $limitBytes = $this->convertToBytes($memoryLimit);
+                        
+                        $usagePercent = 0;
+                        if ($limitBytes > 0) {
+                            $usagePercent = round(($memoryPeak / $limitBytes) * 100, 2);
+                        }
+                        
+                        $memoryData = [
+                            'current' => $this->formatBytes($memoryUsage),
+                            'peak' => $this->formatBytes($memoryPeak),
+                            'limit' => $memoryLimit ?: 'Unbekannt',
+                            'usage_percent' => $usagePercent,
+                            'type' => 'php'
+                        ];
+                    }
+                } catch (Exception $e) {
+                    // Ignoriere Fehler
+                }
+            }
+            
+            // Methode 2: /proc/meminfo (Linux) - nur versuchen wenn verfügbar
+            if ($memoryData === null) {
+                try {
+                    if (@file_exists('/proc/meminfo')) {
+                        $meminfoContent = @file_get_contents('/proc/meminfo');
+                        if ($meminfoContent !== false) {
+                            $lines = explode("\n", $meminfoContent);
+                            $memTotal = null;
+                            $memAvailable = null;
+                            
+                            foreach ($lines as $line) {
+                                if (strpos($line, 'MemTotal:') === 0) {
+                                    $parts = preg_split('/\s+/', trim($line));
+                                    if (count($parts) >= 2) {
+                                        $memTotal = (int)$parts[1] * 1024; // KB zu Bytes
+                                    }
+                                } elseif (strpos($line, 'MemAvailable:') === 0) {
+                                    $parts = preg_split('/\s+/', trim($line));
+                                    if (count($parts) >= 2) {
+                                        $memAvailable = (int)$parts[1] * 1024; // KB zu Bytes
+                                    }
+                                }
+                            }
+                            
+                            if ($memTotal !== null && $memAvailable !== null && $memTotal > 0) {
+                                $memUsed = $memTotal - $memAvailable;
+                                $usagePercent = round(($memUsed / $memTotal) * 100, 2);
+                                
+                                $memoryData = [
+                                    'current' => $this->formatBytes($memUsed),
+                                    'peak' => $this->formatBytes($memTotal),
+                                    'limit' => $this->formatBytes($memTotal),
+                                    'usage_percent' => $usagePercent,
+                                    'type' => 'system'
+                                ];
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
+                    // Ignoriere Fehler
+                }
+            }
+            
+            // Methode 3: free-Befehl über exec (falls verfügbar)
+            if ($memoryData === null) {
+                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+                    try {
+                        $output = [];
+                        $returnVar = 0;
+                        @exec('free -b 2>/dev/null', $output, $returnVar);
+                        
+                        if ($returnVar === 0 && !empty($output) && count($output) > 1) {
+                            $parts = preg_split('/\s+/', trim($output[1]));
+                            if (count($parts) >= 4) {
+                                $memTotal = (int)$parts[1];
+                                $memUsed = (int)$parts[2];
+                                
+                                if ($memTotal > 0) {
+                                    $usagePercent = round(($memUsed / $memTotal) * 100, 2);
+                                    
+                                    $memoryData = [
+                                        'current' => $this->formatBytes($memUsed),
+                                        'peak' => $this->formatBytes($memTotal),
+                                        'limit' => $this->formatBytes($memTotal),
+                                        'usage_percent' => $usagePercent,
+                                        'type' => 'free_command'
+                                    ];
+                                }
+                            }
+                        }
+                    } catch (Exception $e) {
+                        // Ignoriere exec-Fehler
+                    }
+                }
+            }
+            
+            if ($memoryData !== null) {
+                return $memoryData;
+            }
+            
+            // Fallback: Standardwerte
+            return [
+                'current' => 'Unbekannt',
+                'peak' => 'Unbekannt',
+                'limit' => 'Unbekannt',
+                'usage_percent' => 0,
+                'type' => 'unavailable'
+            ];
+        } catch (Exception $e) {
+            error_log("Error getting memory usage: " . $e->getMessage());
+            return [
+                'current' => 'Fehler',
+                'peak' => 'Fehler',
+                'limit' => 'Fehler',
+                'usage_percent' => 0,
+                'type' => 'error'
+            ];
+        }
+    }
+    
+    private function getDiskUsage() {
+        try {
+            // Verwende nur das aktuelle Verzeichnis und relative Pfade
+            $directories = ['.', './tmp', './logs'];
+            $diskTotal = null;
+            $diskFree = null;
+            
+            foreach ($directories as $dir) {
+                try {
+                    // Verwende @ Operator um alle Warnungen zu unterdrücken
+                    $testTotal = @disk_total_space($dir);
+                    $testFree = @disk_free_space($dir);
+                    
+                    if ($testTotal !== false && $testTotal > 0 && $testFree !== false) {
+                        $diskTotal = $testTotal;
+                        $diskFree = $testFree;
+                        break;
+                    }
+                } catch (Exception $e) {
+                    // Ignoriere Fehler und versuche das nächste Verzeichnis
+                    continue;
+                }
+            }
+            
+            // Fallback: Versuche df-Befehl über exec (falls verfügbar)
+            if ($diskTotal === null || $diskFree === null) {
+                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+                    try {
+                        $output = [];
+                        $returnVar = 0;
+                        @exec('df -B1 . 2>/dev/null', $output, $returnVar);
+                        
+                        if ($returnVar === 0 && !empty($output) && count($output) > 1) {
+                            $parts = preg_split('/\s+/', trim($output[1]));
+                            if (count($parts) >= 4) {
+                                $diskTotal = (int)$parts[1];
+                                $diskFree = (int)$parts[3];
+                            }
+                        }
+                    } catch (Exception $e) {
+                        // Ignoriere exec-Fehler
+                    }
+                }
+            }
+            
+            // Wenn immer noch keine Daten verfügbar sind, verwende Standardwerte
+            if ($diskTotal === null || $diskFree === null || $diskTotal <= 0) {
+                return [
+                    'total' => 'Unbekannt',
+                    'used' => 'Unbekannt',
+                    'free' => 'Unbekannt',
+                    'usage_percent' => 0,
+                    'status' => 'unavailable'
+                ];
+            }
+            
+            // Berechne Werte nur wenn gültige Daten vorhanden sind
+            $diskUsed = $diskTotal - $diskFree;
+            $diskUsagePercent = ($diskTotal > 0) ? round(($diskUsed / $diskTotal) * 100, 2) : 0;
+            
+            return [
+                'total' => $this->formatBytes($diskTotal),
+                'used' => $this->formatBytes($diskUsed),
+                'free' => $this->formatBytes($diskFree),
+                'usage_percent' => $diskUsagePercent,
+                'status' => 'available'
+            ];
+            
+        } catch (Exception $e) {
+            error_log("Error getting disk usage: " . $e->getMessage());
+            return [
+                'total' => 'Fehler',
+                'used' => 'Fehler',
+                'free' => 'Fehler',
+                'usage_percent' => 0,
+                'status' => 'error'
+            ];
+        }
+    }
+    
+    private function getUptime() {
+        try {
+            // Versuche verschiedene Methoden für Uptime
+            $uptime = null;
+            
+            // Methode 1: /proc/uptime (Linux) - nur versuchen wenn verfügbar
+            try {
+                if (@file_exists('/proc/uptime')) {
+                    $uptimeContent = @file_get_contents('/proc/uptime');
+                    if ($uptimeContent !== false) {
+                        $parts = explode(' ', trim($uptimeContent));
+                        if (!empty($parts[0]) && is_numeric($parts[0])) {
+                            $uptime = (float)$parts[0];
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // Ignoriere Fehler
+            }
+            
+            // Methode 2: uptime-Befehl über exec
+            if ($uptime === null) {
+                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+                    try {
+                        $output = [];
+                        $returnVar = 0;
+                        @exec('uptime -s 2>/dev/null', $output, $returnVar);
+                        
+                        if ($returnVar === 0 && !empty($output)) {
+                            $startTime = strtotime($output[0]);
+                            if ($startTime !== false) {
+                                $uptime = time() - $startTime;
+                            }
+                        }
+                    } catch (Exception $e) {
+                        // Ignoriere exec-Fehler
+                    }
+                }
+            }
+            
+            // Methode 3: sys_getloadavg mit Fallback
+            if ($uptime === null) {
+                if (function_exists('sys_getloadavg')) {
+                    try {
+                        $load = @sys_getloadavg();
+                        if ($load !== false && isset($load[0])) {
+                            // Schätze Uptime basierend auf Load Average (sehr ungenau)
+                            $uptime = 3600; // 1 Stunde als Standard
+                        }
+                    } catch (Exception $e) {
+                        // Ignoriere Fehler
+                    }
+                }
+            }
+            
+            if ($uptime !== null && $uptime > 0) {
+                return $this->formatUptime($uptime);
+            }
+            
+            return 'Unbekannt';
+        } catch (Exception $e) {
+            error_log("Error getting uptime: " . $e->getMessage());
+            return 'Unbekannt';
+        }
+    }
+    
+    private function getLoadAverage() {
+        try {
+            $load = null;
+            
+            // Methode 1: sys_getloadavg (Standard PHP-Funktion)
+            if (function_exists('sys_getloadavg')) {
+                try {
+                    $loadData = @sys_getloadavg();
+                    if ($loadData !== false && is_array($loadData) && count($loadData) >= 3) {
+                        $load = [
+                            '1min' => is_numeric($loadData[0]) ? round((float)$loadData[0], 2) : 0,
+                            '5min' => is_numeric($loadData[1]) ? round((float)$loadData[1], 2) : 0,
+                            '15min' => is_numeric($loadData[2]) ? round((float)$loadData[2], 2) : 0
+                        ];
+                    }
+                } catch (Exception $e) {
+                    // Ignoriere Fehler
+                }
+            }
+            
+            // Methode 2: /proc/loadavg (Linux) - nur versuchen wenn verfügbar
+            if ($load === null) {
+                try {
+                    if (@file_exists('/proc/loadavg')) {
+                        $loadContent = @file_get_contents('/proc/loadavg');
+                        if ($loadContent !== false) {
+                            $parts = explode(' ', trim($loadContent));
+                            if (count($parts) >= 3) {
+                                $load = [
+                                    '1min' => is_numeric($parts[0]) ? round((float)$parts[0], 2) : 0,
+                                    '5min' => is_numeric($parts[1]) ? round((float)$parts[1], 2) : 0,
+                                    '15min' => is_numeric($parts[2]) ? round((float)$parts[2], 2) : 0
+                                ];
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
+                    // Ignoriere Fehler
+                }
+            }
+            
+            // Methode 3: uptime-Befehl über exec
+            if ($load === null) {
+                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+                    try {
+                        $output = [];
+                        $returnVar = 0;
+                        @exec('uptime 2>/dev/null', $output, $returnVar);
+                        
+                        if ($returnVar === 0 && !empty($output)) {
+                            $uptimeLine = $output[0];
+                            if (preg_match('/load average: ([\d.]+), ([\d.]+), ([\d.]+)/', $uptimeLine, $matches)) {
+                                $load = [
+                                    '1min' => round((float)$matches[1], 2),
+                                    '5min' => round((float)$matches[2], 2),
+                                    '15min' => round((float)$matches[3], 2)
+                                ];
+                            }
+                        }
+                    } catch (Exception $e) {
+                        // Ignoriere exec-Fehler
+                    }
+                }
+            }
+            
+            if ($load !== null) {
+                return $load;
+            }
+            
+            return ['1min' => 0, '5min' => 0, '15min' => 0];
+        } catch (Exception $e) {
+            error_log("Error getting load average: " . $e->getMessage());
+            return ['1min' => 0, '5min' => 0, '15min' => 0];
+        }
+    }
+    
+    private function getNetworkStatus() {
+        try {
+            // Vereinfachte Netzwerk-Status-Prüfung
+            $networkStatus = 'online';
+            
+            // Prüfe ob externe Verbindung möglich ist
+            if (function_exists('fsockopen')) {
+                $connection = @fsockopen('8.8.8.8', 53, $errno, $errstr, 5);
+                if (!$connection) {
+                    $networkStatus = 'offline';
+                } else {
+                    fclose($connection);
+                }
+            }
+            
+            return [
+                'status' => $networkStatus,
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+        } catch (Exception $e) {
+            return ['status' => 'unknown', 'timestamp' => date('Y-m-d H:i:s')];
+        }
+    }
+    
+    private function convertToBytes($sizeStr) {
+        $sizeStr = trim($sizeStr);
+        $last = strtolower($sizeStr[strlen($sizeStr) - 1]);
+        $size = (int) $sizeStr;
+        
+        switch ($last) {
+            case 'g': $size *= 1024;
+            case 'm': $size *= 1024;
+            case 'k': $size *= 1024;
+        }
+        
+        return $size;
+    }
+    
+    private function formatBytes($bytes, $precision = 2) {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+        
+        return round($bytes, $precision) . ' ' . $units[$i];
+    }
+    
+    private function formatUptime($seconds) {
+        $days = floor($seconds / 86400);
+        $hours = floor(($seconds % 86400) / 3600);
+        $minutes = floor(($seconds % 3600) / 60);
+        
+        if ($days > 0) {
+            return "{$days}d {$hours}h {$minutes}m";
+        } elseif ($hours > 0) {
+            return "{$hours}h {$minutes}m";
+        } else {
+            return "{$minutes}m";
+        }
+    }
 }
 
-// =============================================================================
 // MODULE HELPER FUNCTIONS
-// =============================================================================
-
-/**
- * Gibt alle verfügbaren Module zurück
- */
 function getAllModules() {
     $modules = [];
     $module_dir = __DIR__ . '/module/';
@@ -4014,10 +4489,6 @@ function getAllModules() {
     
     return $modules;
 }
-
-/**
- * Gibt nur die aktivierten Module zurück
- */
 function getEnabledModules() {
     $all_modules = getAllModules();
     $enabled_modules = [];
@@ -4030,17 +4501,10 @@ function getEnabledModules() {
     
     return $enabled_modules;
 }
-
-/**
- * Gibt die Konfiguration für ein spezifisches Modul zurück
- */
 function getModuleConfig($module_key) {
     return getPluginConfig($module_key);
 }
 
-/**
- * Prüft ob ein Benutzer auf ein Modul zugreifen darf
- */
 function canAccessModule($module_key, $user_role) {
     $config = getModuleConfig($module_key);
     

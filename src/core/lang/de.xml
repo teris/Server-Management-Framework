@@ -16,6 +16,21 @@
     <create>Erstellen</create>
     <update>Aktualisieren</update>
     <refresh>Aktualisieren</refresh>
+    <support_tickets>Support-Tickets</support_tickets>
+    <subject>Betreff</subject>
+    <priority>Priorität</priority>
+    <low>Niedrig</low>
+    <medium>Mittel</medium>
+    <high>Hoch</high>
+    <urgent>Dringend</urgent>
+    <message>Nachricht</message>
+    <submit_ticket>Ticket einreichen</submit_ticket>
+    <ticket_submitted>Ticket eingereicht</ticket_submitted>
+    <ticket_submitted_message>Ihr Support-Ticket wurde erfolgreich eingereicht. Wir werden uns schnellstmöglich bei Ihnen melden.</ticket_submitted_message>
+    <ok>OK</ok>
+    <all_rights_reserved>Alle Rechte vorbehalten.</all_rights_reserved>
+    <admin_panel>Admin-Panel</admin_panel>
+    <contact>Kontakt</contact>
     <close>Schließen</close>
     <back>Zurück</back>
     <next>Weiter</next>
@@ -415,6 +430,11 @@
     <stop>Stop</stop>
     <delete>Löschen</delete>
     <unknown>Unbekannt</unknown>
+    <cpu_usage>CPU-Auslastung</cpu_usage>
+    <memory_usage>Arbeitsspeicher-Auslastung</memory_usage>
+    <cores>CPU-Kerne</cores>
+    <uptime>Laufzeit</uptime>
+    <refresh>Aktualisieren</refresh>
 
     <settings>Einstellungen</settings>
     <general>Allgemein</general>
@@ -919,4 +939,94 @@
     <ispconfig_required_fields_missing>Bitte füllen Sie alle erforderlichen ISPConfig-Felder aus</ispconfig_required_fields_missing>
     <select_at_least_one_system>Bitte wählen Sie mindestens ein System aus</select_at_least_one_system>
     <passwords_do_not_match>Passwörter stimmen nicht überein</passwords_do_not_match>
+    
+    <!-- Game Server -->
+    <game_servers>Game Server</game_servers>
+    <game_server_status>Game Server Status</game_server_status>
+    <no_game_servers_available>Keine Game Server verfügbar</no_game_servers_available>
+    <game_type>Spiel-Typ</game_type>
+    <server>Server</server>
+    <ip_address>IP-Adresse</ip_address>
+    <port>Port</port>
+    
+    <!-- Kundenregistrierung und Login -->
+    <customer_registration>Kundenregistrierung</customer_registration>
+    <customer_login>Kundenlogin</customer_login>
+    <registration_description>Erstellen Sie Ihr Konto für den Zugriff auf das Server Management System</registration_description>
+    <login_description>Melden Sie sich mit Ihren Zugangsdaten an</login_description>
+    <first_name>Vorname</first_name>
+    <last_name>Nachname</last_name>
+    <confirm_password>Passwort bestätigen</confirm_password>
+    <company>Firma</company>
+    <phone>Telefon</phone>
+    <enter_first_name>Vorname eingeben</enter_first_name>
+    <enter_last_name>Nachname eingeben</enter_last_name>
+    <enter_email>E-Mail-Adresse eingeben</enter_email>
+    <enter_password>Passwort eingeben</enter_password>
+    <enter_company>Firmenname eingeben</enter_company>
+    <enter_phone>Telefonnummer eingeben</enter_phone>
+    <password_requirements>Mindestens 8 Zeichen, Groß- und Kleinbuchstaben, Zahlen und Sonderzeichen</password_requirements>
+    <accept_terms_text>Ich akzeptiere die</accept_terms_text>
+    <terms_of_service>Nutzungsbedingungen</terms_of_service>
+    <and>und</and>
+    <privacy_policy>Datenschutzerklärung</privacy_policy>
+    <newsletter_subscription>Ich möchte den Newsletter erhalten</newsletter_subscription>
+    <create_account>Konto erstellen</create_account>
+    <already_have_account>Bereits ein Konto vorhanden</already_have_account>
+    <login_here>Hier anmelden</login_here>
+    <secure_registration>Sichere Registrierung</secure_registration>
+    <need_help>Hilfe benötigt</need_help>
+    <remember_me>Angemeldet bleiben</remember_me>
+    <forgot_password>Passwort vergessen</forgot_password>
+    <no_account>Noch kein Konto</no_account>
+    <secure_connection>Sichere Verbindung</secure_connection>
+    <email_verification>E-Mail-Bestätigung</email_verification>
+    <email_verification_sent>Bestätigungs-E-Mail wurde gesendet</email_verification_sent>
+    <email_verification_required>Bitte bestätigen Sie Ihre E-Mail-Adresse</email_verification_required>
+    <account_activated>Konto erfolgreich aktiviert</account_activated>
+    <invalid_verification_token>Ungültiger Bestätigungstoken</invalid_verification_token>
+    <verification_token_expired>Bestätigungstoken ist abgelaufen</verification_token_expired>
+    <password_reset>Passwort zurücksetzen</password_reset>
+    <password_reset_sent>Passwort-Reset-E-Mail wurde gesendet</password_reset_sent>
+    <password_reset_success>Passwort erfolgreich zurückgesetzt</password_reset_success>
+    <invalid_reset_token>Ungültiger Reset-Token</invalid_reset_token>
+    <reset_token_expired>Reset-Token ist abgelaufen</reset_token_expired>
+    <new_password>Neues Passwort</new_password>
+    <confirm_new_password>Neues Passwort bestätigen</confirm_new_password>
+    <reset_password>Passwort zurücksetzen</reset_password>
+    <back_to_login>Zurück zum Login</back_to_login>
+    <registration_successful>Registrierung erfolgreich! Bitte bestätigen Sie Ihre E-Mail-Adresse.</registration_successful>
+    <login_successful>Anmeldung erfolgreich</login_successful>
+    <login_failed>Anmeldung fehlgeschlagen</login_failed>
+    <invalid_credentials>Ungültige Anmeldedaten</invalid_credentials>
+    <account_locked>Konto gesperrt</account_locked>
+    <account_pending>Konto wartet auf Bestätigung</account_pending>
+    <account_suspended>Konto gesperrt</account_suspended>
+    <account_deleted>Konto gelöscht</account_deleted>
+    <welcome_message>Willkommen bei unserem Server Management System</welcome_message>
+    <dashboard_welcome>Willkommen in Ihrem Dashboard</dashboard_welcome>
+    <logout_successful>Erfolgreich abgemeldet</logout_successful>
+    <session_expired>Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.</session_expired>
+    <access_denied_customer>Zugriff verweigert. Bitte melden Sie sich an.</access_denied_customer>
+    
+    <!-- Dashboard -->
+    <active_servers>Aktive Server</active_servers>
+    <active_websites>Aktive Websites</active_websites>
+    <active_accounts>Aktive Konten</active_accounts>
+    <open_tickets>Offene Tickets</open_tickets>
+    <edit_profile>Profil bearbeiten</edit_profile>
+    <no_recent_activity>Keine kürzlichen Aktivitäten</no_recent_activity>
+    <unknown>Unbekannt</unknown>
+    <websites>Websites</websites>
+    
+    <!-- Frontpanel -->
+    <frontpanel_title>Frontpanel</frontpanel_title>
+    <server_status>Server-Status</server_status>
+    <game_servers>Game Server</game_servers>
+    <support>Support</support>
+    <hero_description>Professionelles Server Management System für Ihre virtuellen Maschinen, Game Server und Websites</hero_description>
+    <proxmox_server_status>Proxmox Server Status</proxmox_server_status>
+    <no_vms_available>Keine VMs verfügbar</no_vms_available>
+    <game_server_status>Game Server Status</game_server_status>
+    <no_game_servers_available>Keine Game Server verfügbar</no_game_servers_available>
 </translations> 

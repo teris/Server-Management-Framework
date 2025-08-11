@@ -28,10 +28,12 @@
                 <li><a href="#proxmox" onclick="setActiveLink(this)">Proxmox API</a></li>
                 <li><a href="#ispconfig" onclick="setActiveLink(this)">ISPConfig API</a></li>
                 <li><a href="#ovh" onclick="setActiveLink(this)">OVH API</a></li>
-                <li><a href="#ogp" onclick="setActiveLink(this)">OGP API</a></li>
-                <li><a href="#service-manager" onclick="setActiveLink(this)">ServiceManager</a></li>
-                <li><a href="#module-functions" onclick="setActiveLink(this)">Module Functions</a></li>
-                <li><a href="#examples" onclick="setActiveLink(this)">Example Scripts</a></li>
+                            <li><a href="#ogp" onclick="setActiveLink(this)">OGP API</a></li>
+            <li><a href="#virtual-mac" onclick="setActiveLink(this)">Virtual MAC Management</a></li>
+            <li><a href="#system-monitoring" onclick="setActiveLink(this)">System Monitoring</a></li>
+            <li><a href="#service-manager" onclick="setActiveLink(this)">ServiceManager</a></li>
+            <li><a href="#module-functions" onclick="setActiveLink(this)">Module Functions</a></li>
+            <li><a href="#examples" onclick="setActiveLink(this)">Example Scripts</a></li>
             </ul>
         </div>
     </div>
@@ -168,6 +170,77 @@ $connection = $db->getConnection();</pre>
                     <div class="property">public $ssl_enabled</div>
                 </div>
             </div>
+
+            <h3>FailoverIP Class</h3>
+            <div class="class-info">
+                <h4>Properties:</h4>
+                <div class="properties">
+                    <div class="property">public $ip</div>
+                    <div class="property">public $mac</div>
+                    <div class="property">public $routedTo</div>
+                    <div class="property">public $country</div>
+                    <div class="property">public $description</div>
+                </div>
+                <p>Represents a failover IP address with routing information.</p>
+            </div>
+
+            <h3>VPS Class</h3>
+            <div class="class-info">
+                <h4>Properties:</h4>
+                <div class="properties">
+                    <div class="property">public $id</div>
+                    <div class="property">public $name</div>
+                    <div class="property">public $state</div>
+                    <div class="property">public $ip</div>
+                    <div class="property">public $mac</div>
+                    <div class="property">public $location</div>
+                    <div class="property">public $model</div>
+                    <div class="property">public $os</div>
+                </div>
+                <p>Represents a VPS instance with configuration details.</p>
+            </div>
+
+            <h3>Domain Class</h3>
+            <div class="class-info">
+                <h4>Properties:</h4>
+                <div class="properties">
+                    <div class="property">public $name</div>
+                    <div class="property">public $whoisOwner</div>
+                    <div class="property">public $dnssec</div>
+                    <div class="property">public $zone</div>
+                    <div class="property">public $dnsRecords</div>
+                </div>
+                <p>Represents a domain with DNS configuration.</p>
+            </div>
+
+            <h3>Database_Entry Class</h3>
+            <div class="class-info">
+                <h4>Properties:</h4>
+                <div class="properties">
+                    <div class="property">public $database_id</div>
+                    <div class="property">public $database_name</div>
+                    <div class="property">public $database_user</div>
+                    <div class="property">public $database_user_id</div>
+                    <div class="property">public $database_host</div>
+                    <div class="property">public $database_quota</div>
+                    <div class="property">public $active</div>
+                </div>
+                <p>Represents a database entry with user and quota information.</p>
+            </div>
+
+            <h3>EmailAccount Class</h3>
+            <div class="class-info">
+                <h4>Properties:</h4>
+                <div class="properties">
+                    <div class="property">public $email_id</div>
+                    <div class="property">public $email</div>
+                    <div class="property">public $login</div>
+                    <div class="property">public $quota</div>
+                    <div class="property">public $active</div>
+                    <div class="property">public $domain_id</div>
+                </div>
+                <p>Represents an email account with quota and domain information.</p>
+            </div>
         </div>
 
         <div class="section" id="data-mapper">
@@ -190,6 +263,36 @@ $connection = $db->getConnection();</pre>
                 <h4>mapToWebsite()</h4>
                 <div class="signature">public static function mapToWebsite($data)</div>
                 <div class="description">Maps ISPConfig website data to a Website object.</div>
+            </div>
+
+            <div class="method">
+                <h4>mapToDatabase()</h4>
+                <div class="signature">public static function mapToDatabase($data)</div>
+                <div class="description">Maps ISPConfig database data to a Database_Entry object.</div>
+            </div>
+
+            <div class="method">
+                <h4>mapToEmailAccount()</h4>
+                <div class="signature">public static function mapToEmailAccount($data)</div>
+                <div class="description">Maps ISPConfig email account data to an EmailAccount object.</div>
+            </div>
+
+            <div class="method">
+                <h4>mapToDomain()</h4>
+                <div class="signature">public static function mapToDomain($data)</div>
+                <div class="description">Maps OVH domain data to a Domain object.</div>
+            </div>
+
+            <div class="method">
+                <h4>mapToVPS()</h4>
+                <div class="signature">public static function mapToVPS($data)</div>
+                <div class="description">Maps OVH VPS data to a VPS object.</div>
+            </div>
+
+            <div class="method">
+                <h4>mapToFailoverIP()</h4>
+                <div class="signature">public static function mapToFailoverIP($data)</div>
+                <div class="description">Maps OVH failover IP data to a FailoverIP object.</div>
             </div>
         </div>
 
@@ -301,6 +404,54 @@ $result = $proxmox->createVM($vmData);</pre>
                 <div class="description">Controls a VM (start, stop, reset, suspend, resume).</div>
             </div>
 
+            <div class="method">
+                <h4>editVM()</h4>
+                <div class="signature">public function editVM($node, $vmid, $vmData)</div>
+                <div class="description">Edits the configuration of a VM.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteVM()</h4>
+                <div class="signature">public function deleteVM($node, $vmid)</div>
+                <div class="description">Deletes a VM.</div>
+            </div>
+
+            <div class="method">
+                <h4>startVM()</h4>
+                <div class="signature">public function startVM($node, $vmid)</div>
+                <div class="description">Starts a VM.</div>
+            </div>
+
+            <div class="method">
+                <h4>stopVM()</h4>
+                <div class="signature">public function stopVM($node, $vmid)</div>
+                <div class="description">Stops a VM.</div>
+            </div>
+
+            <div class="method">
+                <h4>resetVM()</h4>
+                <div class="signature">public function resetVM($node, $vmid)</div>
+                <div class="description">Resets a VM.</div>
+            </div>
+
+            <div class="method">
+                <h4>suspendVM()</h4>
+                <div class="signature">public function suspendVM($node, $vmid)</div>
+                <div class="description">Suspends a VM.</div>
+            </div>
+
+            <div class="method">
+                <h4>resumeVM()</h4>
+                <div class="signature">public function resumeVM($node, $vmid)</div>
+                <div class="description">Resumes a suspended VM.</div>
+            </div>
+
+            <div class="method">
+                <h4>cloneVM()</h4>
+                <div class="signature">public function cloneVM($node, $vmid, $newVmid, $newName)</div>
+                <div class="description">Clones an existing VM.</div>
+            </div>
+
             <div class="class-info">
                 <h3>Proxmox User Management</h3>
                 <p>New functions for user management in Proxmox.</p>
@@ -398,7 +549,25 @@ $result = $proxmox->createProxmoxUser($userData);</pre>
             <div class="method">
                 <h4>getEmailAccounts()</h4>
                 <div class="signature">public function getEmailAccounts($filter = [])</div>
-                <div class="description">Retrieves all email accounts.</div>
+                <div class="description">Retrieves all email accounts with detailed information including quota and domain details.</div>
+            </div>
+
+            <div class="method">
+                <h4>getClients()</h4>
+                <div class="signature">public function getClients($filter = [])</div>
+                <div class="description">Retrieves all ISPConfig clients.</div>
+            </div>
+
+            <div class="method">
+                <h4>getServerConfig()</h4>
+                <div class="signature">public function getServerConfig()</div>
+                <div class="description">Gets server configuration information.</div>
+            </div>
+
+            <div class="method">
+                <h4>testMailUserGetParameters()</h4>
+                <div class="signature">public function testMailUserGetParameters($filter = [])</div>
+                <div class="description">Tests mail user get parameters for validation.</div>
             </div>
 
             <div class="class-info">
@@ -432,6 +601,72 @@ $result = $ispconfig->createWebsite($websiteData);</pre>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="method">
+                <h4>editWebsite()</h4>
+                <div class="signature">public function editWebsite($websiteId, $websiteData)</div>
+                <div class="description">Edits an existing website.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteWebsite()</h4>
+                <div class="signature">public function deleteWebsite($websiteId)</div>
+                <div class="description">Deletes a website.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDatabase()</h4>
+                <div class="signature">public function createDatabase($databaseData)</div>
+                <div class="description">Creates a new database.</div>
+            </div>
+
+            <div class="method">
+                <h4>editDatabase()</h4>
+                <div class="signature">public function editDatabase($databaseId, $databaseData)</div>
+                <div class="description">Edits an existing database.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteDatabase()</h4>
+                <div class="signature">public function deleteDatabase($databaseId)</div>
+                <div class="description">Deletes a database.</div>
+            </div>
+
+            <div class="method">
+                <h4>createEmailAccount()</h4>
+                <div class="signature">public function createEmailAccount($emailData)</div>
+                <div class="description">Creates a new email account.</div>
+            </div>
+
+            <div class="method">
+                <h4>editEmailAccount()</h4>
+                <div class="signature">public function editEmailAccount($emailId, $emailData)</div>
+                <div class="description">Edits an existing email account.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteEmailAccount()</h4>
+                <div class="signature">public function deleteEmailAccount($emailId)</div>
+                <div class="description">Deletes an email account.</div>
+            </div>
+
+            <div class="method">
+                <h4>createClient()</h4>
+                <div class="signature">public function createClient($clientData)</div>
+                <div class="description">Creates a new ISPConfig client.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateClient()</h4>
+                <div class="signature">public function updateClient($clientId, $clientData)</div>
+                <div class="description">Updates an existing ISPConfig client.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteClient()</h4>
+                <div class="signature">public function deleteClient($clientId)</div>
+                <div class="description">Deletes an ISPConfig client.</div>
             </div>
         </div>
 
@@ -484,6 +719,30 @@ $result = $ispconfig->createWebsite($websiteData);</pre>
                 <h4>getUser()</h4>
                 <div class="signature">public function getUser($email)</div>
                 <div class="description">Gets details of a specific user.</div>
+            </div>
+
+            <div class="method">
+                <h4>getUserAssigned()</h4>
+                <div class="signature">public function getUserAssigned($email)</div>
+                <div class="description">Gets all game servers assigned to a specific user.</div>
+            </div>
+
+            <div class="method">
+                <h4>getAddonsList()</h4>
+                <div class="signature">public function getAddonsList()</div>
+                <div class="description">Gets the list of available addons.</div>
+            </div>
+
+            <div class="method">
+                <h4>getSetting()</h4>
+                <div class="signature">public function getSetting($key)</div>
+                <div class="description">Gets a specific OGP setting value.</div>
+            </div>
+
+            <div class="method">
+                <h4>getServerIPs()</h4>
+                <div class="signature">public function getServerIPs($serverId)</div>
+                <div class="description">Gets all IP addresses for a specific server.</div>
             </div>
 
             <div class="class-info">
@@ -577,6 +836,351 @@ $result = $ogp->createUser($userData);</pre>
                 <div class="signature">public function sendRconCommand($ip, $port, $modKey, $command)</div>
                 <div class="description">Sends an RCON command to a game server.</div>
             </div>
+
+            <div class="method">
+                <h4>restartServer()</h4>
+                <div class="signature">public function restartServer($serverId)</div>
+                <div class="description">Restarts a game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>createServer()</h4>
+                <div class="signature">public function createServer($serverData)</div>
+                <div class="description">Creates a new server.</div>
+            </div>
+
+            <div class="method">
+                <h4>removeServer()</h4>
+                <div class="signature">public function removeServer($serverId)</div>
+                <div class="description">Removes a server.</div>
+            </div>
+
+            <div class="method">
+                <h4>addServerIP()</h4>
+                <div class="signature">public function addServerIP($serverId, $ip)</div>
+                <div class="description">Adds an IP address to a server.</div>
+            </div>
+
+            <div class="method">
+                <h4>removeServerIP()</h4>
+                <div class="signature">public function removeServerIP($serverId, $ip)</div>
+                <div class="description">Removes an IP address from a server.</div>
+            </div>
+
+            <div class="method">
+                <h4>editServerIP()</h4>
+                <div class="signature">public function editServerIP($serverId, $oldIp, $newIp)</div>
+                <div class="description">Edits an IP address on a server.</div>
+            </div>
+
+            <div class="method">
+                <h4>cloneGameServer()</h4>
+                <div class="signature">public function cloneGameServer($serverId, $newServerData)</div>
+                <div class="description">Clones an existing game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>setGameServerExpiration()</h4>
+                <div class="signature">public function setGameServerExpiration($serverId, $timestamp)</div>
+                <div class="description">Sets the expiration date for a game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>assignUser()</h4>
+                <div class="signature">public function assignUser($email, $serverId, $timestamp = null)</div>
+                <div class="description">Assigns a user to a game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>removeUserAssignment()</h4>
+                <div class="signature">public function removeUserAssignment($email, $serverId)</div>
+                <div class="description">Removes the assignment of a user to a game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>startGameManager()</h4>
+                <div class="signature">public function startGameManager($ip, $port, $modKey)</div>
+                <div class="description">Starts the game manager.</div>
+            </div>
+
+            <div class="method">
+                <h4>stopGameManager()</h4>
+                <div class="signature">public function stopGameManager($ip, $port, $modKey)</div>
+                <div class="description">Stops the game manager.</div>
+            </div>
+
+            <div class="method">
+                <h4>restartGameManager()</h4>
+                <div class="signature">public function restartGameManager($ip, $port, $modKey)</div>
+                <div class="description">Restarts the game manager.</div>
+            </div>
+
+            <div class="method">
+                <h4>sendRconCommand()</h4>
+                <div class="signature">public function sendRconCommand($ip, $port, $modKey, $command)</div>
+                <div class="description">Sends an RCON command to a game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateGameManager()</h4>
+                <div class="signature">public function updateGameManager($ip, $port, $modKey)</div>
+                <div class="description">Updates the game manager.</div>
+            </div>
+
+            <div class="method">
+                <h4>listFiles()</h4>
+                <div class="signature">public function listFiles($serverId, $path)</div>
+                <div class="description">Lists files in a server directory.</div>
+            </div>
+
+            <div class="method">
+                <h4>getFile()</h4>
+                <div class="signature">public function getFile($serverId, $path)</div>
+                <div class="description">Gets the contents of a file.</div>
+            </div>
+
+            <div class="method">
+                <h4>saveFile()</h4>
+                <div class="signature">public function saveFile($serverId, $path, $content)</div>
+                <div class="description">Saves content to a file.</div>
+            </div>
+
+            <div class="method">
+                <h4>removeFile()</h4>
+                <div class="signature">public function removeFile($serverId, $path)</div>
+                <div class="description">Removes a file.</div>
+            </div>
+
+            <div class="method">
+                <h4>installAddon()</h4>
+                <div class="signature">public function installAddon($serverId, $addonId)</div>
+                <div class="description">Installs an addon on a server.</div>
+            </div>
+
+            <div class="method">
+                <h4>installSteamWorkshop()</h4>
+                <div class="signature">public function installSteamWorkshop($serverId, $workshopId)</div>
+                <div class="description">Installs a Steam Workshop item on a server.</div>
+            </div>
+        </div>
+
+        <div class="section" id="virtual-mac">
+            <h2>Virtual MAC Management</h2>
+            <p>Comprehensive management of OVH Virtual MAC addresses and IP reverse DNS.</p>
+
+            <div class="class-info">
+                <h3>Virtual MAC Functions</h3>
+                <p>Functions for managing virtual MAC addresses and IP reverse DNS records.</p>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacAddresses()</h4>
+                <div class="signature">public function getVirtualMacAddresses()</div>
+                <div class="description">Retrieves all virtual MAC addresses from OVH.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHGet();
+$virtualMacs = $ovh->getVirtualMacAddresses();</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacDetails($mac)</h4>
+                <div class="signature">public function getVirtualMacDetails($mac)</div>
+                <div class="description">Gets detailed information about a specific virtual MAC address.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHGet();
+$details = $ovh->getVirtualMacDetails('00:11:22:33:44:55');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>createVirtualMac($ip)</h4>
+                <div class="signature">public function createVirtualMac($ip)</div>
+                <div class="description">Creates a new virtual MAC address for a specific IP.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHPost();
+$result = $ovh->createVirtualMac('192.168.1.100');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>deleteVirtualMac($mac)</h4>
+                <div class="signature">public function deleteVirtualMac($mac)</div>
+                <div class="description">Deletes a virtual MAC address.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHPost();
+$result = $ovh->deleteVirtualMac('00:11:22:33:44:55');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>addIPToVirtualMac($mac, $ip)</h4>
+                <div class="signature">public function addIPToVirtualMac($mac, $ip)</div>
+                <div class="description">Adds an IP address to a virtual MAC address.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHPost();
+$result = $ovh->addIPToVirtualMac('00:11:22:33:44:55', '192.168.1.100');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>removeIPFromVirtualMac($mac, $ip)</h4>
+                <div class="signature">public function removeIPFromVirtualMac($mac, $ip)</div>
+                <div class="description">Removes an IP address from a virtual MAC address.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHPost();
+$result = $ovh->removeIPFromVirtualMac('00:11:22:33:44:55', '192.168.1.100');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>getIPReverse($ip)</h4>
+                <div class="signature">public function getIPReverse($ip)</div>
+                <div class="description">Gets the reverse DNS record for an IP address.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHGet();
+$reverse = $ovh->getIPReverse('192.168.1.100');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>createIPReverse($ip, $reverse)</h4>
+                <div class="signature">public function createIPReverse($ip, $reverse)</div>
+                <div class="description">Creates a reverse DNS record for an IP address.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHPost();
+$result = $ovh->createIPReverse('192.168.1.100', 'hostname.example.com');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>updateIPReverse($ip, $reverse)</h4>
+                <div class="signature">public function updateIPReverse($ip, $reverse)</div>
+                <div class="description">Updates the reverse DNS record for an IP address.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHPost();
+$result = $ovh->updateIPReverse('192.168.1.100', 'newhostname.example.com');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>deleteIPReverse($ip)</h4>
+                <div class="signature">public function deleteIPReverse($ip)</div>
+                <div class="description">Deletes the reverse DNS record for an IP address.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHPost();
+$result = $ovh->deleteIPReverse('192.168.1.100');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>getCompleteVirtualMacInfo($mac)</h4>
+                <div class="signature">public function getCompleteVirtualMacInfo($mac)</div>
+                <div class="description">Gets complete information about a virtual MAC address including all associated IPs and reverse DNS records.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$ovh = new OVHGet();
+$info = $ovh->getCompleteVirtualMacInfo('00:11:22:33:44:55');</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="section" id="ovh">
@@ -606,6 +1210,30 @@ $result = $ogp->createUser($userData);</pre>
                 <div class="description">Retrieves all virtual MAC addresses for a service.</div>
             </div>
 
+            <div class="method">
+                <h4>getVPSIPs()</h4>
+                <div class="signature">public function getVPSIPs($serviceName)</div>
+                <div class="description">Gets all IP addresses associated with a VPS.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVPSIPDetails($serviceName, $ip)</h4>
+                <div class="signature">public function getVPSIPDetails($serviceName, $ip)</div>
+                <div class="description">Gets detailed information about a specific IP address on a VPS.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVPSMacAddress($serviceName)</h4>
+                <div class="signature">public function getVPSMacAddress($serviceName)</div>
+                <div class="description">Gets the MAC address of a VPS.</div>
+            </div>
+
+            <div class="method">
+                <h4>getFailoverIPDetails($ip)</h4>
+                <div class="signature">public function getFailoverIPDetails($ip)</div>
+                <div class="description">Gets detailed information about a failover IP address.</div>
+            </div>
+
             <div class="class-info">
                 <h3>OVHPost Class</h3>
                 <p>Write operations for OVH.</p>
@@ -621,6 +1249,66 @@ $result = $ogp->createUser($userData);</pre>
                 <h4>addVirtualMacIP()</h4>
                 <div class="signature">public function addVirtualMacIP($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface)</div>
                 <div class="description">Adds an IP address to a virtual MAC.</div>
+            </div>
+
+            <div class="method">
+                <h4>orderDomain()</h4>
+                <div class="signature">public function orderDomain($domainName, $duration = 'P1Y')</div>
+                <div class="description">Orders a new domain from OVH.</div>
+            </div>
+
+            <div class="method">
+                <h4>editDomain()</h4>
+                <div class="signature">public function editDomain($domainName, $data)</div>
+                <div class="description">Edits domain information.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteDomain()</h4>
+                <div class="signature">public function deleteDomain($domainName)</div>
+                <div class="description">Deletes a domain.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSRecord()</h4>
+                <div class="signature">public function createDNSRecord($domainName, $zoneName, $recordData)</div>
+                <div class="description">Creates a new DNS record.</div>
+            </div>
+
+            <div class="method">
+                <h4>editDNSRecord()</h4>
+                <div class="signature">public function editDNSRecord($domainName, $zoneName, $recordId, $recordData)</div>
+                <div class="description">Edits an existing DNS record.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteDNSRecord()</h4>
+                <div class="signature">public function deleteDNSRecord($domainName, $zoneName, $recordId)</div>
+                <div class="description">Deletes a DNS record.</div>
+            </div>
+
+            <div class="method">
+                <h4>refreshDNSZone()</h4>
+                <div class="signature">public function refreshDNSZone($domainName, $zoneName)</div>
+                <div class="description">Refreshes a DNS zone.</div>
+            </div>
+
+            <div class="method">
+                <h4>rebootVPS()</h4>
+                <div class="signature">public function rebootVPS($serviceName)</div>
+                <div class="description">Reboots a VPS.</div>
+            </div>
+
+            <div class="method">
+                <h4>stopVPS()</h4>
+                <div class="signature">public function stopVPS($serviceName)</div>
+                <div class="description">Stops a VPS.</div>
+            </div>
+
+            <div class="method">
+                <h4>startVPS()</h4>
+                <div class="signature">public function startVPS($serviceName)</div>
+                <div class="description">Starts a VPS.</div>
             </div>
         </div>
 
@@ -660,6 +1348,115 @@ $result = $ogp->createUser($userData);</pre>
                 <h4>sendRconCommand()</h4>
                 <div class="signature">public function sendRconCommand($ip, $port, $modKey, $command)</div>
                 <div class="description">Sendet einen RCON-Befehl an einen Game-Server.</div>
+            </div>
+        </div>
+
+        <div class="section" id="system-monitoring">
+            <h2>System Monitoring</h2>
+            <p>Comprehensive system monitoring and status functions.</p>
+
+            <div class="class-info">
+                <h3>System Monitoring Functions</h3>
+                <p>Functions for monitoring system resources and status.</p>
+            </div>
+
+            <div class="method">
+                <h4>getSystemInfo()</h4>
+                <div class="signature">public function getSystemInfo()</div>
+                <div class="description">Gets comprehensive system information including OS, hostname, and uptime.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$systemInfo = getSystemInfo();
+print_r($systemInfo);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>getCPUUsage()</h4>
+                <div class="signature">public function getCPUUsage()</div>
+                <div class="description">Gets current CPU usage percentage.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$cpuUsage = getCPUUsage();
+echo "CPU Usage: " . $cpuUsage . "%";</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>getMemoryUsage()</h4>
+                <div class="signature">public function getMemoryUsage()</div>
+                <div class="description">Gets current memory usage information including total, used, and free memory.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$memoryInfo = getMemoryUsage();
+echo "Memory Usage: " . $memoryInfo['used'] . " / " . $memoryInfo['total'] . " MB";</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>getDiskUsage()</h4>
+                <div class="signature">public function getDiskUsage()</div>
+                <div class="description">Gets disk usage information for all mounted filesystems.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$diskInfo = getDiskUsage();
+foreach ($diskInfo as $mount => $info) {
+    echo "$mount: " . $info['used'] . " / " . $info['total'] . " GB\n";
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method">
+                <h4>getNetworkStatus()</h4>
+                <div class="signature">public function getNetworkStatus()</div>
+                <div class="description">Gets network interface status and statistics.</div>
+                <div class="example">
+                    <h5>Example:</h5>
+                    <div class="code-block">
+                        <button class="code-toggle" onclick="toggleCode(this)">
+                            <span class="toggle-icon">▼</span>
+                            Show/Hide Code
+                        </button>
+                        <div class="code-content">
+                            <pre>$networkInfo = getNetworkStatus();
+foreach ($networkInfo as $interface => $stats) {
+    echo "$interface: " . $stats['rx_bytes'] . " bytes received, " . $stats['tx_bytes'] . " bytes sent\n";
+}</pre>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -719,6 +1516,252 @@ $result = $serviceManager->ProxmoxAPI('post', '/nodes/pve/qemu/100/status/start'
                 <h4>OGPAPI()</h4>
                 <div class="signature">public function OGPAPI($type, $url, $code = null)</div>
                 <div class="description">Generic OGP API function.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxVMs()</h4>
+                <div class="signature">public function getProxmoxVMs($node = null)</div>
+                <div class="description">Gets all Proxmox VMs from all nodes or a specific node.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxNodes()</h4>
+                <div class="signature">public function getProxmoxNodes()</div>
+                <div class="description">Gets all available Proxmox nodes.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxStorage()</h4>
+                <div class="signature">public function getProxmoxStorage($node)</div>
+                <div class="description">Gets storage information for a Proxmox node.</div>
+            </div>
+
+            <div class="method">
+                <h4>getProxmoxNetwork()</h4>
+                <div class="signature">public function getProxmoxNetwork($node)</div>
+                <div class="description">Gets network information for a Proxmox node.</div>
+            </div>
+
+            <div class="method">
+                <h4>createProxmoxVM()</h4>
+                <div class="signature">public function createProxmoxVM($vmData)</div>
+                <div class="description">Creates a new Proxmox VM.</div>
+            </div>
+
+            <div class="method">
+                <h4>controlProxmoxVM()</h4>
+                <div class="signature">public function controlProxmoxVM($node, $vmid, $action)</div>
+                <div class="description">Controls a Proxmox VM (start, stop, reset, suspend, resume).</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteProxmoxVM()</h4>
+                <div class="signature">public function deleteProxmoxVM($node, $vmid)</div>
+                <div class="description">Deletes a Proxmox VM.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigWebsites()</h4>
+                <div class="signature">public function getISPConfigWebsites($filter = [])</div>
+                <div class="description">Gets all ISPConfig websites.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigDatabases()</h4>
+                <div class="signature">public function getISPConfigDatabases($filter = [])</div>
+                <div class="description">Gets all ISPConfig databases.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigEmailAccounts()</h4>
+                <div class="signature">public function getISPConfigEmailAccounts($filter = [])</div>
+                <div class="description">Gets all ISPConfig email accounts.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigWebsite()</h4>
+                <div class="signature">public function createISPConfigWebsite($websiteData)</div>
+                <div class="description">Creates a new ISPConfig website.</div>
+            </div>
+
+            <div class="method">
+                <h4>editISPConfigWebsite()</h4>
+                <div class="signature">public function editISPConfigWebsite($websiteId, $websiteData)</div>
+                <div class="description">Edits an existing ISPConfig website.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteISPConfigWebsite()</h4>
+                <div class="signature">public function deleteISPConfigWebsite($websiteId)</div>
+                <div class="description">Deletes an ISPConfig website.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigDatabase()</h4>
+                <div class="signature">public function createISPConfigDatabase($databaseData)</div>
+                <div class="description">Creates a new ISPConfig database.</div>
+            </div>
+
+            <div class="method">
+                <h4>editISPConfigDatabase()</h4>
+                <div class="signature">public function editISPConfigDatabase($databaseId, $databaseData)</div>
+                <div class="description">Edits an existing ISPConfig database.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteISPConfigDatabase()</h4>
+                <div class="signature">public function deleteISPConfigDatabase($databaseId)</div>
+                <div class="description">Deletes an ISPConfig database.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigEmailAccount()</h4>
+                <div class="signature">public function createISPConfigEmailAccount($emailData)</div>
+                <div class="description">Creates a new ISPConfig email account.</div>
+            </div>
+
+            <div class="method">
+                <h4>editISPConfigEmailAccount()</h4>
+                <div class="signature">public function editISPConfigEmailAccount($emailId, $emailData)</div>
+                <div class="description">Edits an existing ISPConfig email account.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteISPConfigEmailAccount()</h4>
+                <div class="signature">public function deleteISPConfigEmailAccount($emailId)</div>
+                <div class="description">Deletes an ISPConfig email account.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacAddresses()</h4>
+                <div class="signature">public function getVirtualMacAddresses($serviceName = null)</div>
+                <div class="description">Gets all virtual MAC addresses or for a specific service.</div>
+            </div>
+
+            <div class="method">
+                <h4>getVirtualMacDetails()</h4>
+                <div class="signature">public function getVirtualMacDetails($mac)</div>
+                <div class="description">Gets detailed information about a virtual MAC address.</div>
+            </div>
+
+            <div class="method">
+                <h4>createVirtualMac()</h4>
+                <div class="signature">public function createVirtualMac($serviceName, $virtualNetworkInterface, $type = 'ovh')</div>
+                <div class="description">Creates a new virtual MAC address.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteVirtualMac()</h4>
+                <div class="signature">public function deleteVirtualMac($mac)</div>
+                <div class="description">Deletes a virtual MAC address.</div>
+            </div>
+
+            <div class="method">
+                <h4>addIPToVirtualMac()</h4>
+                <div class="signature">public function addIPToVirtualMac($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface)</div>
+                <div class="description">Adds an IP address to a virtual MAC address.</div>
+            </div>
+
+            <div class="method">
+                <h4>removeIPFromVirtualMac()</h4>
+                <div class="signature">public function removeIPFromVirtualMac($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface)</div>
+                <div class="description">Removes an IP address from a virtual MAC address.</div>
+            </div>
+
+            <div class="method">
+                <h4>getIPReverse()</h4>
+                <div class="signature">public function getIPReverse($ip)</div>
+                <div class="description">Gets the reverse DNS record for an IP address.</div>
+            </div>
+
+            <div class="method">
+                <h4>createIPReverse()</h4>
+                <div class="signature">public function createIPReverse($ip, $reverse)</div>
+                <div class="description">Creates a reverse DNS record for an IP address.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateIPReverse()</h4>
+                <div class="signature">public function updateIPReverse($ip, $reverse)</div>
+                <div class="description">Updates the reverse DNS record for an IP address.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteIPReverse()</h4>
+                <div class="signature">public function deleteIPReverse($ip)</div>
+                <div class="description">Deletes the reverse DNS record for an IP address.</div>
+            </div>
+
+            <div class="method">
+                <h4>getCompleteVirtualMacInfo()</h4>
+                <div class="signature">public function getCompleteVirtualMacInfo($mac = null)</div>
+                <div class="description">Gets complete information about virtual MAC addresses.</div>
+            </div>
+
+            <div class="method">
+                <h4>getSystemInfo()</h4>
+                <div class="signature">public function getSystemInfo()</div>
+                <div class="description">Gets comprehensive system information.</div>
+            </div>
+
+            <div class="method">
+                <h4>getCPUUsage()</h4>
+                <div class="signature">public function getCPUUsage()</div>
+                <div class="description">Gets current CPU usage percentage.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMemoryUsage()</h4>
+                <div class="signature">public function getMemoryUsage()</div>
+                <div class="description">Gets current memory usage information.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDiskUsage()</h4>
+                <div class="signature">public function getDiskUsage()</div>
+                <div class="description">Gets disk usage information for all mounted filesystems.</div>
+            </div>
+
+            <div class="method">
+                <h4>getNetworkStatus()</h4>
+                <div class="signature">public function getNetworkStatus()</div>
+                <div class="description">Gets network interface status and statistics.</div>
+            </div>
+
+            <div class="method">
+                <h4>testOGPToken()</h4>
+                <div class="signature">public function testOGPToken()</div>
+                <div class="description">Tests the validity of the OGP token.</div>
+            </div>
+
+            <div class="method">
+                <h4>getOGPServerList()</h4>
+                <div class="signature">public function getOGPServerList()</div>
+                <div class="description">Gets all OGP remote servers.</div>
+            </div>
+
+            <div class="method">
+                <h4>getOGPGameServers()</h4>
+                <div class="signature">public function getOGPGameServers()</div>
+                <div class="description">Gets all OGP game servers.</div>
+            </div>
+
+            <div class="method">
+                <h4>createOGPGameServer()</h4>
+                <div class="signature">public function createOGPGameServer($gameServerData)</div>
+                <div class="description">Creates a new OGP game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>sendOGPRconCommand()</h4>
+                <div class="signature">public function sendOGPRconCommand($ip, $port, $modKey, $command)</div>
+                <div class="description">Sends an RCON command to an OGP game server.</div>
+            </div>
+
+            <div class="method">
+                <h4>getOGPSetting()</h4>
+                <div class="signature">public function getOGPSetting($key)</div>
+                <div class="description">Gets a specific OGP setting value.</div>
             </div>
         </div>
 

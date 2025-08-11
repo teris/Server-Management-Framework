@@ -16,6 +16,21 @@
     <create>Create</create>
     <update>Update</update>
     <refresh>Refresh</refresh>
+    <support_tickets>Support Tickets</support_tickets>
+    <subject>Subject</subject>
+    <priority>Priority</priority>
+    <low>Low</low>
+    <medium>Medium</medium>
+    <high>High</high>
+    <urgent>Urgent</urgent>
+    <message>Message</message>
+    <submit_ticket>Submit Ticket</submit_ticket>
+    <ticket_submitted>Ticket Submitted</ticket_submitted>
+    <ticket_submitted_message>Your support ticket has been successfully submitted. We will get back to you as soon as possible.</ticket_submitted_message>
+    <ok>OK</ok>
+    <all_rights_reserved>All rights reserved.</all_rights_reserved>
+    <admin_panel>Admin Panel</admin_panel>
+    <contact>Contact</contact>
     <close>Close</close>
     <back>Back</back>
     <next>Next</next>
@@ -54,6 +69,11 @@
     <disabled>Disabled</disabled>
     <connected>Connected</connected>
     <disconnected>Disconnected</disconnected>
+    <cpu_usage>CPU Usage</cpu_usage>
+    <memory_usage>Memory Usage</memory_usage>
+    <cores>CPU Cores</cores>
+    <uptime>Uptime</uptime>
+    <refresh>Refresh</refresh>
     
     <!-- Time and Date -->
     <today>Today</today>
@@ -740,4 +760,94 @@
     <ispconfig_required_fields_missing>Please fill in all required ISPConfig fields</ispconfig_required_fields_missing>
     <select_at_least_one_system>Please select at least one system</select_at_least_one_system>
     <passwords_do_not_match>Passwords do not match</passwords_do_not_match>
+    
+    <!-- Game Server -->
+    <game_servers>Game Servers</game_servers>
+    <game_server_status>Game Server Status</game_server_status>
+    <no_game_servers_available>No game servers available</no_game_servers_available>
+    <game_type>Game Type</game_type>
+    <server>Server</server>
+    <ip_address>IP Address</ip_address>
+    <port>Port</port>
+    
+    <!-- Customer Registration and Login -->
+    <customer_registration>Customer Registration</customer_registration>
+    <customer_login>Customer Login</customer_login>
+    <registration_description>Create your account to access the Server Management System</registration_description>
+    <login_description>Sign in with your credentials</login_description>
+    <first_name>First Name</first_name>
+    <last_name>Last Name</last_name>
+    <confirm_password>Confirm Password</confirm_password>
+    <company>Company</company>
+    <phone>Phone</phone>
+    <enter_first_name>Enter first name</enter_first_name>
+    <enter_last_name>Enter last name</enter_last_name>
+    <enter_email>Enter email address</enter_email>
+    <enter_password>Enter password</enter_password>
+    <enter_company>Enter company name</enter_company>
+    <enter_phone>Enter phone number</enter_phone>
+    <password_requirements>At least 8 characters, uppercase and lowercase letters, numbers and special characters</password_requirements>
+    <accept_terms_text>I accept the</accept_terms_text>
+    <terms_of_service>Terms of Service</terms_of_service>
+    <and>and</and>
+    <privacy_policy>Privacy Policy</privacy_policy>
+    <newsletter_subscription>I want to receive the newsletter</newsletter_subscription>
+    <create_account>Create Account</create_account>
+    <already_have_account>Already have an account</already_have_account>
+    <login_here>Login here</login_here>
+    <secure_registration>Secure Registration</secure_registration>
+    <need_help>Need Help</need_help>
+    <remember_me>Remember Me</remember_me>
+    <forgot_password>Forgot Password</forgot_password>
+    <no_account>No account yet</no_account>
+    <secure_connection>Secure Connection</secure_connection>
+    <email_verification>Email Verification</email_verification>
+    <email_verification_sent>Verification email has been sent</email_verification_sent>
+    <email_verification_required>Please verify your email address</email_verification_required>
+    <account_activated>Account successfully activated</account_activated>
+    <invalid_verification_token>Invalid verification token</invalid_verification_token>
+    <verification_token_expired>Verification token has expired</verification_token_expired>
+    <password_reset>Reset Password</password_reset>
+    <password_reset_sent>Password reset email has been sent</password_reset_sent>
+    <password_reset_success>Password successfully reset</password_reset_success>
+    <invalid_reset_token>Invalid reset token</invalid_reset_token>
+    <reset_token_expired>Reset token has expired</reset_token_expired>
+    <new_password>New Password</new_password>
+    <confirm_new_password>Confirm New Password</confirm_new_password>
+    <reset_password>Reset Password</reset_password>
+    <back_to_login>Back to Login</back_to_login>
+    <registration_successful>Registration successful! Please verify your email address.</registration_successful>
+    <login_successful>Login successful</login_successful>
+    <login_failed>Login failed</login_failed>
+    <invalid_credentials>Invalid credentials</invalid_credentials>
+    <account_locked>Account locked</account_locked>
+    <account_pending>Account pending verification</account_pending>
+    <account_suspended>Account suspended</account_suspended>
+    <account_deleted>Account deleted</account_deleted>
+    <welcome_message>Welcome to our Server Management System</welcome_message>
+    <dashboard_welcome>Welcome to your Dashboard</dashboard_welcome>
+    <logout_successful>Successfully logged out</logout_successful>
+    <session_expired>Your session has expired. Please log in again.</session_expired>
+    <access_denied_customer>Access denied. Please log in.</access_denied_customer>
+    
+    <!-- Dashboard -->
+    <active_servers>Active Servers</active_servers>
+    <active_websites>Active Websites</active_websites>
+    <active_accounts>Active Accounts</active_accounts>
+    <open_tickets>Open Tickets</open_tickets>
+    <edit_profile>Edit Profile</edit_profile>
+    <no_recent_activity>No recent activity</no_recent_activity>
+    <unknown>Unknown</unknown>
+    <websites>Websites</websites>
+    
+    <!-- Frontpanel -->
+    <frontpanel_title>Frontpanel</frontpanel_title>
+    <server_status>Server Status</server_status>
+    <game_servers>Game Servers</game_servers>
+    <support>Support</support>
+    <hero_description>Professional Server Management System for your virtual machines, game servers and websites</hero_description>
+    <proxmox_server_status>Proxmox Server Status</proxmox_server_status>
+    <no_vms_available>No VMs available</no_vms_available>
+    <game_server_status>Game Server Status</game_server_status>
+    <no_game_servers_available>No game servers available</no_game_servers_available>
 </translations> 

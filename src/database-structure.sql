@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Erstellungszeit: 17. Jul 2025 um 13:39
--- Server-Version: 10.11.11-MariaDB-0+deb12u1
--- PHP-Version: 7.4.33
+-- Generation Time: Aug 11, 2025 at 07:15 PM
+-- Server version: 11.8.2-MariaDB-1 from Debian
+-- PHP Version: 7.4.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Datenbank: `server_management`
+-- Database: `server_management`
 --
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `active_modules`
+-- Table structure for table `active_modules`
 --
 
 CREATE TABLE `active_modules` (
@@ -40,7 +40,7 @@ CREATE TABLE `active_modules` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `activity_log`
+-- Table structure for table `activity_log`
 --
 
 CREATE TABLE `activity_log` (
@@ -54,7 +54,7 @@ CREATE TABLE `activity_log` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `api_credentials`
+-- Table structure for table `api_credentials`
 --
 
 CREATE TABLE `api_credentials` (
@@ -73,7 +73,7 @@ CREATE TABLE `api_credentials` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `backup_jobs`
+-- Table structure for table `backup_jobs`
 --
 
 CREATE TABLE `backup_jobs` (
@@ -97,7 +97,70 @@ CREATE TABLE `backup_jobs` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `domains`
+-- Table structure for table `customers`
+--
+
+CREATE TABLE `customers` (
+  `id` int(11) NOT NULL,
+  `first_name` varchar(100) NOT NULL,
+  `last_name` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `company` varchar(255) DEFAULT NULL,
+  `phone` varchar(50) DEFAULT NULL,
+  `status` enum('pending','active','suspended','deleted') DEFAULT 'pending',
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `customer_login_logs`
+--
+
+CREATE TABLE `customer_login_logs` (
+  `id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `success` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `customer_remember_tokens`
+--
+
+CREATE TABLE `customer_remember_tokens` (
+  `id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `expires_at` timestamp NOT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `customer_verification_tokens`
+--
+
+CREATE TABLE `customer_verification_tokens` (
+  `id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `expires_at` timestamp NOT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domains`
 --
 
 CREATE TABLE `domains` (
@@ -108,7 +171,7 @@ CREATE TABLE `domains` (
   `expiration_date` date DEFAULT NULL,
   `auto_renew` enum('y','n') DEFAULT 'y',
   `nameservers` text DEFAULT NULL,
-  `status` enum('active','pending','expired','suspended') DEFAULT 'pending',
+  `status` varchar(20) DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -116,7 +179,7 @@ CREATE TABLE `domains` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `email_accounts`
+-- Table structure for table `email_accounts`
 --
 
 CREATE TABLE `email_accounts` (
@@ -140,7 +203,7 @@ CREATE TABLE `email_accounts` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `groups`
+-- Table structure for table `groups`
 --
 
 CREATE TABLE `groups` (
@@ -149,19 +212,10 @@ CREATE TABLE `groups` (
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Daten für Tabelle `groups`
---
-
-INSERT INTO `groups` (`id`, `name`, `description`) VALUES
-(1, 'admin', 'Alle sind Administratoren'),
-(2, 'user', 'Einfacher Benutzer'),
-(3, 'lesen', 'Kann nur daten abrufen');
-
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `group_module_permissions`
+-- Table structure for table `group_module_permissions`
 --
 
 CREATE TABLE `group_module_permissions` (
@@ -174,7 +228,23 @@ CREATE TABLE `group_module_permissions` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `login_attempts`
+-- Table structure for table `ips`
+--
+
+CREATE TABLE `ips` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `subnet` varchar(64) NOT NULL,
+  `ip_reverse` varchar(64) NOT NULL,
+  `reverse` varchar(255) DEFAULT NULL,
+  `ttl` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `login_attempts`
 --
 
 CREATE TABLE `login_attempts` (
@@ -190,7 +260,7 @@ CREATE TABLE `login_attempts` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `modules`
+-- Table structure for table `modules`
 --
 
 CREATE TABLE `modules` (
@@ -202,7 +272,7 @@ CREATE TABLE `modules` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `module_configs`
+-- Table structure for table `module_configs`
 --
 
 CREATE TABLE `module_configs` (
@@ -219,7 +289,7 @@ CREATE TABLE `module_configs` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `module_dependencies`
+-- Table structure for table `module_dependencies`
 --
 
 CREATE TABLE `module_dependencies` (
@@ -234,7 +304,7 @@ CREATE TABLE `module_dependencies` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `module_permissions`
+-- Table structure for table `module_permissions`
 --
 
 CREATE TABLE `module_permissions` (
@@ -249,7 +319,7 @@ CREATE TABLE `module_permissions` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `network_config`
+-- Table structure for table `network_config`
 --
 
 CREATE TABLE `network_config` (
@@ -271,7 +341,7 @@ CREATE TABLE `network_config` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `server_resources`
+-- Table structure for table `server_resources`
 --
 
 CREATE TABLE `server_resources` (
@@ -288,7 +358,7 @@ CREATE TABLE `server_resources` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `settings`
+-- Table structure for table `settings`
 --
 
 CREATE TABLE `settings` (
@@ -302,7 +372,7 @@ CREATE TABLE `settings` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `sm_databases`
+-- Table structure for table `sm_databases`
 --
 
 CREATE TABLE `sm_databases` (
@@ -322,7 +392,7 @@ CREATE TABLE `sm_databases` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `ssl_certificates`
+-- Table structure for table `ssl_certificates`
 --
 
 CREATE TABLE `ssl_certificates` (
@@ -343,7 +413,53 @@ CREATE TABLE `ssl_certificates` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `system_settings`
+-- Table structure for table `support_tickets`
+--
+
+CREATE TABLE `support_tickets` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ticket_number` varchar(20) NOT NULL,
+  `subject` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `customer_name` varchar(255) DEFAULT NULL,
+  `phone` varchar(50) DEFAULT NULL,
+  `priority` enum('low','medium','high','urgent') DEFAULT 'medium',
+  `status` enum('open','in_progress','waiting_customer','waiting_admin','resolved','closed') DEFAULT 'open',
+  `category` enum('technical','billing','general','feature_request','bug_report','account') DEFAULT 'general',
+  `assigned_to` int(11) DEFAULT NULL,
+  `department` enum('support','billing','technical','sales') DEFAULT 'support',
+  `source` enum('web','email','phone','chat') DEFAULT 'web',
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `estimated_resolution_time` int(11) DEFAULT NULL COMMENT 'in hours',
+  `actual_resolution_time` int(11) DEFAULT NULL COMMENT 'in hours',
+  `customer_satisfaction` tinyint(1) DEFAULT NULL COMMENT '1-5 rating',
+  `internal_notes` text DEFAULT NULL,
+  `tags` varchar(500) DEFAULT NULL COMMENT 'comma-separated tags',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `resolved_at` timestamp NULL DEFAULT NULL,
+  `closed_at` timestamp NULL DEFAULT NULL,
+  `due_date` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ticket_number` (`ticket_number`),
+  KEY `idx_email` (`email`),
+  KEY `idx_status` (`status`),
+  KEY `idx_priority` (`priority`),
+  KEY `idx_category` (`category`),
+  KEY `idx_assigned_to` (`assigned_to`),
+  KEY `idx_department` (`department`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_due_date` (`due_date`),
+  KEY `idx_status_priority` (`status`, `priority`),
+  KEY `idx_email_status` (`email`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `system_settings`
 --
 
 CREATE TABLE `system_settings` (
@@ -361,7 +477,23 @@ CREATE TABLE `system_settings` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `users`
+-- Table structure for table `ticket_replies`
+--
+
+CREATE TABLE `ticket_replies` (
+  `id` int(11) NOT NULL,
+  `ticket_id` int(11) NOT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `admin_id` int(11) DEFAULT NULL,
+  `message` text NOT NULL,
+  `is_internal` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
 --
 
 CREATE TABLE `users` (
@@ -384,8 +516,8 @@ CREATE TABLE `users` (
 -- --------------------------------------------------------
 
 --
--- Stellvertreter-Struktur des Views `user_activity_overview`
--- (Siehe unten für die tatsächliche Ansicht)
+-- Stand-in structure for view `user_activity_overview`
+-- (See below for the actual view)
 --
 CREATE TABLE `user_activity_overview` (
 `id` int(11)
@@ -406,7 +538,7 @@ CREATE TABLE `user_activity_overview` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `user_permissions`
+-- Table structure for table `user_permissions`
 --
 
 CREATE TABLE `user_permissions` (
@@ -422,7 +554,7 @@ CREATE TABLE `user_permissions` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `user_sessions`
+-- Table structure for table `user_sessions`
 --
 
 CREATE TABLE `user_sessions` (
@@ -441,7 +573,23 @@ CREATE TABLE `user_sessions` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `vms`
+-- Table structure for table `verification_tokens`
+--
+
+CREATE TABLE `verification_tokens` (
+  `id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `type` enum('email_verification','password_reset') NOT NULL DEFAULT 'email_verification',
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `vms`
 --
 
 CREATE TABLE `vms` (
@@ -462,8 +610,8 @@ CREATE TABLE `vms` (
 -- --------------------------------------------------------
 
 --
--- Stellvertreter-Struktur des Views `vm_overview`
--- (Siehe unten für die tatsächliche Ansicht)
+-- Stand-in structure for view `vm_overview`
+-- (See below for the actual view)
 --
 CREATE TABLE `vm_overview` (
 `id` int(11)
@@ -485,7 +633,7 @@ CREATE TABLE `vm_overview` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `websites`
+-- Table structure for table `websites`
 --
 
 CREATE TABLE `websites` (
@@ -506,8 +654,8 @@ CREATE TABLE `websites` (
 -- --------------------------------------------------------
 
 --
--- Stellvertreter-Struktur des Views `website_overview`
--- (Siehe unten für die tatsächliche Ansicht)
+-- Stand-in structure for view `website_overview`
+-- (See below for the actual view)
 --
 CREATE TABLE `website_overview` (
 `id` int(11)
@@ -528,7 +676,7 @@ CREATE TABLE `website_overview` (
 -- --------------------------------------------------------
 
 --
--- Struktur des Views `user_activity_overview`
+-- Structure for view `user_activity_overview`
 --
 DROP TABLE IF EXISTS `user_activity_overview`;
 
@@ -537,7 +685,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `user_ac
 -- --------------------------------------------------------
 
 --
--- Struktur des Views `vm_overview`
+-- Structure for view `vm_overview`
 --
 DROP TABLE IF EXISTS `vm_overview`;
 
@@ -546,18 +694,18 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `vm_over
 -- --------------------------------------------------------
 
 --
--- Struktur des Views `website_overview`
+-- Structure for view `website_overview`
 --
 DROP TABLE IF EXISTS `website_overview`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`%` SQL SECURITY DEFINER VIEW `website_overview`  AS SELECT `w`.`id` AS `id`, `w`.`domain` AS `domain`, `w`.`ip_address` AS `ip_address`, `w`.`system_user` AS `system_user`, `w`.`active` AS `active`, `v`.`name` AS `vm_name`, `v`.`status` AS `vm_status`, count(distinct `d`.`id`) AS `database_count`, count(distinct `e`.`id`) AS `email_count`, `s`.`status` AS `ssl_status`, `s`.`expiration_date` AS `ssl_expires`, `w`.`created_at` AS `created_at`, `w`.`updated_at` AS `updated_at` FROM ((((`websites` `w` left join `vms` `v` on(`w`.`ip_address` = `v`.`ip_address`)) left join `sm_databases` `d` on(`w`.`id` = `d`.`website_id`)) left join `email_accounts` `e` on(`w`.`id` = `e`.`website_id`)) left join `ssl_certificates` `s` on(`w`.`id` = `s`.`website_id`)) GROUP BY `w`.`id` ;
 
 --
--- Indizes der exportierten Tabellen
+-- Indexes for dumped tables
 --
 
 --
--- Indizes für die Tabelle `active_modules`
+-- Indexes for table `active_modules`
 --
 ALTER TABLE `active_modules`
   ADD PRIMARY KEY (`id`),
@@ -566,7 +714,7 @@ ALTER TABLE `active_modules`
   ADD KEY `idx_activated_at` (`activated_at`);
 
 --
--- Indizes für die Tabelle `activity_log`
+-- Indexes for table `activity_log`
 --
 ALTER TABLE `activity_log`
   ADD PRIMARY KEY (`id`),
@@ -575,14 +723,14 @@ ALTER TABLE `activity_log`
   ADD KEY `idx_created_at` (`created_at`);
 
 --
--- Indizes für die Tabelle `api_credentials`
+-- Indexes for table `api_credentials`
 --
 ALTER TABLE `api_credentials`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_service` (`service_name`);
 
 --
--- Indizes für die Tabelle `backup_jobs`
+-- Indexes for table `backup_jobs`
 --
 ALTER TABLE `backup_jobs`
   ADD PRIMARY KEY (`id`),
@@ -592,7 +740,37 @@ ALTER TABLE `backup_jobs`
   ADD KEY `created_by` (`created_by`);
 
 --
--- Indizes für die Tabelle `domains`
+-- Indexes for table `customers`
+--
+ALTER TABLE `customers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `customer_login_logs`
+--
+ALTER TABLE `customer_login_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `customer_id` (`customer_id`);
+
+--
+-- Indexes for table `customer_remember_tokens`
+--
+ALTER TABLE `customer_remember_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `customer_id` (`customer_id`);
+
+--
+-- Indexes for table `customer_verification_tokens`
+--
+ALTER TABLE `customer_verification_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `customer_id` (`customer_id`);
+
+--
+-- Indexes for table `domains`
 --
 ALTER TABLE `domains`
   ADD PRIMARY KEY (`id`),
@@ -601,7 +779,7 @@ ALTER TABLE `domains`
   ADD KEY `idx_expiration` (`expiration_date`);
 
 --
--- Indizes für die Tabelle `email_accounts`
+-- Indexes for table `email_accounts`
 --
 ALTER TABLE `email_accounts`
   ADD PRIMARY KEY (`id`),
@@ -611,19 +789,26 @@ ALTER TABLE `email_accounts`
   ADD KEY `website_id` (`website_id`);
 
 --
--- Indizes für die Tabelle `groups`
+-- Indexes for table `groups`
 --
 ALTER TABLE `groups`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indizes für die Tabelle `group_module_permissions`
+-- Indexes for table `group_module_permissions`
 --
 ALTER TABLE `group_module_permissions`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indizes für die Tabelle `login_attempts`
+-- Indexes for table `ips`
+--
+ALTER TABLE `ips`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `subnet` (`subnet`,`ip_reverse`);
+
+--
+-- Indexes for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
   ADD PRIMARY KEY (`id`),
@@ -633,13 +818,13 @@ ALTER TABLE `login_attempts`
   ADD KEY `idx_created_at` (`created_at`);
 
 --
--- Indizes für die Tabelle `modules`
+-- Indexes for table `modules`
 --
 ALTER TABLE `modules`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indizes für die Tabelle `module_configs`
+-- Indexes for table `module_configs`
 --
 ALTER TABLE `module_configs`
   ADD PRIMARY KEY (`id`),
@@ -647,7 +832,7 @@ ALTER TABLE `module_configs`
   ADD KEY `idx_module_name` (`module_name`);
 
 --
--- Indizes für die Tabelle `module_dependencies`
+-- Indexes for table `module_dependencies`
 --
 ALTER TABLE `module_dependencies`
   ADD PRIMARY KEY (`id`),
@@ -656,7 +841,7 @@ ALTER TABLE `module_dependencies`
   ADD KEY `idx_dependency_name` (`dependency_name`);
 
 --
--- Indizes für die Tabelle `module_permissions`
+-- Indexes for table `module_permissions`
 --
 ALTER TABLE `module_permissions`
   ADD PRIMARY KEY (`id`),
@@ -665,7 +850,7 @@ ALTER TABLE `module_permissions`
   ADD KEY `idx_required_role` (`required_role`);
 
 --
--- Indizes für die Tabelle `network_config`
+-- Indexes for table `network_config`
 --
 ALTER TABLE `network_config`
   ADD PRIMARY KEY (`id`),
@@ -673,7 +858,7 @@ ALTER TABLE `network_config`
   ADD KEY `idx_ip` (`ip_address`);
 
 --
--- Indizes für die Tabelle `server_resources`
+-- Indexes for table `server_resources`
 --
 ALTER TABLE `server_resources`
   ADD PRIMARY KEY (`id`),
@@ -681,13 +866,13 @@ ALTER TABLE `server_resources`
   ADD KEY `idx_timestamp` (`timestamp`);
 
 --
--- Indizes für die Tabelle `settings`
+-- Indexes for table `settings`
 --
 ALTER TABLE `settings`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indizes für die Tabelle `sm_databases`
+-- Indexes for table `sm_databases`
 --
 ALTER TABLE `sm_databases`
   ADD PRIMARY KEY (`id`),
@@ -697,7 +882,7 @@ ALTER TABLE `sm_databases`
   ADD KEY `website_id` (`website_id`);
 
 --
--- Indizes für die Tabelle `ssl_certificates`
+-- Indexes for table `ssl_certificates`
 --
 ALTER TABLE `ssl_certificates`
   ADD PRIMARY KEY (`id`),
@@ -706,7 +891,14 @@ ALTER TABLE `ssl_certificates`
   ADD KEY `idx_expiration` (`expiration_date`);
 
 --
--- Indizes für die Tabelle `system_settings`
+-- Indexes for table `support_tickets`
+--
+ALTER TABLE `support_tickets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_tickets_status_priority` (`status`,`priority`);
+
+--
+-- Indexes for table `system_settings`
 --
 ALTER TABLE `system_settings`
   ADD PRIMARY KEY (`id`),
@@ -714,7 +906,16 @@ ALTER TABLE `system_settings`
   ADD KEY `updated_by` (`updated_by`);
 
 --
--- Indizes für die Tabelle `users`
+-- Indexes for table `ticket_replies`
+--
+ALTER TABLE `ticket_replies`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `ticket_id` (`ticket_id`),
+  ADD KEY `customer_id` (`customer_id`),
+  ADD KEY `admin_id` (`admin_id`);
+
+--
+-- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
@@ -725,7 +926,7 @@ ALTER TABLE `users`
   ADD KEY `idx_last_login` (`last_login`);
 
 --
--- Indizes für die Tabelle `user_permissions`
+-- Indexes for table `user_permissions`
 --
 ALTER TABLE `user_permissions`
   ADD PRIMARY KEY (`id`),
@@ -733,7 +934,7 @@ ALTER TABLE `user_permissions`
   ADD KEY `granted_by` (`granted_by`);
 
 --
--- Indizes für die Tabelle `user_sessions`
+-- Indexes for table `user_sessions`
 --
 ALTER TABLE `user_sessions`
   ADD PRIMARY KEY (`id`),
@@ -743,7 +944,17 @@ ALTER TABLE `user_sessions`
   ADD KEY `idx_expires` (`expires_at`);
 
 --
--- Indizes für die Tabelle `vms`
+-- Indexes for table `verification_tokens`
+--
+ALTER TABLE `verification_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `customer_id` (`customer_id`),
+  ADD KEY `type` (`type`),
+  ADD KEY `expires_at` (`expires_at`);
+
+--
+-- Indexes for table `vms`
 --
 ALTER TABLE `vms`
   ADD PRIMARY KEY (`id`),
@@ -752,7 +963,7 @@ ALTER TABLE `vms`
   ADD KEY `idx_status` (`status`);
 
 --
--- Indizes für die Tabelle `websites`
+-- Indexes for table `websites`
 --
 ALTER TABLE `websites`
   ADD PRIMARY KEY (`id`),
@@ -761,211 +972,291 @@ ALTER TABLE `websites`
   ADD KEY `idx_active` (`active`);
 
 --
--- AUTO_INCREMENT für exportierte Tabellen
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT für Tabelle `active_modules`
+-- AUTO_INCREMENT for table `active_modules`
 --
 ALTER TABLE `active_modules`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `activity_log`
+-- AUTO_INCREMENT for table `activity_log`
 --
 ALTER TABLE `activity_log`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `api_credentials`
+-- AUTO_INCREMENT for table `api_credentials`
 --
 ALTER TABLE `api_credentials`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `backup_jobs`
+-- AUTO_INCREMENT for table `backup_jobs`
 --
 ALTER TABLE `backup_jobs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `domains`
+-- AUTO_INCREMENT for table `customers`
+--
+ALTER TABLE `customers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `customer_login_logs`
+--
+ALTER TABLE `customer_login_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `customer_remember_tokens`
+--
+ALTER TABLE `customer_remember_tokens`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `customer_verification_tokens`
+--
+ALTER TABLE `customer_verification_tokens`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `domains`
 --
 ALTER TABLE `domains`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `email_accounts`
+-- AUTO_INCREMENT for table `email_accounts`
 --
 ALTER TABLE `email_accounts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `groups`
+-- AUTO_INCREMENT for table `groups`
 --
 ALTER TABLE `groups`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `group_module_permissions`
+-- AUTO_INCREMENT for table `group_module_permissions`
 --
 ALTER TABLE `group_module_permissions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `login_attempts`
+-- AUTO_INCREMENT for table `ips`
+--
+ALTER TABLE `ips`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `modules`
+-- AUTO_INCREMENT for table `modules`
 --
 ALTER TABLE `modules`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `module_configs`
+-- AUTO_INCREMENT for table `module_configs`
 --
 ALTER TABLE `module_configs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `module_dependencies`
+-- AUTO_INCREMENT for table `module_dependencies`
 --
 ALTER TABLE `module_dependencies`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `module_permissions`
+-- AUTO_INCREMENT for table `module_permissions`
 --
 ALTER TABLE `module_permissions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `network_config`
+-- AUTO_INCREMENT for table `network_config`
 --
 ALTER TABLE `network_config`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `server_resources`
+-- AUTO_INCREMENT for table `server_resources`
 --
 ALTER TABLE `server_resources`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `settings`
+-- AUTO_INCREMENT for table `settings`
 --
 ALTER TABLE `settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `sm_databases`
+-- AUTO_INCREMENT for table `sm_databases`
 --
 ALTER TABLE `sm_databases`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `ssl_certificates`
+-- AUTO_INCREMENT for table `ssl_certificates`
 --
 ALTER TABLE `ssl_certificates`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `system_settings`
+-- AUTO_INCREMENT for table `support_tickets`
+--
+ALTER TABLE `support_tickets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `system_settings`
 --
 ALTER TABLE `system_settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `users`
+-- AUTO_INCREMENT for table `ticket_replies`
+--
+ALTER TABLE `ticket_replies`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `user_permissions`
+-- AUTO_INCREMENT for table `user_permissions`
 --
 ALTER TABLE `user_permissions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `user_sessions`
+-- AUTO_INCREMENT for table `user_sessions`
 --
 ALTER TABLE `user_sessions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `vms`
+-- AUTO_INCREMENT for table `verification_tokens`
+--
+ALTER TABLE `verification_tokens`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `vms`
 --
 ALTER TABLE `vms`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT für Tabelle `websites`
+-- AUTO_INCREMENT for table `websites`
 --
 ALTER TABLE `websites`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- Constraints der exportierten Tabellen
+-- Constraints for dumped tables
 --
 
 --
--- Constraints der Tabelle `backup_jobs`
+-- Constraints for table `backup_jobs`
 --
 ALTER TABLE `backup_jobs`
   ADD CONSTRAINT `backup_jobs_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints der Tabelle `email_accounts`
+-- Constraints for table `customer_login_logs`
+--
+ALTER TABLE `customer_login_logs`
+  ADD CONSTRAINT `customer_login_logs_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `customer_remember_tokens`
+--
+ALTER TABLE `customer_remember_tokens`
+  ADD CONSTRAINT `customer_remember_tokens_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `customer_verification_tokens`
+--
+ALTER TABLE `customer_verification_tokens`
+  ADD CONSTRAINT `customer_verification_tokens_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `email_accounts`
 --
 ALTER TABLE `email_accounts`
   ADD CONSTRAINT `email_accounts_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints der Tabelle `network_config`
+-- Constraints for table `network_config`
 --
 ALTER TABLE `network_config`
   ADD CONSTRAINT `network_config_ibfk_1` FOREIGN KEY (`vm_id`) REFERENCES `vms` (`vm_id`) ON DELETE CASCADE;
 
 --
--- Constraints der Tabelle `server_resources`
+-- Constraints for table `server_resources`
 --
 ALTER TABLE `server_resources`
   ADD CONSTRAINT `server_resources_ibfk_1` FOREIGN KEY (`vm_id`) REFERENCES `vms` (`vm_id`) ON DELETE CASCADE;
 
 --
--- Constraints der Tabelle `sm_databases`
+-- Constraints for table `sm_databases`
 --
 ALTER TABLE `sm_databases`
   ADD CONSTRAINT `sm_databases_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints der Tabelle `ssl_certificates`
+-- Constraints for table `ssl_certificates`
 --
 ALTER TABLE `ssl_certificates`
   ADD CONSTRAINT `ssl_certificates_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints der Tabelle `system_settings`
+-- Constraints for table `system_settings`
 --
 ALTER TABLE `system_settings`
   ADD CONSTRAINT `system_settings_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints der Tabelle `user_permissions`
+-- Constraints for table `ticket_replies`
+--
+ALTER TABLE `ticket_replies`
+  ADD CONSTRAINT `fk_replies_admin` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_replies_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_replies_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `support_tickets` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_permissions`
 --
 ALTER TABLE `user_permissions`
   ADD CONSTRAINT `user_permissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `user_permissions_ibfk_2` FOREIGN KEY (`granted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints der Tabelle `user_sessions`
+-- Constraints for table `user_sessions`
 --
 ALTER TABLE `user_sessions`
   ADD CONSTRAINT `user_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `verification_tokens`
+--
+ALTER TABLE `verification_tokens`
+  ADD CONSTRAINT `fk_verification_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

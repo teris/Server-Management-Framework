@@ -30,4 +30,13 @@ class Config {
     const OGP_PASSWORD 			= '';									//OGP Panel Password
     const OGP_TOKEN 			= '';								//OGP Panel Token
     const OGP_USEING 			= false;											//OGP Useing
+	
+	    // =============================================================================
+    // FRONTPANEL E-MAIL CONFIGURATION
+    // =============================================================================
+    const FRONTPANEL_SUPPORT_EMAIL = 'support@servermanagement.com';				//Support E-Mail für Kunden
+    const FRONTPANEL_SYSTEM_EMAIL = 'system@servermanagement.com';				//System E-Mail für Automatische Nachrichten
+    const FRONTPANEL_ADMIN_EMAIL = 'admin@servermanagement.com';					//Admin E-Mail für Benachrichtigungen
+    const FRONTPANEL_SITE_NAME = 'Server Management System';						//Name der Website für E-Mail-Templates
+    const FRONTPANEL_SITE_URL = 'https://servermanagement.com';					//URL der Website
 }

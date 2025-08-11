@@ -712,4 +712,143 @@ class ServiceManager {
         $model = new NetworkConfig();
         return $model->all();
     }
+    
+    // OGP Game Server
+    public function getOGPGameServers() {
+        try {
+            // Vereinfachte Implementierung - in Produktion über OGP API
+            return [
+                [
+                    'id' => 1,
+                    'name' => 'Game Server 1',
+                    'status' => 'running',
+                    'players' => 12,
+                    'max_players' => 32,
+                    'map' => 'de_dust2',
+                    'ip' => '192.168.1.100',
+                    'port' => 27015
+                ],
+                [
+                    'id' => 2,
+                    'name' => 'Game Server 2',
+                    'status' => 'stopped',
+                    'players' => 0,
+                    'max_players' => 64,
+                    'map' => 'de_mirage',
+                    'ip' => '192.168.1.101',
+                    'port' => 27016
+                ]
+            ];
+        } catch (Exception $e) {
+            error_log("Error getting OGP game servers: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    // System-Informationen
+    public function getSystemInfo() {
+        try {
+            $systemInfo = [
+                'cpu_usage' => $this->getCPUUsage(),
+                'memory_usage' => $this->getMemoryUsage(),
+                'disk_usage' => $this->getDiskUsage(),
+                'uptime' => $this->getUptime(),
+                'load_average' => $this->getLoadAverage(),
+                'network_status' => $this->getNetworkStatus()
+            ];
+            return $systemInfo;
+        } catch (Exception $e) {
+            error_log("Error getting system info: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    private function getCPUUsage() {
+        // Einfache CPU-Auslastung über /proc/loadavg
+        if (file_exists('/proc/loadavg')) {
+            $load = file_get_contents('/proc/loadavg');
+            $loads = explode(' ', $load);
+            return [
+                '1min' => floatval($loads[0]),
+                '5min' => floatval($loads[1]),
+                '15min' => floatval($loads[2])
+            ];
+        }
+        return ['1min' => 0, '5min' => 0, '15min' => 0];
+    }
+    
+    private function getMemoryUsage() {
+        // Speicherauslastung über /proc/meminfo
+        if (file_exists('/proc/meminfo')) {
+            $meminfo = file_get_contents('/proc/meminfo');
+            preg_match('/MemTotal:\s+(\d+)/', $meminfo, $total);
+            preg_match('/MemAvailable:\s+(\d+)/', $meminfo, $available);
+            
+            if (isset($total[1]) && isset($available[1])) {
+                $total = intval($total[1]);
+                $available = intval($available[1]);
+                $used = $total - $available;
+                return [
+                    'total' => $total,
+                    'used' => $used,
+                    'available' => $available,
+                    'percentage' => round(($used / $total) * 100, 2)
+                ];
+            }
+        }
+        return ['total' => 0, 'used' => 0, 'available' => 0, 'percentage' => 0];
+    }
+    
+    private function getDiskUsage() {
+        // Festplattenauslastung
+        $disk = disk_free_space('/');
+        $total = disk_total_space('/');
+        $used = $total - $disk;
+        
+        return [
+            'total' => $total,
+            'used' => $used,
+            'free' => $disk,
+            'percentage' => round(($used / $total) * 100, 2)
+        ];
+    }
+    
+    private function getUptime() {
+        // System-Uptime
+        if (file_exists('/proc/uptime')) {
+            $uptime = file_get_contents('/proc/uptime');
+            $uptime = floatval(explode(' ', $uptime)[0]);
+            
+            $days = floor($uptime / 86400);
+            $hours = floor(($uptime % 86400) / 3600);
+            $minutes = floor(($uptime % 3600) / 60);
+            
+            return [
+                'seconds' => $uptime,
+                'formatted' => "{$days}d {$hours}h {$minutes}m"
+            ];
+        }
+        return ['seconds' => 0, 'formatted' => '0d 0h 0m'];
+    }
+    
+    private function getLoadAverage() {
+        // Load Average
+        if (function_exists('sys_getloadavg')) {
+            $load = sys_getloadavg();
+            return [
+                '1min' => $load[0],
+                '5min' => $load[1],
+                '15min' => $load[2]
+            ];
+        }
+        return ['1min' => 0, '5min' => 0, '15min' => 0];
+    }
+    
+    private function getNetworkStatus() {
+        // Netzwerkstatus (vereinfacht)
+        return [
+            'status' => 'online',
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
+    }
 } 

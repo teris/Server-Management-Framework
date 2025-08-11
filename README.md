@@ -20,6 +20,20 @@ Ein professionelles PHP-Framework für die Verwaltung von Proxmox VMs, ISPConfig
 - **🎨 Bootstrap 5.3.2** - Moderne, responsive Benutzeroberfläche
 - **⚡ jQuery 3.7.1** - Optimierte JavaScript-Funktionalität
 
+## 🖼️ Screenshots
+
+### Übersicht
+![Hauptseite](screenshoots/frontentpanel/mainpage.png)
+
+### Admin Panel
+![Admin Dashboard](screenshoots/adminpanel/main.png)
+![Server hinzufügen](screenshoots/adminpanel/add-server.png)
+![Endpunkte](screenshoots/adminpanel/endpoints.png)
+
+### Frontend Panel
+![Login](screenshoots/frontentpanel/login.png)
+![Dashboard](screenshoots/frontentpanel/dashboard.png)
+
 ## 🚀 Quick Start
 
 ```bash
@@ -135,6 +149,15 @@ php debug.php
    - **🔗 OVH** - Domain & VPS Verwaltung
    - **🔐 Auth Status** - API-Verbindungstests
 
+#### Frontend Panel
+![Frontend Login](screenshoots/frontentpanel/login.png)
+![Frontend Dashboard](screenshoots/frontentpanel/dashboard.png)
+
+#### Admin Panel
+![Admin Dashboard](screenshoots/adminpanel/main.png)
+![Server hinzufügen](screenshoots/adminpanel/add-server.png)
+![Endpunkte](screenshoots/adminpanel/endpoints.png)
+
 ### Programmatische Verwendung
 
 #### ServiceManager API
@@ -201,6 +224,12 @@ $vpsList = $ovhGet->getVPS();
 ## 🎨 UI Framework
 
 Das Framework verwendet **Bootstrap 5.3.2** und **jQuery 3.7.1** für eine moderne, responsive Benutzeroberfläche:
+
+### Admin Dashboard
+![Admin Dashboard Übersicht](screenshoots/adminpanel/main.png)
+
+### Frontend Interface
+![Frontend Hauptseite](screenshoots/frontentpanel/mainpage.png)
 
 ### Bootstrap Features
 - Responsive Grid-System

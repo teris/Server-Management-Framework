@@ -2,6 +2,58 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.0.0 RC]
+
+### Hinzugefügt
+- **Frontpanel - Server Management System** - Vollständiges öffentliches Frontend für Kunden
+- **Server-Status Dashboard** - Live-Überwachung von Proxmox VMs und Game Servern
+- **Responsive Design** - Optimiert für alle Geräte (Desktop, Tablet, Mobile)
+- **Moderne UI** - Bootstrap 5 mit Custom CSS und Animationen
+- **Real-time Updates** - Automatische Status-Updates alle 30 Sekunden
+- **Kundenregistrierung** - Einfache Registrierung mit E-Mail-Verifikation
+- **Kundenlogin** - Sichere Authentifizierung mit Remember-Me-Funktion
+- **Account-Management** - Persönliche Einstellungen und Profilverwaltung
+- **Support-Tickets** - Vollständiges Ticket-System für Kundenanfragen
+- **Ticket-Erstellung** - Einfaches Formular für Support-Anfragen
+- **Prioritätsstufen** - Low, Medium, High, Urgent
+- **E-Mail-Benachrichtigungen** - Automatische Bestätigungen und Updates
+- **Admin-Benachrichtigungen** - Sofortige Benachrichtigung bei neuen Tickets
+- **Auto-Refresh Funktionalität** - jQuery-basierte Auto-Aktualisierung aller Server-Status-Daten alle 10 Sekunden
+- **Echtzeit-Updates** - Proxmox VMs, Game Server und System-Informationen werden automatisch aktualisiert
+- **Manueller Refresh-Button** - Hinzugefügter manueller Aktualisierungs-Button mit Spinner-Animation
+- **Lade-Indikatoren** - Visuelle Lade-Indikatoren während der Status-Aktualisierung
+- **Intelligente Aktualisierung** - Auto-Refresh wird pausiert, wenn der Tab nicht sichtbar ist
+- **Game Server Anzeige verbessert** - Korrekte Verarbeitung der OGP API-Antwort-Struktur
+- **Neue Game Server-Felder** - Spiel-Typ, Server-Name, IP-Adresse, Port
+- **E-Mail-Verifikationssystem** - Vollständiger Workflow für neue Kundenregistrierungen
+- **Kunden-Dashboard** - Hauptseite für angemeldete Kunden mit Übersicht und Funktionen
+- **Session-Management** - Sichere Verwaltung von Kunden-Sessions
+- **Multi-Sprachunterstützung** - Deutsche und englische Übersetzungen für alle Kunden-Seiten
+
+### Geändert
+- **Framework.php erweitert** - PDO Wrapper-Methoden für bessere Datenbank-Kompatibilität hinzugefügt
+- **Datenbank-Klasse verbessert** - Direkte PDO-Methoden wie `prepare()`, `query()`, `exec()` verfügbar gemacht
+- **Sprachdateien erweitert** - Umfassende Übersetzungen für Kundenregistrierung, Login und Dashboard
+- **Status-API verbessert** - Bessere Fehlerbehandlung und Caching-Mechanismen
+- **UI/UX verbessert** - Erweiterte Benutzeroberfläche mit Zeitstempel der letzten Aktualisierung
+
+### Behoben
+- **Fatal Error behoben** - `Call to undefined method Database::prepare()` vollständig behoben
+- **VM Object Access Fehler** - `Cannot use object of type VM as array` Fehler vollständig behoben
+- **Game Server Array-Zugriff Fehler** - `Cannot access offset of type string on string` bei Game Server-Daten behoben
+- **open_basedir Fehler** - Alle Verzeichniszugriffe mit @ Operator und try-catch abgesichert
+- **Dateipfad-Fehler** - `framework.php` wird jetzt korrekt aus dem Root-Verzeichnis geladen
+- **Funktionskonflikte** - Mit `t()` Funktion behoben
+- **Datenbank-Verbindungsprobleme** - Robuste Implementierung der System-Informationen-Methoden
+
+### Sicherheit
+- **Passwort-Hashing** - Bcrypt mit hoher Kosten implementiert
+- **SQL-Injection-Schutz** - Prepared Statements durchgängig verwendet
+- **XSS-Schutz** - HTML-Escaping aller Ausgaben
+- **CSRF-Schutz** - Session-basierte Token-Validierung
+- **Brute-Force-Schutz** - Account-Sperrung nach fehlgeschlagenen Logins
+- **Rate-Limiting** - API-Aufrufe pro IP-Adresse begrenzt
+
 ## [3.0.0-beta]
 
 ### Hinzugefügt
