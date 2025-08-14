@@ -154,34 +154,21 @@ try {
     <nav id="sidebarMenu" class="d-md-block bg-light sidebar collapse position-fixed" style="width: 220px; height: 100vh; z-index: 1040;">
         <div class="position-sticky d-flex flex-column h-100">
             <ul class="nav flex-column mt-3">
+                <!-- Dashboard -->
                 <li class="nav-item">
                     <a class="nav-link" href="?option=admin">
                         <i class="bi bi-speedometer2"></i> <?= t('dashboard') ?>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="?option=modules">
-                        <i class="bi bi-boxes"></i> <?= t('modules') ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="?option=settings">
-                        <i class="bi bi-gear"></i> <?= t('settings') ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="?option=profile">
-                        <i class="bi bi-person"></i> <?= t('profile') ?>
-                    </a>
-                </li>   
-                <li class="nav-item">
-                    <a class="nav-link" href="?option=logs">
-                        <i class="bi bi-journal-text"></i> <?= t('logs') ?>
-                    </a>
-                </li>
+                <!-- Ressourcen & Monitoring -->
                 <li class="nav-item">
                     <a class="nav-link" href="?option=resources">
                         <i class="bi bi-hdd-stack"></i> <?= t('resources') ?>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="?option=logs">
+                        <i class="bi bi-journal-text"></i> <?= t('logs') ?>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -189,11 +176,91 @@ try {
                         <i class="bi bi-people"></i> <?= t('users') ?>
                     </a>
                 </li>
+                <!-- Persönliche Einstellungen -->
                 <li class="nav-item">
-                    <a class="nav-link" href="?option=system">
-                        <i class="bi bi-sliders"></i> <?= t('system_settings') ?>
+                    <a class="nav-link" href="?option=profile">
+                        <i class="bi bi-person"></i> <?= t('profile') ?>
                     </a>
                 </li>
+                <!-- Benutzer & Module -->
+                <li class="nav-item">
+                    <a class="nav-link nav-link-category" href="#" data-bs-toggle="collapse" data-bs-target="#moduleSubmenu" aria-expanded="true" aria-controls="moduleSubmenu">
+                        <i class="bi bi-boxes"></i> <?= t('modules') ?>
+                        <i class="bi bi-chevron-up ms-auto"></i>
+                    </a>
+                    <div class="collapse show" id="moduleSubmenu">
+                        <ul class="nav flex-column ms-3">
+                            <?php
+                            // Dynamische Module laden
+                            if (isset($pluginManager) && method_exists($pluginManager, 'getEnabledPlugins')) {
+                                foreach ($pluginManager->getEnabledPlugins() as $plugin_key => $plugin_info): 
+                            ?>
+                            <li class="nav-item">
+                                <a class="nav-link" href="?option=modules&mod=<?= $plugin_key ?>">
+                                    <i class="bi bi-puzzle"></i> <?= htmlspecialchars($plugin_info['name'] ?? ucfirst($plugin_key)) ?>
+                                </a>
+                            </li>
+                            <?php 
+                                endforeach;
+                            } else {
+                                // Fallback für statische Module
+                            ?>
+                            <li class="nav-item">
+                                <a class="nav-link" href="?option=modules">
+                                    <i class="bi bi-boxes"></i> <?= t('modules') ?>
+                                </a>
+                            </li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                </li>
+                
+                <!-- Domain-Management -->
+                <li class="nav-item">
+                    <a class="nav-link nav-link-category" href="#" data-bs-toggle="collapse" data-bs-target="#domainSubmenu" aria-expanded="true" aria-controls="domainSubmenu">
+                        <i class="bi bi-globe"></i> Domains
+                        <i class="bi bi-chevron-up ms-auto"></i>
+                    </a>
+                    <div class="collapse show" id="domainSubmenu">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link" href="?option=domain-settings">
+                                    <i class="bi bi-gear"></i> <?= t('domain_settings') ?>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="?option=domain-registrations">
+                                    <i class="bi bi-list-ul"></i> <?= t('domain_registrations') ?>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                
+                
+                
+                <!-- Optionen -->
+                <li class="nav-item">
+                    <a class="nav-link nav-link-category" href="#" data-bs-toggle="collapse" data-bs-target="#optionsSubmenu" aria-expanded="true" aria-controls="optionsSubmenu">
+                        <i class="bi bi-gear"></i> Optionen
+                        <i class="bi bi-chevron-up ms-auto"></i>
+                    </a>
+                    <div class="collapse show" id="optionsSubmenu">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link" href="?option=system">
+                                    <i class="bi bi-sliders"></i> <?= t('system_settings') ?>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="?option=settings">
+                                    <i class="bi bi-gear"></i> <?= t('settings') ?>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+               
             </ul>
             <div class="mt-auto mb-3 px-3">
                 <hr>
@@ -299,21 +366,26 @@ try {
                             case 'users':
                                 include('inc/users.php');
                                 break;
+                            case 'domain-registrations':
+                                include('inc/domain-registrations.php');
+                                break;
+                            case 'domain-settings':
+                                include('inc/domain-settings.php');
+                                break;
                             case 'system':
                                 include('inc/system.php');
                                 break;
                             default:
+                                echo'<!-- Willkommensbereich (Standard) -->
+                                        <div id="welcome-area" class="mt-5">
+                                            <div class="alert alert-info text-center">
+                                                '.t('welcome_admin_area').' 
+                                            </div>
+                                        </div>';
+                                include('inc/admin.php');
                                 
+                                    
                                 
-                                // Wenn keine Plugin-Option gefunden wurde, Standard-Willkommensbereich anzeigen
-                                if (!$pluginFound) {
-                                    echo'<!-- Willkommensbereich (Standard) -->
-                                    <div id="welcome-area" class="mt-5">
-                                        <div class="alert alert-info text-center">
-                                            '.t('welcome_admin_area').' 
-                                        </div>
-                                    </div>';
-                                }
                         }   
 
                     } catch (Exception $e) {

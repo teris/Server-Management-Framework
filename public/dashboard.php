@@ -42,6 +42,20 @@ try {
     $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
 }
 
+// Anzahl der offenen Support-Tickets laden
+$openTicketsCount = 0;
+try {
+    $stmt = $db->prepare("
+        SELECT COUNT(*) FROM support_tickets 
+        WHERE customer_id = ? AND status = 'open'
+    ");
+    $stmt->execute([$customerId]);
+    $openTicketsCount = $stmt->fetchColumn();
+} catch (Exception $e) {
+    error_log("Dashboard Tickets Count Error: " . $e->getMessage());
+    // Bei Fehler bleibt der Wert bei 0
+}
+
 // Logout verarbeiten
 if (isset($_GET['logout'])) {
     // Remember Me Token löschen
@@ -201,7 +215,7 @@ if (isset($_GET['logout'])) {
                     <div class="card-body">
                         <i class="bi bi-headset display-4 text-warning"></i>
                         <h5 class="card-title mt-2"><?= t('support_tickets') ?></h5>
-                        <p class="card-text display-6">0</p>
+                        <p class="card-text display-6"><?= $openTicketsCount ?></p>
                         <small class="text-muted"><?= t('open_tickets') ?></small>
                     </div>
                 </div>
@@ -237,6 +251,11 @@ if (isset($_GET['logout'])) {
                             <div class="col-md-3 mb-3">
                                 <a href="contact.php" class="btn btn-outline-info w-100">
                                     <i class="bi bi-chat-dots"></i> <?= t('contact') ?>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="domain-registration.php" class="btn btn-outline-success w-100">
+                                    <i class="bi bi-globe"></i> <?= t('register_domain') ?>
                                 </a>
                             </div>
                         </div>

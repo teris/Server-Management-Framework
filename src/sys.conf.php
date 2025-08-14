@@ -123,6 +123,16 @@ $plugins = array (
     'description' => 'Benutzerdefiniertes Modul für Tests',
     'require_admin' => false,
   ),
+  'support-tickets' => 
+  array (
+    'enabled' => true,
+    'name' => 'Support Tickets',
+    'icon' => '🎫',
+    'path' => 'module/support-tickets',
+    'version' => '1.0.0',
+    'description' => 'Support-Tickets verwalten und bearbeiten',
+    'require_admin' => true,
+  ),
 );
 // --- PLUGINS END ---
 

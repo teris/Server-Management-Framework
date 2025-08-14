@@ -294,7 +294,8 @@ class ModuleLoader {
         // Spezielle Mappings für Module mit Bindestrichen
         $special_mappings = [
             'virtual-mac' => 'VirtualMacModule',
-            'custom-module' => 'CustomModuleModule'
+            'custom-module' => 'CustomModuleModule',
+            'support-tickets' => 'SupportTicketsModule'
         ];
         
         if (isset($special_mappings[$key])) {

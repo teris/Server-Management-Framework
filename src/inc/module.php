@@ -8,7 +8,7 @@
                         foreach ($pluginManager->getEnabledPlugins() as $plugin_key => $plugin_info): 
                         ?>
                         <li class="nav-item" role="presentation">
-                            <a class="nav-link <?= $_GET['mod'] == $plugin_key ? 'active' : '' ?>" 
+                            <a class="nav-link <?= (isset($_GET['mod']) && $_GET['mod'] == $plugin_key) ? 'active' : '' ?>" 
                                href="?option=modules&mod=<?= $plugin_key ?>"
                                role="tab">
                                 <?= htmlspecialchars($plugin_info['name'] ?? $plugin_key) ?>
@@ -23,12 +23,21 @@
                     
                         <?php 
                         if(isset($_GET['mod'])){    
-                            include('module/'.$_GET['mod'].'/templates/main.php'); 
+                            $mod_key = $_GET['mod'];
+                            $module_file = __DIR__ . '/../module/'.$mod_key.'/templates/main.php';
+                            
+                            if (file_exists($module_file)) {
+                                include($module_file);
+                            } else {
+                                echo '<div class="alert alert-danger text-center">';
+                                echo 'Module template not found: ' . htmlspecialchars($module_file);
+                                echo '</div>';
+                            }
                         } else {
                             echo '<div class="alert alert-info text-center">';
-                            echo t('select_module_from_tabs_above');
+                            echo function_exists('t') ? t('select_module_from_tabs_above') : 'Bitte wählen Sie ein Modul aus den Tabs oben aus.';
                             echo '</div>';
-                        } ;
+                        }
                         ?>
                 </div>
             </div>

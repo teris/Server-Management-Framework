@@ -420,7 +420,7 @@ $(document).ready(function() {
             return $(this).val().trim() === '';
         }).length > 0;
         
-        submitBtn.prop('disabled', hasErrors || hasEmptyFields || isLocked);
+        submitBtn.prop('', hasErrors || hasEmptyFields || isLocked);
     }
     
     /**

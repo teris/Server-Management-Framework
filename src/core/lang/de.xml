@@ -1029,4 +1029,113 @@
     <no_vms_available>Keine VMs verfügbar</no_vms_available>
     <game_server_status>Game Server Status</game_server_status>
     <no_game_servers_available>Keine Game Server verfügbar</no_game_servers_available>
+    
+    <!-- Support Ticket Antworten -->
+    <replies>Antworten</replies>
+    <reply_message>Antwort auf Ticket</reply_message>
+    <send_reply>Antwort senden</send_reply>
+    <enter_your_reply>Geben Sie Ihre Antwort ein...</enter_your_reply>
+    <ticket_closed_message>Dieses Ticket ist geschlossen. Sie können keine weiteren Antworten hinzufügen.</ticket_closed_message>
+    <last_updated>Zuletzt aktualisiert</last_updated>
+    <no_tickets>Keine Tickets gefunden</no_tickets>
+    <no_tickets_message>Sie haben noch keine Support-Tickets erstellt. Erstellen Sie Ihr erstes Ticket, um Hilfe zu erhalten.</no_tickets_message>
+    <ticket_id>Ticket ID</ticket_id>
+    <status>Status</status>
+    <actions>Aktionen</actions>
+    <open>Offen</open>
+    <closed>Geschlossen</closed>
+    
+    <!-- Domain-Registrierung -->
+    <register_domain>Domain registrieren</register_domain>
+    <domain_registration>Domain-Registrierung</domain_registration>
+    <domain_registrations>Domain-Registrierungen</domain_registrations>
+    <domain_name>Domain-Name</domain_name>
+    <check_availability>Verfügbarkeit prüfen</check_availability>
+    <domain_available>Domain ist verfügbar</domain_available>
+    <domain_not_available>Domain ist nicht verfügbar</domain_not_available>
+    <alternative_domains>Alternative Domains</alternative_domains>
+    <suggested_domains>Vorgeschlagene Domains</suggested_domains>
+    <purpose>Zweck</purpose>
+    <purpose_website>Website</purpose_website>
+    <purpose_email>E-Mail</purpose_email>
+    <purpose_api>API</purpose_api>
+    <purpose_other>Sonstiges</purpose_other>
+    <notes>Notizen</notes>
+    <enter_notes>Notizen eingeben (optional)</enter_notes>
+    <submit_registration>Registrierung einreichen</submit_registration>
+    <registration_submitted>Registrierung eingereicht</registration_submitted>
+    <registration_submitted_message>Ihre Domain-Registrierung wurde erfolgreich eingereicht. Wir werden diese prüfen und uns bei Ihnen melden.</registration_submitted_message>
+    <my_registrations>Meine Registrierungen</my_registrations>
+    <no_registrations>Keine Registrierungen gefunden</no_registrations>
+    <registration_date>Registrierungsdatum</registration_date>
+    <pending>Ausstehend</pending>
+    <approved>Genehmigt</approved>
+    <rejected>Abgelehnt</rejected>
+    <cancelled>Storniert</cancelled>
+    <admin_notes>Admin-Notizen</admin_notes>
+    <approve_registration>Registrierung genehmigen</approve_registration>
+    <reject_registration>Registrierung ablehnen</reject_registration>
+    <cancel_registration>Registrierung stornieren</cancel_registration>
+    <registration_approved>Registrierung genehmigt</registration_approved>
+    <registration_rejected>Registrierung abgelehnt</registration_rejected>
+    <registration_cancelled>Registrierung storniert</registration_cancelled>
+    <total_registrations>Gesamt Registrierungen</total_registrations>
+    <pending_registrations>Ausstehende Registrierungen</pending_registrations>
+    <approved_registrations>Genehmigte Registrierungen</approved_registrations>
+    <rejected_registrations>Abgelehnte Registrierungen</rejected_registrations>
+    <cancelled_registrations>Stornierte Registrierungen</cancelled_registrations>
+    <filter_by_status>Nach Status filtern</filter_by_status>
+    <filter_by_domain>Nach Domain filtern</filter_by_domain>
+    <filter_by_user>Nach Benutzer filtern</filter_by_user>
+    <view_notes>Notizen anzeigen</view_notes>
+    <edit_registration>Registrierung bearbeiten</edit_registration>
+    <save_changes>Änderungen speichern</save_changes>
+    <confirm_action>Aktion bestätigen</confirm_action>
+    <confirm_approve>Möchten Sie diese Registrierung wirklich genehmigen?</confirm_approve>
+    <confirm_reject>Möchten Sie diese Registrierung wirklich ablehnen?</confirm_reject>
+    <confirm_cancel>Möchten Sie diese Registrierung wirklich stornieren?</confirm_cancel>
+    <enter_domain_name>Domain-Namen eingeben</enter_domain_name>
+    <domain_availability_check>Domain-Verfügbarkeitsprüfung</domain_availability_check>
+    <checking_availability>Verfügbarkeit wird geprüft...</checking_availability>
+    <domain_available_message>Diese Domain ist verfügbar und kann registriert werden.</domain_available_message>
+    <domain_not_available_message>Diese Domain ist bereits vergeben. Hier sind einige Alternativen:</domain_not_available_message>
+    <select_purpose>Zweck auswählen</select_purpose>
+    <registration_form>Registrierungsformular</registration_form>
+    <hide_form>Formular ausblenden</hide_form>
+    <show_form>Formular anzeigen</show_form>
+    <registration_details>Registrierungsdetails</registration_details>
+    <user>Benutzer</user>
+    <customer>Kunde</customer>
+    <submitted_date>Eingereicht am</submitted_date>
+    <updated_date>Aktualisiert am</updated_date>
+    <refresh_list>Liste aktualisieren</refresh_list>
+    <no_registrations_found>Keine Registrierungen gefunden</no_registrations_found>
+    <registration_updated>Registrierung aktualisiert</registration_updated>
+    <registration_deleted>Registrierung gelöscht</registration_deleted>
+    <error_loading_registrations>Fehler beim Laden der Registrierungen</error_loading_registrations>
+    <error_updating_registration>Fehler beim Aktualisieren der Registrierung</error_updating_registration>
+    <error_deleting_registration>Fehler beim Löschen der Registrierung</error_deleting_registration>
+    <search_domain>Domain suchen</search_domain>
+    <search_customer>Kunde suchen</search_customer>
+    <all_statuses>Alle Status</all_statuses>
+    <pending_approval>Wartend auf Genehmigung</pending_approval>
+    <domain_registrations_management>Domain-Registrierungen Verwaltung</domain_registrations_management>
+    <registration_notes>Registrierungsnotizen</registration_notes>
+    <register_this_domain>Diese Domain registrieren</register_this_domain>
+    <business_website>Geschäftswebsite</business_website>
+    <personal_website>Persönliche Website</personal_website>
+    <blog>Blog</blog>
+    <ecommerce>E-Commerce</ecommerce>
+    <portfolio>Portfolio</portfolio>
+    <other>Sonstiges</other>
+    <additional_notes>Zusätzliche Notizen</additional_notes>
+    <describe_your_project>Beschreiben Sie Ihr Projekt...</describe_your_project>
+    <important>Wichtig</important>
+    <domain_registration_info>Ihre Domain-Registrierung wird von unserem Team geprüft. Wir werden uns innerhalb von 24 Stunden bei Ihnen melden.</domain_registration_info>
+    <my_domain_registrations>Meine Domain-Registrierungen</my_domain_registrations>
+    <no_domain_registrations>Keine Domain-Registrierungen gefunden</no_domain_registrations>
+    <domain_check_info_rate_limit>Hinweis: Zwischen den Domain-Prüfungen müssen 2 Sekunden liegen.</domain_check_info_rate_limit>
+    <domain_extension>Domain-Endung</domain_extension>
+    <select_extension>Endung auswählen</select_extension>
+    <all_tlds>Alle TLDs (Alle Endungen prüfen)</all_tlds>
 </translations> 

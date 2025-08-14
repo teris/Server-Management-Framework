@@ -331,3 +331,54 @@ body {
         opacity: 1;
     }
 }
+
+/* Navigation Hauptkategorien */
+.nav-link-category {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    margin-bottom: 0.5rem !important;
+    padding: 0.75rem 1rem !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+.nav-link-category:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.nav-link-category .bi-chevron-up,
+.nav-link-category .bi-chevron-down {
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: transform 0.3s ease !important;
+}
+
+.nav-link-category[aria-expanded="false"] .bi-chevron-up {
+    transform: rotate(180deg) !important;
+}
+
+/* Untermenü-Styling */
+.nav-link-category + .collapse .nav-link {
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px !important;
+    margin-bottom: 0.25rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.nav-link-category + .collapse .nav-link:hover {
+    background-color: #f3f4f6 !important;
+    color: #374151 !important;
+    transform: translateX(4px) !important;
+}
+
+/* Aktive Untermenü-Links */
+.nav-link-category + .collapse .nav-link.active {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+    color: white !important;
+}

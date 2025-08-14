@@ -1071,5 +1071,73 @@ class AdminCore {
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
+    
+    public function saveGroupModules($data) {
+        try {
+            $db = $this->db->getConnection();
+            $groupId = $data['group_id'] ?? null;
+            if (!$groupId) {
+                return ['success' => false, 'error' => 'Group ID required'];
+            }
+            
+            // Modulrechte speichern
+            $db->prepare("DELETE FROM group_module_permissions WHERE group_id=?")->execute([$groupId]);
+            foreach ($data as $key => $value) {
+                if (preg_match('/^module_(\d+)$/', $key, $m)) {
+                    $module_id = $m[1];
+                    $can_access = $value === 'on' ? 1 : 0;
+                    $db->prepare("INSERT INTO group_module_permissions (group_id, module_id, can_access) VALUES (?, ?, ?)")
+                        ->execute([$groupId, $module_id, $can_access]);
+                }
+            }
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    public function toggleUserStatus($userId, $status = null) {
+        try {
+            $db = $this->db->getConnection();
+            
+            // Wenn kein Status angegeben, aktuellen Status umschalten
+            if ($status === null) {
+                $stmt = $db->prepare("SELECT active FROM users WHERE id = ?");
+                $stmt->execute([$userId]);
+                $currentStatus = $stmt->fetchColumn();
+                $newStatus = $currentStatus === 'y' ? 'n' : 'y';
+            } else {
+                $newStatus = $status === 'active' ? 'y' : 'n';
+            }
+            
+            $stmt = $db->prepare("UPDATE users SET active = ? WHERE id = ?");
+            $stmt->execute([$newStatus, $userId]);
+            
+            return ['success' => true, 'data' => ['active' => $newStatus]];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    public function resetUserPassword($userId) {
+        try {
+            $db = $this->db->getConnection();
+            
+            // Generiere ein sicheres Passwort
+            $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            $password = '';
+            for ($i = 0; $i < 12; $i++) {
+                $password .= $chars[random_int(0, strlen($chars) - 1)];
+            }
+            
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+            $stmt->execute([$hash, $userId]);
+            
+            return ['success' => true, 'data' => ['password' => $password]];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
 }
 ?>

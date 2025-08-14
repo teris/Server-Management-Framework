@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Aug 11, 2025 at 07:15 PM
+-- Generation Time: Aug 14, 2025 at 06:51 PM
 -- Server version: 11.8.2-MariaDB-1 from Debian
 -- PHP Version: 7.4.33
 
@@ -47,7 +47,7 @@ CREATE TABLE `activity_log` (
   `id` int(11) NOT NULL,
   `action` varchar(255) NOT NULL,
   `details` text DEFAULT NULL,
-  `status` enum('success','error','pending') NOT NULL,
+  `status` enum('success','error','pending','info') NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -97,6 +97,26 @@ CREATE TABLE `backup_jobs` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `contact_messages`
+--
+
+CREATE TABLE `contact_messages` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `subject` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `status` enum('new','read','replied','archived') DEFAULT 'new',
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `customers`
 --
 
@@ -104,12 +124,18 @@ CREATE TABLE `customers` (
   `id` int(11) NOT NULL,
   `first_name` varchar(100) NOT NULL,
   `last_name` varchar(100) NOT NULL,
+  `full_name` varchar(255) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `company` varchar(255) DEFAULT NULL,
   `phone` varchar(50) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `city` varchar(100) DEFAULT NULL,
+  `postal_code` varchar(20) DEFAULT NULL,
+  `country` varchar(100) DEFAULT NULL,
   `status` enum('pending','active','suspended','deleted') DEFAULT 'pending',
   `email_verified_at` timestamp NULL DEFAULT NULL,
+  `last_login` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -174,6 +200,39 @@ CREATE TABLE `domains` (
   `status` varchar(20) DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domain_extensions`
+--
+
+CREATE TABLE `domain_extensions` (
+  `id` int(11) NOT NULL,
+  `tld` varchar(10) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domain_registrations`
+--
+
+CREATE TABLE `domain_registrations` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `domain` varchar(255) NOT NULL,
+  `purpose` varchar(50) NOT NULL DEFAULT 'other',
+  `notes` text DEFAULT NULL,
+  `status` enum('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
+  `admin_notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -417,11 +476,12 @@ CREATE TABLE `ssl_certificates` (
 --
 
 CREATE TABLE `support_tickets` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ticket_number` varchar(20) NOT NULL,
+  `id` int(11) NOT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `ticket_number` varchar(20) NOT NULL DEFAULT 'TEMP',
   `subject` varchar(255) NOT NULL,
   `message` text NOT NULL,
-  `email` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL DEFAULT '',
   `customer_name` varchar(255) DEFAULT NULL,
   `phone` varchar(50) DEFAULT NULL,
   `priority` enum('low','medium','high','urgent') DEFAULT 'medium',
@@ -441,19 +501,7 @@ CREATE TABLE `support_tickets` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `resolved_at` timestamp NULL DEFAULT NULL,
   `closed_at` timestamp NULL DEFAULT NULL,
-  `due_date` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `ticket_number` (`ticket_number`),
-  KEY `idx_email` (`email`),
-  KEY `idx_status` (`status`),
-  KEY `idx_priority` (`priority`),
-  KEY `idx_category` (`category`),
-  KEY `idx_assigned_to` (`assigned_to`),
-  KEY `idx_department` (`department`),
-  KEY `idx_created_at` (`created_at`),
-  KEY `idx_due_date` (`due_date`),
-  KEY `idx_status_priority` (`status`, `priority`),
-  KEY `idx_email_status` (`email`, `status`)
+  `due_date` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -740,6 +788,15 @@ ALTER TABLE `backup_jobs`
   ADD KEY `created_by` (`created_by`);
 
 --
+-- Indexes for table `contact_messages`
+--
+ALTER TABLE `contact_messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_customer_id` (`customer_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
 -- Indexes for table `customers`
 --
 ALTER TABLE `customers`
@@ -777,6 +834,28 @@ ALTER TABLE `domains`
   ADD UNIQUE KEY `unique_domain` (`domain_name`),
   ADD KEY `idx_status` (`status`),
   ADD KEY `idx_expiration` (`expiration_date`);
+
+--
+-- Indexes for table `domain_extensions`
+--
+ALTER TABLE `domain_extensions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `tld` (`tld`),
+  ADD KEY `active` (`active`),
+  ADD KEY `created_at` (`created_at`),
+  ADD KEY `idx_domain_extensions_active_tld` (`active`,`tld`);
+
+--
+-- Indexes for table `domain_registrations`
+--
+ALTER TABLE `domain_registrations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `domain` (`domain`),
+  ADD KEY `status` (`status`),
+  ADD KEY `created_at` (`created_at`),
+  ADD KEY `idx_domain_registrations_status_created` (`status`,`created_at`),
+  ADD KEY `idx_domain_registrations_user_status` (`user_id`,`status`);
 
 --
 -- Indexes for table `email_accounts`
@@ -895,7 +974,18 @@ ALTER TABLE `ssl_certificates`
 --
 ALTER TABLE `support_tickets`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_tickets_status_priority` (`status`,`priority`);
+  ADD UNIQUE KEY `ticket_number` (`ticket_number`),
+  ADD KEY `idx_email` (`email`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_priority` (`priority`),
+  ADD KEY `idx_category` (`category`),
+  ADD KEY `idx_assigned_to` (`assigned_to`),
+  ADD KEY `idx_department` (`department`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_due_date` (`due_date`),
+  ADD KEY `idx_status_priority` (`status`,`priority`),
+  ADD KEY `idx_email_status` (`email`,`status`),
+  ADD KEY `idx_customer_id` (`customer_id`);
 
 --
 -- Indexes for table `system_settings`
@@ -986,6 +1076,7 @@ ALTER TABLE `active_modules`
 --
 ALTER TABLE `activity_log`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY COLUMN `status` enum('success','error','pending','info') NOT NULL;
 
 --
 -- AUTO_INCREMENT for table `api_credentials`
@@ -997,6 +1088,12 @@ ALTER TABLE `api_credentials`
 -- AUTO_INCREMENT for table `backup_jobs`
 --
 ALTER TABLE `backup_jobs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `contact_messages`
+--
+ALTER TABLE `contact_messages`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1027,6 +1124,18 @@ ALTER TABLE `customer_verification_tokens`
 -- AUTO_INCREMENT for table `domains`
 --
 ALTER TABLE `domains`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `domain_extensions`
+--
+ALTER TABLE `domain_extensions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `domain_registrations`
+--
+ALTER TABLE `domain_registrations`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1178,6 +1287,12 @@ ALTER TABLE `backup_jobs`
   ADD CONSTRAINT `backup_jobs_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
+-- Constraints for table `contact_messages`
+--
+ALTER TABLE `contact_messages`
+  ADD CONSTRAINT `fk_contact_messages_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
 -- Constraints for table `customer_login_logs`
 --
 ALTER TABLE `customer_login_logs`
@@ -1194,6 +1309,12 @@ ALTER TABLE `customer_remember_tokens`
 --
 ALTER TABLE `customer_verification_tokens`
   ADD CONSTRAINT `customer_verification_tokens_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `domain_registrations`
+--
+ALTER TABLE `domain_registrations`
+  ADD CONSTRAINT `domain_registrations_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `email_accounts`
@@ -1224,6 +1345,12 @@ ALTER TABLE `sm_databases`
 --
 ALTER TABLE `ssl_certificates`
   ADD CONSTRAINT `ssl_certificates_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `support_tickets`
+--
+ALTER TABLE `support_tickets`
+  ADD CONSTRAINT `fk_support_tickets_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `system_settings`

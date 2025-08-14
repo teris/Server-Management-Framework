@@ -378,58 +378,66 @@ if (!is_array($ispconfigClients)) {
                             <div class="card mb-4">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0"><i class="bi bi-speedometer2"></i> <?= t('admin_dashboard') ?> <?= t('users') ?></h6>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="refreshUserList('admin')">
-                                        <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
-                                    </button>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="loadUsers()">
+                                            <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" onclick="showCreateUserModal()">
+                                            <i class="bi bi-plus-circle"></i> <?= t('create_user') ?>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
-                                    <?php if ($adminUsers['success']): ?>
-                                        <div class="table-responsive">
-                                            <table class="table table-striped table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th><?= t('username') ?></th>
-                                                        <th><?= t('full_name') ?></th>
-                                                        <th><?= t('email') ?></th>
-                                                        <th><?= t('role') ?></th>
-                                                        <th><?= t('status') ?></th>
-                                                        <th><?= t('actions') ?></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php foreach ($adminUsers['data'] as $user): ?>
-                                                        <tr>
-                                                            <td><?= htmlspecialchars($user['username']) ?></td>
-                                                            <td><?= htmlspecialchars($user['full_name']) ?></td>
-                                                            <td><?= htmlspecialchars($user['email']) ?></td>
-                                                            <td>
-                                                                <span class="badge bg-<?= $user['role'] === 'admin' ? 'danger' : ($user['role'] === 'moderator' ? 'warning' : 'primary') ?>">
-                                                                    <?= htmlspecialchars($user['role']) ?>
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <span class="badge bg-<?= $user['active'] === 'y' ? 'success' : 'secondary' ?>">
-                                                                    <?= $user['active'] === 'y' ? t('active') : t('inactive') ?>
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <button class="btn btn-sm btn-outline-primary" onclick="editUser('admin', <?= $user['id'] ?>)">
-                                                                    <i class="bi bi-pencil"></i>
-                                                                </button>
-                                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('admin', <?= $user['id'] ?>)">
-                                                                    <i class="bi bi-trash"></i>
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
+                                    <!-- Filter und Suche -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control" id="userSearchInput" placeholder="<?= t('search_users') ?>" onkeyup="debounce(loadUsers, 500)()">
                                         </div>
-                                    <?php else: ?>
-                                        <div class="alert alert-danger">
-                                            <i class="bi bi-exclamation-triangle"></i> <?= t('error_loading_users') ?>: <?= htmlspecialchars($adminUsers['error']) ?>
+                                        <div class="col-md-3">
+                                            <select class="form-select" id="userStatusFilter" onchange="loadUsers()">
+                                                <option value=""><?= t('all_statuses') ?></option>
+                                                <option value="active"><?= t('active') ?></option>
+                                                <option value="inactive"><?= t('inactive') ?></option>
+                                            </select>
                                         </div>
-                                    <?php endif; ?>
+                                        <div class="col-md-3">
+                                            <select class="form-select" id="userRoleFilter" onchange="loadUsers()">
+                                                <option value=""><?= t('all_roles') ?></option>
+                                                <option value="admin"><?= t('admin') ?></option>
+                                                <option value="user"><?= t('user') ?></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th><?= t('username') ?></th>
+                                                    <th><?= t('full_name') ?></th>
+                                                    <th><?= t('email') ?></th>
+                                                    <th><?= t('role') ?></th>
+                                                    <th><?= t('status') ?></th>
+                                                    <th><?= t('created') ?></th>
+                                                    <th><?= t('actions') ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="usersTableBody">
+                                                <tr>
+                                                    <td colspan="7" class="text-center">
+                                                        <div class="spinner-border" role="status">
+                                                            <span class="visually-hidden"><?= t('loading') ?></span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <!-- Pagination -->
+                                    <nav aria-label="Users pagination" id="usersPaginationContainer">
+                                        <!-- Pagination wird dynamisch geladen -->
+                                    </nav>
                                 </div>
                             </div>
 
@@ -589,6 +597,8 @@ if (!is_array($ispconfigClients)) {
                                     <?php endif; ?>
                                 </div>
                             </div>
+
+
                         </div>
                     </div>
                 </div>
@@ -616,8 +626,611 @@ if (!is_array($ispconfigClients)) {
     </div>
 </div>
 
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?= t('create_user') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newUsername" class="form-label"><?= t('username') ?> *</label>
+                                <input type="text" class="form-control" id="newUsername" name="username" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmail" class="form-label"><?= t('email') ?> *</label>
+                                <input type="email" class="form-control" id="newEmail" name="email" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newFullName" class="form-label"><?= t('full_name') ?> *</label>
+                                <input type="text" class="form-control" id="newFullName" name="full_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newRole" class="form-label"><?= t('role') ?></label>
+                                <select class="form-select" id="newRole" name="role">
+                                    <option value="user"><?= t('user') ?></option>
+                                    <option value="admin"><?= t('admin') ?></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label"><?= t('password') ?> *</label>
+                                <input type="password" class="form-control" id="newPassword" name="password" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newPasswordConfirm" class="form-label"><?= t('confirm_password') ?> *</label>
+                                <input type="password" class="form-control" id="newPasswordConfirm" name="password_confirm" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="newActive" name="active" checked>
+                            <label class="form-check-label" for="newActive">
+                                <?= t('active') ?>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                <button type="button" class="btn btn-primary" onclick="createUser()"><?= t('create') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?= t('reset_password') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><?= t('reset_password_confirm') ?></p>
+                <div class="mb-3">
+                    <label for="newPasswordReset" class="form-label"><?= t('new_password') ?></label>
+                    <input type="text" class="form-control" id="newPasswordReset" readonly>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-secondary" onclick="generateNewPassword()">
+                        <i class="bi bi-arrow-clockwise"></i> <?= t('generate_new_password') ?>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                <button type="button" class="btn btn-primary" onclick="confirmResetPassword()"><?= t('reset_password') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Action Modal -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmActionTitle"><?= t('confirm_action') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmActionMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                <button type="button" class="btn btn-danger" id="confirmActionButton"><?= t('confirm') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-// System-spezifische Felder ein-/ausblenden
+// Global variables
+let currentUserId = null;
+let currentUserPage = 1;
+
+// Initialize user management
+document.addEventListener('DOMContentLoaded', function() {
+    loadUsers();
+    bindUserEvents();
+});
+
+// Bind user management events
+function bindUserEvents() {
+    // Password confirmation validation for create user form
+    const newPassword = document.getElementById('newPassword');
+    const newPasswordConfirm = document.getElementById('newPasswordConfirm');
+    
+    if (newPassword && newPasswordConfirm) {
+        function validateNewPassword() {
+            if (newPassword.value !== newPasswordConfirm.value) {
+                newPasswordConfirm.setCustomValidity('<?= t('passwords_do_not_match') ?>');
+            } else {
+                newPasswordConfirm.setCustomValidity('');
+            }
+        }
+        
+        newPassword.addEventListener('input', validateNewPassword);
+        newPasswordConfirm.addEventListener('input', validateNewPassword);
+    }
+    
+    // Modal events
+    const createModal = document.getElementById('createUserModal');
+    if (createModal) {
+        createModal.addEventListener('hidden.bs.modal', () => {
+            document.getElementById('createUserForm')?.reset();
+        });
+    }
+    
+    const editModal = document.getElementById('editUserModal');
+    if (editModal) {
+        editModal.addEventListener('hidden.bs.modal', () => {
+            currentUserId = null;
+        });
+    }
+}
+
+// Load users from server
+function loadUsers(page = 1) {
+    currentUserPage = page;
+    const search = document.getElementById('userSearchInput')?.value || '';
+    const status = document.getElementById('userStatusFilter')?.value || '';
+    const role = document.getElementById('userRoleFilter')?.value || '';
+    
+    const tbody = document.getElementById('usersTableBody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden"><?= t('loading') ?></span></div></td></tr>';
+    }
+    
+    console.log('Loading users with params:', { page, search, status, role });
+    
+    $.ajax({
+        url: 'index.php',
+        method: 'POST',
+        data: {
+            core: 'admin',
+            action: 'get_users',
+            page: page,
+            search: search,
+            status: status,
+            role: role
+        },
+        success: function(response) {
+            console.log('Users response:', response);
+            if (response.success) {
+                renderUsers(response.data.users);
+                renderUserPagination(response.data.pagination);
+            } else {
+                showNotification(response.error || '<?= t('error_loading_users') ?>', 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', { xhr, status, error });
+            showNotification('<?= t('network_error') ?>', 'error');
+        }
+    });
+}
+
+// Render users table
+function renderUsers(users) {
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
+    
+    if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><?= t('no_users_found') ?></td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = users.map(user => `
+        <tr class="fade-in">
+            <td><strong>${escapeHtml(user.username)}</strong></td>
+            <td>${escapeHtml(user.full_name)}</td>
+            <td>${escapeHtml(user.email)}</td>
+            <td>
+                <span class="badge bg-${user.role === 'admin' ? 'danger' : 'primary'}">${user.role}</span>
+            </td>
+            <td>
+                <span class="badge bg-${user.active === 'y' ? 'success' : 'secondary'}">
+                    ${user.active === 'y' ? '<?= t('active') ?>' : '<?= t('inactive') ?>'}
+                </span>
+            </td>
+            <td>
+                <small>${formatDate(user.created_at)}</small>
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-primary" onclick="editUser(${user.id})" title="<?= t('edit_user') ?>">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-warning" onclick="toggleUserStatus(${user.id})" title="${user.active === 'y' ? '<?= t('suspend_user') ?>' : '<?= t('activate_user') ?>'}">
+                        <i class="bi bi-${user.active === 'y' ? 'pause' : 'play'}"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-info" onclick="resetUserPassword(${user.id})" title="<?= t('reset_password') ?>">
+                        <i class="bi bi-key"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="deleteUser(${user.id})" title="<?= t('delete_user') ?>">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Render user pagination
+function renderUserPagination(pagination) {
+    const container = document.getElementById('usersPaginationContainer');
+    if (!container) return;
+    
+    if (pagination.pages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '<ul class="pagination justify-content-center">';
+    
+    // Previous button
+    if (pagination.page > 1) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="loadUsers(${pagination.page - 1})"><?= t('previous') ?></a></li>`;
+    }
+    
+    // Page numbers
+    for (let i = 1; i <= pagination.pages; i++) {
+        if (i === pagination.page) {
+            html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+        } else {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="loadUsers(${i})">${i}</a></li>`;
+        }
+    }
+    
+    // Next button
+    if (pagination.page < pagination.pages) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="loadUsers(${pagination.page + 1})"><?= t('next') ?></a></li>`;
+    }
+    
+    html += '</ul>';
+    container.innerHTML = html;
+}
+
+// Show create user modal
+function showCreateUserModal() {
+    $('#createUserModal').modal('show');
+}
+
+// Create user
+function createUser() {
+    const form = document.getElementById('createUserForm');
+    const formData = new FormData(form);
+    
+    // Validate password confirmation
+    if (formData.get('password') !== formData.get('password_confirm')) {
+        showNotification('<?= t('passwords_do_not_match') ?>', 'error');
+        return;
+    }
+    
+    $.ajax({
+        url: 'index.php',
+        method: 'POST',
+        data: {
+            core: 'admin',
+            action: 'save_user',
+            ...Object.fromEntries(formData)
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#createUserModal').modal('hide');
+                form.reset();
+                loadUsers();
+                showNotification('<?= t('user_created_successfully') ?>', 'success');
+            } else {
+                showNotification(response.error || '<?= t('error_creating_user') ?>', 'error');
+            }
+        },
+        error: function() {
+            showNotification('<?= t('network_error') ?>', 'error');
+        }
+    });
+}
+
+// Edit user
+function editUser(userId) {
+    currentUserId = userId;
+    
+    $.ajax({
+        url: 'index.php',
+        method: 'POST',
+        data: {
+            core: 'admin',
+            action: 'get_user',
+            id: userId
+        },
+        success: function(response) {
+            if (response.success) {
+                renderEditUserForm(response.data);
+                $('#editUserModal').modal('show');
+            } else {
+                showNotification(response.error || '<?= t('error_loading_user') ?>', 'error');
+            }
+        },
+        error: function() {
+            showNotification('<?= t('network_error') ?>', 'error');
+        }
+    });
+}
+
+// Render edit user form
+function renderEditUserForm(user) {
+    document.getElementById('editUserModalTitle').textContent = `<?= t('edit_user') ?>: ${escapeHtml(user.username)}`;
+    document.getElementById('editUserModalBody').innerHTML = `
+        <form id="editUserForm">
+            <input type="hidden" name="user_id" value="${user.id}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="editUsername" class="form-label"><?= t('username') ?> *</label>
+                        <input type="text" class="form-control" id="editUsername" name="username" value="${escapeHtml(user.username)}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label"><?= t('email') ?> *</label>
+                        <input type="email" class="form-control" id="editEmail" name="email" value="${escapeHtml(user.email)}" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="editFullName" class="form-label"><?= t('full_name') ?> *</label>
+                        <input type="text" class="form-control" id="editFullName" name="full_name" value="${escapeHtml(user.full_name)}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="editRole" class="form-label"><?= t('role') ?></label>
+                        <select class="form-select" id="editRole" name="role">
+                            <option value="user" ${user.role === 'user' ? 'selected' : ''}><?= t('user') ?></option>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}><?= t('admin') ?></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label"><?= t('password') ?> (<?= t('leave_empty_to_keep') ?>)</label>
+                        <input type="password" class="form-control" id="editPassword" name="password">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="editPasswordConfirm" class="form-label"><?= t('confirm_password') ?></label>
+                        <input type="password" class="form-control" id="editPasswordConfirm" name="password_confirm">
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="editActive" name="active" ${user.active === 'y' ? 'checked' : ''}>
+                    <label class="form-check-label" for="editActive">
+                        <?= t('active') ?>
+                    </label>
+                </div>
+            </div>
+        </form>
+    `;
+    
+    // Bind password validation
+    const editPassword = document.getElementById('editPassword');
+    const editPasswordConfirm = document.getElementById('editPasswordConfirm');
+    
+    if (editPassword && editPasswordConfirm) {
+        function validateEditPassword() {
+            if (editPassword.value && editPassword.value !== editPasswordConfirm.value) {
+                editPasswordConfirm.setCustomValidity('<?= t('passwords_do_not_match') ?>');
+            } else {
+                editPasswordConfirm.setCustomValidity('');
+            }
+        }
+        
+        editPassword.addEventListener('input', validateEditPassword);
+        editPasswordConfirm.addEventListener('input', validateEditPassword);
+    }
+}
+
+// Save user changes
+function saveUserChanges() {
+    const form = document.getElementById('editUserForm');
+    const formData = new FormData(form);
+    
+    // Validate password confirmation if password is provided
+    if (formData.get('password') && formData.get('password') !== formData.get('password_confirm')) {
+        showNotification('<?= t('passwords_do_not_match') ?>', 'error');
+        return;
+    }
+    
+    $.ajax({
+        url: 'index.php',
+        method: 'POST',
+        data: {
+            core: 'admin',
+            action: 'save_user',
+            ...Object.fromEntries(formData)
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#editUserModal').modal('hide');
+                loadUsers();
+                showNotification('<?= t('user_updated_successfully') ?>', 'success');
+            } else {
+                showNotification(response.error || '<?= t('error_updating_user') ?>', 'error');
+            }
+        },
+        error: function() {
+            showNotification('<?= t('network_error') ?>', 'error');
+        }
+    });
+}
+
+// Toggle user status (suspend/activate)
+function toggleUserStatus(userId) {
+    $.ajax({
+        url: 'index.php',
+        method: 'POST',
+        data: {
+            core: 'admin',
+            action: 'toggle_user_status',
+            id: userId
+        },
+        success: function(response) {
+            if (response.success) {
+                loadUsers();
+                showNotification(response.data.message || '<?= t('user_status_updated') ?>', 'success');
+            } else {
+                showNotification(response.error || '<?= t('error_updating_user_status') ?>', 'error');
+            }
+        },
+        error: function() {
+            showNotification('<?= t('network_error') ?>', 'error');
+        }
+    });
+}
+
+// Reset user password
+function resetUserPassword(userId) {
+    currentUserId = userId;
+    generateNewPassword();
+    $('#resetPasswordModal').modal('show');
+}
+
+// Generate new password
+function generateNewPassword() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('newPasswordReset').value = password;
+}
+
+// Confirm reset password
+function confirmResetPassword() {
+    $.ajax({
+        url: 'index.php',
+        method: 'POST',
+        data: {
+            core: 'admin',
+            action: 'reset_user_password',
+            id: currentUserId
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#resetPasswordModal').modal('hide');
+                showNotification('<?= t('password_reset_successfully') ?>', 'success');
+                // Update the password field with the generated password
+                document.getElementById('newPasswordReset').value = response.data.password;
+            } else {
+                showNotification(response.error || '<?= t('error_resetting_password') ?>', 'error');
+            }
+        },
+        error: function() {
+            showNotification('<?= t('network_error') ?>', 'error');
+        }
+    });
+}
+
+// Delete user
+function deleteUser(userId) {
+    showConfirmAction(
+        '<?= t('delete_user') ?>',
+        '<?= t('confirm_delete_user_message') ?>',
+        () => performDeleteUser(userId)
+    );
+}
+
+// Perform delete user
+function performDeleteUser(userId) {
+    $.ajax({
+        url: 'index.php',
+        method: 'POST',
+        data: {
+            core: 'admin',
+            action: 'delete_user',
+            id: userId
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#confirmActionModal').modal('hide');
+                loadUsers();
+                showNotification('<?= t('user_deleted_successfully') ?>', 'success');
+            } else {
+                showNotification(response.error || '<?= t('error_deleting_user') ?>', 'error');
+            }
+        },
+        error: function() {
+            showNotification('<?= t('network_error') ?>', 'error');
+        }
+    });
+}
+
+// Show confirm action modal
+function showConfirmAction(title, message, onConfirm) {
+    document.getElementById('confirmActionTitle').textContent = title;
+    document.getElementById('confirmActionMessage').textContent = message;
+    
+    const confirmButton = document.getElementById('confirmActionButton');
+    confirmButton.onclick = onConfirm;
+    
+    $('#confirmActionModal').modal('show');
+}
+
+// Helper functions
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// System-spezifische Felder ein-/ausblenden (für andere Bereiche)
 function toggleSystemFields() {
     const systems = document.querySelectorAll('input[name="systems[]"]:checked');
     const systemFields = document.querySelectorAll('.system-fields');
@@ -647,7 +1260,7 @@ function loadAdminGroups() {
     }
 }
 
-// Benutzerliste aktualisieren
+// Benutzerliste aktualisieren (für andere Systeme)
 function refreshUserList(system) {
     // TODO: AJAX-Implementierung für echte Datenaktualisierung
     showNotification('<?= t('refreshing') ?>...', 'info');
@@ -656,37 +1269,7 @@ function refreshUserList(system) {
     }, 1000);
 }
 
-// Benutzer bearbeiten
-function editUser(system, userId) {
-    // TODO: AJAX-Implementierung für echte Benutzerbearbeitung
-    showNotification('<?= t('loading_user_data') ?>...', 'info');
-    
-    // Modal öffnen
-    const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-    document.getElementById('editUserModalTitle').textContent = `<?= t('edit_user') ?> (${system.toUpperCase()})`;
-    document.getElementById('editUserModalBody').innerHTML = `
-        <div class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden"><?= t('loading') ?>...</span>
-            </div>
-            <p class="mt-2"><?= t('loading_user_data') ?>...</p>
-        </div>
-    `;
-    modal.show();
-}
-
-// Benutzer löschen
-function deleteUser(system, userId) {
-    if (confirm('<?= t('confirm_delete_user') ?>')) {
-        // TODO: AJAX-Implementierung für echte Benutzerlöschung
-        showNotification('<?= t('deleting_user') ?>...', 'info');
-        setTimeout(() => {
-            showNotification('<?= t('user_deleted_successfully') ?>', 'success');
-        }, 1000);
-    }
-}
-
-// Event Listeners
+// Event Listeners für andere Bereiche
 document.addEventListener('DOMContentLoaded', function() {
     // Admin Dashboard Checkbox immer aktiviert
     const adminCheckbox = document.getElementById('system_admin');
@@ -708,149 +1291,52 @@ document.addEventListener('DOMContentLoaded', function() {
         checkbox.addEventListener('change', toggleSystemFields);
     });
     
-    // Passwort-Bestätigung validieren
+    // Passwort-Bestätigung validieren (für andere Formulare)
     const password = document.getElementById('password');
     const passwordConfirm = document.getElementById('password_confirm');
     
-    function validatePassword() {
-        if (password.value !== passwordConfirm.value) {
-            passwordConfirm.setCustomValidity('<?= t('passwords_do_not_match') ?>');
-        } else {
-            passwordConfirm.setCustomValidity('');
+    if (password && passwordConfirm) {
+        function validatePassword() {
+            if (password.value !== passwordConfirm.value) {
+                passwordConfirm.setCustomValidity('<?= t('passwords_do_not_match') ?>');
+            } else {
+                passwordConfirm.setCustomValidity('');
+            }
         }
+        
+        password.addEventListener('input', validatePassword);
+        passwordConfirm.addEventListener('input', validatePassword);
     }
     
-    password.addEventListener('input', validatePassword);
-    passwordConfirm.addEventListener('input', validatePassword);
-    
-    // Formular-Submission
-    document.getElementById('createUserForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const selectedSystems = formData.getAll('systems[]');
-        
-        // Validierung
-        if (selectedSystems.length === 0) {
-            showNotification('<?= t('select_at_least_one_system') ?>', 'error');
-            return;
-        }
-        
-        // System-spezifische Validierung
-        if (selectedSystems.includes('ogp')) {
-            const ogpExpiration = formData.get('ogp_expiration');
-            if (ogpExpiration) {
-                const expirationDate = new Date(ogpExpiration);
-                if (expirationDate <= new Date()) {
-                    showNotification('<?= t('ogp_expiration_must_be_future') ?>', 'error');
-                    return;
-                }
-            }
-        }
-        
-        if (selectedSystems.includes('proxmox')) {
-            const proxmoxRealm = formData.get('proxmox_realm');
-            if (!proxmoxRealm) {
-                showNotification('<?= t('proxmox_realm_required') ?>', 'error');
-                return;
-            }
-        }
-        
-        if (selectedSystems.includes('ispconfig')) {
-            const requiredFields = ['ispconfig_street', 'ispconfig_zip', 'ispconfig_city', 'ispconfig_state', 'ispconfig_country', 'ispconfig_language'];
-            for (const field of requiredFields) {
-                if (!formData.get(field)) {
-                    showNotification('<?= t('ispconfig_required_fields_missing') ?>', 'error');
-                    return;
-                }
-            }
-        }
-        
-        // Benutzerdaten sammeln
-        const userData = {
-            basic: {
-                username: formData.get('username'),
-                email: formData.get('email'),
-                first_name: formData.get('first_name'),
-                last_name: formData.get('last_name'),
-                password: formData.get('password'),
-                notes: formData.get('notes')
-            },
-            systems: selectedSystems,
-            admin: {
-                role: formData.get('admin_role'),
-                group: formData.get('admin_group')
-            },
-            ogp: {
-                expiration: formData.get('ogp_expiration') || null, // Unbegrenzt wenn leer
-                home_id: formData.get('ogp_home_id') || null
-            },
-            proxmox: {
-                realm: formData.get('proxmox_realm'),
-                comment: formData.get('proxmox_comment') || '',
-                // Verwende die gleichen Grunddaten für alle Systeme
-                username: formData.get('username'),
-                email: formData.get('email'),
-                first_name: formData.get('first_name'),
-                last_name: formData.get('last_name'),
-                password: formData.get('password')
-            },
-            ispconfig: {
-                company_name: formData.get('ispconfig_company_name') || '',
-                street: formData.get('ispconfig_street'),
-                zip: formData.get('ispconfig_zip'),
-                city: formData.get('ispconfig_city'),
-                state: formData.get('ispconfig_state'),
-                country: formData.get('ispconfig_country'),
-                language: formData.get('ispconfig_language'),
-                telephone: formData.get('ispconfig_telephone') || '',
-                mobile: formData.get('ispconfig_mobile') || '',
-                fax: formData.get('ispconfig_fax') || '',
-                internet: formData.get('ispconfig_internet') || '',
-                notes: formData.get('ispconfig_notes') || '',
-                default_mailserver: formData.get('ispconfig_default_mailserver'),
-                default_webserver: formData.get('ispconfig_default_webserver'),
-                default_dnsserver: formData.get('ispconfig_default_dnsserver'),
-                limit_client: formData.get('ispconfig_limit_client'),
-                web_php_options: formData.get('ispconfig_web_php_options'),
-                ssh_chroot: formData.get('ispconfig_ssh_chroot'),
-                usertheme: formData.get('ispconfig_usertheme'),
-                // Verwende die gleichen Grunddaten
-                username: formData.get('username'),
-                password: formData.get('password'),
-                contact_firstname: formData.get('first_name'),
-                contact_name: formData.get('last_name'),
-                email: formData.get('email')
-            }
-        };
-        
-        // TODO: AJAX-Implementierung für echte Benutzererstellung
-        console.log('Benutzerdaten:', userData);
-        showNotification('<?= t('creating_user') ?>...', 'info');
-        
-        // Simulierte Verarbeitung
-        setTimeout(() => {
-            showNotification('<?= t('user_created_successfully') ?>', 'success');
-            this.reset();
+    // Formular-Submission (für andere Formulare)
+    const createUserForm = document.getElementById('createUserForm');
+    if (createUserForm) {
+        createUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // TODO: AJAX-Implementierung für echte Benutzererstellung
+            console.log('Benutzerdaten:', new FormData(this));
+            showNotification('<?= t('creating_user') ?>...', 'info');
             
-            // Admin Dashboard Checkbox wieder aktivieren
-            if (adminCheckbox) {
-                adminCheckbox.checked = true;
-                adminCheckbox.disabled = true;
-                adminCheckbox.style.opacity = '0.6';
-            }
-            toggleSystemFields();
-        }, 2000);
-    });
+            // Simulierte Verarbeitung
+            setTimeout(() => {
+                showNotification('<?= t('user_created_successfully') ?>', 'success');
+                this.reset();
+                
+                // Admin Dashboard Checkbox wieder aktivieren
+                if (adminCheckbox) {
+                    adminCheckbox.checked = true;
+                    adminCheckbox.disabled = true;
+                    adminCheckbox.style.opacity = '0.6';
+                }
+                toggleSystemFields();
+            }, 2000);
+        });
+    }
     
-    // Modal Save Button
-    document.getElementById('saveUserChanges').addEventListener('click', function() {
-        // TODO: AJAX-Implementierung für echte Änderungen
-        showNotification('<?= t('saving_changes') ?>...', 'info');
-        setTimeout(() => {
-            showNotification('<?= t('changes_saved_successfully') ?>', 'success');
-            bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
-        }, 1000);
-    });
+    // Modal Save Button (für andere Modals)
+    const saveUserChangesBtn = document.getElementById('saveUserChanges');
+    if (saveUserChangesBtn) {
+        saveUserChangesBtn.addEventListener('click', saveUserChanges);
+    }
 });
 </script> 

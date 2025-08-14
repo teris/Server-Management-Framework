@@ -850,4 +850,113 @@
     <no_vms_available>No VMs available</no_vms_available>
     <game_server_status>Game Server Status</game_server_status>
     <no_game_servers_available>No game servers available</no_game_servers_available>
+    
+    <!-- Support Ticket Replies -->
+    <replies>Replies</replies>
+    <reply_message>Reply to Ticket</reply_message>
+    <send_reply>Send Reply</send_reply>
+    <enter_your_reply>Enter your reply...</enter_your_reply>
+    <ticket_closed_message>This ticket is closed. You cannot add further replies.</ticket_closed_message>
+    <last_updated>Last Updated</last_updated>
+    <no_tickets>No tickets found</no_tickets>
+    <no_tickets_message>You haven't created any support tickets yet. Create your first ticket to get help.</no_tickets_message>
+    <ticket_id>Ticket ID</ticket_id>
+    <status>Status</status>
+    <actions>Actions</actions>
+    <open>Open</open>
+    <closed>Closed</closed>
+    
+    <!-- Domain Registration -->
+    <register_domain>Register Domain</register_domain>
+    <domain_registration>Domain Registration</domain_registration>
+    <domain_registrations>Domain Registrations</domain_registrations>
+    <domain_name>Domain Name</domain_name>
+    <check_availability>Check Availability</check_availability>
+    <domain_available>Domain is available</domain_available>
+    <domain_not_available>Domain is not available</domain_not_available>
+    <alternative_domains>Alternative Domains</alternative_domains>
+    <suggested_domains>Suggested Domains</suggested_domains>
+    <purpose>Purpose</purpose>
+    <purpose_website>Website</purpose_website>
+    <purpose_email>Email</purpose_email>
+    <purpose_api>API</purpose_api>
+    <purpose_other>Other</purpose_other>
+    <notes>Notes</notes>
+    <enter_notes>Enter notes (optional)</enter_notes>
+    <submit_registration>Submit Registration</submit_registration>
+    <registration_submitted>Registration submitted</registration_submitted>
+    <registration_submitted_message>Your domain registration has been successfully submitted. We will review it and get back to you.</registration_submitted_message>
+    <my_registrations>My Registrations</my_registrations>
+    <no_registrations>No registrations found</no_registrations>
+    <registration_date>Registration Date</registration_date>
+    <pending>Pending</pending>
+    <approved>Approved</approved>
+    <rejected>Rejected</rejected>
+    <cancelled>Cancelled</cancelled>
+    <admin_notes>Admin Notes</admin_notes>
+    <approve_registration>Approve Registration</approve_registration>
+    <reject_registration>Reject Registration</reject_registration>
+    <cancel_registration>Cancel Registration</cancel_registration>
+    <registration_approved>Registration approved</registration_approved>
+    <registration_rejected>Registration rejected</registration_rejected>
+    <registration_cancelled>Registration cancelled</registration_cancelled>
+    <total_registrations>Total Registrations</total_registrations>
+    <pending_registrations>Pending Registrations</pending_registrations>
+    <approved_registrations>Approved Registrations</approved_registrations>
+    <rejected_registrations>Rejected Registrations</rejected_registrations>
+    <cancelled_registrations>Cancelled Registrations</cancelled_registrations>
+    <filter_by_status>Filter by Status</filter_by_status>
+    <filter_by_domain>Filter by Domain</filter_by_domain>
+    <filter_by_user>Filter by User</filter_by_user>
+    <view_notes>View Notes</view_notes>
+    <edit_registration>Edit Registration</edit_registration>
+    <save_changes>Save Changes</save_changes>
+    <confirm_action>Confirm Action</confirm_action>
+    <confirm_approve>Do you really want to approve this registration?</confirm_approve>
+    <confirm_reject>Do you really want to reject this registration?</confirm_reject>
+    <confirm_cancel>Do you really want to cancel this registration?</confirm_cancel>
+    <enter_domain_name>Enter domain name</enter_domain_name>
+    <domain_availability_check>Domain Availability Check</domain_availability_check>
+    <checking_availability>Checking availability...</checking_availability>
+    <domain_available_message>This domain is available and can be registered.</domain_available_message>
+    <domain_not_available_message>This domain is already taken. Here are some alternatives:</domain_not_available_message>
+    <select_purpose>Select purpose</select_purpose>
+    <registration_form>Registration Form</registration_form>
+    <hide_form>Hide Form</hide_form>
+    <show_form>Show Form</show_form>
+    <registration_details>Registration Details</registration_details>
+    <user>User</user>
+    <customer>Customer</customer>
+    <submitted_date>Submitted on</submitted_date>
+    <updated_date>Updated on</updated_date>
+    <refresh_list>Refresh List</refresh_list>
+    <no_registrations_found>No registrations found</no_registrations_found>
+    <registration_updated>Registration updated</registration_updated>
+    <registration_deleted>Registration deleted</registration_deleted>
+    <error_loading_registrations>Error loading registrations</error_loading_registrations>
+    <error_updating_registration>Error updating registration</error_updating_registration>
+    <error_deleting_registration>Error deleting registration</error_deleting_registration>
+    <search_domain>Search domain</search_domain>
+    <search_customer>Search customer</search_customer>
+    <all_statuses>All statuses</all_statuses>
+    <pending_approval>Pending approval</pending_approval>
+    <domain_registrations_management>Domain Registrations Management</domain_registrations_management>
+    <registration_notes>Registration notes</registration_notes>
+    <register_this_domain>Register this domain</register_this_domain>
+    <business_website>Business Website</business_website>
+    <personal_website>Personal Website</personal_website>
+    <blog>Blog</blog>
+    <ecommerce>E-Commerce</ecommerce>
+    <portfolio>Portfolio</portfolio>
+    <other>Other</other>
+    <additional_notes>Additional Notes</additional_notes>
+    <describe_your_project>Describe your project...</describe_your_project>
+    <important>Important</important>
+    <domain_registration_info>Your domain registration will be reviewed by our team. We will get back to you within 24 hours.</domain_registration_info>
+    <my_domain_registrations>My Domain Registrations</my_domain_registrations>
+    <no_domain_registrations>No domain registrations found</no_domain_registrations>
+    <domain_check_info_rate_limit>Note: There must be 2 seconds between domain checks.</domain_check_info_rate_limit>
+    <domain_extension>Domain Extension</domain_extension>
+    <select_extension>Select Extension</select_extension>
+    <all_tlds>All TLDs (Check all extensions)</all_tlds>
 </translations> 

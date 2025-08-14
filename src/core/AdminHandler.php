@@ -111,13 +111,38 @@ class AdminHandler {
                 case 'save_modules':
                     return $this->adminCore->saveModules($data);
                 case 'get_users':
-                    return $this->adminCore->getUsers();
+                    return $this->getUsers($data);
                 case 'get_user':
                     return $this->adminCore->getUser($data['id']);
                 case 'save_user':
                     return $this->adminCore->saveUser($data);
                 case 'delete_user':
                     return $this->adminCore->deleteUser($data['id']);
+                case 'toggle_user_status':
+                    return $this->toggleUserStatus($data);
+                case 'reset_user_password':
+                    return $this->resetUserPassword($data);
+                
+                // --- Domain-Registrierungsverwaltung ---
+                case 'get_domain_registration':
+                    return $this->getDomainRegistration($data);
+                case 'update_domain_registration':
+                    return $this->updateDomainRegistration($data);
+                case 'update_domain_registration_status':
+                    return $this->updateDomainRegistrationStatus($data);
+                
+                // --- Domain-Einstellungen ---
+                case 'get_domain_extensions':
+                    return $this->getDomainExtensions($data);
+                case 'add_extension':
+                    return $this->addDomainExtension($data);
+                case 'update_extension':
+                    return $this->updateDomainExtension($data);
+                case 'delete_extension':
+                    return $this->deleteDomainExtension($data);
+                case 'toggle_extension_status':
+                    return $this->toggleDomainExtensionStatus($data);
+                
                 case 'get_groups':
                     return $this->adminCore->getGroups();
                 case 'get_group':
@@ -127,13 +152,17 @@ class AdminHandler {
                 case 'delete_group':
                     return $this->adminCore->deleteGroup($data['id']);
                 case 'get_group_modules':
-                    return $this->adminCore->getGroupModules(isset($data['group_id']) ? $data['group_id'] : null);
+                    return $this->getGroupModules($data);
+                case 'save_group_modules':
+                    return $this->saveGroupModules($data);
+                
+
                 
                 default:
                     return $this->error('Unbekannte Aktion: ' . $action);
             }
         } catch (Exception $e) {
-            $this->log('Error in AdminHandler: ' . $e->getMessage(), 'ERROR');
+            error_log('AdminHandler Exception: ' . $e->getMessage());
             return $this->error($e->getMessage());
         }
     }
@@ -640,6 +669,374 @@ class AdminHandler {
     }
     
     /**
+     * Benutzer-Gruppen-Module abrufen
+     */
+    private function getGroupModules($data) {
+        try {
+            $groupId = $data['id'] ?? 0;
+            if (!$groupId) {
+                return $this->error('Gruppen-ID erforderlich');
+            }
+            
+            $modules = $this->adminCore->getGroupModules($groupId);
+            return $this->success(['modules' => $modules]);
+            
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Abrufen der Gruppen-Module: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Benutzer-Gruppen-Module speichern
+     */
+    private function saveGroupModules($data) {
+        try {
+            $groupId = $data['group_id'] ?? 0;
+            $modules = $data['modules'] ?? [];
+            
+            if (!$groupId) {
+                return $this->error('Gruppen-ID erforderlich');
+            }
+            
+            $result = $this->adminCore->saveGroupModules($groupId, $modules);
+            
+            if ($result) {
+                $this->log("Group modules updated for group {$groupId} by admin {$this->user['username']}", 'INFO');
+                return $this->success(['message' => 'Gruppen-Module erfolgreich aktualisiert']);
+            } else {
+                return $this->error('Fehler beim Speichern der Gruppen-Module');
+            }
+            
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Speichern der Gruppen-Module: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Benutzer abrufen
+     */
+    private function getUsers($data) {
+        try {
+            $page = $data['page'] ?? 1;
+            $search = $data['search'] ?? '';
+            $status = $data['status'] ?? '';
+            $role = $data['role'] ?? '';
+            
+            $result = $this->adminCore->getUsers();
+            if ($result['success']) {
+                $users = $result['data'];
+                
+                // Filter users based on search, status, and role
+                if ($search) {
+                    $users = array_filter($users, function($user) use ($search) {
+                        return stripos($user['username'], $search) !== false ||
+                               stripos($user['full_name'], $search) !== false ||
+                               stripos($user['email'], $search) !== false;
+                    });
+                }
+                
+                if ($status) {
+                    $users = array_filter($users, function($user) use ($status) {
+                        if ($status === 'active') {
+                            return $user['active'] === 'y';
+                        } else {
+                            return $user['active'] === 'n';
+                        }
+                    });
+                }
+                
+                if ($role) {
+                    $users = array_filter($users, function($user) use ($role) {
+                        return $user['role'] === $role;
+                    });
+                }
+                
+                // Pagination
+                $perPage = 10;
+                $totalUsers = count($users);
+                $totalPages = ceil($totalUsers / $perPage);
+                $offset = ($page - 1) * $perPage;
+                $users = array_slice($users, $offset, $perPage);
+                
+                return $this->success([
+                    'users' => $users,
+                    'pagination' => [
+                        'page' => $page,
+                        'pages' => $totalPages,
+                        'total' => $totalUsers,
+                        'per_page' => $perPage
+                    ]
+                ]);
+            } else {
+                return $this->error($result['error']);
+            }
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Abrufen der Benutzer: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Benutzerstatus umschalten
+     */
+    private function toggleUserStatus($data) {
+        if (!isset($data['id'])) {
+            return $this->error('Fehlende Parameter');
+        }
+
+        try {
+            $result = $this->adminCore->toggleUserStatus($data['id']);
+            if ($result['success']) {
+                $status = $result['data']['active'] === 'y' ? 'aktiviert' : 'deaktiviert';
+                $this->log("User {$data['id']} status changed to {$status} by admin {$this->user['username']}", 'INFO');
+                return $this->success(['message' => "Benutzer erfolgreich {$status}"]);
+            } else {
+                return $this->error($result['error']);
+            }
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Ändern des Benutzerstatus: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Benutzerpasswort zurücksetzen
+     */
+    private function resetUserPassword($data) {
+        if (!isset($data['id'])) {
+            return $this->error('Fehlende Parameter');
+        }
+
+        try {
+            $result = $this->adminCore->resetUserPassword($data['id']);
+            if ($result['success']) {
+                $this->log("Password reset for user {$data['id']} by admin {$this->user['username']}", 'INFO');
+                return $this->success([
+                    'message' => 'Benutzerpasswort erfolgreich zurückgesetzt',
+                    'password' => $result['data']['password']
+                ]);
+            } else {
+                return $this->error($result['error']);
+            }
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Zurücksetzen des Benutzerpassworts: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Domain-Registrierungsverwaltung
+     */
+    private function getDomainRegistration($data) {
+        if (!isset($data['id'])) {
+            return $this->error('Registrierungs-ID erforderlich');
+        }
+
+        try {
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+            $stmt = $conn->prepare("
+                SELECT dr.*, u.username, u.email, u.full_name 
+                FROM domain_registrations dr
+                LEFT JOIN users u ON dr.user_id = u.id
+                WHERE dr.id = ?
+            ");
+            $stmt->execute([$data['id']]);
+            $registration = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$registration) {
+                return $this->error('Registrierung nicht gefunden');
+            }
+            
+            return $this->success($registration);
+        } catch (Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    private function updateDomainRegistration($data) {
+        if (!isset($data['id'])) {
+            return $this->error('Registrierungs-ID erforderlich');
+        }
+
+        try {
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+            $stmt = $conn->prepare("
+                UPDATE domain_registrations 
+                SET status = ?, purpose = ?, admin_notes = ?, updated_at = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([
+                $data['status'],
+                $data['purpose'],
+                $data['admin_notes'] ?? '',
+                $data['id']
+            ]);
+            
+            $this->log("Domain registration updated ID {$data['id']} by admin {$this->user['username']}", 'INFO');
+            return $this->success(['message' => 'Registrierung erfolgreich aktualisiert']);
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Aktualisieren der Registrierung: ' . $e->getMessage());
+        }
+    }
+
+    private function updateDomainRegistrationStatus($data) {
+        if (!isset($data['id']) || !isset($data['status'])) {
+            return $this->error('Registrierungs-ID und Status erforderlich');
+        }
+
+        try {
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+            $stmt = $conn->prepare("
+                UPDATE domain_registrations 
+                SET status = ?, updated_at = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([$data['status'], $data['id']]);
+            
+            $this->log("Domain registration status updated ID {$data['id']} to {$data['status']} by admin {$this->user['username']}", 'INFO');
+            return $this->success(['message' => 'Status erfolgreich aktualisiert']);
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Aktualisieren des Status: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Domain-Einstellungen
+     */
+    private function getDomainExtensions($data) {
+        try {
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+            
+            $stmt = $conn->prepare("SELECT * FROM domain_extensions ORDER BY tld ASC");
+            $stmt->execute();
+            $extensions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            return $this->success(['extensions' => $extensions]);
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Abrufen der Domain-Endungen: ' . $e->getMessage());
+        }
+    }
+
+    private function addDomainExtension($data) {
+        if (!isset($data['tld']) || !isset($data['name'])) {
+            return $this->error('TLD und Name sind erforderlich');
+        }
+
+        try {
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+            
+            // Prüfen ob TLD bereits existiert
+            $stmt = $conn->prepare("SELECT id FROM domain_extensions WHERE tld = ?");
+            $stmt->execute([$data['tld']]);
+            if ($stmt->fetch()) {
+                return $this->error('Diese TLD existiert bereits');
+            }
+            
+            $stmt = $conn->prepare("
+                INSERT INTO domain_extensions (tld, name, active, created_at) 
+                VALUES (?, ?, ?, NOW())
+            ");
+            $stmt->execute([
+                $data['tld'],
+                $data['name'],
+                $data['active'] ?? 1
+            ]);
+            
+            $this->log("Domain extension {$data['tld']} added by admin {$this->user['username']}", 'INFO');
+            return $this->success(['message' => 'Domain-Endung erfolgreich hinzugefügt']);
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Hinzufügen der Domain-Endung: ' . $e->getMessage());
+        }
+    }
+
+    private function updateDomainExtension($data) {
+        if (!isset($data['id']) || !isset($data['tld']) || !isset($data['name'])) {
+            return $this->error('ID, TLD und Name sind erforderlich');
+        }
+
+        try {
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+            
+            // Prüfen ob TLD bereits bei anderer ID existiert
+            $stmt = $conn->prepare("SELECT id FROM domain_extensions WHERE tld = ? AND id != ?");
+            $stmt->execute([$data['tld'], $data['id']]);
+            if ($stmt->fetch()) {
+                return $this->error('Diese TLD existiert bereits bei einer anderen Endung');
+            }
+            
+            $stmt = $conn->prepare("
+                UPDATE domain_extensions 
+                SET tld = ?, name = ?, active = ?, updated_at = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([
+                $data['tld'],
+                $data['name'],
+                $data['active'] ?? 1,
+                $data['id']
+            ]);
+            
+            $this->log("Domain extension {$data['tld']} updated by admin {$this->user['username']}", 'INFO');
+            return $this->success(['message' => 'Domain-Endung erfolgreich aktualisiert']);
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Aktualisieren der Domain-Endung: ' . $e->getMessage());
+        }
+    }
+
+    private function deleteDomainExtension($data) {
+        if (!isset($data['id'])) {
+            return $this->error('ID ist erforderlich');
+        }
+
+        try {
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+            
+            $stmt = $conn->prepare("DELETE FROM domain_extensions WHERE id = ?");
+            $stmt->execute([$data['id']]);
+            
+            if ($stmt->rowCount() > 0) {
+                $this->log("Domain extension ID {$data['id']} deleted by admin {$this->user['username']}", 'INFO');
+                return $this->success(['message' => 'Domain-Endung erfolgreich gelöscht']);
+            } else {
+                return $this->error('Domain-Endung nicht gefunden');
+            }
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Löschen der Domain-Endung: ' . $e->getMessage());
+        }
+    }
+
+    private function toggleDomainExtensionStatus($data) {
+        if (!isset($data['id'])) {
+            return $this->error('ID ist erforderlich');
+        }
+
+        try {
+            $db = Database::getInstance();
+            $conn = $db->getConnection();
+            
+            $stmt = $conn->prepare("
+                UPDATE domain_extensions 
+                SET active = NOT active, updated_at = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([$data['id']]);
+            
+            if ($stmt->rowCount() > 0) {
+                $this->log("Domain extension ID {$data['id']} status toggled by admin {$this->user['username']}", 'INFO');
+                return $this->success(['message' => 'Status erfolgreich geändert']);
+            } else {
+                return $this->error('Domain-Endung nicht gefunden');
+            }
+        } catch (Exception $e) {
+            return $this->error('Fehler beim Ändern des Status: ' . $e->getMessage());
+        }
+    }
+    
+    /**
      * Helper-Methoden
      */
     private function success($data = null, $message = '') {
@@ -658,7 +1055,9 @@ class AdminHandler {
     }
     
     private function log($message, $level = 'INFO') {
-        logActivity('AdminCore: ' . $message, $level);
+        // Einfaches Logging über error_log
+        $logMessage = '[' . strtoupper($level) . '] AdminHandler: ' . $message;
+        error_log($logMessage);
     }
 }
 ?>

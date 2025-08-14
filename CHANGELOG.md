@@ -2,6 +2,100 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.0.4]
+
+### Entfernt
+- **Übermäßiges Loggin** - auskommentiert der funtkon `logRequest` in den Generischen Funktionen
+
+### Hinzugefügt
+- **Manuelles Loggin** - Neue Methode zum erstellen von Logs hinzugefügt __log($action, $details, $status = 'info')
+- Für Manuelles Loggin muss die Tabele im SQL angepasst werden 
+        ALTER TABLE `activity_log` 
+        MODIFY COLUMN `status` enum('success','error','pending','info') NOT NULL;
+- Testfunktion für allgemeinen test Hinzugefügt `__test()`
+
+### Behoben
+- ISPConfigAPI Fehler `IspconfigAPI Error: SoapFault::SoapFault() expects at least 2 parameters, 1 given` behoben
+
+
+## [3.0.3]
+
+### Geändert
+- Fehler behoben beim Aufruf der funktion `IspconfigAPI` durch das _get, _update, _add, _delete als Suffix angefügt wurde_
+
+## [3.0.2]
+
+### Hinzugefügt
+- **Domain-Registrierungssystem** - Vollständiges System für Benutzer zur Registrierung von Webdomains
+- **Domain-Verfügbarkeitsprüfung** - Integration der OVH API für echte Domain-Verfügbarkeitsprüfungen
+- **Domain-Einstellungsverwaltung** - Admin-Bereich zur Verwaltung verfügbarer Domain-Endungen (TLDs)
+- **Domain-Registrierungsverwaltung** - Admin-Bereich zur Überwachung und Genehmigung von Domain-Registrierungsanfragen
+- **Multi-TLD-Unterstützung** - Automatische Prüfung aller aktivierten Domain-Endungen
+- **Alternative Domain-Vorschläge** - Intelligente Vorschläge für verfügbare Alternativen
+- **Rate-Limiting-System** - IP-basierte Begrenzung für Domain-Verfügbarkeitsprüfungen
+- **Erweiterte Navigation** - Kollapsierbare Untermenüs mit Hauptkategorien (Modules, Domains, Optionen)
+- Dynamische Plugin-Untermenüs - Automatische Generierung von Plugin-Untermenüs aus `inc/module.php`
+- Visuelle Menü-Hervorhebung - CSS-Styling für Hauptkategorien in der Navigation
+
+### Geändert
+- AdminHandler erweitert - Neue Actions für Domain-Extension-Management (`add_extension`, `update_extension`, `delete_extension`, `toggle_extension_status`)
+- Frontend-UI refactored - Domain-Registrierung verwendet separate Eingabefelder für Domain-Name und TLD
+- AJAX-Endpoints vereinheitlicht - Alle Domain-Einstellungs-Actions verwenden `index.php` mit `core=admin`
+- Logging-System verbessert - `logActivity()` durch `error_log()` ersetzt für bessere Kompatibilität
+- Navigation-Struktur überarbeitet - Menü-Items in logische Kategorien gruppiert mit Untermenüs
+- Domain-Verfügbarkeitsprüfung optimiert - OVH API als primäre Prüfmethode, DNS als Fallback
+
+### Behoben
+- "Unknown action" Fehler - Alle Domain-Extension-Management-Actions funktionieren korrekt
+- Logging-Fehler - `logActivity()` Funktion existierte nicht, durch `error_log()` ersetzt
+- PHP Fatal Error - `Call to a member function OvhAPI() on null` behoben
+- Database-Instanziierung - `new Database()` durch `Database::getInstance()` ersetzt (Singleton-Pattern)
+- PHP Warnings - `dns_get_record()` und Header-Fehler durch Output-Buffering behoben
+- **JSON-Parsing-Fehler** - Redundante `JSON.parse()` Aufrufe entfernt
+
+### Technische Verbesserungen
+- **Datenbank-Schema** - Neue Tabellen `domain_registrations` und `domain_extensions` hinzugefügt
+- **Sprachsystem-Integration** - Neue Übersetzungen in bestehende XML-basierte Sprachdateien integriert
+- Bootstrap-Integration - Kollapsierbare Navigation mit Bootstrap 5 Collapse-Komponente
+- Responsive Design - Mobile-optimierte Untermenüs mit Touch-freundlichen Interaktionen
+
+### Sicherheit
+- **Input-Validierung** - Domain-Namen dürfen keine Punkte enthalten
+- **Rate-Limiting** - IP-basierte Begrenzung für API-Aufrufe
+- **Admin-Rechte** - Alle Domain-Einstellungs-Actions erfordern Admin-Berechtigung
+- **SQL-Injection-Schutz** - Prepared Statements für alle Datenbank-Operationen
+
+## [3.0.1]
+
+### Hinzugefügt
+- **Support-Ticket Antworten-System** - Vollständige Konversationshistorie zwischen Kunden und Support-Team
+- **Admin Support-Tickets Modul** - Umfassendes Admin-Modul für Support-Ticket-Verwaltung
+- **Ticket-Reply-Funktionalität** - Kunden können auf Admin-Antworten reagieren
+- **Automatische Status-Updates** - Ticket-Status wird basierend auf Antworten automatisch aktualisiert
+- **Interne Notizen** - Admins können interne Notizen hinzufügen (nicht für Kunden sichtbar)
+- **Bulk-Aktionen** - Massenbearbeitung von Tickets (schließen, löschen, Priorität ändern)
+- **Ticket-Statistiken** - Umfassende Statistiken für Support-Management
+- **Erweiterte Ticket-Filter** - Nach Status, Priorität und Suchbegriffen filtern
+- **Ticket-Zuweisung** - Tickets können an bestimmte Admins zugewiesen werden
+- **E-Mail-Templates** - Vorlagen für automatische E-Mail-Benachrichtigungen
+- **Ticket-Kategorien** - Kategorisierung von Support-Tickets
+- **Abteilungs-Management** - Tickets können verschiedenen Abteilungen zugewiesen werden
+
+### Geändert
+- **Support-System erweitert** - Vollständige Antworten-Funktionalität für Kunden und Admins
+- **Ticket-Status-Anzeige verbessert** - Korrekte Anzeige aller nicht-geschlossenen Tickets als "offen"
+- **Admin-Modul-System erweitert** - Neues Support-Tickets-Modul für Admin-Panel
+- **Sprachdateien erweitert** - Neue Übersetzungen für Support-Ticket-Antworten und Admin-Modul
+
+### Behoben
+- **Support-Ticket Antworten-Anzeige** - Kunden können jetzt Admin-Antworten sehen und darauf reagieren
+- **Ticket-Status-Anzeige** - Alle nicht-geschlossenen Tickets werden korrekt als "offen" angezeigt
+- **Admin-Modul-Loading** - Support-Tickets-Modul wird korrekt im Admin-Panel geladen
+- **SQL-Syntax-Fehler** - LIMIT/OFFSET Parameter werden korrekt als Integer behandelt
+- **XML-Parser-Fehler** - Falsche schließende Tags in Sprachdateien behoben
+- **Module-Registration** - Support-Tickets-Modul korrekt in Plugin-Konfiguration registriert
+- **Undefined Array Key Fehler** - `$_GET['mod']` Überprüfung in module.php hinzugefügt
+
 ## [3.0.0 RC]
 
 ### Hinzugefügt

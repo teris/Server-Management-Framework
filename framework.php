@@ -507,7 +507,7 @@ class ProxmoxGet extends BaseAPI {
     public function getNodes() {
         $url = $this->host . "/api2/json/nodes";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest('/nodes', 'GET', $response !== false);
+        //$this->logRequest('/nodes', 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : [];
     }
 
@@ -528,14 +528,14 @@ class ProxmoxGet extends BaseAPI {
             }
         }
 
-        $this->logRequest('/nodes/*/qemu', 'GET', !empty($vms));
+        ////$this->logRequest('/nodes/*/qemu', 'GET', !empty($vms));
         return $vms;
     }
 
     public function getVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/config";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/nodes/$node/qemu/$vmid/config", 'GET', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/config", 'GET', $response !== false);
 
         if ($response && isset($response['data'])) {
             $vmData = $response['data'];
@@ -550,14 +550,14 @@ class ProxmoxGet extends BaseAPI {
     public function getVMStatus($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/current";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/nodes/$node/qemu/$vmid/status/current", 'GET', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/status/current", 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : null;
     }
 
     public function getVMConfig($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/config";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/nodes/$node/qemu/$vmid/config", 'GET', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/config", 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : null;
     }
 
@@ -566,14 +566,14 @@ class ProxmoxGet extends BaseAPI {
             $this->host . "/api2/json/nodes/$node/storage" :
             $this->host . "/api2/json/storage";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest('/storage', 'GET', $response !== false);
+        //$this->logRequest('/storage', 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : [];
     }
 
     public function getNetworks($node) {
         $url = $this->host . "/api2/json/nodes/$node/network";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/nodes/$node/network", 'GET', $response !== false);
+        //$this->logRequest("/nodes/$node/network", 'GET', $response !== false);
         return $response && isset($response['data']) ? $response['data'] : [];
     }
 
@@ -632,56 +632,56 @@ class ProxmoxPost extends ProxmoxGet {
         ];
 
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("/nodes/{$vmData['node']}/qemu", 'POST', $response !== false);
+        //$this->logRequest("/nodes/{$vmData['node']}/qemu", 'POST', $response !== false);
         return $response;
     }
 
     public function editVM($node, $vmid, $vmData) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/config";
         $response = $this->makeRequest('PUT', $url, $vmData);
-        $this->logRequest("/nodes/$node/qemu/$vmid/config", 'PUT', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/config", 'PUT', $response !== false);
         return $response;
     }
 
     public function deleteVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid";
         $response = $this->makeRequest('DELETE', $url);
-        $this->logRequest("/nodes/$node/qemu/$vmid", 'DELETE', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid", 'DELETE', $response !== false);
         return $response;
     }
 
     public function startVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/start";
         $response = $this->makeRequest('POST', $url);
-        $this->logRequest("/nodes/$node/qemu/$vmid/status/start", 'POST', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/status/start", 'POST', $response !== false);
         return $response;
     }
 
     public function stopVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/stop";
         $response = $this->makeRequest('POST', $url);
-        $this->logRequest("/nodes/$node/qemu/$vmid/status/stop", 'POST', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/status/stop", 'POST', $response !== false);
         return $response;
     }
 
     public function resetVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/reset";
         $response = $this->makeRequest('POST', $url);
-        $this->logRequest("/nodes/$node/qemu/$vmid/status/reset", 'POST', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/status/reset", 'POST', $response !== false);
         return $response;
     }
 
     public function suspendVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/suspend";
         $response = $this->makeRequest('POST', $url);
-        $this->logRequest("/nodes/$node/qemu/$vmid/status/suspend", 'POST', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/status/suspend", 'POST', $response !== false);
         return $response;
     }
 
     public function resumeVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/resume";
         $response = $this->makeRequest('POST', $url);
-        $this->logRequest("/nodes/$node/qemu/$vmid/status/resume", 'POST', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/status/resume", 'POST', $response !== false);
         return $response;
     }
 
@@ -693,7 +693,7 @@ class ProxmoxPost extends ProxmoxGet {
         ];
 
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("/nodes/$node/qemu/$vmid/clone", 'POST', $response !== false);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/clone", 'POST', $response !== false);
         return $response;
     }
 
@@ -712,14 +712,14 @@ class ProxmoxPost extends ProxmoxGet {
         ];
 
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("/access/users", 'POST', $response !== false);
+        //$this->logRequest("/access/users", 'POST', $response !== false);
         return $response;
     }
 
     public function deleteProxmoxUser($userid) {
         $url = $this->host . "/api2/json/access/users/$userid";
         $response = $this->makeRequest('DELETE', $url);
-        $this->logRequest("/access/users/$userid", 'DELETE', $response !== false);
+        //$this->logRequest("/access/users/$userid", 'DELETE', $response !== false);
         return $response;
     }
 
@@ -734,21 +734,21 @@ class ProxmoxPost extends ProxmoxGet {
         if (isset($userData['lastname'])) $data['lastname'] = $userData['lastname'];
 
         $response = $this->makeRequest('PUT', $url, $data);
-        $this->logRequest("/access/users/$userid", 'PUT', $response !== false);
+        //$this->logRequest("/access/users/$userid", 'PUT', $response !== false);
         return $response;
     }
 
     public function getProxmoxUsers() {
         $url = $this->host . "/api2/json/access/users";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/access/users", 'GET', $response !== false);
+        //$this->logRequest("/access/users", 'GET', $response !== false);
         return $response;
     }
 
     public function getProxmoxUser($userid) {
         $url = $this->host . "/api2/json/access/users/$userid";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/access/users/$userid", 'GET', $response !== false);
+        //$this->logRequest("/access/users/$userid", 'GET', $response !== false);
         return $response;
     }
 }
@@ -807,7 +807,7 @@ class ISPConfigGet extends BaseAPI {
                 error_log("ISPConfig: Login-Ergebnis: " . ($this->session_id ? "Erfolgreich (Session: {$this->session_id})" : "Fehlgeschlagen"));
             }
 
-            $this->logRequest('/remote/login', 'POST', $this->session_id !== false);
+            ////$this->logRequest('/remote/login', 'POST', $this->session_id !== false);
             
             if (!$this->session_id) {
                 throw new Exception("ISPConfig Login fehlgeschlagen - Überprüfen Sie Zugangsdaten");
@@ -826,7 +826,7 @@ class ISPConfigGet extends BaseAPI {
     public function getWebsites($filter = []) {
         try {
             $websites = $this->client->sites_web_domain_get($this->session_id, $filter);
-            $this->logRequest('/sites/web_domain/get', 'GET', $websites !== false);
+            //$this->logRequest('/sites/web_domain/get', 'GET', $websites !== false);
 
             if ($websites) {
                 return array_map(function($site) {
@@ -844,7 +844,7 @@ class ISPConfigGet extends BaseAPI {
     public function getWebsite($domainId) {
         try {
             $website = $this->client->sites_web_domain_get($this->session_id, ['domain_id' => $domainId]);
-            $this->logRequest("/sites/web_domain/$domainId", 'GET', $website !== false);
+            //$this->logRequest("/sites/web_domain/$domainId", 'GET', $website !== false);
 
             if ($website && isset($website[0])) {
                 return DataMapper::mapToWebsite($website[0]);
@@ -860,7 +860,7 @@ class ISPConfigGet extends BaseAPI {
     public function getDatabases($filter = []) {
         try {
             $databases = $this->client->sites_database_get($this->session_id, $filter);
-            $this->logRequest('/sites/database/get', 'GET', $databases !== false);
+            //$this->logRequest('/sites/database/get', 'GET', $databases !== false);
 
             if ($databases) {
                 return array_map(function($db) {
@@ -878,7 +878,7 @@ class ISPConfigGet extends BaseAPI {
     public function getDatabase($databaseId) {
         try {
             $database = $this->client->sites_database_get($this->session_id, ['database_id' => $databaseId]);
-            $this->logRequest("/sites/database/$databaseId", 'GET', $database !== false);
+            //$this->logRequest("/sites/database/$databaseId", 'GET', $database !== false);
 
             if ($database && isset($database[0])) {
                 return DataMapper::mapToDatabase($database[0]);
@@ -1455,7 +1455,7 @@ class ISPConfigGet extends BaseAPI {
     public function getClients($filter = []) {
         try {
             $clients = $this->client->client_get($this->session_id, $filter);
-            $this->logRequest('/client/get', 'GET', $clients !== false);
+            //$this->logRequest('/client/get', 'GET', $clients !== false);
             return $clients ?: [];
         } catch (Exception $e) {
             error_log('Error getting clients: ' . $e->getMessage());
@@ -1466,7 +1466,7 @@ class ISPConfigGet extends BaseAPI {
     public function getServerConfig() {
         try {
             $config = $this->client->server_get($this->session_id, 1);
-            $this->logRequest('/server/get', 'GET', $config !== false);
+            //$this->logRequest('/server/get', 'GET', $config !== false);
             return $config ?: [];
         } catch (Exception $e) {
             error_log('Error getting server config: ' . $e->getMessage());
@@ -1509,7 +1509,7 @@ class ISPConfigPost extends ISPConfigGet {
             ];
 
             $result = $this->client->sites_web_domain_add($this->session_id, 1, $params);
-            $this->logRequest('/sites/web_domain/add', 'POST', $result !== false);
+            //$this->logRequest('/sites/web_domain/add', 'POST', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Website creation failed: ' . $e->getMessage());
@@ -1520,7 +1520,7 @@ class ISPConfigPost extends ISPConfigGet {
     public function editWebsite($domainId, $websiteData) {
         try {
             $result = $this->client->sites_web_domain_update($this->session_id, 1, $domainId, $websiteData);
-            $this->logRequest("/sites/web_domain/$domainId", 'PUT', $result !== false);
+            //$this->logRequest("/sites/web_domain/$domainId", 'PUT', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Website edit failed: ' . $e->getMessage());
@@ -1531,7 +1531,7 @@ class ISPConfigPost extends ISPConfigGet {
     public function deleteWebsite($domainId) {
         try {
             $result = $this->client->sites_web_domain_delete($this->session_id, $domainId);
-            $this->logRequest("/sites/web_domain/$domainId", 'DELETE', $result !== false);
+            //$this->logRequest("/sites/web_domain/$domainId", 'DELETE', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Website deletion failed: ' . $e->getMessage());
@@ -1554,7 +1554,7 @@ class ISPConfigPost extends ISPConfigGet {
             ];
 
             $result = $this->client->sites_database_add($this->session_id, 1, $params);
-            $this->logRequest('/sites/database/add', 'POST', $result !== false);
+            //$this->logRequest('/sites/database/add', 'POST', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Database creation failed: ' . $e->getMessage());
@@ -1565,7 +1565,7 @@ class ISPConfigPost extends ISPConfigGet {
     public function editDatabase($databaseId, $dbData) {
         try {
             $result = $this->client->sites_database_update($this->session_id, 1, $databaseId, $dbData);
-            $this->logRequest("/sites/database/$databaseId", 'PUT', $result !== false);
+            //$this->logRequest("/sites/database/$databaseId", 'PUT', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Database edit failed: ' . $e->getMessage());
@@ -1576,7 +1576,7 @@ class ISPConfigPost extends ISPConfigGet {
     public function deleteDatabase($databaseId) {
         try {
             $result = $this->client->sites_database_delete($this->session_id, $databaseId);
-            $this->logRequest("/sites/database/$databaseId", 'DELETE', $result !== false);
+            //$this->logRequest("/sites/database/$databaseId", 'DELETE', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Database deletion failed: ' . $e->getMessage());
@@ -1608,7 +1608,7 @@ class ISPConfigPost extends ISPConfigGet {
             ];
 
             $result = $this->client->mail_user_add($this->session_id, 1, $params);
-            $this->logRequest('/mail/user/add', 'POST', $result !== false);
+            //$this->logRequest('/mail/user/add', 'POST', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Email creation failed: ' . $e->getMessage());
@@ -1619,7 +1619,7 @@ class ISPConfigPost extends ISPConfigGet {
     public function editEmailAccount($mailuserId, $emailData) {
         try {
             $result = $this->client->mail_user_update($this->session_id, 1, $mailuserId, $emailData);
-            $this->logRequest("/mail/user/$mailuserId", 'PUT', $result !== false);
+            //$this->logRequest("/mail/user/$mailuserId", 'PUT', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Email edit failed: ' . $e->getMessage());
@@ -1630,7 +1630,7 @@ class ISPConfigPost extends ISPConfigGet {
     public function deleteEmailAccount($mailuserId) {
         try {
             $result = $this->client->mail_user_delete($this->session_id, $mailuserId);
-            $this->logRequest("/mail/user/$mailuserId", 'DELETE', $result !== false);
+            //$this->logRequest("/mail/user/$mailuserId", 'DELETE', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Email deletion failed: ' . $e->getMessage());
@@ -1641,7 +1641,7 @@ class ISPConfigPost extends ISPConfigGet {
     public function createClient($clientData) {
         try {
             $result = $this->client->client_add($this->session_id, $clientData);
-            $this->logRequest('/client/add', 'POST', $result !== false);
+            //$this->logRequest('/client/add', 'POST', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Client creation failed: ' . $e->getMessage());
@@ -1652,7 +1652,7 @@ class ISPConfigPost extends ISPConfigGet {
     public function updateClient($clientId, $clientData) {
         try {
             $result = $this->client->client_update($this->session_id, $clientId, $clientData);
-            $this->logRequest("/client/$clientId", 'PUT', $result !== false);
+            //$this->logRequest("/client/$clientId", 'PUT', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Client update failed: ' . $e->getMessage());
@@ -1663,7 +1663,7 @@ class ISPConfigPost extends ISPConfigGet {
     public function deleteClient($clientId) {
         try {
             $result = $this->client->client_delete($this->session_id, $clientId);
-            $this->logRequest("/client/$clientId", 'DELETE', $result !== false);
+            //$this->logRequest("/client/$clientId", 'DELETE', $result !== false);
             return $result;
         } catch (Exception $e) {
             error_log('Client deletion failed: ' . $e->getMessage());
@@ -1704,14 +1704,14 @@ class OVHGet extends BaseAPI {
             }
         }
 
-        $this->logRequest('/domain', 'GET', !empty($domainDetails));
+        //$this->logRequest('/domain', 'GET', !empty($domainDetails));
         return $domainDetails;
     }
 
     public function getDomain($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/$domain";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/domain/$domain", 'GET', $response !== false);
+        //$this->logRequest("/domain/$domain", 'GET', $response !== false);
 
         if ($response) {
             return DataMapper::mapToDomain($response);
@@ -1723,14 +1723,14 @@ class OVHGet extends BaseAPI {
     public function getDomainZone($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/domain/zone/$domain", 'GET', $response !== false);
+        //$this->logRequest("/domain/zone/$domain", 'GET', $response !== false);
         return $response;
     }
 
     public function getDomainZoneRecords($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/record";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/domain/zone/$domain/record", 'GET', $response !== false);
+        //$this->logRequest("/domain/zone/$domain/record", 'GET', $response !== false);
         return $response ?: [];
     }
 
@@ -1747,7 +1747,7 @@ class OVHGet extends BaseAPI {
             }
         }
 
-        $this->logRequest('/vps', 'GET', !empty($vpsDetails));
+        //$this->logRequest('/vps', 'GET', !empty($vpsDetails));
         return $vpsDetails;
     }
 
@@ -1773,38 +1773,38 @@ class OVHGet extends BaseAPI {
             }
             $details['mac_addresses'] = $macAddresses;
 
-            $this->logRequest("/vps/$vpsName", 'GET', true);
+            //$this->logRequest("/vps/$vpsName", 'GET', true);
             return DataMapper::mapToVPS($details);
         }
 
-        $this->logRequest("/vps/$vpsName", 'GET', false);
+        //$this->logRequest("/vps/$vpsName", 'GET', false);
         return null;
     }
 
     public function getVPSIPs($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/ips";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/vps/$vpsName/ips", 'GET', $response !== false);
+        //$this->logRequest("/vps/$vpsName/ips", 'GET', $response !== false);
         return $response ?: [];
     }
 
     public function getVPSIPDetails($vpsName, $ip) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/ips/$ip";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/vps/$vpsName/ips/$ip", 'GET', $response !== false);
+        //$this->logRequest("/vps/$vpsName/ips/$ip", 'GET', $response !== false);
         return $response;
     }
 
     public function getDedicatedServers() {
         $servers = $this->makeRequest('GET', 'https://eu.api.ovh.com/1.0/dedicated/server');
-        $this->logRequest('/dedicated/server', 'GET', $servers !== false);
+        //$this->logRequest('/dedicated/server', 'GET', $servers !== false);
         return $servers ?: [];
     }
 
     public function getDedicatedServer($serverName) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serverName";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/dedicated/server/$serverName", 'GET', $response !== false);
+        //$this->logRequest("/dedicated/server/$serverName", 'GET', $response !== false);
         return $response;
     }
 
@@ -1818,7 +1818,7 @@ class OVHGet extends BaseAPI {
     public function getVirtualMacAddresses($serviceName) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/dedicated/server/$serviceName/virtualMac", 'GET', $response !== false);
+        //$this->logRequest("/dedicated/server/$serviceName/virtualMac", 'GET', $response !== false);
         return $response ?: [];
     }
 
@@ -1828,7 +1828,7 @@ class OVHGet extends BaseAPI {
     public function getVirtualMacDetails($serviceName, $macAddress) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress", 'GET', $response !== false);
+        //$this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress", 'GET', $response !== false);
         
         if ($response) {
             return DataMapper::mapToVirtualMac($response, $serviceName, $macAddress);
@@ -1861,7 +1861,7 @@ class OVHGet extends BaseAPI {
     public function getVirtualMacIPs($serviceName, $macAddress) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress", 'GET', $response !== false);
+        //$this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress", 'GET', $response !== false);
         return $response ?: [];
     }
 
@@ -1871,7 +1871,7 @@ class OVHGet extends BaseAPI {
     public function getVirtualMacIPDetails($serviceName, $macAddress, $ipAddress) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress", 'GET', $response !== false);
+        //$this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress", 'GET', $response !== false);
         return $response;
     }
 
@@ -1882,7 +1882,7 @@ class OVHGet extends BaseAPI {
         $encodedIp = urlencode($ipAddress);
         $url = "https://eu.api.ovh.com/1.0/ip/$encodedIp/reverse";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/ip/$ipAddress/reverse", 'GET', $response !== false);
+        //$this->logRequest("/ip/$ipAddress/reverse", 'GET', $response !== false);
         return $response ?: [];
     }
 
@@ -1894,7 +1894,7 @@ class OVHGet extends BaseAPI {
         $encodedReverse = urlencode($reverseIP);
         $url = "https://eu.api.ovh.com/1.0/ip/$encodedIp/reverse/$encodedReverse";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/ip/$ipAddress/reverse/$reverseIP", 'GET', $response !== false);
+        //$this->logRequest("/ip/$ipAddress/reverse/$reverseIP", 'GET', $response !== false);
         return $response;
     }
 
@@ -1952,7 +1952,7 @@ class OVHGet extends BaseAPI {
     public function getFailoverIPs() {
         $url = "https://eu.api.ovh.com/1.0/ip";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/ip", 'GET', $response !== false);
+        //$this->logRequest("/ip", 'GET', $response !== false);
         return $response ?: [];
     }
 
@@ -1961,7 +1961,7 @@ class OVHGet extends BaseAPI {
         $encodedIp = urlencode($ip);
         $url = "https://eu.api.ovh.com/1.0/ip/{$encodedIp}";
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest("/ip/{$ip}", 'GET', $response !== false);
+        //$this->logRequest("/ip/{$ip}", 'GET', $response !== false);
         return $response ?: null;
     }
 
@@ -2038,7 +2038,7 @@ class OVHGet extends BaseAPI {
             $result = "Fehler beim Abrufen der IP-Liste";
         }
         return $result;
-        $this->logRequest("/ip/{$ipEncoded}/reverse/{$ipReverse}", 'GET', $response !== false);
+        //$this->logRequest("/ip/{$ipEncoded}/reverse/{$ipReverse}", 'GET', $response !== false);
     }
 }
 
@@ -2053,70 +2053,70 @@ class OVHPost extends OVHGet {
         ];
 
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("/order/domain/zone/$domain", 'POST', $response !== false);
+        //$this->logRequest("/order/domain/zone/$domain", 'POST', $response !== false);
         return $response;
     }
 
     public function editDomain($domain, $domainData) {
         $url = "https://eu.api.ovh.com/1.0/domain/$domain";
         $response = $this->makeRequest('PUT', $url, $domainData);
-        $this->logRequest("/domain/$domain", 'PUT', $response !== false);
+        //$this->logRequest("/domain/$domain", 'PUT', $response !== false);
         return $response;
     }
 
     public function deleteDomain($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/$domain";
         $response = $this->makeRequest('DELETE', $url);
-        $this->logRequest("/domain/$domain", 'DELETE', $response !== false);
+        //$this->logRequest("/domain/$domain", 'DELETE', $response !== false);
         return $response;
     }
 
     public function createDNSRecord($domain, $recordData) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/record";
         $response = $this->makeRequest('POST', $url, $recordData);
-        $this->logRequest("/domain/zone/$domain/record", 'POST', $response !== false);
+        //$this->logRequest("/domain/zone/$domain/record", 'POST', $response !== false);
         return $response;
     }
 
     public function editDNSRecord($domain, $recordId, $recordData) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/record/$recordId";
         $response = $this->makeRequest('PUT', $url, $recordData);
-        $this->logRequest("/domain/zone/$domain/record/$recordId", 'PUT', $response !== false);
+        //$this->logRequest("/domain/zone/$domain/record/$recordId", 'PUT', $response !== false);
         return $response;
     }
 
     public function deleteDNSRecord($domain, $recordId) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/record/$recordId";
         $response = $this->makeRequest('DELETE', $url);
-        $this->logRequest("/domain/zone/$domain/record/$recordId", 'DELETE', $response !== false);
+        //$this->logRequest("/domain/zone/$domain/record/$recordId", 'DELETE', $response !== false);
         return $response;
     }
 
     public function refreshDNSZone($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/refresh";
         $response = $this->makeRequest('POST', $url);
-        $this->logRequest("/domain/zone/$domain/refresh", 'POST', $response !== false);
+        //$this->logRequest("/domain/zone/$domain/refresh", 'POST', $response !== false);
         return $response;
     }
 
     public function rebootVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/reboot";
         $response = $this->makeRequest('POST', $url);
-        $this->logRequest("/vps/$vpsName/reboot", 'POST', $response !== false);
+        //$this->logRequest("/vps/$vpsName/reboot", 'POST', $response !== false);
         return $response;
     }
 
     public function stopVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/stop";
         $response = $this->makeRequest('POST', $url);
-        $this->logRequest("/vps/$vpsName/stop", 'POST', $response !== false);
+        //$this->logRequest("/vps/$vpsName/stop", 'POST', $response !== false);
         return $response;
     }
 
     public function startVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/start";
         $response = $this->makeRequest('POST', $url);
-        $this->logRequest("/vps/$vpsName/start", 'POST', $response !== false);
+        //$this->logRequest("/vps/$vpsName/start", 'POST', $response !== false);
         return $response;
     }
 
@@ -2136,7 +2136,7 @@ class OVHPost extends OVHGet {
         ];
 
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("/dedicated/server/$serviceName/virtualMac", 'POST', $response !== false);
+        //$this->logRequest("/dedicated/server/$serviceName/virtualMac", 'POST', $response !== false);
         return $response;
     }
 
@@ -2146,7 +2146,7 @@ class OVHPost extends OVHGet {
     public function deleteVirtualMac($serviceName, $macAddress) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress";
         $response = $this->makeRequest('DELETE', $url);
-        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress", 'DELETE', $response !== false);
+        //$this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress", 'DELETE', $response !== false);
         return $response;
     }
 
@@ -2162,7 +2162,7 @@ class OVHPost extends OVHGet {
         ];
 
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress", 'POST', $response !== false);
+        //$this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress", 'POST', $response !== false);
         return $response;
     }
 
@@ -2172,7 +2172,7 @@ class OVHPost extends OVHGet {
     public function removeVirtualMacIP($serviceName, $macAddress, $ipAddress) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress";
         $response = $this->makeRequest('DELETE', $url);
-        $this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress", 'DELETE', $response !== false);
+        //$this->logRequest("/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress/$ipAddress", 'DELETE', $response !== false);
         return $response;
     }
 
@@ -2189,7 +2189,7 @@ class OVHPost extends OVHGet {
         ];
 
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("/ip/$ipAddress/reverse", 'POST', $response !== false);
+        //$this->logRequest("/ip/$ipAddress/reverse", 'POST', $response !== false);
         return $response;
     }
 
@@ -2206,7 +2206,7 @@ class OVHPost extends OVHGet {
         ];
 
         $response = $this->makeRequest('PUT', $url, $data);
-        $this->logRequest("/ip/$ipAddress/reverse/$reverseIP", 'PUT', $response !== false);
+        //$this->logRequest("/ip/$ipAddress/reverse/$reverseIP", 'PUT', $response !== false);
         return $response;
     }
 
@@ -2218,7 +2218,7 @@ class OVHPost extends OVHGet {
         $encodedReverse = urlencode($reverseIP);
         $url = "https://eu.api.ovh.com/1.0/ip/$encodedIp/reverse/$encodedReverse";
         $response = $this->makeRequest('DELETE', $url);
-        $this->logRequest("/ip/$ipAddress/reverse/$reverseIP", 'DELETE', $response !== false);
+        //$this->logRequest("/ip/$ipAddress/reverse/$reverseIP", 'DELETE', $response !== false);
         return $response;
     }
 }
@@ -2251,7 +2251,7 @@ class OGPGet extends BaseAPI {
     public function testToken() {
         $url = $this->host . "/ogp_api.php?token/test/" . urlencode($this->token);
         $response = $this->makeRequest('GET', $url);
-        $this->logRequest('token/test', 'GET', $response !== false);
+        //$this->logRequest('token/test', 'GET', $response !== false);
         return $response;
     }
 
@@ -2262,7 +2262,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?server/list";
         $data = ['token' => $this->token];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest('server/list', 'POST', $response !== false);
+        //$this->logRequest('server/list', 'POST', $response !== false);
         return $response;
     }
 
@@ -2270,7 +2270,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?server/status";
         $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("server/status/$remoteServerId", 'POST', $response !== false);
+        //$this->logRequest("server/status/$remoteServerId", 'POST', $response !== false);
         return $response;
     }
 
@@ -2278,7 +2278,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?server/list_ips";
         $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("server/list_ips/$remoteServerId", 'POST', $response !== false);
+        //$this->logRequest("server/list_ips/$remoteServerId", 'POST', $response !== false);
         return $response;
     }
 
@@ -2289,7 +2289,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?user_games/list_games";
         $data = ['token' => $this->token, 'system' => $system, 'architecture' => $architecture];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("user_games/list_games/$system/$architecture", 'POST', $response !== false);
+        //$this->logRequest("user_games/list_games/$system/$architecture", 'POST', $response !== false);
         return $response;
     }
 
@@ -2297,7 +2297,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?user_games/list_servers";
         $data = ['token' => $this->token];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest('user_games/list_servers', 'POST', $response !== false);
+        //$this->logRequest('user_games/list_servers', 'POST', $response !== false);
         return $response;
     }
 
@@ -2308,7 +2308,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?user_admin/list";
         $data = ['token' => $this->token];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest('user_admin/list', 'POST', $response !== false);
+        //$this->logRequest('user_admin/list', 'POST', $response !== false);
         return $response;
     }
 
@@ -2316,7 +2316,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?user_admin/get";
         $data = ['token' => $this->token, 'email' => $email];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("user_admin/get/$email", 'POST', $response !== false);
+        //$this->logRequest("user_admin/get/$email", 'POST', $response !== false);
         return $response;
     }
 
@@ -2324,7 +2324,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?user_admin/list_assigned";
         $data = ['token' => $this->token, 'email' => $email];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("user_admin/list_assigned/$email", 'POST', $response !== false);
+        //$this->logRequest("user_admin/list_assigned/$email", 'POST', $response !== false);
         return $response;
     }
 
@@ -2335,7 +2335,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?addonsmanager/list";
         $data = ['token' => $this->token];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest('addonsmanager/list', 'POST', $response !== false);
+        //$this->logRequest('addonsmanager/list', 'POST', $response !== false);
         return $response;
     }
 
@@ -2346,7 +2346,7 @@ class OGPGet extends BaseAPI {
         $url = $this->host . "/ogp_api.php?setting/get";
         $data = ['token' => $this->token, 'setting_name' => $settingName];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("setting/get/$settingName", 'POST', $response !== false);
+        //$this->logRequest("setting/get/$settingName", 'POST', $response !== false);
         return $response;
     }
 
@@ -2395,7 +2395,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?server/restart";
         $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("server/restart/$remoteServerId", 'POST', $response !== false);
+        //$this->logRequest("server/restart/$remoteServerId", 'POST', $response !== false);
         return $response;
     }
 
@@ -2403,7 +2403,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?server/create";
         $data = array_merge(['token' => $this->token], $serverData);
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest('server/create', 'POST', $response !== false);
+        //$this->logRequest('server/create', 'POST', $response !== false);
         return $response;
     }
 
@@ -2411,7 +2411,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?server/remove";
         $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("server/remove/$remoteServerId", 'POST', $response !== false);
+        //$this->logRequest("server/remove/$remoteServerId", 'POST', $response !== false);
         return $response;
     }
 
@@ -2419,7 +2419,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?server/add_ip";
         $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId, 'ip' => $ip];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("server/add_ip/$remoteServerId/$ip", 'POST', $response !== false);
+        //$this->logRequest("server/add_ip/$remoteServerId/$ip", 'POST', $response !== false);
         return $response;
     }
 
@@ -2427,7 +2427,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?server/remove_ip";
         $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId, 'ip' => $ip];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("server/remove_ip/$remoteServerId/$ip", 'POST', $response !== false);
+        //$this->logRequest("server/remove_ip/$remoteServerId/$ip", 'POST', $response !== false);
         return $response;
     }
 
@@ -2435,7 +2435,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?server/edit_ip";
         $data = ['token' => $this->token, 'remote_server_id' => $remoteServerId, 'old_ip' => $oldIp, 'new_ip' => $newIp];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("server/edit_ip/$remoteServerId/$oldIp/$newIp", 'POST', $response !== false);
+        //$this->logRequest("server/edit_ip/$remoteServerId/$oldIp/$newIp", 'POST', $response !== false);
         return $response;
     }
 
@@ -2446,7 +2446,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?user_games/create";
         $data = array_merge(['token' => $this->token], $gameServerData);
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest('user_games/create', 'POST', $response !== false);
+        //$this->logRequest('user_games/create', 'POST', $response !== false);
         return $response;
     }
 
@@ -2454,7 +2454,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?user_games/clone";
         $data = array_merge(['token' => $this->token], $cloneData);
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest('user_games/clone', 'POST', $response !== false);
+        //$this->logRequest('user_games/clone', 'POST', $response !== false);
         return $response;
     }
 
@@ -2462,7 +2462,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?user_games/set_expiration";
         $data = ['token' => $this->token, 'home_id' => $homeId, 'timestamp' => $timestamp];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("user_games/set_expiration/$homeId", 'POST', $response !== false);
+        //$this->logRequest("user_games/set_expiration/$homeId", 'POST', $response !== false);
         return $response;
     }
 
@@ -2473,7 +2473,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?user_admin/create";
         $data = array_merge(['token' => $this->token], $userData);
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest('user_admin/create', 'POST', $response !== false);
+        //$this->logRequest('user_admin/create', 'POST', $response !== false);
         return $response;
     }
 
@@ -2481,7 +2481,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?user_admin/remove";
         $data = ['token' => $this->token, 'email' => $email];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("user_admin/remove/$email", 'POST', $response !== false);
+        //$this->logRequest("user_admin/remove/$email", 'POST', $response !== false);
         return $response;
     }
 
@@ -2489,7 +2489,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?user_admin/set_expiration";
         $data = ['token' => $this->token, 'email' => $email, 'timestamp' => $timestamp];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("user_admin/set_expiration/$email", 'POST', $response !== false);
+        //$this->logRequest("user_admin/set_expiration/$email", 'POST', $response !== false);
         return $response;
     }
 
@@ -2500,7 +2500,7 @@ class OGPPost extends OGPGet {
             $data['timestamp'] = $timestamp;
         }
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("user_admin/assign/$email/$homeId", 'POST', $response !== false);
+        //$this->logRequest("user_admin/assign/$email/$homeId", 'POST', $response !== false);
         return $response;
     }
 
@@ -2508,7 +2508,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?user_admin/remove_assign";
         $data = ['token' => $this->token, 'email' => $email, 'home_id' => $homeId];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("user_admin/remove_assign/$email/$homeId", 'POST', $response !== false);
+        //$this->logRequest("user_admin/remove_assign/$email/$homeId", 'POST', $response !== false);
         return $response;
     }
 
@@ -2519,7 +2519,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?gamemanager/start";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("gamemanager/start/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("gamemanager/start/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 
@@ -2527,7 +2527,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?gamemanager/stop";
         $data = ['token' => $this->token, 'ip' => $port, 'port' => $port, 'mod_key' => $modKey];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("gamemanager/stop/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("gamemanager/stop/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 
@@ -2535,7 +2535,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?gamemanager/restart";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("gamemanager/restart/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("gamemanager/restart/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 
@@ -2543,7 +2543,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?gamemanager/rcon";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey, 'command' => $command];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("gamemanager/rcon/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("gamemanager/rcon/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 
@@ -2554,7 +2554,7 @@ class OGPPost extends OGPGet {
             $data['manual_url'] = $manualUrl;
         }
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("gamemanager/update/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("gamemanager/update/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 
@@ -2565,7 +2565,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?litefm/list";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'relative_path' => $relativePath];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("litefm/list/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("litefm/list/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 
@@ -2573,7 +2573,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?litefm/get";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'relative_path' => $relativePath];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("litefm/get/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("litefm/get/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 
@@ -2581,7 +2581,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?litefm/save";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'relative_path' => $relativePath, 'contents' => $contents];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("litefm/save/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("litefm/save/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 
@@ -2589,7 +2589,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?litefm/remove";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'relative_path' => $relativePath];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("litefm/remove/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("litefm/remove/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 
@@ -2600,7 +2600,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?addonsmanager/install";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mod_key' => $modKey, 'addon_id' => $addonId];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("addonsmanager/install/$ip/$port/$addonId", 'POST', $response !== false);
+        //$this->logRequest("addonsmanager/install/$ip/$port/$addonId", 'POST', $response !== false);
         return $response;
     }
 
@@ -2611,7 +2611,7 @@ class OGPPost extends OGPGet {
         $url = $this->host . "/ogp_api.php?steam_workshop/install";
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mods_list' => $modsList];
         $response = $this->makeRequest('POST', $url, $data);
-        $this->logRequest("steam_workshop/install/$ip/$port", 'POST', $response !== false);
+        //$this->logRequest("steam_workshop/install/$ip/$port", 'POST', $response !== false);
         return $response;
     }
 }
@@ -2641,6 +2641,7 @@ class ServiceManager {
             }
         }
         
+
         // ISPConfig nur initialisieren wenn SOAP verfügbar ist und aktiviert
         if (Config::ISPCONFIG_USEING && class_exists('SoapClient')) {
             try {
@@ -2680,6 +2681,25 @@ class ServiceManager {
         }
     }
     
+
+    public function __log($action, $details, $status = 'info') {
+        try {
+            $db = Database::getInstance();
+            $db->logAction($action, $details, $status);
+        } catch (Exception $e) {
+            // Ignoriere Logging-Fehler
+        }
+    }
+
+    public function __test($name = null) {
+        if($name != NULL) {
+            $this->__log("Test Funktion", "Erfolgreich mit Name: $name", "success");
+            return "Hallo ".$name."Test Erfolgreich!";
+        } else {
+            $this->__log("Test Funktion", "Fehlgeschlagen - kein Name", "error");
+            return "Hallo, test fehlgeschlagen!";
+        }
+    }
     /**
      * Prüft ob eine API aktiviert ist
      * @param string $apiName Name der API (proxmox, ispconfig, ovh, ogp)
@@ -2707,16 +2727,8 @@ class ServiceManager {
                         'solution' => 'Setzen Sie PROXMOX_USEING = true in der config.inc.php'
                     ];
                     
-                    // Log API check failure to database (disabled for now)
-                    // if ($db !== null) {
-                    //     $db->logAction(
-                    //         "API Check: Proxmox",
-                    //         "API deaktiviert - Config: PROXMOX_USEING = false",
-                    //         'error'
-                    //     );
-                    // }
-                    
                     return $errorResponse;
+                    $this->__log("checkAPIEnabled", $errorResponse, "error");
                 }
                 if (!isset($this->proxmoxGet) || !isset($this->proxmoxPost)) {
                     $errorResponse = [
@@ -2725,24 +2737,11 @@ class ServiceManager {
                         'message' => 'Proxmox API konnte nicht initialisiert werden',
                         'api' => 'proxmox',
                         'solution' => 'Überprüfen Sie die Proxmox-Konfiguration in der config.inc.php'
-                    ];
-                    
-                    // Log API initialization failure to database (disabled for now)
-                    // $db->logAction(
-                    //     "API Check: Proxmox",
-                    //     "API nicht initialisiert - ProxmoxGet/Post Objekte fehlen",
-                    //     'error'
-                    // );
-                    
+                    ];                    
                     return $errorResponse;
+                    $this->__log("checkAPIEnabled", $errorResponse, "error");
                 }
                 
-                // Log successful API check to database (disabled for now)
-                // $db->logAction(
-                //     "API Check: Proxmox",
-                //     "API aktiviert und initialisiert",
-                //     'success'
-                // );
                 break;
                 
             case 'ispconfig':
@@ -2764,6 +2763,7 @@ class ServiceManager {
                     );
                     
                     return $errorResponse;
+                    $this->__log("checkAPIEnabled", $errorResponse, "error");
                 }
                 if (!isset($this->ispconfigGet) || !isset($this->ispconfigPost)) {
                     $errorResponse = [
@@ -2782,14 +2782,9 @@ class ServiceManager {
                     );
                     
                     return $errorResponse;
+                    $this->__log("checkAPIEnabled", $errorResponse, "error");
                 }
                 
-                // Log successful API check to database
-                $db->logAction(
-                    "API Check: ISPConfig",
-                    "API aktiviert und initialisiert",
-                    'success'
-                );
                 break;
                 
             case 'ovh':
@@ -2811,6 +2806,7 @@ class ServiceManager {
                     );
                     
                     return $errorResponse;
+                    $this->__log("checkAPIEnabled", $errorResponse, "error");
                 }
                 if (!isset($this->ovhGet) || !isset($this->ovhPost)) {
                     $errorResponse = [
@@ -2829,14 +2825,9 @@ class ServiceManager {
                     );
                     
                     return $errorResponse;
+                    $this->__log("checkAPIEnabled", $errorResponse, "error");
                 }
                 
-                // Log successful API check to database
-                $db->logAction(
-                    "API Check: OVH",
-                    "API aktiviert und initialisiert",
-                    'success'
-                );
                 break;
                 
             case 'ogp':
@@ -2858,6 +2849,7 @@ class ServiceManager {
                     );
                     
                     return $errorResponse;
+                    $this->__log("checkAPIEnabled", $errorResponse, "error");
                 }
                 if (!isset($this->ogpGet) || !isset($this->ogpPost)) {
                     $errorResponse = [
@@ -2876,14 +2868,8 @@ class ServiceManager {
                     );
                     
                     return $errorResponse;
+                    $this->__log("checkAPIEnabled", $errorResponse, "error");
                 }
-                
-                // Log successful API check to database (disabled for now)
-                // $db->logAction(
-                //     "API Check: OGP",
-                //     "API aktiviert und initialisiert",
-                //     'success'
-                // );
                 break;
                 
             default:
@@ -2892,16 +2878,9 @@ class ServiceManager {
                     'error' => 'UNKNOWN_API',
                     'message' => 'Unbekannte API: ' . $apiName,
                     'api' => $apiName
-                ];
-                
-                // Log unknown API check to database (disabled for now)
-                // $db->logAction(
-                //     "API Check: Unknown",
-                //     "Unbekannte API angefragt: " . $apiName,
-                //     'error'
-                // );
-                
+                ];                
                 return $errorResponse;
+                $this->__log("checkAPIEnabled", $errorResponse, "error");
         }
         return true;
     }
@@ -2935,8 +2914,6 @@ class ServiceManager {
             // Verwende die makeRequest Methode der Proxmox Klasse
             $response = $this->proxmoxGet->makeRequest($type, $fullUrl, $code);
             
-            // Logging
-            $this->proxmoxGet->logRequest($url, $type, $response !== false);
             
             return $response;
         } catch (Exception $e) {
@@ -2976,8 +2953,6 @@ class ServiceManager {
             // Verwende die makeRequest Methode der OVH Klasse
             $response = $this->ovhGet->makeRequest($type, $fullUrl, $code);
             
-            // Logging
-            $this->ovhGet->logRequest($url, $type, $response !== false);
             
             return $response;
         } catch (Exception $e) {
@@ -3020,11 +2995,7 @@ class ServiceManager {
             // Bestimme die richtige SOAP-Funktion basierend auf Type und URL
             switch($type) {
                 case 'get':
-                    // Für GET requests, füge "_get" hinzu wenn nicht vorhanden
-                    if (!strpos($function, '_get')) {
-                        $function .= '_get';
-                    }
-                    
+                    // Keine automatische Suffix-Anfügung mehr - verwende den Funktionsnamen direkt
                     if ($code !== null) {
                         $result = $this->ispconfigGet->client->$function($this->ispconfigGet->session_id, $code);
                     } else {
@@ -3032,12 +3003,7 @@ class ServiceManager {
                     }
                     break;
                     
-                case 'post':
-                    // Für POST requests, füge "_add" hinzu
-                    if (!strpos($function, '_add')) {
-                        $function .= '_add';
-                    }
-                    
+                case 'post':                 
                     // ISPConfig erwartet: session_id, client_id, params
                     if (is_array($code) && isset($code['client_id'])) {
                         $client_id = $code['client_id'];
@@ -3050,11 +3016,6 @@ class ServiceManager {
                     break;
                     
                 case 'put':
-                    // Für PUT requests, füge "_update" hinzu
-                    if (!strpos($function, '_update')) {
-                        $function .= '_update';
-                    }
-                    
                     // Für Updates brauchen wir: session_id, client_id, primary_id, params
                     if (is_array($code)) {
                         $client_id = $code['client_id'] ?? 1;
@@ -3075,11 +3036,6 @@ class ServiceManager {
                     break;
                     
                 case 'delete':
-                    // Für DELETE requests, füge "_delete" hinzu
-                    if (!strpos($function, '_delete')) {
-                        $function .= '_delete';
-                    }
-                    
                     // Für Delete brauchen wir die ID
                     $result = $this->ispconfigPost->client->$function($this->ispconfigPost->session_id, $code);
                     break;
@@ -3087,10 +3043,7 @@ class ServiceManager {
                 default:
                     throw new Exception("Unsupported HTTP method: $type");
             }
-            
-            // Logging
-            $this->ispconfigGet->logRequest($function, strtoupper($type), $result !== false);
-            
+                      
             return $result;
             
         } catch (Exception $e) {
@@ -3123,8 +3076,6 @@ class ServiceManager {
             // Rufe die SOAP-Funktion dynamisch auf
             $result = call_user_func_array([$this->ispconfigGet->client, $function], $params);
             
-            // Logging
-            $this->ispconfigGet->logRequest($function, 'SOAP', $result !== false);
             
             return $result;
         } catch (Exception $e) {
@@ -3165,8 +3116,6 @@ class ServiceManager {
             // Verwende die makeRequest Methode der OGP Klasse
             $response = $this->ogpGet->makeRequest($type, $fullUrl, $code);
             
-            // Logging
-            $this->ogpGet->logRequest($url, $type, $response !== false);
             
             return $response;
         } catch (Exception $e) {
@@ -3445,10 +3394,6 @@ class ServiceManager {
         }
         return null;
     }
-
-     
-    // VIRTUAL MAC METHODS
-     
 
     /**
      * Holt alle Virtual MAC-Adressen für einen bestimmten Service
