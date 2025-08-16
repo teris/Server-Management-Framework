@@ -1,24 +1,16 @@
 <?php
 require_once 'config/config.inc.php';
+require_once 'src/core/DatabaseManager.php';
 
-// DATABASE CLASS
+// DATABASE CLASS - Kompatibilitätsklasse für bestehenden Code
 class Database {
     private static $instance = null;
-    private $connection;
+    private $dbManager;
 
     private function __construct() {
         try {
-            $this->connection = new PDO(
-                "mysql:host=" . Config::DB_HOST . ";dbname=" . Config::DB_NAME,
-                Config::DB_USER,
-                Config::DB_PASS,
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"
-                ]
-             );
-        } catch(PDOException $e) {
+            $this->dbManager = DatabaseManager::getInstance();
+        } catch(Exception $e) {
             throw new Exception("Datenbankverbindung fehlgeschlagen: " . $e->getMessage());
         }
     }
@@ -31,98 +23,68 @@ class Database {
     }
 
     public function getConnection() {
-        return $this->connection;
+        return $this->dbManager->getConnection();
     }
 
     public function logAction($action, $details, $status) {
-        try {
-            $stmt = $this->connection->prepare("INSERT INTO activity_log (action, details, status, created_at) VALUES (?, ?, ?, NOW())");
-            return $stmt->execute([$action, $details, $status]);
-        } catch (PDOException $e) {
-            error_log("Database logAction error: " . $e->getMessage());
-            return false;
-        }
+        return $this->dbManager->logAction($action, $details, $status);
     }
 
     public function getActivityLog($limit = 50, $offset = 0) {
-        try {
-            $limit = (int) $limit;
-            $offset = (int) $offset;
-            if ($limit <= 0) $limit = 50;
-            if ($limit > 1000) $limit = 1000;
-            if ($offset < 0) $offset = 0;
-            $sql = "SELECT id, action, details, status, created_at 
-                    FROM activity_log 
-                    ORDER BY created_at DESC 
-                    LIMIT $limit OFFSET $offset";
-            $stmt = $this->connection->prepare($sql);
-            $stmt->execute();
-            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($results as &$row) {
-                if (isset($row['created_at'])) {
-                    $row['created_at_formatted'] = date('d.m.Y H:i:s', strtotime($row['created_at']));
-                }
-            }
-            return $results;
-        } catch (PDOException $e) {
-            error_log("Database getActivityLog error: " . $e->getMessage());
-            try {
-                $stmt = $this->connection->prepare("SELECT id, action, details, status, created_at FROM activity_log ORDER BY created_at DESC");
-                $stmt->execute();
-                $all_results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                return array_slice($all_results, $offset, $limit);
-            } catch (PDOException $e2) {
-                error_log("Database fallback error: " . $e2->getMessage());
-                return [];
-            }
-        }
+        return $this->dbManager->getActivityLog($limit, $offset);
     }
     
     public function clearActivityLogs() {
-        try {
-            $stmt = $this->connection->prepare("TRUNCATE TABLE activity_log");
-            return $stmt->execute();
-        } catch (PDOException $e) {
-            error_log("Database clearActivityLogs error: " . $e->getMessage());
-            return false;
-        }
+        return $this->dbManager->clearActivityLogs();
     }
 
     // PDO Wrapper-Methoden für Kompatibilität
     public function prepare($sql) {
-        return $this->connection->prepare($sql);
+        return $this->dbManager->prepare($sql);
     }
 
     public function query($sql) {
-        return $this->connection->query($sql);
+        return $this->dbManager->query($sql);
     }
 
     public function exec($sql) {
-        return $this->connection->exec($sql);
+        if ($this->dbManager->isMongoDB()) {
+            // MongoDB unterstützt keine SQL-Exec-Befehle
+            return false;
+        }
+        return $this->dbManager->getConnection()->exec($sql);
     }
 
     public function lastInsertId($name = null) {
-        return $this->connection->lastInsertId($name);
+        return $this->dbManager->getConnection()->lastInsertId($name);
     }
 
     public function beginTransaction() {
-        return $this->connection->beginTransaction();
+        return $this->dbManager->beginTransaction();
     }
 
     public function commit() {
-        return $this->connection->commit();
+        return $this->dbManager->commit();
     }
 
     public function rollback() {
-        return $this->connection->rollback();
+        return $this->dbManager->rollback();
     }
 
     public function inTransaction() {
-        return $this->connection->inTransaction();
+        if ($this->dbManager->isMongoDB()) {
+            // MongoDB unterstützt Transaktionen ab Version 4.0
+            return false;
+        }
+        return $this->dbManager->getConnection()->inTransaction();
     }
 
     public function quote($string, $type = PDO::PARAM_STR) {
-        return $this->connection->quote($string, $type);
+        if ($this->dbManager->isMongoDB()) {
+            // MongoDB benötigt kein Quoting
+            return $string;
+        }
+        return $this->dbManager->getConnection()->quote($string, $type);
     }
 }
 

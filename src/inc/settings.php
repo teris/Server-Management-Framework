@@ -5,16 +5,18 @@ if (__FILE__ === $_SERVER['SCRIPT_FILENAME']) {
 }
 require_once dirname(__DIR__) . '/sys.conf.php';
 require_once dirname(__DIR__) . '/../config/config.inc.php';
-if (!isset($pdo)) {
-    $pdo = new PDO('mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME, Config::DB_USER, Config::DB_PASS);
+if (!isset($db)) {
+    require_once dirname(__DIR__) . '/../core/DatabaseManager.php';
+    $db = DatabaseManager::getInstance();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_module_permissions' && isset($_POST['perm'])) {
     try {
         // Modul-Key zu Modul-ID Mapping laden (name und module_name, alles klein)
         $moduleKeyToId = [];
-        $stmt = $pdo->query("SELECT id, name, module_name FROM modules");
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $mod) {
+        $stmt = $db->query("SELECT id, name, module_name FROM modules");
+        $results = $db->fetchAll($stmt);
+        foreach ($results as $mod) {
             if (isset($mod['name'])) {
                 $moduleKeyToId[strtolower($mod['name'])] = $mod['id'];
             }
@@ -23,7 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
             }
         }
         // Alle bisherigen Rechte löschen
-        $pdo->exec("DELETE FROM group_module_permissions");
+        if (!$db->isMongoDB()) {
+            $db->getConnection()->exec("DELETE FROM group_module_permissions");
+        }
         // Neue Rechte speichern
         foreach ($_POST['perm'] as $group_id => $mods) {
             foreach ($mods as $module_key => $val) {
@@ -34,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                 }
                 $module_id = $moduleKeyToId[$module_key_lc];
                 $can_access = $val ? 1 : 0;
-                $stmt = $pdo->prepare("INSERT INTO group_module_permissions (group_id, module_id, can_access) VALUES (?, ?, ?)");
-                $stmt->execute([$group_id, $module_id, $can_access]);
+                $stmt = $db->prepare("INSERT INTO group_module_permissions (group_id, module_id, can_access) VALUES (?, ?, ?)");
+                $db->execute($stmt, [$group_id, $module_id, $can_access]);
                 echo '<div class="alert alert-info">' . t('insert_permission') . ': ' . htmlspecialchars($group_id) . ', ' . htmlspecialchars($module_id) . ', ' . htmlspecialchars($can_access) . '</div>';
             }
         }
@@ -142,9 +146,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                 <div id="api-credentials-list" class="row">
                                     <?php
                                     try {
-                                        $pdo = new PDO('mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME, Config::DB_USER, Config::DB_PASS);
-                                        $stmt = $pdo->query("SELECT * FROM api_credentials");
-                                        $apis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                        $stmt = $db->query("SELECT * FROM api_credentials");
+                                        $apis = $db->fetchAll($stmt);
                                         foreach ($apis as $api) {
                                             $title = '';
                                             if ($api['service_name'] === 'proxmox') $title = 'Proxmox';
@@ -187,10 +190,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                         try {
                             // Aktive Module aus sys.conf.php
                             $modules = getEnabledPlugins();
-                            $stmt = $pdo->query("SELECT * FROM groups");
-                            $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                            $stmt = $pdo->query("SELECT * FROM group_module_permissions");
-                            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $perm) {
+                            $stmt = $db->query("SELECT * FROM groups");
+                            $groups = $db->fetchAll($stmt);
+                            $stmt = $db->query("SELECT * FROM group_module_permissions");
+                            $permissions_result = $db->fetchAll($stmt);
+                            foreach ($permissions_result as $perm) {
                                 $permissions[$perm['group_id']][$perm['module_id']] = $perm['can_access'];
                             }
                         } catch (Exception $e) {}
@@ -244,8 +248,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                                 // Gruppen für das Dropdown laden
                                                 $groups_dropdown = [];
                                                 try {
-                                                    $stmt_groups = $pdo->query("SELECT id, name FROM groups");
-                                                    $groups_dropdown = $stmt_groups->fetchAll(PDO::FETCH_ASSOC);
+                                                    $stmt_groups = $db->query("SELECT id, name FROM groups");
+                                                    $groups_dropdown = $db->fetchAll($stmt_groups);
                                                 } catch (Exception $e) {
                                                     $groups_dropdown = [];
                                                 }
@@ -261,8 +265,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                             // Benutzer löschen
                                             if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_user' && isset($_POST['user_id'])) {
                                                 try {
-                                                    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-                                                    $stmt->execute([$_POST['user_id']]);
+                                                    $stmt = $db->prepare("DELETE FROM users WHERE id = ?");
+                                                    $db->execute($stmt, [$_POST['user_id']]);
                                                     echo '<div class="alert alert-success">' . t('user_deleted') . '</div>';
                                                 } catch (Exception $e) {
                                                     echo '<div class="alert alert-danger">' . t('error_deleting') . ': ' . htmlspecialchars($e->getMessage()) . '</div>';
@@ -275,9 +279,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                                     $group_id = !empty($_POST['group_id']) ? $_POST['group_id'] : null;
                                                     $role = '';
                                                     if ($group_id) {
-                                                        $stmt_group = $pdo->prepare("SELECT name FROM groups WHERE id = ?");
-                                                        $stmt_group->execute([$group_id]);
-                                                        $role = $stmt_group->fetchColumn() ?: '';
+                                                        $stmt_group = $db->prepare("SELECT name FROM groups WHERE id = ?");
+                                                        $db->execute($stmt_group, [$group_id]);
+                                                        $role = $db->fetch($stmt_group)['name'] ?? '';
                                                     }
                                                     $pwset = '';
                                                     $params = [
@@ -303,8 +307,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                                         ];
                                                     }
                                                     $sql = "UPDATE users SET username=?, full_name=?, email=?, role=?, active=?, group_id=?" . ($pwset ? $pwset : '') . " WHERE id=?";
-                                                    $stmt = $pdo->prepare($sql);
-                                                    $stmt->execute($params);
+                                                    $stmt = $db->prepare($sql);
+                                                    $db->execute($stmt, $params);
                                                     echo '<div class="alert alert-success">' . t('user_updated') . '</div>';
                                                 } catch (Exception $e) {
                                                     echo '<div class="alert alert-danger">' . t('error_editing') . ': ' . htmlspecialchars($e->getMessage()) . '</div>';
@@ -316,14 +320,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                                     $group_id = !empty($_POST['group_id']) ? $_POST['group_id'] : null;
                                                     $role = '';
                                                     if ($group_id) {
-                                                        $stmt_group = $pdo->prepare("SELECT name FROM groups WHERE id = ?");
-                                                        $stmt_group->execute([$group_id]);
-                                                        $role = $stmt_group->fetchColumn() ?: '';
+                                                        $stmt_group = $db->prepare("SELECT name FROM groups WHERE id = ?");
+                                                        $db->execute($stmt_group, [$group_id]);
+                                                        $role = $db->fetch($stmt_group)['name'] ?? '';
                                                     }
-                                                    $stmt = $pdo->prepare("INSERT INTO users (username, full_name, email, password_hash, role, active, group_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                                                    $stmt = $db->prepare("INSERT INTO users (username, full_name, email, password_hash, role, active, group_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
                                                     $pw = password_hash($_POST['password'], PASSWORD_DEFAULT);
                                                     $active = isset($_POST['active']) ? 'y' : 'n';
-                                                    $stmt->execute([
+                                                    $db->execute($stmt, [
                                                         $_POST['username'],
                                                         $_POST['full_name'],
                                                         $_POST['email'],
@@ -339,8 +343,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                             }
                                             // Benutzerliste
                                             try {
-                                                $stmt = $pdo->query("SELECT * FROM users");
-                                                $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                                $stmt = $db->query("SELECT * FROM users");
+                                                $users = $db->fetchAll($stmt);
                                                 if (count($users) === 0) {
                                                     echo '<div>' . t('no_users_found') . '</div>';
                                                 } else {
@@ -397,8 +401,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                             // Gruppe löschen
                                             if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_group' && isset($_POST['group_id'])) {
                                                 try {
-                                                    $stmt = $pdo->prepare("DELETE FROM groups WHERE id = ?");
-                                                    $stmt->execute([$_POST['group_id']]);
+                                                    $stmt = $db->prepare("DELETE FROM groups WHERE id = ?");
+                                                    $db->execute($stmt, [$_POST['group_id']]);
                                                     echo '<div class="alert alert-success">' . t('group_deleted') . '</div>';
                                                 } catch (Exception $e) {
                                                     echo '<div class="alert alert-danger">' . t('error_deleting') . ': ' . htmlspecialchars($e->getMessage()) . '</div>';
@@ -407,8 +411,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                             // Gruppe bearbeiten
                                             if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edit_group' && isset($_POST['group_id'])) {
                                                 try {
-                                                    $stmt = $pdo->prepare("UPDATE groups SET name=?, description=? WHERE id=?");
-                                                    $stmt->execute([
+                                                    $stmt = $db->prepare("UPDATE groups SET name=?, description=? WHERE id=?");
+                                                    $db->execute($stmt, [
                                                         $_POST['name'],
                                                         $_POST['description'],
                                                         $_POST['group_id']
@@ -421,8 +425,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                             // Gruppe anlegen
                                             if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['mode'] ?? '') === 'add_group') {
                                                 try {
-                                                    $stmt = $pdo->prepare("INSERT INTO groups (name, description) VALUES (?, ?)");
-                                                    $stmt->execute([
+                                                    $stmt = $db->prepare("INSERT INTO groups (name, description) VALUES (?, ?)");
+                                                    $db->execute($stmt, [
                                                         $_POST['name'],
                                                         $_POST['description']
                                                     ]);
@@ -433,12 +437,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                             }
                                             // Gruppenliste
                                             try {
-                                                $stmt = $pdo->query("SELECT * FROM groups");
+                                                $stmt = $db->query("SELECT * FROM groups");
                                                 if ($stmt === false) {
-                                                    $errorInfo = $pdo->errorInfo();
-                                                    echo '<div class="alert alert-danger">' . t('sql_error') . ': ' . htmlspecialchars($errorInfo[2]) . '</div>';
+                                                    echo '<div class="alert alert-danger">' . t('sql_error') . ': Datenbankfehler</div>';
                                                 } else {
-                                                    $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                                    $groups = $db->fetchAll($stmt);
                                                     if (count($groups) === 0) {
                                                         echo '<div>' . t('no_groups_found') . '</div>';
                                                     } else {

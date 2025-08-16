@@ -1,18 +1,19 @@
 <?php
 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-    require_once dirname(__DIR__) . '../config/config.inc.php';
+    require_once dirname(__DIR__) . '/../config/config.inc.php';
+    require_once dirname(__DIR__) . '/../core/DatabaseManager.php';
     header('Content-Type: application/json');
     try {
-        $pdo = new PDO('mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME, Config::DB_USER, Config::DB_PASS);
+        $db = DatabaseManager::getInstance();
         if ($_POST['action'] === 'delete_user' && isset($_POST['user_id'])) {
-            $stmt = $pdo->prepare('DELETE FROM users WHERE id = ?');
-            $stmt->execute([$_POST['user_id']]);
+            $stmt = $db->prepare('DELETE FROM users WHERE id = ?');
+            $db->execute($stmt, [$_POST['user_id']]);
             echo json_encode(['success' => true]);
             exit;
         }
         if ($_POST['action'] === 'delete_group' && isset($_POST['group_id'])) {
-            $stmt = $pdo->prepare('DELETE FROM groups WHERE id = ?');
-            $stmt->execute([$_POST['group_id']]);
+            $stmt = $db->prepare('DELETE FROM groups WHERE id = ?');
+            $db->execute($stmt, [$_POST['group_id']]);
             echo json_encode(['success' => true]);
             exit;
         }

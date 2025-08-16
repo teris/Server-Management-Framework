@@ -6,6 +6,7 @@
 require_once '../src/sys.conf.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
+require_once '../src/core/ActivityLogger.php';
 
 // Sprache setzen
 $lang = LanguageManager::getInstance();
@@ -31,7 +32,7 @@ $action = $_GET['action'] ?? 'list';
 // Kundeninformationen aus der Datenbank laden
 try {
     $db = Database::getInstance();
-    $stmt = $db->prepare("SELECT * FROM customers WHERE id = ? AND status = 'active'");
+    $stmt = $db->getConnection()->prepare("SELECT * FROM customers WHERE id = ? AND status = 'active'");
     $stmt->execute([$customerId]);
     $customer = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -64,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'new') {
                 $ticketNumber = 'TIC-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
                 
                 // Prüfen ob Ticket-Nummer bereits existiert
-                $checkStmt = $db->prepare("SELECT COUNT(*) FROM support_tickets WHERE ticket_number = ?");
+                $checkStmt = $db->getConnection()->prepare("SELECT COUNT(*) FROM support_tickets WHERE ticket_number = ?");
                 $checkStmt->execute([$ticketNumber]);
                 $exists = $checkStmt->fetchColumn() > 0;
             } while ($exists);
@@ -74,17 +75,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'new') {
             
             // Falls E-Mail immer noch leer ist, aus der Datenbank holen
             if (empty($customerEmail) && $customerId) {
-                $emailStmt = $db->prepare("SELECT email FROM customers WHERE id = ?");
+                $emailStmt = $db->getConnection()->prepare("SELECT email FROM customers WHERE id = ?");
                 $emailStmt->execute([$customerId]);
                 $customerEmail = $emailStmt->fetchColumn() ?: '';
             }
             
-            $stmt = $db->prepare("
+            $stmt = $db->getConnection()->prepare("
                 INSERT INTO support_tickets (ticket_number, customer_id, email, subject, priority, message, status, created_at) 
                 VALUES (?, ?, ?, ?, ?, ?, 'open', NOW())
             ");
             
             if ($stmt->execute([$ticketNumber, $customerId, $customerEmail, $subject, $priority, $message])) {
+                $ticketId = $db->getConnection()->lastInsertId();
+                
+                // Aktivität loggen
+                try {
+                    $activityLogger = ActivityLogger::getInstance();
+                    $activityLogger->logCustomerActivity(
+                        $customerId, 
+                        'ticket_create', 
+                        "Support-Ticket erstellt: $subject", 
+                        $ticketId, 
+                        'support_tickets'
+                    );
+                } catch (Exception $e) {
+                    error_log("Activity Logging Error: " . $e->getMessage());
+                }
+                
                 $success = 'Ihr Support-Ticket wurde erfolgreich eingereicht.';
                 $action = 'list'; // Zurück zur Ticket-Liste
             } else {
@@ -100,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'new') {
 // Tickets laden
 if ($action === 'list' || $action === 'view') {
     try {
-        $stmt = $db->prepare("
+        $stmt = $db->getConnection()->prepare("
             SELECT * FROM support_tickets 
             WHERE customer_id = ? 
             ORDER BY created_at DESC
@@ -119,7 +136,7 @@ $ticketReplies = [];
 if ($action === 'view' && isset($_GET['id'])) {
     $ticketId = (int)$_GET['id'];
     try {
-        $stmt = $db->prepare("
+        $stmt = $db->getConnection()->prepare("
             SELECT * FROM support_tickets 
             WHERE id = ? AND customer_id = ?
         ");
@@ -131,25 +148,59 @@ if ($action === 'view' && isset($_GET['id'])) {
             $action = 'list';
         } else {
             // Ticket-Replies laden (nur nicht-interne Antworten für Kunden)
-            $repliesStmt = $db->prepare("
+            $repliesStmt = $db->getConnection()->prepare("
                 SELECT tr.*, 
                        CASE 
                            WHEN tr.customer_id IS NOT NULL THEN CONCAT(c.first_name, ' ', c.last_name)
-                           WHEN tr.admin_id IS NOT NULL THEN 'Support Team'
+                           WHEN tr.admin_id IS NOT NULL THEN CONCAT(u.full_name, ' (Support Team)')
                            ELSE 'System'
                        END as author_name,
                        CASE 
                            WHEN tr.customer_id IS NOT NULL THEN 'customer'
                            WHEN tr.admin_id IS NOT NULL THEN 'admin'
                            ELSE 'system'
-                       END as author_type
+                       END as author_type,
+                       tr.admin_id,
+                       tr.customer_id
                 FROM ticket_replies tr
                 LEFT JOIN customers c ON tr.customer_id = c.id
-                WHERE tr.ticket_id = ? AND tr.is_internal = 0
+                LEFT JOIN users u ON tr.admin_id = u.id
+                WHERE tr.ticket_id = ? 
+                AND tr.is_internal = 0
                 ORDER BY tr.created_at ASC
             ");
             $repliesStmt->execute([$ticketId]);
             $ticketReplies = $repliesStmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Debugging: Log der gefundenen Antworten
+            error_log("Support Debug: Found " . count($ticketReplies) . " replies for ticket " . $ticketId);
+            foreach ($ticketReplies as $reply) {
+                error_log("Support Debug: Reply ID " . $reply['id'] . " - Type: " . $reply['author_type'] . ", Admin ID: " . ($reply['admin_id'] ?? 'NULL') . ", Customer ID: " . ($reply['customer_id'] ?? 'NULL'));
+            }
+            
+            // Debug: Alle Antworten überprüfen (auch interne)
+            if (isset($_GET['debug']) && $_GET['debug'] === '1') {
+                $debugStmt = $db->getConnection()->prepare("
+                    SELECT tr.*, 
+                           CASE 
+                               WHEN tr.customer_id IS NOT NULL THEN CONCAT(c.first_name, ' ', c.last_name)
+                               WHEN tr.admin_id IS NOT NULL THEN CONCAT(u.full_name, ' (Support Team)')
+                               ELSE 'System'
+                           END as author_name,
+                           tr.is_internal
+                    FROM ticket_replies tr
+                    LEFT JOIN customers c ON tr.customer_id = c.id
+                    LEFT JOIN users u ON tr.admin_id = u.id
+                    WHERE tr.ticket_id = ?
+                    ORDER BY tr.created_at ASC
+                ");
+                $debugStmt->execute([$ticketId]);
+                $allReplies = $debugStmt->fetchAll(PDO::FETCH_ASSOC);
+                error_log("Support Debug: Total replies (including internal): " . count($allReplies));
+                foreach ($allReplies as $reply) {
+                    error_log("Support Debug: All Reply ID " . $reply['id'] . " - Internal: " . $reply['is_internal'] . ", Author: " . $reply['author_name']);
+                }
+            }
         }
     } catch (Exception $e) {
         error_log("Ticket View Error: " . $e->getMessage());
@@ -168,19 +219,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
     } else {
         try {
             // Prüfen ob das Ticket dem Kunden gehört
-            $checkStmt = $db->prepare("SELECT id FROM support_tickets WHERE id = ? AND customer_id = ?");
+            $checkStmt = $db->getConnection()->prepare("SELECT id FROM support_tickets WHERE id = ? AND customer_id = ?");
             $checkStmt->execute([$replyTicketId, $customerId]);
             
             if ($checkStmt->fetch()) {
                 // Kunden-Antwort hinzufügen
-                $replyStmt = $db->prepare("
+                $replyStmt = $db->getConnection()->prepare("
                     INSERT INTO ticket_replies (ticket_id, customer_id, message, is_internal, created_at) 
                     VALUES (?, ?, ?, 0, NOW())
                 ");
                 $replyStmt->execute([$replyTicketId, $customerId, $replyMessage]);
                 
+                // Aktivität loggen
+                try {
+                    $activityLogger = ActivityLogger::getInstance();
+                    $activityLogger->logCustomerActivity(
+                        $customerId, 
+                        'ticket_reply', 
+                        "Antwort auf Support-Ticket gesendet", 
+                        $replyTicketId, 
+                        'ticket_replies'
+                    );
+                } catch (Exception $e) {
+                    error_log("Activity Logging Error: " . $e->getMessage());
+                }
+                
                 // Ticket-Status auf "waiting_admin" setzen
-                $updateStmt = $db->prepare("
+                $updateStmt = $db->getConnection()->prepare("
                     UPDATE support_tickets 
                     SET status = 'waiting_admin', updated_at = NOW() 
                     WHERE id = ?
@@ -190,25 +255,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                 $success = 'Ihre Antwort wurde erfolgreich gesendet.';
                 
                 // Ticket und Replies neu laden
-                $stmt = $db->prepare("SELECT * FROM support_tickets WHERE id = ? AND customer_id = ?");
+                $stmt = $db->getConnection()->prepare("SELECT * FROM support_tickets WHERE id = ? AND customer_id = ?");
                 $stmt->execute([$replyTicketId, $customerId]);
                 $currentTicket = $stmt->fetch(PDO::FETCH_ASSOC);
                 
-                $repliesStmt = $db->prepare("
+                $repliesStmt = $db->getConnection()->prepare("
                     SELECT tr.*, 
                            CASE 
                                WHEN tr.customer_id IS NOT NULL THEN CONCAT(c.first_name, ' ', c.last_name)
-                               WHEN tr.admin_id IS NOT NULL THEN 'Support Team'
+                               WHEN tr.admin_id IS NOT NULL THEN CONCAT(u.full_name, ' (Support Team)')
                                ELSE 'System'
                            END as author_name,
                            CASE 
                                WHEN tr.customer_id IS NOT NULL THEN 'customer'
                                WHEN tr.admin_id IS NOT NULL THEN 'admin'
                                ELSE 'system'
-                           END as author_type
+                           END as author_type,
+                           tr.admin_id,
+                           tr.customer_id
                     FROM ticket_replies tr
                     LEFT JOIN customers c ON tr.customer_id = c.id
-                    WHERE tr.ticket_id = ? AND tr.is_internal = 0
+                    LEFT JOIN users u ON tr.admin_id = u.id
+                    WHERE tr.ticket_id = ? 
+                    AND tr.is_internal = 0
                     ORDER BY tr.created_at ASC
                 ");
                 $repliesStmt->execute([$replyTicketId]);
@@ -476,8 +545,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                             <div class="reply-message">
                                                 <?= nl2br(htmlspecialchars($reply['message'])) ?>
                                             </div>
+                                            <!-- Debug-Informationen (nur für Entwickler sichtbar) -->
+                                            <?php if (isset($_GET['debug']) && $_GET['debug'] === '1'): ?>
+                                                <div class="mt-2 p-2 bg-warning text-dark small">
+                                                    <strong>Debug:</strong> 
+                                                    Type: <?= htmlspecialchars($reply['author_type']) ?>, 
+                                                    Admin ID: <?= htmlspecialchars($reply['admin_id'] ?? 'NULL') ?>, 
+                                                    Customer ID: <?= htmlspecialchars($reply['customer_id'] ?? 'NULL') ?>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <hr>
+                                <div class="text-center text-muted py-3">
+                                    <i class="bi bi-chat-dots"></i>
+                                    <p class="mb-0"><?= t('no_replies_yet') ?></p>
+                                    <?php if (isset($_GET['debug']) && $_GET['debug'] === '1'): ?>
+                                        <div class="mt-2 p-2 bg-info text-white small">
+                                            <strong>Debug:</strong> Keine Antworten gefunden. 
+                                            Ticket ID: <?= $currentTicket['id'] ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                             
@@ -607,6 +697,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                         </div>
                     </div>
                 </div>
+            </div>
+        <?php endif; ?>
+        
+        <!-- Debug-Informationen (nur für Entwickler sichtbar) -->
+        <?php if (isset($_GET['debug']) && $_GET['debug'] === '1'): ?>
+            <div class="mt-3 p-3 bg-warning text-dark">
+                <h6><i class="bi bi-bug"></i> Debug-Informationen</h6>
+                <p><strong>Ticket ID:</strong> <?= $currentTicket['id'] ?? 'N/A' ?></p>
+                <p><strong>Gefundene Antworten:</strong> <?= count($ticketReplies) ?></p>
+                <p><strong>Ticket Status:</strong> <?= $currentTicket['status'] ?? 'N/A' ?></p>
+                <p><strong>Customer ID:</strong> <?= $customerId ?></p>
+                
+                <?php if (!empty($ticketReplies)): ?>
+                    <h6>Antworten Details:</h6>
+                    <ul>
+                        <?php foreach ($ticketReplies as $reply): ?>
+                            <li>
+                                ID: <?= $reply['id'] ?>, 
+                                Type: <?= $reply['author_type'] ?>, 
+                                Admin ID: <?= $reply['admin_id'] ?? 'NULL' ?>, 
+                                Customer ID: <?= $reply['customer_id'] ?? 'NULL' ?>,
+                                Internal: <?= $reply['is_internal'] ?? 'N/A' ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+                
+                <!-- Überprüfung der gesamten Datenbank -->
+                <?php
+                try {
+                    $adminRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE admin_id IS NOT NULL");
+                    $adminRepliesCount->execute();
+                    $totalAdminReplies = $adminRepliesCount->fetchColumn();
+                    
+                    $customerRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE customer_id IS NOT NULL");
+                    $customerRepliesCount->execute();
+                    $totalCustomerReplies = $customerRepliesCount->fetchColumn();
+                    
+                    $internalRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE is_internal = 1");
+                    $internalRepliesCount->execute();
+                    $totalInternalReplies = $internalRepliesCount->fetchColumn();
+                } catch (Exception $e) {
+                    $totalAdminReplies = 'Error';
+                    $totalCustomerReplies = 'Error';
+                    $totalInternalReplies = 'Error';
+                }
+                ?>
+                <h6>Datenbank-Übersicht:</h6>
+                <ul>
+                    <li><strong>Gesamte Admin-Antworten:</strong> <?= $totalAdminReplies ?></li>
+                    <li><strong>Gesamte Kunden-Antworten:</strong> <?= $totalCustomerReplies ?></li>
+                    <li><strong>Interne Antworten:</strong> <?= $totalInternalReplies ?></li>
+                </ul>
+                
+                <!-- Überprüfung des aktuellen Tickets
+                <?php
+                try {
+                    $ticketAdminRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE ticket_id = ? AND admin_id IS NOT NULL");
+                    $ticketAdminRepliesCount->execute([$currentTicket['id']]);
+                    $ticketAdminReplies = $ticketAdminRepliesCount->fetchColumn();
+                    
+                    $ticketCustomerRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE ticket_id = ? AND customer_id IS NOT NULL");
+                    $ticketCustomerRepliesCount->execute([$currentTicket['id']]);
+                    $ticketCustomerReplies = $ticketCustomerRepliesCount->fetchColumn();
+                    
+                    $ticketInternalRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE ticket_id = ? AND is_internal = 1");
+                    $ticketInternalRepliesCount->execute([$currentTicket['id']]);
+                    $ticketInternalReplies = $ticketInternalRepliesCount->fetchColumn();
+                } catch (Exception $e) {
+                    $ticketAdminReplies = 'Error';
+                    $ticketCustomerReplies = 'Error';
+                    $ticketInternalReplies = 'Error';
+                }
+                ?>
+                <h6>Ticket-spezifische Übersicht:</h6>
+                <ul>
+                    <li><strong>Admin-Antworten für dieses Ticket:</strong> <?= $ticketAdminReplies ?></li>
+                    <li><strong>Kunden-Antworten für dieses Ticket:</strong> <?= $ticketCustomerReplies ?></li>
+                    <li><strong>Interne Antworten für dieses Ticket:</strong> <?= $ticketInternalReplies ?></li>
+                </ul>
+                
+                <!-- Detaillierte Überprüfung der Admin-Antworten -->
+                <?php
+                try {
+                    $detailedAdminReplies = $db->getConnection()->prepare("
+                        SELECT tr.*, u.full_name, u.username
+                        FROM ticket_replies tr
+                        LEFT JOIN users u ON tr.admin_id = u.id
+                        WHERE tr.ticket_id = ? AND tr.admin_id IS NOT NULL
+                        ORDER BY tr.created_at ASC
+                    ");
+                    $detailedAdminReplies->execute([$currentTicket['id']]);
+                    $adminRepliesDetails = $detailedAdminReplies->fetchAll(PDO::FETCH_ASSOC);
+                } catch (Exception $e) {
+                    $adminRepliesDetails = [];
+                }
+                ?>
+                <h6>Detaillierte Admin-Antworten:</h6>
+                <?php if (!empty($adminRepliesDetails)): ?>
+                    <ul>
+                        <?php foreach ($adminRepliesDetails as $adminReply): ?>
+                            <li>
+                                ID: <?= $adminReply['id'] ?>, 
+                                Admin: <?= htmlspecialchars($adminReply['full_name'] ?? $adminReply['username'] ?? 'Unbekannt') ?>, 
+                                Internal: <?= $adminReply['is_internal'] ? 'Ja' : 'Nein' ?>,
+                                Datum: <?= date('d.m.Y H:i:s', strtotime($adminReply['created_at'])) ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <p class="text-muted">Keine Admin-Antworten für dieses Ticket gefunden.</p>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>

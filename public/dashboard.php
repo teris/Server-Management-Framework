@@ -6,6 +6,7 @@
 require_once '../src/sys.conf.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
+require_once '../src/core/ActivityLogger.php';
 
 // Sprache setzen
 $lang = LanguageManager::getInstance();
@@ -54,6 +55,53 @@ try {
 } catch (Exception $e) {
     error_log("Dashboard Tickets Count Error: " . $e->getMessage());
     // Bei Fehler bleibt der Wert bei 0
+}
+
+// Hilfsfunktionen für Aktivitäten
+function getActivityIcon($activityType) {
+    $icons = [
+        'login' => 'bi-person-check',
+        'logout' => 'bi-person-x',
+        'profile_update' => 'bi-person-gear',
+        'password_change' => 'bi-key',
+        'ticket_create' => 'bi-plus-circle',
+        'ticket_reply' => 'bi-chat-dots',
+        'ticket_close' => 'bi-check-circle',
+        'domain_register' => 'bi-globe',
+        'domain_renew' => 'bi-arrow-clockwise',
+        'hosting_order' => 'bi-server',
+        'hosting_upgrade' => 'bi-arrow-up-circle',
+        'payment' => 'bi-credit-card',
+        'support_contact' => 'bi-headset',
+        'file_upload' => 'bi-upload',
+        'file_download' => 'bi-download',
+        'activities_cleared' => 'bi-trash'
+    ];
+    
+    return $icons[$activityType] ?? 'bi-info-circle';
+}
+
+function getActivityColor($activityType) {
+    $colors = [
+        'login' => 'text-success',
+        'logout' => 'text-secondary',
+        'profile_update' => 'text-info',
+        'password_change' => 'text-warning',
+        'ticket_create' => 'text-primary',
+        'ticket_reply' => 'text-info',
+        'ticket_close' => 'text-success',
+        'domain_register' => 'text-primary',
+        'domain_renew' => 'text-info',
+        'hosting_order' => 'text-primary',
+        'hosting_upgrade' => 'text-success',
+        'payment' => 'text-success',
+        'support_contact' => 'text-warning',
+        'file_upload' => 'text-info',
+        'file_download' => 'text-primary',
+        'activities_cleared' => 'text-danger'
+    ];
+    
+    return $colors[$activityType] ?? 'text-secondary';
 }
 
 // Logout verarbeiten
@@ -195,8 +243,38 @@ if (isset($_GET['logout'])) {
                     <div class="card-body">
                         <i class="bi bi-globe display-4 text-success"></i>
                         <h5 class="card-title mt-2"><?= t('websites') ?></h5>
-                        <p class="card-text display-6">0</p>
-                        <small class="text-muted"><?= t('active_websites') ?></small>
+                        <div class="domain-status-display">
+                            <?php
+                            // Domain-Registrierungsstatus abrufen
+                            $domainStats = ['approved' => 0, 'rejected' => 0, 'pending' => 0];
+                            try {
+                                $db = Database::getInstance();
+                                $conn = $db->getConnection();
+                                
+                                // Status der Domain-Registrierungen des aktuellen Kunden abrufen
+                                $stmt = $conn->prepare("
+                                    SELECT status, COUNT(*) as count 
+                                    FROM domain_registrations 
+                                    WHERE user_id = ? 
+                                    GROUP BY status
+                                ");
+                                $stmt->execute([$customerId]);
+                                
+                                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                    $status = $row['status'];
+                                    if (isset($domainStats[$status])) {
+                                        $domainStats[$status] = $row['count'];
+                                    }
+                                }
+                            } catch (Exception $e) {
+                                error_log("Error loading domain stats: " . $e->getMessage());
+                            }
+                            ?>
+                            <div class="domain-status-numbers">
+                                <span class="status-approved"><?= $domainStats['approved'] ?></span> / <span class="status-rejected"><?= $domainStats['rejected'] ?></span> ? <span class="status-pending"><?= $domainStats['pending'] ?></span>
+                            </div>
+                            <small class="text-muted"><?= t('domain_registrations') ?></small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -269,15 +347,68 @@ if (isset($_GET['logout'])) {
             <div class="col-md-8 mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-clock-history"></i> <?= t('recent_activity') ?>
-                        </h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-clock-history"></i> <?= t('recent_activity') ?>
+                            </h5>
+                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                    onclick="clearAllActivities()" 
+                                    title="Alle Aktivitäten löschen">
+                                <i class="bi bi-trash"></i> Alle löschen
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-inbox display-4"></i>
-                            <p class="mt-2"><?= t('no_recent_activity') ?></p>
-                        </div>
+                        <?php
+                        // Letzte Aktivitäten des Benutzers laden
+                        $recentActivities = [];
+                        try {
+                            $activityLogger = ActivityLogger::getInstance();
+                            $recentActivities = $activityLogger->getUserActivities($customerId, 'customer', 5, 0);
+                            
+                            // Aktivitäten für die Anzeige formatieren
+                            $formattedActivities = [];
+                            foreach ($recentActivities as $activity) {
+                                $formattedActivity = [
+                                    'type' => $activity['activity_type'],
+                                    'description' => $activity['description'],
+                                    'activity_date' => $activity['created_at'],
+                                    'icon' => getActivityIcon($activity['activity_type']),
+                                    'color' => getActivityColor($activity['activity_type'])
+                                ];
+                                $formattedActivities[] = $formattedActivity;
+                            }
+                            $recentActivities = $formattedActivities;
+                            
+                        } catch (Exception $e) {
+                            error_log("Dashboard Activities Error: " . $e->getMessage());
+                        }
+                        
+                        if (!empty($recentActivities)):
+                        ?>
+                            <div class="activity-list">
+                                <?php foreach ($recentActivities as $activity): ?>
+                                    <div class="activity-item d-flex align-items-center py-2 border-bottom" data-type="<?= $activity['type'] ?>">
+                                        <div class="activity-icon me-3">
+                                            <i class="bi <?= $activity['icon'] ?> fs-4 <?= $activity['color'] ?>"></i>
+                                        </div>
+                                        <div class="activity-content flex-grow-1">
+                                            <div class="activity-description fw-medium">
+                                                <?= htmlspecialchars($activity['description']) ?>
+                                            </div>
+                                            <div class="activity-date text-muted small">
+                                                <?= date('d.m.Y H:i', strtotime($activity['activity_date'])) ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-inbox display-4"></i>
+                                <p class="mt-2"><?= t('no_recent_activity') ?></p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -340,6 +471,78 @@ if (isset($_GET['logout'])) {
         
         // Alle 5 Minuten prüfen
         setInterval(checkSession, 5 * 60 * 1000);
+    </script>
+    
+    <script>
+        // Alle Aktivitäten löschen
+        function clearAllActivities() {
+            if (confirm('Sind Sie sicher, dass Sie alle Ihre Aktivitäten löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+                // AJAX-Request zum Löschen aller Aktivitäten
+                fetch('clear-activities.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'clear_all_activities'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Erfolgsmeldung anzeigen
+                        showAlert('Alle Aktivitäten wurden erfolgreich gelöscht.', 'success');
+                        
+                        // Aktivitätenliste leeren
+                        const activityList = document.querySelector('.activity-list');
+                        if (activityList) {
+                            activityList.innerHTML = `
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox display-4"></i>
+                                    <p class="mt-2">Keine Aktivitäten vorhanden</p>
+                                </div>
+                            `;
+                        }
+                        
+                        // Button deaktivieren
+                        const clearButton = document.querySelector('button[onclick="clearAllActivities()"]');
+                        if (clearButton) {
+                            clearButton.disabled = true;
+                            clearButton.innerHTML = '<i class="bi bi-check-circle"></i> Gelöscht';
+                            clearButton.classList.remove('btn-outline-danger');
+                            clearButton.classList.add('btn-success');
+                        }
+                    } else {
+                        showAlert('Fehler beim Löschen der Aktivitäten: ' + (data.error || 'Unbekannter Fehler'), 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.', 'danger');
+                });
+            }
+        }
+        
+        // Alert-Funktion
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> 
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Automatisch nach 5 Sekunden ausblenden
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
     </script>
 </body>
 </html>

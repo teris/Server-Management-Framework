@@ -390,29 +390,12 @@ hr {
     .form-label {
         color: #e9ecef;
     }
-    
-    .form-control {
-        background: rgba(52, 58, 64, 0.8);
-        border-color: #495057;
-        color: #f8f9fa;
-    }
-    
-    .form-control:focus {
-        background: rgba(52, 58, 64, 1);
-    }
-    
     .form-control::placeholder {
         color: #6c757d;
     }
     
     .form-check-label {
         color: #e9ecef;
-    }
-    
-    .input-group .btn {
-        background: #495057;
-        border-color: #495057;
-        color: #adb5bd;
     }
     
     .input-group .btn:hover {

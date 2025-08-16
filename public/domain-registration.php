@@ -15,6 +15,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'check_domain_ajax') {
 require_once '../src/sys.conf.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
+require_once '../src/core/ActivityLogger.php';
 
 // Sprache setzen
 $lang = LanguageManager::getInstance();
@@ -419,6 +420,20 @@ function submitDomainRegistration($customerId, $domain, $purpose, $notes) {
         ");
         
         $stmt->execute([$customerId, $domain, $purpose, $notes]);
+        
+        // Aktivität loggen
+        try {
+            $activityLogger = ActivityLogger::getInstance();
+            $activityLogger->logCustomerActivity(
+                $customerId, 
+                'domain_register', 
+                "Domain-Registrierung eingereicht: $domain", 
+                $db->lastInsertId(), 
+                'domain_registrations'
+            );
+        } catch (Exception $e) {
+            error_log("Activity Logging Error: " . $e->getMessage());
+        }
         
         return ['success' => true];
     } catch (Exception $e) {

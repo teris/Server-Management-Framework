@@ -156,6 +156,19 @@ class AdminHandler {
                 case 'save_group_modules':
                     return $this->saveGroupModules($data);
                 
+                // Benutzer-Management
+                case 'get_all_users':
+                    return $this->getAllUsers($data);
+                
+                case 'save_customer':
+                    return $this->saveCustomer($data);
+                
+                case 'delete_customer':
+                    return $this->deleteCustomer($data);
+                
+                case 'toggle_customer_status':
+                    return $this->toggleCustomerStatus($data);
+                
 
                 
                 default:
@@ -1033,6 +1046,79 @@ class AdminHandler {
             }
         } catch (Exception $e) {
             return $this->error('Fehler beim Ändern des Status: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Benutzer-Management-Methoden
+     */
+    private function getAllUsers($data) {
+        try {
+            $page = $data['page'] ?? 1;
+            $search = $data['search'] ?? '';
+            $status = $data['status'] ?? '';
+            $role = $data['role'] ?? '';
+            $userType = $data['user_type'] ?? '';
+            
+            $result = $this->adminCore->getAllUsers($page, 25, $search, $status, $userType);
+            
+            if ($result['success']) {
+                return $this->success($result['data']);
+            } else {
+                return $this->error($result['error'] ?? 'Fehler beim Laden der Benutzer');
+            }
+            
+        } catch (Exception $e) {
+            $this->log('Error getting users: ' . $e->getMessage(), 'ERROR');
+            return $this->error('Fehler beim Laden der Benutzer: ' . $e->getMessage());
+        }
+    }
+    
+    private function saveCustomer($data) {
+        try {
+            $result = $this->adminCore->saveCustomer($data);
+            
+            if ($result['success']) {
+                return $this->success('Kunde erfolgreich gespeichert');
+            } else {
+                return $this->error($result['error'] ?? 'Fehler beim Speichern des Kunden');
+            }
+            
+        } catch (Exception $e) {
+            $this->log('Error saving customer: ' . $e->getMessage(), 'ERROR');
+            return $this->error('Fehler beim Speichern des Kunden: ' . $e->getMessage());
+        }
+    }
+    
+    private function deleteCustomer($data) {
+        try {
+            $result = $this->adminCore->deleteCustomer($data['id']);
+            
+            if ($result['success']) {
+                return $this->success('Kunde erfolgreich gelöscht');
+            } else {
+                return $this->error($result['error'] ?? 'Fehler beim Löschen des Kunden');
+            }
+            
+        } catch (Exception $e) {
+            $this->log('Error deleting customer: ' . $e->getMessage(), 'ERROR');
+            return $this->error('Fehler beim Löschen des Kunden: ' . $e->getMessage());
+        }
+    }
+    
+    private function toggleCustomerStatus($data) {
+        try {
+            $result = $this->adminCore->toggleCustomerStatus($data['id']);
+            
+            if ($result['success']) {
+                return $this->success('Kundenstatus erfolgreich geändert');
+            } else {
+                return $this->error($result['error'] ?? 'Fehler beim Ändern des Kundenstatus');
+            }
+            
+        } catch (Exception $e) {
+            $this->log('Error toggling customer status: ' . $e->getMessage(), 'ERROR');
+            return $this->error('Fehler beim Ändern des Kundenstatus: ' . $e->getMessage());
         }
     }
     

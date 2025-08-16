@@ -2,6 +2,140 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.0.5] Major Release
+
+### Neue Features
+
+#### Datenbank-Abstraktionsschicht (DAL)
+- **Neue Datenbankunterstützung**: Vollständige Unterstützung für MySQL/MariaDB, PostgreSQL, SQLite und MongoDB
+- **Konfigurierbare Datenbankauswahl**: Neue Konstante `DB_TYPE` in `config/config.inc.php` für einfache Datenbankumschaltung
+- **Neue Datei**: `src/core/DatabaseManager.php` - Zentrale Datenbankverwaltung mit abstrakten Treibern
+- **Neue Datei**: `src/core/ActivityLogger.php` - Zentrales Aktivitäts-Logging-System
+- **Neue Datei**: `DATABASE_MIGRATION.md` - Umfassende Dokumentation der Datenbankmigration
+
+#### Admin-Benutzerverwaltung
+- **Unified User Management**: Anzeige und Verwaltung von Admin-Benutzern und Frontpanel-Kunden in einer Oberfläche
+- **Erweiterte Benutzerfilter**: Neue Filter für Benutzertyp, Status und Rolle
+- **Kundenverwaltung**: Vollständige CRUD-Operationen für Frontpanel-Kunden aus dem Admin-Bereich
+
+#### Dashboard-Erweiterungen
+- **Domain-Status-Anzeige**: Neue Anzeige der Domain-Registrierungsstatus im Format `approved/rejected?pending`
+- **Farbkodierte Status**: Grün für approved, Rot für rejected, Gelb für pending
+- **Aktivitäts-Logging**: Umfassendes Logging aller Benutzeraktionen (Login, Support-Tickets, Domain-Registrierungen, etc.)
+- **"Alle löschen" Button**: Möglichkeit, alle Benutzeraktivitäten zu löschen mit Protokollierung der Aktion
+
+### Verbesserungen
+
+#### Framework-Architektur
+- **Datenbankabstraktion**: Alle Datenbankaufrufe über neue `DatabaseManager` Klasse
+- **Kompatibilitätsschicht**: Bestehende `Database` Klasse als Wrapper für neue Architektur
+- **Modulare Struktur**: Bessere Trennung von Datenbanktreibern und Geschäftslogik
+- **Singleton-Pattern**: Optimierte Ressourcenverwaltung für Datenbankverbindungen
+
+#### Support-System
+- **Verbesserte Ticket-Anzeige**: Korrekte Darstellung von Admin-Antworten
+- **Aktivitätsprotokollierung**: Automatisches Logging von Ticket-Erstellung und -Antworten
+- **Status-Management**: Korrekte Behandlung des `is_internal` Flags für Admin-Antworten
+
+#### Benutzerverwaltung
+- **Erweiterte Admin-Funktionen**: Neue Methoden in `AdminCore` für Kundenverwaltung
+- **AJAX-Integration**: Neue Endpunkte für Kunden-CRUD-Operationen
+- **Unified Interface**: Einheitliche Benutzeroberfläche für alle Benutzertypen
+
+### Bugfixes
+
+#### Datenbankverbindungen
+- **lastInsertId() Fehler**: Korrektur des `Call to a member function lastInsertId() on null` Fehlers
+- **Verbindungsverwaltung**: Behebung von Problemen mit der Datenbankverbindung in `framework.php`
+- **Pfad-Probleme**: Korrektur der `require_once` Pfade für `DatabaseManager.php`
+
+#### Support-System
+- **SQL-Syntax-Fehler**: Behebung des `#1064` SQL-Syntax-Fehlers in `public/support.php`
+- **Parameter-Fehler**: Korrektur des `SQLSTATE[HY093]: Invalid parameter number` Fehlers
+- **Admin-Antworten**: Behebung der fehlenden Anzeige von Administrator-Antworten
+- **is_internal Flag**: Korrektur der Logik für das `is_internal` Flag bei Admin-Antworten
+
+#### Passwort-Management
+- **Spaltenname-Fehler**: Korrektur von `password` zu `password_hash` in `public/change-password.php`
+- **Aktivitätsprotokollierung**: Integration des `ActivityLogger` für Passwortänderungen
+
+#### Admin-Panel
+- **AJAX-Aktionen**: Behebung der fehlenden `get_all_users` Aktion in `AdminHandler`
+- **Benutzer-Management-Methoden**: Implementierung der fehlenden CRUD-Methoden für Kunden
+
+### Neue Dateien
+
+- `src/core/DatabaseManager.php` - Zentrale Datenbankverwaltung
+- `src/core/ActivityLogger.php` - Aktivitäts-Logging-System
+- `DATABASE_MIGRATION.md` - Migrationsdokumentation
+- `public/clear-activities.php` - Aktivitäten-Löschung-Endpunkt
+
+### Geänderte Dateien
+
+#### Konfiguration
+- `config/config.inc.php` - Neue `DB_TYPE` Konstante und Datenbankkonfigurationen
+
+#### Core-System
+- `framework.php` - Integration des neuen `DatabaseManager`
+- `src/core/DatabaseOnlyFramework.php` - Aktualisierung für neue Architektur
+- `src/core/AdminCore.php` - Neue Methoden für Kundenverwaltung
+- `src/core/AdminHandler.php` - Neue AJAX-Aktionen für Benutzer-Management
+
+#### Admin-Bereich
+- `src/inc/users.php` - Unified User Management Interface
+- `src/inc/profile.php` - Integration des `ActivityLogger`
+- `src/inc/settings.php` - Aktualisierung für neue Datenbankarchitektur
+- `src/module/admin/Module.php` - Neue AJAX-Handler für Kundenverwaltung
+
+#### Frontend
+- `public/dashboard.php` - Domain-Status-Anzeige und Aktivitäts-Logging
+- `public/support.php` - Verbesserte Ticket-Anzeige und Aktivitätsprotokollierung
+- `public/login.php` - Integration des `ActivityLogger`
+- `public/domain-registration.php` - Aktivitätsprotokollierung
+- `public/change-password.php` - Korrektur der Spaltennamen und Aktivitätsprotokollierung
+
+#### Support-Module
+- `src/module/support-tickets/Module.php` - Korrektur der `is_internal` Logik
+- `src/module/support-tickets/templates/main.php` - Entfernung des `is_internal` Checkboxes
+
+#### Styling
+- `public/assets/frontpanel.css` - Neue CSS-Klassen für Domain-Status-Anzeige
+
+### Technische Details
+
+#### Datenbanktreiber
+- **MySQL/MariaDB Driver**: Vollständige PDO-Integration
+- **PostgreSQL Driver**: Native PostgreSQL-Unterstützung
+- **SQLite Driver**: Lokale SQLite-Datenbanken
+- **MongoDB Driver**: NoSQL-Datenbankunterstützung
+
+#### Architektur-Änderungen
+- **Abstrakte Basisklasse**: `DatabaseDriver` als Grundlage für alle Treiber
+- **Singleton-Pattern**: `DatabaseManager` und `ActivityLogger` als Singletons
+- **Kompatibilitätsschicht**: Bestehende Code funktioniert ohne Änderungen
+- **Transaktionsmanagement**: Verbesserte Transaktionsbehandlung
+
+### Breaking Changes
+
+⚠️ **Wichtig**: Diese Version enthält keine Breaking Changes. Alle bestehenden Funktionen bleiben kompatibel.
+
+### Bekannte Probleme
+
+- **MongoDB Linter-Warnungen**: PHPDoc-Warnungen bei fehlender MongoDB PHP-Extension (nicht kritisch)
+- **Session-Handling**: Verbesserte Session-Verwaltung für bessere Sicherheit
+
+### Performance-Verbesserungen
+
+- **Verbindungspooling**: Optimierte Datenbankverbindungsverwaltung
+- **Query-Optimierung**: Verbesserte SQL-Abfragen mit korrekten JOINs
+- **Caching**: Neue Caching-Mechanismen für häufig abgerufene Daten
+
+### Sicherheitsverbesserungen
+
+- **Aktivitätsprotokollierung**: Vollständige Protokollierung aller Benutzeraktionen
+- **Session-Management**: Verbesserte Session-Sicherheit
+- **SQL-Injection-Schutz**: Konsistente Verwendung von Prepared Statements
+
 ## [3.0.4]
 
 ### Entfernt

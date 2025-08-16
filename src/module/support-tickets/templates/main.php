@@ -271,12 +271,6 @@
                         <label for="replyMessage" class="form-label"><?= $translations['message'] ?? 'Message' ?></label>
                         <textarea class="form-control" id="replyMessage" rows="5" required></textarea>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="isInternalReply">
-                        <label class="form-check-label" for="isInternalReply">
-                            <?= $translations['internal_reply'] ?? 'Internal reply (not visible to customer)' ?>
-                        </label>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -687,13 +681,11 @@ function loadCustomers() {
 // Reply to ticket
 function showReplyModal() {
     document.getElementById('replyMessage').value = '';
-    document.getElementById('isInternalReply').checked = false;
     $('#replyModal').modal('show');
 }
 
 function sendReply() {
     const message = document.getElementById('replyMessage').value.trim();
-    const isInternal = document.getElementById('isInternalReply').checked;
     
     if (!message) {
         showAlert('error', 'Message is required');
@@ -707,8 +699,7 @@ function sendReply() {
             plugin: 'support-tickets',
             action: 'reply_ticket',
             ticket_id: currentTicketId,
-            message: message,
-            is_internal: isInternal
+            message: message
         },
         success: function(response) {
             if (response.success) {

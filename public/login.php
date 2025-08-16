@@ -6,6 +6,7 @@
 require_once '../src/sys.conf.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
+require_once '../src/core/ActivityLogger.php';
 
 // Sprache setzen
 $lang = LanguageManager::getInstance();
@@ -66,6 +67,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Login-Log
                 $stmt = $pdo->prepare("INSERT INTO customer_login_logs (customer_id, ip_address, user_agent, success) VALUES (?, ?, ?, 1)");
                 $stmt->execute([$customer['id'], $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '']);
+                
+                // Aktivität loggen
+                try {
+                    $activityLogger = ActivityLogger::getInstance();
+                    $activityLogger->logCustomerActivity(
+                        $customer['id'], 
+                        'login', 
+                        'Erfolgreiche Anmeldung', 
+                        null, 
+                        null
+                    );
+                } catch (Exception $e) {
+                    error_log("Activity Logging Error: " . $e->getMessage());
+                }
                 
                 header('Location: dashboard.php');
                 exit;

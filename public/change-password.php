@@ -6,6 +6,7 @@
 require_once '../src/sys.conf.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
+require_once '../src/core/ActivityLogger.php';
 
 // Sprache setzen
 $lang = LanguageManager::getInstance();
@@ -46,21 +47,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = Database::getInstance();
             
             // Aktuelles Passwort überprüfen
-            $stmt = $db->prepare("SELECT password FROM customers WHERE id = ? AND status = 'active'");
+            $stmt = $db->prepare("SELECT password_hash FROM customers WHERE id = ? AND status = 'active'");
             $stmt->execute([$customerId]);
             $customer = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$customer) {
                 $error = 'Kunde nicht gefunden oder inaktiv.';
-            } elseif (!password_verify($currentPassword, $customer['password'])) {
+            } elseif (!password_verify($currentPassword, $customer['password_hash'])) {
                 $error = 'Das aktuelle Passwort ist falsch.';
             } else {
                 // Neues Passwort hashen und speichern
                 $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
                 
-                $stmt = $db->prepare("UPDATE customers SET password = ?, updated_at = NOW() WHERE id = ?");
+                $stmt = $db->prepare("UPDATE customers SET password_hash = ?, updated_at = NOW() WHERE id = ?");
                 if ($stmt->execute([$hashedPassword, $customerId])) {
                     $success = 'Ihr Passwort wurde erfolgreich geändert.';
+                    
+                    // Aktivität loggen
+                    try {
+                        $activityLogger = ActivityLogger::getInstance();
+                        $activityLogger->logCustomerActivity(
+                            $customerId, 
+                            'password_change', 
+                            'Passwort erfolgreich geändert', 
+                            $customerId, 
+                            'customers'
+                        );
+                    } catch (Exception $e) {
+                        error_log("Activity Logging Error: " . $e->getMessage());
+                    }
                     
                     // Remember Me Token löschen (Sicherheitsmaßnahme)
                     if (isset($_COOKIE['remember_token'])) {

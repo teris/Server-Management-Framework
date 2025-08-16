@@ -390,21 +390,28 @@ if (!is_array($ispconfigClients)) {
                                 <div class="card-body">
                                     <!-- Filter und Suche -->
                                     <div class="row mb-3">
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <input type="text" class="form-control" id="userSearchInput" placeholder="<?= t('search_users') ?>" onkeyup="debounce(loadUsers, 500)()">
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <select class="form-select" id="userStatusFilter" onchange="loadUsers()">
                                                 <option value=""><?= t('all_statuses') ?></option>
                                                 <option value="active"><?= t('active') ?></option>
                                                 <option value="inactive"><?= t('inactive') ?></option>
                                             </select>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <select class="form-select" id="userRoleFilter" onchange="loadUsers()">
                                                 <option value=""><?= t('all_roles') ?></option>
                                                 <option value="admin"><?= t('admin') ?></option>
                                                 <option value="user"><?= t('user') ?></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select" id="userTypeFilter" onchange="loadUsers()">
+                                                <option value=""><?= t('all_user_types') ?></option>
+                                                <option value="admin"><?= t('admin_users') ?></option>
+                                                <option value="customer"><?= t('customers') ?></option>
                                             </select>
                                         </div>
                                     </div>
@@ -417,6 +424,7 @@ if (!is_array($ispconfigClients)) {
                                                     <th><?= t('full_name') ?></th>
                                                     <th><?= t('email') ?></th>
                                                     <th><?= t('role') ?></th>
+                                                    <th><?= t('user_type') ?></th>
                                                     <th><?= t('status') ?></th>
                                                     <th><?= t('created') ?></th>
                                                     <th><?= t('actions') ?></th>
@@ -424,7 +432,7 @@ if (!is_array($ispconfigClients)) {
                                             </thead>
                                             <tbody id="usersTableBody">
                                                 <tr>
-                                                    <td colspan="7" class="text-center">
+                                                    <td colspan="8" class="text-center">
                                                         <div class="spinner-border" role="status">
                                                             <span class="visually-hidden"><?= t('loading') ?></span>
                                                         </div>
@@ -798,24 +806,26 @@ function loadUsers(page = 1) {
     const search = document.getElementById('userSearchInput')?.value || '';
     const status = document.getElementById('userStatusFilter')?.value || '';
     const role = document.getElementById('userRoleFilter')?.value || '';
+    const userType = document.getElementById('userTypeFilter')?.value || '';
     
     const tbody = document.getElementById('usersTableBody');
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden"><?= t('loading') ?></span></div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden"><?= t('loading') ?></span></div></td></tr>';
     }
     
-    console.log('Loading users with params:', { page, search, status, role });
+    console.log('Loading users with params:', { page, search, status, role, userType });
     
     $.ajax({
         url: 'index.php',
         method: 'POST',
         data: {
             core: 'admin',
-            action: 'get_users',
+            action: 'get_all_users',
             page: page,
             search: search,
             status: status,
-            role: role
+            role: role,
+            user_type: userType
         },
         success: function(response) {
             console.log('Users response:', response);
@@ -839,7 +849,7 @@ function renderUsers(users) {
     if (!tbody) return;
     
     if (users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><?= t('no_users_found') ?></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted"><?= t('no_users_found') ?></td></tr>';
         return;
     }
     
@@ -852,8 +862,11 @@ function renderUsers(users) {
                 <span class="badge bg-${user.role === 'admin' ? 'danger' : 'primary'}">${user.role}</span>
             </td>
             <td>
-                <span class="badge bg-${user.active === 'y' ? 'success' : 'secondary'}">
-                    ${user.active === 'y' ? '<?= t('active') ?>' : '<?= t('inactive') ?>'}
+                <span class="badge bg-${user.user_type === 'admin' ? 'warning' : 'info'}">${user.user_type}</span>
+            </td>
+            <td>
+                <span class="badge bg-${user.status === 'active' ? 'success' : 'secondary'}">
+                    ${user.status === 'active' ? '<?= t('active') ?>' : '<?= t('inactive') ?>'}
                 </span>
             </td>
             <td>
@@ -861,16 +874,16 @@ function renderUsers(users) {
             </td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-outline-primary" onclick="editUser(${user.id})" title="<?= t('edit_user') ?>">
+                    <button type="button" class="btn btn-outline-primary" onclick="editUser(${user.id}, '${user.user_type}')" title="<?= t('edit_user') ?>">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-warning" onclick="toggleUserStatus(${user.id})" title="${user.active === 'y' ? '<?= t('suspend_user') ?>' : '<?= t('activate_user') ?>'}">
-                        <i class="bi bi-${user.active === 'y' ? 'pause' : 'play'}"></i>
+                    <button type="button" class="btn btn-outline-warning" onclick="toggleUserStatus(${user.id}, '${user.user_type}')" title="${user.status === 'active' ? '<?= t('suspend_user') ?>' : '<?= t('activate_user') ?>'}">
+                        <i class="bi bi-${user.status === 'active' ? 'pause' : 'play'}"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-info" onclick="resetUserPassword(${user.id})" title="<?= t('reset_password') ?>">
+                    <button type="button" class="btn btn-outline-info" onclick="resetUserPassword(${user.id}, '${user.user_type}')" title="<?= t('reset_password') ?>">
                         <i class="bi bi-key"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-danger" onclick="deleteUser(${user.id})" title="<?= t('delete_user') ?>">
+                    <button type="button" class="btn btn-outline-danger" onclick="deleteUser(${user.id}, '${user.user_type}')" title="<?= t('delete_user') ?>">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
@@ -955,7 +968,7 @@ function createUser() {
 }
 
 // Edit user
-function editUser(userId) {
+function editUser(userId, userType) {
     currentUserId = userId;
     
     $.ajax({
@@ -968,7 +981,7 @@ function editUser(userId) {
         },
         success: function(response) {
             if (response.success) {
-                renderEditUserForm(response.data);
+                renderEditUserForm(response.data, userType);
                 $('#editUserModal').modal('show');
             } else {
                 showNotification(response.error || '<?= t('error_loading_user') ?>', 'error');
@@ -981,7 +994,7 @@ function editUser(userId) {
 }
 
 // Render edit user form
-function renderEditUserForm(user) {
+function renderEditUserForm(user, userType) {
     document.getElementById('editUserModalTitle').textContent = `<?= t('edit_user') ?>: ${escapeHtml(user.username)}`;
     document.getElementById('editUserModalBody').innerHTML = `
         <form id="editUserForm">
@@ -1095,34 +1108,63 @@ function saveUserChanges() {
 }
 
 // Toggle user status (suspend/activate)
-function toggleUserStatus(userId) {
+function toggleUserStatus(userId, userType) {
+    const action = userType === 'customer' ? 'toggle_customer_status' : 'toggle_user_status';
+    
     $.ajax({
         url: 'index.php',
         method: 'POST',
         data: {
             core: 'admin',
-            action: 'toggle_user_status',
-            id: userId
+            action: action,
+            id: userId,
+            user_type: userType
         },
         success: function(response) {
             if (response.success) {
-                loadUsers();
-                showNotification(response.data.message || '<?= t('user_status_updated') ?>', 'success');
+                showNotification(response.message || '<?= t('user_status_updated') ?>', 'success');
+                loadUsers(currentUserPage);
             } else {
                 showNotification(response.error || '<?= t('error_updating_user_status') ?>', 'error');
             }
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', { xhr, status, error });
             showNotification('<?= t('network_error') ?>', 'error');
         }
     });
 }
 
 // Reset user password
-function resetUserPassword(userId) {
+function resetUserPassword(userId, userType) {
     currentUserId = userId;
     generateNewPassword();
-    $('#resetPasswordModal').modal('show');
+    
+    const action = userType === 'customer' ? 'reset_customer_password' : 'reset_user_password';
+    
+    $.ajax({
+        url: 'index.php',
+        method: 'POST',
+        data: {
+            core: 'admin',
+            action: action,
+            id: userId,
+            user_type: userType,
+            new_password: document.getElementById('newPasswordReset').value
+        },
+        success: function(response) {
+            if (response.success) {
+                showNotification(response.message || '<?= t('password_reset_success') ?>', 'success');
+                $('#resetPasswordModal').modal('hide');
+            } else {
+                showNotification(response.error || '<?= t('error_resetting_password') ?>', 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', { xhr, status, error });
+            showNotification('<?= t('network_error') ?>', 'error');
+        }
+    });
 }
 
 // Generate new password
@@ -1162,34 +1204,39 @@ function confirmResetPassword() {
 }
 
 // Delete user
-function deleteUser(userId) {
+function deleteUser(userId, userType) {
+    const userTypeText = userType === 'customer' ? 'Kunde' : 'Benutzer';
+    
     showConfirmAction(
-        '<?= t('delete_user') ?>',
-        '<?= t('confirm_delete_user_message') ?>',
-        () => performDeleteUser(userId)
+        `${userTypeText} löschen`,
+        `Sind Sie sicher, dass Sie diesen ${userTypeText.toLowerCase()} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.`,
+        () => performDeleteUser(userId, userType)
     );
 }
 
 // Perform delete user
-function performDeleteUser(userId) {
+function performDeleteUser(userId, userType) {
+    const action = userType === 'customer' ? 'delete_customer' : 'delete_user';
+    
     $.ajax({
         url: 'index.php',
         method: 'POST',
         data: {
             core: 'admin',
-            action: 'delete_user',
-            id: userId
+            action: action,
+            id: userId,
+            user_type: userType
         },
         success: function(response) {
             if (response.success) {
-                $('#confirmActionModal').modal('hide');
-                loadUsers();
-                showNotification('<?= t('user_deleted_successfully') ?>', 'success');
+                showNotification(response.message || '<?= t('user_deleted_success') ?>', 'success');
+                loadUsers(currentUserPage);
             } else {
                 showNotification(response.error || '<?= t('error_deleting_user') ?>', 'error');
             }
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', { xhr, status, error });
             showNotification('<?= t('network_error') ?>', 'error');
         }
     });

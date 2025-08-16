@@ -1384,6 +1384,24 @@ ALTER TABLE `user_sessions`
 --
 ALTER TABLE `verification_tokens`
   ADD CONSTRAINT `fk_verification_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
+
+-- Benutzeraktivitäten-Tabelle
+CREATE TABLE IF NOT EXISTS user_activities (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    user_type ENUM('customer', 'admin') NOT NULL DEFAULT 'customer',
+    activity_type VARCHAR(50) NOT NULL,
+    description TEXT NOT NULL,
+    related_id INT NULL,
+    related_table VARCHAR(50) NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user_activities_user (user_id, user_type),
+    INDEX idx_user_activities_type (activity_type),
+    INDEX idx_user_activities_created (created_at),
+    INDEX idx_user_activities_related (related_table, related_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -89,6 +89,30 @@ body {
     transition: var(--transition);
 }
 
+/* Domain Status Display */
+.domain-status-display {
+    text-align: center;
+}
+
+.domain-status-numbers {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 1rem 0;
+    line-height: 1.2;
+}
+
+.status-approved {
+    color: var(--success-color);
+}
+
+.status-rejected {
+    color: var(--danger-color);
+}
+
+.status-pending {
+    color: var(--warning-color);
+}
+
 .stat-card:hover {
     transform: translateY(-5px);
     background: rgba(255, 255, 255, 0.3);
@@ -403,4 +427,84 @@ footer a:hover {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #0056b3;
+}
+
+/* Aktivitätsliste */
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    transition: var(--transition);
+    border-bottom: 1px solid #e9ecef !important;
+    padding: 1rem 0;
+}
+
+.activity-item:last-child {
+    border-bottom: none !important;
+}
+
+.activity-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+    border-radius: 8px;
+    padding-left: 0.5rem;
+}
+
+.activity-icon {
+    width: 50px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    min-width: 0;
+}
+
+.activity-description {
+    color: var(--dark-color);
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+}
+
+.activity-date {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Aktivitäts-Typen Farben */
+.activity-item[data-type="login"] .activity-icon i {
+    color: var(--success-color) !important;
+}
+
+.activity-item[data-type="domain"] .activity-icon i {
+    color: var(--primary-color) !important;
+}
+
+.activity-item[data-type="ticket"] .activity-icon i {
+    color: var(--warning-color) !important;
+}
+
+.activity-item[data-type="hosting"] .activity-icon i {
+    color: var(--info-color) !important;
+}
+
+/* Responsive Anpassungen für Aktivitätsliste */
+@media (max-width: 768px) {
+    .activity-item {
+        padding: 0.75rem 0;
+    }
+    
+    .activity-icon {
+        width: 40px;
+    }
+    
+    .activity-description {
+        font-size: 0.9rem;
+    }
+    
+    .activity-date {
+        font-size: 0.8rem;
+    }
 }

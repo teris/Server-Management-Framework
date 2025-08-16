@@ -932,6 +932,111 @@ class AdminCore {
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
+    
+    /**
+     * Alle Benutzer laden (Admin + Kunden)
+     */
+    public function getAllUsers($page = 1, $limit = 25, $search = '', $status = '', $userType = '') {
+        try {
+            $db = $this->db->getConnection();
+            $offset = ($page - 1) * $limit;
+            
+            // Admin-Benutzer laden
+            $adminQuery = "SELECT 
+                id, username, full_name, email, role, 
+                CASE WHEN active = 'y' THEN 'active' ELSE 'inactive' END as status,
+                created_at, 'admin' as user_type
+                FROM users";
+            $adminParams = [];
+            $adminWhere = [];
+            
+            if ($search) {
+                $adminWhere[] = "(username LIKE ? OR full_name LIKE ? OR email LIKE ?)";
+                $searchTerm = "%$search%";
+                $adminParams = array_merge($adminParams, [$searchTerm, $searchTerm, $searchTerm]);
+            }
+            
+            if ($status && $status !== 'all') {
+                $adminWhere[] = "active = ?";
+                $adminParams[] = ($status === 'active') ? 'y' : 'n';
+            }
+            
+            if ($userType && $userType !== 'all') {
+                $adminWhere[] = "role = ?";
+                $adminParams[] = $userType;
+            }
+            
+            if (!empty($adminWhere)) {
+                $adminQuery .= " WHERE " . implode(' AND ', $adminWhere);
+            }
+            
+            // Kunden laden
+            $customerQuery = "SELECT 
+                id, email as username, CONCAT(first_name, ' ', last_name) as full_name, email,
+                'customer' as role, 
+                CASE WHEN status = 'active' THEN 'active' ELSE 'inactive' END as status,
+                created_at, 'customer' as user_type
+                FROM customers";
+            $customerParams = [];
+            $customerWhere = [];
+            
+            if ($search) {
+                $customerWhere[] = "(email LIKE ? OR first_name LIKE ? OR last_name LIKE ?)";
+                $searchTerm = "%$search%";
+                $customerParams = array_merge($customerParams, [$searchTerm, $searchTerm, $searchTerm]);
+            }
+            
+            if ($status && $status !== 'all') {
+                $customerWhere[] = "status = ?";
+                $customerParams[] = $status;
+            }
+            
+            if ($userType && $userType !== 'all') {
+                if ($userType === 'customer') {
+                    // Nur Kunden anzeigen
+                } else {
+                    // Admin-Typen filtern - Kunden haben immer 'customer' als Rolle
+                    $customerWhere[] = "1 = 0"; // Keine Kunden anzeigen
+                }
+            }
+            
+            if (!empty($customerWhere)) {
+                $customerQuery .= " WHERE " . implode(' AND ', $customerWhere);
+            }
+            
+            // Beide Abfragen zusammenführen
+            $unionQuery = "($adminQuery) UNION ALL ($customerQuery) ORDER BY created_at DESC LIMIT ? OFFSET ?";
+            $allParams = array_merge($adminParams, $customerParams, [$limit, $offset]);
+            
+            $stmt = $db->prepare($unionQuery);
+            $stmt->execute($allParams);
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Gesamtanzahl für Pagination berechnen
+            $countQuery = "SELECT COUNT(*) as total FROM (($adminQuery) UNION ALL ($customerQuery)) as combined";
+            $countParams = array_merge($adminParams, $customerParams);
+            
+            $countStmt = $db->prepare($countQuery);
+            $countStmt->execute($countParams);
+            $total = $countStmt->fetchColumn();
+            
+            return [
+                'success' => true, 
+                'data' => [
+                    'users' => $users,
+                    'pagination' => [
+                        'current_page' => $page,
+                        'per_page' => $limit,
+                        'total' => $total,
+                        'pages' => ceil($total / $limit)
+                    ]
+                ]
+            ];
+            
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
     public function getUser($id) {
         try {
             $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE id=?");
@@ -982,6 +1087,71 @@ class AdminCore {
     public function deleteUser($id) {
         try {
             $stmt = $this->db->getConnection()->prepare("DELETE FROM users WHERE id=?");
+            $stmt->execute([$id]);
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Kunde speichern (erstellen oder aktualisieren)
+     */
+    public function saveCustomer($data) {
+        try {
+            $db = $this->db->getConnection();
+            $id = $data['customer_id'] ?? null;
+            $firstName = $data['first_name'] ?? '';
+            $lastName = $data['last_name'] ?? '';
+            $email = $data['email'] ?? '';
+            $status = $data['status'] ?? 'active';
+            $password = $data['password'] ?? '';
+            
+            if ($id) {
+                // Update
+                if ($password) {
+                    $hash = password_hash($password, PASSWORD_DEFAULT);
+                    $stmt = $db->prepare("UPDATE customers SET first_name=?, last_name=?, email=?, status=?, password_hash=?, updated_at=NOW() WHERE id=?");
+                    $stmt->execute([$firstName, $lastName, $email, $status, $hash, $id]);
+                } else {
+                    $stmt = $db->prepare("UPDATE customers SET first_name=?, last_name=?, email=?, status=?, updated_at=NOW() WHERE id=?");
+                    $stmt->execute([$firstName, $lastName, $email, $status, $id]);
+                }
+            } else {
+                // Insert
+                if (!$password) {
+                    return ['success' => false, 'error' => 'Passwort ist erforderlich für neue Kunden'];
+                }
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $db->prepare("INSERT INTO customers (first_name, last_name, email, status, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())");
+                $stmt->execute([$firstName, $lastName, $email, $status, $hash]);
+            }
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Kunde löschen
+     */
+    public function deleteCustomer($id) {
+        try {
+            $stmt = $this->db->getConnection()->prepare("DELETE FROM customers WHERE id=?");
+            $stmt->execute([$id]);
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Kunde Status ändern
+     */
+    public function toggleCustomerStatus($id) {
+        try {
+            $db = $this->db->getConnection();
+            $stmt = $db->prepare("UPDATE customers SET status = CASE WHEN status = 'active' THEN 'inactive' ELSE 'active' END, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$id]);
             return ['success' => true];
         } catch (Exception $e) {

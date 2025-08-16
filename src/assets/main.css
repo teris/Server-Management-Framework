@@ -376,9 +376,3 @@ body {
     color: #374151 !important;
     transform: translateX(4px) !important;
 }
-
-/* Aktive Untermenü-Links */
-.nav-link-category + .collapse .nav-link.active {
-    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
-    color: white !important;
-}

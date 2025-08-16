@@ -11,8 +11,8 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 try {
-    $pdo = new PDO('mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME, Config::DB_USER, Config::DB_PASS);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    require_once dirname(__DIR__) . '/core/DatabaseManager.php';
+    $db = DatabaseManager::getInstance();
 } catch (Exception $e) {
     die('<div class="alert alert-danger">Fehler bei der Datenbankverbindung: ' . htmlspecialchars($e->getMessage()) . '</div>');
 }
@@ -28,19 +28,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['profile_update'])) {
     try {
         if (!empty($password) && !empty($old_password)) {
             // Prüfe altes Passwort
-            $stmt = $pdo->prepare('SELECT password_hash FROM users WHERE id=?');
-            $stmt->execute([$user_id]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt = $db->prepare('SELECT password_hash FROM users WHERE id=?');
+            $db->execute($stmt, [$user_id]);
+            $row = $db->fetch($stmt);
             if (!$row || !password_verify($old_password, $row['password_hash'])) {
                 throw new Exception('Das alte Passwort ist nicht korrekt.');
             }
             $pw_hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('UPDATE users SET full_name=?, email=?, password_hash=?, password_changed_at=NOW(), updated_at=NOW() WHERE id=?');
-            $stmt->execute([$full_name, $email, $pw_hash, $user_id]);
+            $stmt = $db->prepare('UPDATE users SET full_name=?, email=?, password_hash=?, password_changed_at=NOW(), updated_at=NOW() WHERE id=?');
+            $db->execute($stmt, [$full_name, $email, $pw_hash, $user_id]);
         } elseif (empty($password) && empty($old_password)) {
             // Nur Name und E-Mail ändern, updated_at aktualisieren
-            $stmt = $pdo->prepare('UPDATE users SET full_name=?, email=?, updated_at=NOW() WHERE id=?');
-            $stmt->execute([$full_name, $email, $user_id]);
+            $stmt = $db->prepare('UPDATE users SET full_name=?, email=?, updated_at=NOW() WHERE id=?');
+            $db->execute($stmt, [$full_name, $email, $user_id]);
         } else {
             // Ein Passwortfeld ist leer, das ist nicht erlaubt
             throw new Exception('Bitte beide Passwortfelder ausfüllen, um das Passwort zu ändern.');
@@ -52,9 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['profile_update'])) {
 }
 
 // Profildaten laden (inkl. Timestamps)
-$stmt = $pdo->prepare('SELECT username, full_name, email, last_login, password_changed_at, created_at, updated_at FROM users WHERE id=?');
-$stmt->execute([$user_id]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt = $db->prepare('SELECT username, full_name, email, last_login, password_changed_at, created_at, updated_at FROM users WHERE id=?');
+$db->execute($stmt, [$user_id]);
+$user = $db->fetch($stmt);
 if (!$user) {
     die('<div class="alert alert-danger">Benutzer nicht gefunden.</div>');
 }

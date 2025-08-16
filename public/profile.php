@@ -6,6 +6,7 @@
 require_once '../src/sys.conf.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
+require_once '../src/core/ActivityLogger.php';
 
 // Sprache setzen
 $lang = LanguageManager::getInstance();
@@ -93,6 +94,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $db->prepare("SELECT * FROM customers WHERE id = ?");
                     $stmt->execute([$customerId]);
                     $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    // Profiländerung protokollieren
+                    try {
+                        $activityLogger = ActivityLogger::getInstance();
+                        $activityLogger->logCustomerActivity(
+                            $customerId, 
+                            'profile_update', 
+                            'Profil erfolgreich aktualisiert', 
+                            $customerId, 
+                            'customers'
+                        );
+                    } catch (Exception $e) {
+                        error_log("Activity Logging Error: " . $e->getMessage());
+                    }
                 } else {
                     $error = 'Fehler beim Aktualisieren des Profils. Bitte versuchen Sie es erneut.';
                 }

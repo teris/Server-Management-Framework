@@ -5,6 +5,7 @@
  */
 
 require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
+require_once dirname(dirname(__FILE__)) . '/core/AdminCore.php';
 
 class AdminModule extends ModuleBase {
     
@@ -52,6 +53,18 @@ class AdminModule extends ModuleBase {
                 
             case 'get_activity_log':
                 return $this->getActivityLog();
+                
+            case 'get_all_users':
+                return $this->getAllUsers($data);
+                
+            case 'save_customer':
+                return $this->saveCustomer($data);
+                
+            case 'delete_customer':
+                return $this->deleteCustomer($data);
+                
+            case 'toggle_customer_status':
+                return $this->toggleCustomerStatus($data);
                 
             case 'delete_vm':
                 return $this->deleteVM($data);
@@ -119,6 +132,80 @@ class AdminModule extends ModuleBase {
         } catch (Exception $e) {
             $this->log('Error getting emails: ' . $e->getMessage(), 'ERROR');
             return $this->error($this->t('error_getting_emails') . ': ' . $e->getMessage());
+        }
+    }
+    
+    private function getAllUsers($data) {
+        try {
+            $adminCore = new AdminCore();
+            $page = $data['page'] ?? 1;
+            $search = $data['search'] ?? '';
+            $status = $data['status'] ?? '';
+            $role = $data['role'] ?? '';
+            $userType = $data['userType'] ?? '';
+            
+            $result = $adminCore->getAllUsers($page, 25, $search, $status, $userType);
+            
+            if ($result['success']) {
+                return $this->success($result['data']);
+            } else {
+                return $this->error($result['error'] ?? 'Fehler beim Laden der Benutzer');
+            }
+            
+        } catch (Exception $e) {
+            $this->log('Error getting users: ' . $e->getMessage(), 'ERROR');
+            return $this->error($this->t('error_getting_users') . ': ' . $e->getMessage());
+        }
+    }
+    
+    private function saveCustomer($data) {
+        try {
+            $adminCore = new AdminCore();
+            $result = $adminCore->saveCustomer($data);
+            
+            if ($result['success']) {
+                return $this->success('Kunde erfolgreich gespeichert');
+            } else {
+                return $this->error($result['error'] ?? 'Fehler beim Speichern des Kunden');
+            }
+            
+        } catch (Exception $e) {
+            $this->log('Error saving customer: ' . $e->getMessage(), 'ERROR');
+            return $this->error($this->t('error_saving_customer') . ': ' . $e->getMessage());
+        }
+    }
+    
+    private function deleteCustomer($data) {
+        try {
+            $adminCore = new AdminCore();
+            $result = $adminCore->deleteCustomer($data['id']);
+            
+            if ($result['success']) {
+                return $this->success('Kunde erfolgreich gelöscht');
+            } else {
+                return $this->error($result['error'] ?? 'Fehler beim Löschen des Kunden');
+            }
+            
+        } catch (Exception $e) {
+            $this->log('Error deleting customer: ' . $e->getMessage(), 'ERROR');
+            return $this->error($this->t('error_deleting_customer') . ': ' . $e->getMessage());
+        }
+    }
+    
+    private function toggleCustomerStatus($data) {
+        try {
+            $adminCore = new AdminCore();
+            $result = $adminCore->toggleCustomerStatus($data['id']);
+            
+            if ($result['success']) {
+                return $this->success('Kundenstatus erfolgreich geändert');
+            } else {
+                return $this->error($result['error'] ?? 'Fehler beim Ändern des Kundenstatus');
+            }
+            
+        } catch (Exception $e) {
+            $this->log('Error toggling customer status: ' . $e->getMessage(), 'ERROR');
+            return $this->error($this->t('error_toggling_customer_status') . ': ' . $e->getMessage());
         }
     }
     

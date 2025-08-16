@@ -251,7 +251,7 @@ class SupportTicketsModule extends ModuleBase {
             
             $stmt = $db->prepare("
                 INSERT INTO ticket_replies (ticket_id, admin_id, message, is_internal, created_at) 
-                VALUES (?, ?, ?, 1, NOW())
+                VALUES (?, ?, ?, 2, NOW())
             ");
             $stmt->execute([$ticketId, $this->user_id, $note]);
             
@@ -512,15 +512,15 @@ class SupportTicketsModule extends ModuleBase {
             $db->beginTransaction();
             
             try {
-                // Reply hinzufügen
+                // Reply hinzufügen - Standardmäßig nicht intern (0), nur wenn explizit true gesetzt
                 $stmt = $db->prepare("
                     INSERT INTO ticket_replies (ticket_id, admin_id, message, is_internal, created_at) 
                     VALUES (?, ?, ?, ?, NOW())
                 ");
-                $stmt->execute([$ticketId, $this->user_id, $message, $isInternal ? 1 : 0]);
+                $stmt->execute([$ticketId, $this->user_id, $message, $isInternal === true ? 1 : 0]);
                 
                 // Ticket-Status aktualisieren (wenn nicht intern)
-                if (!$isInternal) {
+                if ($isInternal !== true) {
                     $stmt = $db->prepare("
                         UPDATE support_tickets 
                         SET status = 'waiting_customer', updated_at = NOW() 
@@ -531,7 +531,7 @@ class SupportTicketsModule extends ModuleBase {
                 
                 $db->commit();
                 
-                $this->log("Reply added to ticket $ticketId by user {$this->user_id}", 'INFO');
+                $this->log("Reply added to ticket $ticketId by user {$this->user_id} (internal: " . ($isInternal === true ? 'yes' : 'no') . ")", 'INFO');
                 return $this->success('Reply added successfully');
                 
             } catch (Exception $e) {
