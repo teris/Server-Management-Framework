@@ -41,7 +41,27 @@ $total_pages = ceil($total_logs / $limit);
                                 <?php foreach ($logs as $log): ?>
                                     <tr>
                                         <td><?= htmlspecialchars($log['created_at_formatted'] ?? $log['created_at']) ?></td>
-                                        <td><?= htmlspecialchars($log['status']) ?></td>
+                                        <td>
+                                    <?php 
+                                    switch($log['status']):
+                                        case "success":
+                                            echo '<i class="bi bi-bookmark-check" style="color:rgb(6, 173, 0);"></i>';
+                                            break;
+                                        case "error":
+                                            echo '<i class="bi bi-bug" style="color:rgb(204, 0, 0);"></i>';
+                                            break;
+                                        case "info":
+                                            echo '<i class="bi bi-info-circle" style="color:rgb(206, 168, 0);"></i>';
+                                            break;
+                                        case "pending":
+                                            echo '<i class="bi bi-hourglass" style="color:rgb(0, 98, 173);"></i>';
+                                            break;
+                                        default:
+                                            echo '<i class="bi bi-patch-question"></i>';
+                                            break;
+                                    endswitch;
+                                    ?>
+                                </td>
                                         <td><?= htmlspecialchars($log['action']) ?></td>
                                         <td><?= htmlspecialchars($log['details']) ?></td>
                                     </tr>
@@ -63,22 +83,7 @@ $total_pages = ceil($total_logs / $limit);
                             <?php endif; ?>
                         </div>
                     </div>
-                    <script>
-                    $(function() {
-                        $('#clear-logs-btn').on('click', function(e) {
-                            e.preventDefault();
-                            if (!confirm('<?= $lang->translateCore('confirm_delete') ?>')) return;
-                            $.post('index.php', { core: 'admin', action: 'clear_activity_logs' }, function(response) {
-                                if (response.success) {
-                                    // Tabelle neu laden (Seite neu laden ist am einfachsten)
-                                    location.reload();
-                                } else {
-                                    alert(response.error || '<?= $lang->translateCore('error_deleting') ?>');
-                                }
-                            }, 'json');
-                        });
-                    });
-                    </script>
+                    <!-- JavaScript-Code wurde in assets/inc-js/logs.js ausgelagert -->
                 </div> 
             </div>
         </div>

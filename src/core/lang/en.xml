@@ -44,6 +44,26 @@
     <import>Import</import>
     <download>Download</download>
     <upload>Upload</upload>
+    <submitted>Submitted</submitted>
+    <not_assigned>Not Assigned</not_assigned>
+    <assigned>Assigned</assigned>
+    <in_progress>In Progress</in_progress>
+    <completed>Completed</completed>
+    <cancelled>Cancelled</cancelled>
+    <pending>Pending</pending>
+    <approved>Approved</approved>
+    <rejected>Rejected</rejected>
+    <admin_notes>Admin Notes</admin_notes>
+    <reject>Reject</reject>
+    <passwort_nicht_angezeigt>Password not displayed</passwort_nicht_angezeigt>
+    <altes_passwort_erforderlich>Old password required</altes_passwort_erforderlich>
+    <ispconfig_customer_no>Customer Number</ispconfig_customer_no>
+    <ispconfig_vat_id>VAT ID</ispconfig_vat_id>
+    <user_type>User Type</user_type>
+    <user_type_customer>Customer</user_type_customer>
+    <user_type_admin>Administrator</user_type_admin>
+    <user_type_moderator>Moderator</user_type_moderator>
+    <user_type_user>User</user_type_user>       
     
     <!-- Navigation -->
     <home>Home</home>
@@ -870,6 +890,7 @@
     <register_domain>Register Domain</register_domain>
     <domain_registration>Domain Registration</domain_registration>
     <domain_registrations>Domain Registrations</domain_registrations>
+    <domain_settings>Domain Settings</domain_settings>
     <domain_name>Domain Name</domain_name>
     <check_availability>Check Availability</check_availability>
     <domain_available>Domain is available</domain_available>
@@ -959,4 +980,626 @@
     <domain_extension>Domain Extension</domain_extension>
     <select_extension>Select Extension</select_extension>
     <all_tlds>All TLDs (Check all extensions)</all_tlds>
+    
+    <!-- Missing translations from de.xml -->
+    <actions>Actions</actions>
+    <active_accounts>Active Accounts</active_accounts>
+    <active_sessions>Active Sessions</active_sessions>
+    <active_servers>Active Servers</active_servers>
+    <active_websites>Active Websites</active_websites>
+    <add_group>Add Group</add_group>
+    <add_key>Add Key</add_key>
+    <add_record>Add Record</add_record>
+    <add_user>Add User</add_user>
+    <additional_notes>Additional Notes</additional_notes>
+    <admin_dashboard_settings>Admin Dashboard Settings</admin_dashboard_settings>
+    <admin_notes>Admin Notes</admin_notes>
+    <admin_rights_required>Only administrators can run this script</admin_rights_required>
+    <advanced_network_description>Advanced Network Options Description</advanced_network_description>
+    <advanced_network_options>Advanced Network Options</advanced_network_options>
+    <algorithm>Algorithm</algorithm>
+    <all_fields_required>All fields are required</all_fields_required>
+    <all_ok>All OK</all_ok>
+    <all_rights_reserved>All rights reserved.</all_rights_reserved>
+    <all_statuses>All Statuses</all_statuses>
+    <alternative_domains>Alternative Domains</alternative_domains>
+    <always_included>always included</always_included>
+    <and>and</and>
+    <api_connections>API Connections</api_connections>
+    <api_credentials>API Credentials</api_credentials>
+    <api_credentials_error>Error saving API credentials</api_credentials_error>
+    <api_credentials_loading>Loading API credentials...</api_credentials_loading>
+    <api_credentials_saved>API credentials saved!</api_credentials_saved>
+    <api_connection_failed>API connection failed</api_connection_failed>
+    <api_connection_issues>API connection issues</api_connection_issues>
+    <api_connection_successful>API connection successful</api_connection_successful>
+    <api_connection_testing>Testing connections...</api_connection_testing>
+    <approved>Approved</approved>
+    <approved_registrations>Approved Registrations</approved_registrations>
+    <architecture>Architecture</architecture>
+    <assigned>Assigned</assigned>
+    <assigned_ips>Assigned IPs</assigned_ips>
+    <auto_refresh_interval>Auto Refresh Interval (Seconds)</auto_refresh_interval>
+    <available_plugins>Available Plugins</available_plugins>
+    <backup_before_update>Create backup before update</backup_before_update>
+    <basic_information>Basic Information</basic_information>
+    <basic_user_data>Basic User Data</basic_user_data>
+    <blog>Blog</blog>
+    <bug_report>Report Bug</bug_report>
+    <business_website>Business Website</business_website>
+    <cache_clearing>Clearing cache...</cache_clearing>
+    <cache_status>Cache Status</cache_status>
+    <calendar>Calendar</calendar>
+    <cancel_button>Cancel</cancel_button>
+    <cancelled>Cancelled</cancelled>
+    <cancelled_registrations>Cancelled Registrations</cancelled_registrations>
+    <caa_records>CAA Records</caa_records>
+    <center>Center</center>
+    <change_after_first_login>Please change after first login</change_after_first_login>
+    <change_password_title>Change Password</change_password_title>
+    <changes_saved_successfully>Changes saved successfully</changes_saved_successfully>
+    <changelog>Changelog</changelog>
+    <character_count>Character Count</character_count>
+    <check_availability>Check Availability</check_availability>
+    <check_for_updates>Check for Updates</check_for_updates>
+    <checking_availability>Checking availability...</checking_availability>
+    <city>City</city>
+    <clear_cache>Clear Cache</clear_cache>
+    <clear_logs>Clear Logs</clear_logs>
+    <clear_notifications>Clear Notifications</clear_notifications>
+    <clone_vm>Clone VM</clone_vm>
+    <clone_vm_dialog>VM Clone Dialog</clone_vm_dialog>
+    <cloud_init>Cloud-Init</cloud_init>
+    <clients>Clients</clients>
+    <collapse>Collapse</collapse>
+    <comment>Comment</comment>
+    <company>Company</company>
+    <company_name>Company Name</company_name>
+    <completed>Completed</completed>
+    <confirm_action>Confirm Action</confirm_action>
+    <confirm_approve>Do you really want to approve this registration?</confirm_approve>
+    <confirm_cancel>Do you really want to cancel this registration?</confirm_cancel>
+    <confirm_delete_group>Really delete group?</confirm_delete_group>
+    <confirm_delete_user>Do you really want to delete this user?</confirm_delete_user>
+    <confirm_logout>Confirm Logout</confirm_logout>
+    <confirm_new_password>Confirm New Password</confirm_new_password>
+    <confirm_password_change>Confirm Password Change</confirm_password_change>
+    <confirm_reject>Do you really want to reject this registration?</confirm_reject>
+    <confirm_update>Confirm Update</confirm_update>
+    <connected>Connected</connected>
+    <contact_details>Contact Details</contact_details>
+    <contact_information>Contact Information</contact_information>
+    <contact_name>Contact Name</contact_name>
+    <country>Country</country>
+    <cpu>CPU</cpu>
+    <cpu_cores>CPU Cores</cpu_cores>
+    <cpu_usage>CPU Usage</cpu_usage>
+    <create_account>Create Account</create_account>
+    <create_admin_account>First, create an administrator account.</create_admin_account>
+    <create_admin_user>Create Admin Account</create_admin_user>
+    <create_new_user>Create New User</create_new_user>
+    <create_new_virtual_mac>Create New Virtual MAC</create_new_virtual_mac>
+    <create_reverse_dns>Create Reverse DNS</create_reverse_dns>
+    <create_subdomain>Create Subdomain</create_subdomain>
+    <create_user>Create User</create_user>
+    <create_virtual_mac>Create Virtual MAC</create_virtual_mac>
+    <create_vm>Create VM</create_vm>
+    <create_vm_proxmox>Create VM with Proxmox</create_vm_proxmox>
+    <create_website>Create Website</create_website>
+    <create_website_ispconfig>Create Website with ISPConfig</create_website_ispconfig>
+    <create_ftp_user>Create FTP User</create_ftp_user>
+    <created>Created</created>
+    <created_at>Created At</created_at>
+    <creating_user>Creating user...</creating_user>
+    <current_password>Current Password</current_password>
+    <current_version>Current Version</current_version>
+    <customer>Customer</customer>
+    <customer_login>Customer Login</customer_login>
+    <customer_registration>Customer Registration</customer_registration>
+    <custom_fields>Custom Fields</custom_fields>
+    <dashboard_welcome>Welcome to your Dashboard</dashboard_welcome>
+    <database_management>Database Management</database_management>
+    <database_mode>Database Mode</database_mode>
+    <databases>Databases</databases>
+    <date_picker>Date Picker</date_picker>
+    <days_until_expiry>Days until expiry</days_until_expiry>
+    <db_mode_hint>In database mode, all data is loaded directly from the database.</db_mode_hint>
+    <default_dnsserver>Default DNS Server</default_dnsserver>
+    <default_mailserver>Default Mailserver</default_mailserver>
+    <default_webserver>Default Webserver</default_webserver>
+    <delete_button>Delete</delete_button>
+    <delete_group>Delete Group</delete_group>
+    <delete_key>Delete Key</delete_key>
+    <delete_record>Delete Record</delete_record>
+    <delete_user>Delete User</delete_user>
+    <deleting_user>Deleting user...</deleting_user>
+    <describe_your_project>Describe your project...</describe_your_project>
+    <details>Details</details>
+    <disabled>Disabled</disabled>
+    <disconnected>Disconnected</disconnected>
+    <disk_gb>Disk (GB)</disk_gb>
+    <domains>Domains</domains>
+    <domain>Domain</domain>
+    <domain_check_info_rate_limit>Note: There must be 2 seconds between domain checks.</domain_check_info_rate_limit>
+    <domain_extension>Domain Extension</domain_extension>
+    <domain_management>Domain Management</domain_management>
+    <domain_name>Domain Name</domain_name>
+    <domain_not_available>Domain is not available</domain_not_available>
+    <domain_not_available_message>This domain is already taken. Here are some alternatives:</domain_not_available_message>
+    <domain_registration>Domain Registration</domain_registration>
+    <domain_registration_info>Your domain registration will be reviewed by our team. We will get back to you within 24 hours.</domain_registration_info>
+    <domain_registrations>Domain Registrations</domain_registrations>
+    <domain_registrations_management>Domain Registrations Management</domain_registrations_management>
+    <domain_settings>Domain Settings</domain_settings>
+    <domain_selection>Domain Selection</domain_selection>
+    <download>Download</download>
+    <dns_records>DNS Records</dns_records>
+    <dnssec_disabled>DNSSEC disabled</dnssec_disabled>
+    <dnssec_enabled>DNSSEC enabled</dnssec_enabled>
+    <dnssec_keys>DNSSEC Keys</dnssec_keys>
+    <dnssec_not_available>DNSSEC not available</dnssec_not_available>
+    <dnssec_status>DNSSEC Status</dnssec_status>
+    <edit_button>Edit</edit_button>
+    <edit_group>Edit Group</edit_group>
+    <edit_key>Edit Key</edit_key>
+    <edit_record>Edit Record</edit_record>
+    <edit_user>Edit User</edit_user>
+    <editing_user>Editing user...</editing_user>
+    <email_address>Email Address</email_address>
+    <email_configuration>Email Configuration</email_configuration>
+    <email_management>Email Management</email_management>
+    <email_settings>Email Settings</email_settings>
+    <email_templates>Email Templates</email_templates>
+    <enable>Enable</enable>
+    <enabled>Enabled</enabled>
+    <end_date>End Date</end_date>
+    <error_occurred>An error occurred</error_occurred>
+    <error_saving>Error saving</error_saving>
+    <error_updating>Error updating</error_updating>
+    <expand>Expand</expand>
+    <expired>Expired</expired>
+    <expires_at>Expires at</expires_at>
+    <export_data>Export Data</export_data>
+    <failed>Failed</failed>
+    <file_manager>File Manager</file_manager>
+    <file_upload>File Upload</file_upload>
+    <filter_by>Filter by</filter_by>
+    <first_name>First Name</first_name>
+    <forgot_password>Forgot Password</forgot_password>
+    <form_submission_error>Error submitting form</form_submission_error>
+    <ftp>FTP</ftp>
+    <ftp_accounts>FTP Accounts</ftp_accounts>
+    <ftp_management>FTP Management</ftp_management>
+    <ftp_settings>FTP Settings</ftp_settings>
+    <ftp_users>FTP Users</ftp_users>
+    <full_name>Full Name</full_name>
+    <general>General</general>
+    <general_settings>General Settings</general_settings>
+    <generate>Generate</generate>
+    <generate_key>Generate Key</generate_key>
+    <generate_report>Generate Report</generate_report>
+    <group>Group</group>
+    <group_management>Group Management</group_management>
+    <group_name>Group Name</group_name>
+    <group_settings>Group Settings</group_settings>
+    <groups>Groups</groups>
+    <guest>Guest</guest>
+    <help>Help</help>
+    <help_desk>Helpdesk</help_desk>
+    <help_system>Help System</help_system>
+    <hostname>Hostname</hostname>
+    <hosting>Hosting</hosting>
+    <hosting_management>Hosting Management</hosting_management>
+    <hosting_plan>Hosting Plan</hosting_plan>
+    <hosting_services>Hosting Services</hosting_services>
+    <hours>Hours</hours>
+    <id>ID</id>
+    <import_data>Import Data</import_data>
+    <inactive>Inactive</inactive>
+    <information>Information</information>
+    <install>Install</install>
+    <installation>Installation</installation>
+    <installation_complete>Installation complete</installation_complete>
+    <installation_failed>Installation failed</installation_failed>
+    <installation_in_progress>Installation in progress...</installation_in_progress>
+    <installer>Installer</installer>
+    <invalid>Invalid</invalid>
+    <invalid_credentials>Invalid credentials</invalid_credentials>
+    <invalid_email>Invalid email address</invalid_email>
+    <invalid_input>Invalid input</invalid_input>
+    <ip_address>IP Address</ip_address>
+    <ip_management>IP Management</ip_management>
+    <ip_range>IP Range</ip_range>
+    <ispconfig>ISPConfig</ispconfig>
+    <ispconfig_management>ISPConfig Management</ispconfig_management>
+    <ispconfig_settings>ISPConfig Settings</ispconfig_settings>
+    <join>Join</join>
+    <join_group>Join Group</join_group>
+    <key>Key</key>
+    <key_management>Key Management</key_management>
+    <key_name>Key Name</key_name>
+    <key_type>Key Type</key_type>
+    <keys>Keys</keys>
+    <language>Language</language>
+    <language_selection>Language Selection</language_selection>
+    <last_login>Last Login</last_login>
+    <last_name>Last Name</last_name>
+    <last_updated>Last Updated</last_updated>
+    <leave>Leave</leave>
+    <leave_group>Leave Group</leave_group>
+    <license>License</license>
+    <license_key>License Key</license_key>
+    <license_management>License Management</license_key>
+    <loading_data>Loading data...</loading_data>
+    <loading_failed>Loading failed</loading_failed>
+    <login_button>Login</login_button>
+    <login_failed>Login failed</login_failed>
+    <login_form>Login Form</login_form>
+    <login_page>Login Page</login_page>
+    <login_required>Login required</login_required>
+    <login_successful>Login successful</login_successful>
+    <logout_button>Logout</logout_button>
+    <logout_successful>Logout successful</logout_successful>
+    <logs>Logs</logs>
+    <log_management>Log Management</log_management>
+    <log_viewer>Log Viewer</log_viewer>
+    <mac_address>MAC Address</mac_address>
+    <mac_management>MAC Management</mac_management>
+    <mail>Email</mail>
+    <mail_management>Email Management</mail_management>
+    <mail_server>Mail Server</mail_server>
+    <mail_settings>Email Settings</mail_settings>
+    <maintenance>Maintenance</maintenance>
+    <maintenance_mode>Maintenance Mode</maintenance_mode>
+    <manage>Manage</manage>
+    <manage_accounts>Manage Accounts</manage_accounts>
+    <manage_groups>Manage Groups</manage_groups>
+    <manage_keys>Manage Keys</manage_keys>
+    <manage_records>Manage Records</manage_records>
+    <manage_users>Manage Users</manage_users>
+    <management>Management</management>
+    <memory>Memory</memory>
+    <memory_usage>Memory Usage</memory_usage>
+    <menu>Menu</menu>
+    <message>Message</message>
+    <messages>Messages</messages>
+    <minutes>Minutes</minutes>
+    <module>Module</module>
+    <module_management>Module Management</module_management>
+    <modules>Modules</modules>
+    <month>Month</month>
+    <more>More</more>
+    <more_info>More Information</more_info>
+    <move>Move</move>
+    <move_to_group>Move to Group</move_to_group>
+    <name>Name</name>
+    <network>Network</network>
+    <network_configuration>Network Configuration</network_configuration>
+    <network_management>Network Management</network_management>
+    <network_settings>Network Settings</network_settings>
+    <network_status>Network Status</network_status>
+    <new>New</new>
+    <new_group>New Group</new_group>
+    <new_key>New Key</new_key>
+    <new_record>New Record</new_record>
+    <new_user>New User</new_user>
+    <next_page>Next Page</next_page>
+    <no>No</no>
+    <no_access>No Access</no_access>
+    <no_data>No Data</no_data>
+    <no_files>No Files</no_files>
+    <no_groups>No Groups</no_groups>
+    <no_keys>No Keys</no_keys>
+    <no_records>No Records</no_records>
+    <no_results>No Results</no_results>
+    <no_users>No Users</no_users>
+    <not_available>Not Available</not_available>
+    <not_found>Not Found</not_found>
+    <notifications>Notifications</notifications>
+    <number>Number</number>
+    <open>Open</open>
+    <operation>Operation</operation>
+    <operation_failed>Operation failed</operation_failed>
+    <operation_successful>Operation successful</operation_successful>
+    <options>Options</options>
+    <or>or</or>
+    <order>Order</order>
+    <order_management>Order Management</order_management>
+    <orders>Orders</orders>
+    <organization>Organization</organization>
+    <organization_name>Organization Name</organization_name>
+    <ovh>OVH</ovh>
+    <ovh_management>OVH Management</ovh_management>
+    <ovh_settings>OVH Settings</ovh_settings>
+    <overview>Overview</overview>
+    <package>Package</package>
+    <package_management>Package Management</package_management>
+    <packages>Packages</packages>
+    <page>Page</page>
+    <page_not_found>Page Not Found</page_not_found>
+    <password_change>Password Change</password_change>
+    <password_confirmation>Password Confirmation</password_confirmation>
+    <password_reset>Password Reset</password_reset>
+    <password_reset_email>Password reset email sent</password_reset_email>
+    <password_reset_failed>Password reset failed</password_reset_failed>
+    <password_reset_successful>Password reset successful</password_reset_successful>
+    <password_strength>Password Strength</password_strength>
+    <pending>Pending</pending>
+    <pending_registrations>Pending Registrations</pending_registrations>
+    <permissions>Permissions</permissions>
+    <phone>Phone</phone>
+    <phone_number>Phone Number</phone_number>
+    <plugin>Plugin</plugin>
+    <plugin_management>Plugin Management</plugin_management>
+    <plugins>Plugins</plugins>
+    <port>Port</port>
+    <port_number>Port Number</port_number>
+    <previous>Previous</previous>
+    <previous_page>Previous Page</previous_page>
+    <profile>Profile</profile>
+    <profile_management>Profile Management</profile_management>
+    <profile_settings>Profile Settings</profile_settings>
+    <proxmox>Proxmox</proxmox>
+    <proxmox_management>Proxmox Management</proxmox_management>
+    <proxmox_settings>Proxmox Settings</proxmox_settings>
+    <public>Public</public>
+    <quantity>Quantity</quantity>
+    <question>Question</question>
+    <quick_actions>Quick Actions</quick_actions>
+    <quick_settings>Quick Settings</quick_settings>
+    <ram>RAM</ram>
+    <ram_usage>RAM Usage</ram_usage>
+    <read>Read</read>
+    <read_only>Read Only</read_only>
+    <read_write>Read Write</read_write>
+    <record>Record</record>
+    <record_management>Record Management</record_management>
+    <record_name>Record Name</record_name>
+    <record_type>Record Type</record_type>
+    <records>Records</records>
+    <refresh_data>Refresh Data</refresh_data>
+    <register_account>Register Account</register_account>
+    <register_domain>Register Domain</register_domain>
+    <register_user>Register User</register_user>
+    <registration>Registration</registration>
+    <registration_failed>Registration failed</registration_failed>
+    <registration_form>Registration Form</registration_form>
+    <registration_successful>Registration successful</registration_successful>
+    <reject>Reject</reject>
+    <reject_registration>Reject Registration</reject_registration>
+    <remove>Remove</remove>
+    <remove_from_group>Remove from Group</remove_from_group>
+    <remove_key>Remove Key</remove_key>
+    <remove_record>Remove Record</remove_record>
+    <remove_user>Remove User</remove_user>
+    <rename>Rename</rename>
+    <rename_group>Rename Group</rename_group>
+    <rename_key>Rename Key</rename_key>
+    <rename_record>Rename Record</rename_key>
+    <rename_user>Rename User</rename_user>
+    <report>Report</report>
+    <report_generation>Report Generation</report_generation>
+    <reports>Reports</reports>
+    <request>Request</request>
+    <request_failed>Request failed</request_failed>
+    <request_successful>Request successful</request_successful>
+    <reset_cache>Reset Cache</reset_cache>
+    <reset_settings>Reset Settings</reset_settings>
+    <resource>Resource</resource>
+    <resource_management>Resource Management</resource_management>
+    <resources>Resources</resources>
+    <restart>Restart</restart>
+    <restart_service>Restart Service</restart_service>
+    <restore>Restore</restore>
+    <restore_backup>Restore Backup</restore_backup>
+    <result>Result</result>
+    <results>Results</results>
+    <reverse_dns>Reverse DNS</reverse_dns>
+    <reverse_dns_management>Reverse DNS Management</reverse_dns_management>
+    <role>Role</role>
+    <role_management>Role Management</role_management>
+    <roles>Roles</roles>
+    <root>Root</root>
+    <root_user>Root User</root_user>
+    <running>Running</running>
+    <save_button>Save</save_button>
+    <save_changes>Save Changes</save_changes>
+    <save_failed>Save failed</save_failed>
+    <save_successful>Save successful</save_successful>
+    <search_button>Search</search_button>
+    <search_failed>Search failed</search_failed>
+    <search_results>Search Results</search_results>
+    <search_successful>Search successful</search_successful>
+    <search_term>Search Term</search_term>
+    <security>Security</security>
+    <security_settings>Security Settings</security_settings>
+    <select>Select</select>
+    <select_all>Select All</select_all>
+    <select_file>Select File</select_file>
+    <select_group>Select Group</select_group>
+    <select_key>Select Key</select_key>
+    <select_record>Select Record</select_record>
+    <select_user>Select User</select_user>
+    <send>Send</send>
+    <send_email>Send Email</send_email>
+    <send_message>Send Message</send_message>
+    <server>Server</server>
+    <server_management>Server Management</server_management>
+    <server_name>Server Name</server_name>
+    <server_settings>Server Settings</server_settings>
+    <server_status>Server Status</server_status>
+    <servers>Servers</servers>
+    <service>Service</service>
+    <service_management>Service Management</service_management>
+    <service_name>Service Name</service_name>
+    <service_status>Service Status</service_status>
+    <services>Services</services>
+    <session>Session</session>
+    <session_management>Session Management</session_management>
+    <session_timeout>Session Timeout</session_timeout>
+    <sessions>Sessions</sessions>
+    <setup>Setup</setup>
+    <setup_complete>Setup complete</setup_complete>
+    <setup_failed>Setup failed</setup_failed>
+    <setup_in_progress>Setup in progress...</setup_in_progress>
+    <setup_wizard>Setup Wizard</setup_wizard>
+    <show>Show</show>
+    <show_all>Show All</show_all>
+    <show_details>Show Details</show_details>
+    <show_hidden>Show Hidden</show_hidden>
+    <shutdown>Shutdown</shutdown>
+    <shutdown_service>Shutdown Service</shutdown_service>
+    <size>Size</size>
+    <start>Start</start>
+    <start_date>Start Date</start_date>
+    <start_service>Start Service</start_service>
+    <start_time>Start Time</start_time>
+    <started>Started</started>
+    <starting>Starting...</starting>
+    <status_active>Active</status_active>
+    <status_disabled>Disabled</status_disabled>
+    <status_error>Error</status_error>
+    <status_failed>Failed</status_failed>
+    <status_inactive>Inactive</status_inactive>
+    <status_offline>Offline</status_offline>
+    <status_online>Online</status_online>
+    <status_pending>Pending</status_pending>
+    <status_running>Running</status_running>
+    <status_stopped>Stopped</status_stopped>
+    <status_success>Success</status_success>
+    <status_warning>Warning</status_warning>
+    <stop>Stop</stop>
+    <stop_service>Stop Service</stop_service>
+    <stopped>Stopped</stopped>
+    <stopping>Stopping...</stopping>
+    <storage>Storage</storage>
+    <storage_management>Storage Management</storage_management>
+    <storage_usage>Storage Usage</storage_usage>
+    <submit_button>Submit</submit_button>
+    <submit_failed>Submit failed</submit_failed>
+    <submit_successful>Submit successful</submit_successful>
+    <subdomain>Subdomain</subdomain>
+    <subdomain_management>Subdomain Management</subdomain_management>
+    <subdomains>Subdomains</subdomains>
+    <successful>Successful</successful>
+    <support>Support</support>
+    <support_management>Support Management</support_management>
+    <support_ticket>Support Ticket</support_ticket>
+    <support_tickets>Support Tickets</support_tickets>
+    <system>System</system>
+    <system_information>System Information</system_information>
+    <system_management>System Management</system_management>
+    <system_settings>System Settings</system_settings>
+    <system_status>System Status</system_status>
+    <table>Table</table>
+    <task>Task</task>
+    <task_management>Task Management</task_management>
+    <tasks>Tasks</tasks>
+    <template>Template</template>
+    <template_management>Template Management</template_management>
+    <templates>Templates</templates>
+    <test>Test</test>
+    <test_connection>Test Connection</test_connection>
+    <test_failed>Test failed</test_failed>
+    <test_successful>Test successful</test_successful>
+    <testing>Testing...</testing>
+    <ticket>Ticket</ticket>
+    <ticket_management>Ticket Management</ticket_management>
+    <ticket_number>Ticket Number</ticket_number>
+    <ticket_status>Ticket Status</ticket_status>
+    <tickets>Tickets</tickets>
+    <time>Time</time>
+    <timeout>Timeout</timeout>
+    <title>Title</title>
+    <tool>Tool</tool>
+    <tool_management>Tool Management</tool_management>
+    <tools>Tools</tools>
+    <top>Top</top>
+    <total>Total</total>
+    <total_accounts>Total Accounts</total_accounts>
+    <total_groups>Total Groups</total_groups>
+    <total_keys>Total Keys</total_keys>
+    <total_records>Total Records</total_records>
+    <total_users>Total Users</total_users>
+    <traffic>Traffic</traffic>
+    <traffic_management>Traffic Management</traffic_management>
+    <traffic_usage>Traffic Usage</traffic_usage>
+    <type_name>Type Name</type_name>
+    <unassigned>Unassigned</unassigned>
+    <unavailable>Unavailable</unavailable>
+    <unknown>Unknown</unknown>
+    <unlimited>Unlimited</unlimited>
+    <update_available>Update available</update_available>
+    <update_button>Update</update_button>
+    <update_check>Update Check</update_check>
+    <update_failed>Update failed</update_failed>
+    <update_in_progress>Update in progress...</update_in_progress>
+    <update_successful>Update successful</update_successful>
+    <updating>Updating...</updating>
+    <upload_file>Upload File</upload_file>
+    <upload_failed>Upload failed</upload_failed>
+    <upload_successful>Upload successful</upload_successful>
+    <uploading>Uploading...</uploading>
+    <url>URL</url>
+    <url_management>URL Management</url_management>
+    <usage>Usage</usage>
+    <usage_statistics>Usage Statistics</usage_statistics>
+    <user_account>User Account</user_account>
+    <user_management>User Management</user_account>
+    <user_name>User Name</user_name>
+    <user_profile>User Profile</user_profile>
+    <user_settings>User Settings</user_settings>
+    <user_type>User Type</user_type>
+    <users>Users</users>
+    <username>Username</username>
+    <value>Value</value>
+    <values>Values</values>
+    <version>Version</version>
+    <version_check>Version Check</version_check>
+    <version_information>Version Information</version_information>
+    <version_number>Version Number</version_number>
+    <version_update>Version Update</version_update>
+    <view_button>View</view_button>
+    <view_details>View Details</view_details>
+    <view_logs>View Logs</view_logs>
+    <view_profile>View Profile</view_profile>
+    <view_settings>View Settings</view_settings>
+    <view_user>View User</view_user>
+    <virtual_mac>Virtual MAC</virtual_mac>
+    <virtual_mac_management>Virtual MAC Management</virtual_mac_management>
+    <virtual_machine>Virtual Machine</virtual_machine>
+    <virtual_machine_management>Virtual Machine Management</virtual_machine_management>
+    <virtual_machines>Virtual Machines</virtual_machines>
+    <vm>VM</vm>
+    <vm_management>VM Management</vm_management>
+    <vm_settings>VM Settings</vm_settings>
+    <vm_status>VM Status</vm_status>
+    <wait>Wait</wait>
+    <waiting>Waiting...</waiting>
+    <warning>Warning</warning>
+    <web>Web</web>
+    <web_management>Web Management</web_management>
+    <web_server>Web Server</web_server>
+    <web_settings>Web Settings</web_settings>
+    <website>Website</website>
+    <website_management>Website Management</website_management>
+    <website_name>Website Name</website_name>
+    <website_settings>Website Settings</website_settings>
+    <website_status>Website Status</website_status>
+    <websites>Websites</websites>
+    <welcome>Welcome</welcome>
+    <welcome_message>Welcome Message</welcome_message>
+    <welcome_page>Welcome Page</welcome_page>
+    <width>Width</width>
+    <work>Work</work>
+    <work_in_progress>Work in progress...</work_in_progress>
+    <xml>XML</xml>
+    <xml_export>XML Export</xml_export>
+    <xml_import>XML Import</xml_import>
+    <yes>Yes</yes>
+    <year>Year</year>
+    <years>Years</years>
+    <zone>Zone</zone>
+    <zone_management>Zone Management</zone_management>
+    <zones>Zones</zones>
 </translations> 

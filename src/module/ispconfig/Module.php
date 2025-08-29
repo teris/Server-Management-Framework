@@ -144,7 +144,7 @@ class IspconfigModule extends ModuleBase {
                 'system_group' => $data['group']
             ];
             
-            $result = $serviceManager->createISPConfigWebsite($website_config);
+            $result = $serviceManager->IspconfigSOAP('sites_web_domain_add', [1, $website_config]); // client_id = 1
             
             $this->log("Website {$data['domain']} created successfully");
             
@@ -159,7 +159,7 @@ class IspconfigModule extends ModuleBase {
     private function getISPConfigClients() {
         try {
             $serviceManager = new ServiceManager();
-            $clients = $serviceManager->IspconfigAPI('get', '/client');
+            $clients = $serviceManager->IspconfigSOAP('client_get');
             
             return $this->success($clients);
             
@@ -172,7 +172,7 @@ class IspconfigModule extends ModuleBase {
     private function getISPConfigServerConfig() {
         try {
             $serviceManager = new ServiceManager();
-            $config = $serviceManager->IspconfigAPI('get', '/server');
+            $config = $serviceManager->IspconfigSOAP('server_get', [1]); // Server ID 1
             
             return $this->success($config);
             
@@ -193,7 +193,7 @@ class IspconfigModule extends ModuleBase {
         
         try {
             $serviceManager = new ServiceManager();
-            $details = $serviceManager->IspconfigAPI('get', "/sites/web_domain/{$data['domain_id']}");
+            $details = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['domain_id']]);
             
             return $this->success($details);
             
@@ -217,13 +217,13 @@ class IspconfigModule extends ModuleBase {
             $serviceManager = new ServiceManager();
             
             // Aktuelle Konfiguration laden
-            $current = $serviceManager->IspconfigAPI('get', "/sites/web_domain/{$data['domain_id']}");
+            $current = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['domain_id']]);
             
             // Nur übergebene Felder aktualisieren
             $update_data = array_merge($current, $data);
             unset($update_data['domain_id']);
             
-            $result = $serviceManager->IspconfigAPI('post', "/sites/web_domain/{$data['domain_id']}", $update_data);
+            $result = $serviceManager->IspconfigSOAP('sites_web_domain_update', [$data['domain_id'], $update_data]);
             
             $this->log("Website {$data['domain_id']} updated");
             
@@ -267,7 +267,7 @@ class IspconfigModule extends ModuleBase {
                 'dl_bandwidth' => -1
             ];
             
-            $result = $serviceManager->IspconfigAPI('post', '/sites/ftp_user', $ftp_config);
+            $result = $serviceManager->IspconfigSOAP('sites_ftp_user_add', [1, $ftp_config]); // client_id = 1
             
             $this->log("FTP user {$data['username']} created for domain {$data['domain_id']}");
             
@@ -294,7 +294,7 @@ class IspconfigModule extends ModuleBase {
             $serviceManager = new ServiceManager();
             
             // Parent Domain Details holen
-            $parent = $serviceManager->IspconfigAPI('get', "/sites/web_domain/{$data['parent_domain_id']}");
+            $parent = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['parent_domain_id']]);
             
             $subdomain_config = [
                 'server_id' => $parent['server_id'],
@@ -308,7 +308,7 @@ class IspconfigModule extends ModuleBase {
                 'active' => 'y'
             ];
             
-            $result = $serviceManager->IspconfigAPI('post', '/sites/web_domain', $subdomain_config);
+            $result = $serviceManager->IspconfigSOAP('sites_web_domain_add', [1, $subdomain_config]); // client_id = 1
             
             $this->log("Subdomain {$subdomain_config['domain']} created");
             
@@ -323,7 +323,7 @@ class IspconfigModule extends ModuleBase {
     public function getStats() {
         try {
             $serviceManager = new ServiceManager();
-            $websites = $serviceManager->getISPConfigWebsites();
+            $websites = $serviceManager->IspconfigSOAP('sites_web_domain_get');
             
             $active = 0;
             $total_quota = 0;

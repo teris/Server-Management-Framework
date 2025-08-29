@@ -6,7 +6,7 @@ if (__FILE__ === $_SERVER['SCRIPT_FILENAME']) {
 require_once dirname(__DIR__) . '/sys.conf.php';
 require_once dirname(__DIR__) . '/../config/config.inc.php';
 if (!isset($db)) {
-    require_once dirname(__DIR__) . '/../core/DatabaseManager.php';
+    require_once dirname(__DIR__) . '/core/DatabaseManager.php';
     $db = DatabaseManager::getInstance();
 }
 
@@ -476,144 +476,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                         </div>
                     </div>
                 </div>
-                <script>
-                $(function() {
-                    // Nur noch für Modus-Umschaltung (Datenbank/Live) benötigt
-                    var modeSelect = document.getElementById('mode');
-                    if (modeSelect) {
-                        modeSelect.addEventListener('change', function() {
-                            document.getElementById('db-mode-hint').style.display = this.value === 'database' ? 'block' : 'none';
-                        });
-                    }
-                    // Benutzer hinzufügen per AJAX
-                    $('#user-add-form').on('submit', function(e) {
-                        e.preventDefault();
-                        var $form = $(this);
-                        var formData = $form.serialize() + '&core=admin&action=save_user';
-                        $.post('index.php', formData, function(response) {
-                            if (response.success) {
-                                $('#user-add-notice').html('<div class="alert alert-success">' + t('user_saved') + '</div>');
-                                $form[0].reset();
-                                $('#users-list').load('inc/settings.php #users-list > *');
-                            } else {
-                                $('#user-add-notice').html('<div class="alert alert-danger">' + (response.error || t('error_saving')) + '</div>');
-                            }
-                        }, 'json');
-                    });
-                    // Gruppen hinzufügen per AJAX
-                    $('#group-add-form').on('submit', function(e) {
-                        e.preventDefault();
-                        var $form = $(this);
-                        var formData = $form.serialize() + '&core=admin&action=save_group';
-                        $.post('index.php', formData, function(response) {
-                            if (response.success) {
-                                $('#group-add-notice').html('<div class="alert alert-success">' + t('group_saved') + '</div>');
-                                $form[0].reset();
-                                $('#groups-list').load('inc/settings.php #groups-list > *');
-                            } else {
-                                $('#group-add-notice').html('<div class="alert alert-danger">' + (response.error || t('error_saving')) + '</div>');
-                            }
-                        }, 'json');
-                    });
-                    // Einstellungen speichern per AJAX
-                    $('#general-settings-form').on('submit', function(e) {
-                        e.preventDefault();
-                        var $form = $(this);
-                        var formData = $form.serialize() + '&core=admin&action=save_settings';
-                        $.post('index.php', formData, function(response) {
-                            if (response.success) {
-                                $('#general-settings-status').html('<div class="alert alert-success">' + t('settings_saved') + '</div>');
-                            } else {
-                                $('#general-settings-status').html('<div class="alert alert-danger">' + (response.error || t('error_saving')) + '</div>');
-                            }
-                        }, 'json');
-                    });
-                    // API-Zugangsdaten speichern per AJAX
-                    $('#api-settings-form').on('submit', function(e) {
-                        e.preventDefault();
-                        var $form = $(this);
-                        var formData = $form.serialize() + '&core=admin&action=save_api_credentials';
-                        $.post('index.php', formData, function(response) {
-                            if (response.success) {
-                                $('#api-settings-status').html('<div class="alert alert-success">' + t('api_credentials_saved') + '</div>');
-                            } else {
-                                $('#api-settings-status').html('<div class="alert alert-danger">' + (response.error || t('error_saving')) + '</div>');
-                            }
-                        }, 'json');
-                    });
-                    // Module speichern per AJAX
-                    $('#modules-settings-form').on('submit', function(e) {
-                        e.preventDefault();
-                        var $form = $(this);
-                        var formData = $form.serialize() + '&core=admin&action=save_modules';
-                        $.post('index.php', formData, function(response) {
-                            if (response.success) {
-                                $('#modules-settings-status').html('<div class="alert alert-success">' + t('module_permissions_saved') + '</div>');
-                            } else {
-                                $('#modules-settings-status').html('<div class="alert alert-danger">' + (response.error || t('error_saving')) + '</div>');
-                            }
-                        }, 'json');
-                    });
-                    // Gruppe bearbeiten per AJAX
-                    $(document).on('submit', '.group-edit-form', function(e) {
-                        e.preventDefault();
-                        var $form = $(this);
-                        var formData = $form.serialize() + '&core=admin&action=save_group';
-                        $.post('index.php', formData, function(response) {
-                            if (response.success) {
-                                $('#group-add-notice').html('<div class="alert alert-success">' + t('group_saved') + '</div>');
-                                $('#groups-list').load('inc/settings.php #groups-list > *');
-                            } else {
-                                $('#group-add-notice').html('<div class="alert alert-danger">' + (response.error || t('error_saving')) + '</div>');
-                            }
-                        }, 'json');
-                    });
-                    // Gruppe löschen per AJAX
-                    $(document).on('submit', '.group-delete-form', function(e) {
-                        e.preventDefault();
-                        if (!confirm('<?= t('confirm_delete') ?>')) return;
-                        var $form = $(this);
-                        var formData = $form.serialize() + '&core=admin&action=delete_group';
-                        $.post('inc/admin.php', formData, function(response) {
-                            if (response.success) {
-                                $('#group-add-notice').html('<div class="alert alert-success">' + t('group_deleted') + '</div>');
-                                $('#groups-list').load('inc/settings.php #groups-list > *');
-                            } else {
-                                $('#group-add-notice').html('<div class="alert alert-danger">' + (response.error || t('error_deleting')) + '</div>');
-                            }
-                        }, 'json');
-                    });
-                    // Benutzer bearbeiten per AJAX
-                    $(document).on('submit', '.user-edit-form', function(e) {
-                        e.preventDefault();
-                        var $form = $(this);
-                        var formData = $form.serialize() + '&core=admin&action=save_user';
-                        $.post('index.php', formData, function(response) {
-                            if (response.success) {
-                                $('#user-add-notice').html('<div class="alert alert-success">' + t('user_saved') + '</div>');
-                                $('#users-list').load('inc/settings.php #users-list > *');
-                            } else {
-                                $('#user-add-notice').html('<div class="alert alert-danger">' + (response.error || t('error_saving')) + '</div>');
-                            }
-                        }, 'json');
-                    });
-                    // Benutzer löschen per AJAX
-                    $(document).on('submit', '.user-delete-form', function(e) {
-                        e.preventDefault();
-                        if (!confirm('<?= t('confirm_delete') ?>')) return;
-                        var $form = $(this);
-                        var formData = $form.serialize() + '&core=admin&action=delete_user';
-                        $.post('inc/admin.php', formData, function(response) {
-                            if (response.success) {
-                                $('#user-add-notice').html('<div class="alert alert-success">' + t('user_deleted') + '</div>');
-                                $('#users-list').load('inc/settings.php #users-list > *');
-                            } else {
-                                $('#user-add-notice').html('<div class="alert alert-danger">' + (response.error || t('error_deleting')) + '</div>');
-                            }
-                        }, 'json');
-                    });
-                });
-                </script> 
+                <!-- JavaScript-Code wurde in assets/inc-js/settings.js ausgelagert -->
             </div>
         </div>
     </div>

@@ -1,4 +1,7 @@
 <?php
+// =============================================================================
+// CONFIG CLASS
+// =============================================================================
 class Config {
     // =============================================================================
     // DATABASE CONFIGURATION
@@ -67,4 +70,9 @@ class Config {
     const FRONTPANEL_ADMIN_EMAIL = 'admin@your-server.com';						//Admin E-Mail für Benachrichtigungen
     const FRONTPANEL_SITE_NAME = 'Server Management System';					//Name der Website für E-Mail-Templates
     const FRONTPANEL_SITE_URL = 'https://your-server.com';						//URL der Website
-}
+
+    // =============================================================================
+    // Database Configuration (Legacy - wird durch DB_TYPE ersetzt)
+    // =============================================================================
+    const TYPE = 'MariaDB';   //MariaDB, MongoDB, DynamoDB,	SQLite, PostgreSQL			//Support E-Mail für Kunden
+    }

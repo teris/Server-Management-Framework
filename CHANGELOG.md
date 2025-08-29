@@ -2,6 +2,27 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.0.6]
+### Fehlerbehbung
+- Der DatabaseManager hatte zwei kritische Fehler, die zu Fatal Errors führten:
+- Pfadfehler (src/inc/settings.php)
+- Query-Methode Fehler (src/core/DatabaseManager.php)
+
+### Auswirkungen der Korrektur
+
+1. **Pfadfehler behoben:** DatabaseManager.php wird korrekt geladen
+2. **Query-Methode funktioniert:** `fetchAll()` kann auf Statement-Objekt aufgerufen werden
+3. **Datenbankabfragen funktionieren:** Alle SELECT-Statements in settings.php laufen korrekt
+4. **Keine Fatal Errors mehr:** Script läuft ohne kritische Fehler
+
+### Sicherheitshinweise
+
+- Alle Änderungen sind rückwärtskompatibel
+- Keine Änderungen an der API-Schnittstelle
+- Bestehender Code funktioniert unverändert weiter
+- Keine Breaking Changes
+
+
 ## [3.0.5] Major Release
 
 ### Neue Features

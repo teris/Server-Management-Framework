@@ -665,12 +665,12 @@ class ProxmoxPost extends ProxmoxGet {
         
         // Proxmox API erwartet: userid, password, comment (optional), email (optional), firstname (optional), lastname (optional)
         $data = [
-            'userid' => $userData['username'] . '@' . $userData['realm'],
+            'userid' => $userData['userid'] ?? $userData['username'] . '@' . ($userData['realm'] ?? 'pve'),
             'password' => $userData['password'],
             'comment' => $userData['comment'] ?? '',
             'email' => $userData['email'] ?? '',
-            'firstname' => $userData['first_name'] ?? '',
-            'lastname' => $userData['last_name'] ?? ''
+            'firstname' => $userData['firstname'] ?? '',
+            'lastname' => $userData['lastname'] ?? ''
         ];
 
         $response = $this->makeRequest('POST', $url, $data);
@@ -1602,7 +1602,20 @@ class ISPConfigPost extends ISPConfigGet {
     
     public function createClient($clientData) {
         try {
-            $result = $this->client->client_add($this->session_id, $clientData);
+            // Prüfe ob SOAP Client verfügbar ist
+            if (!$this->client) {
+                error_log('ISPConfig SOAP Client nicht verfügbar');
+                return false;
+            }
+            
+            // ISPConfig API erwartet: session_id, reseller_id, params
+            $reseller_id = $clientData['reseller_id'] ?? 0;
+            unset($clientData['reseller_id']); // Entferne reseller_id aus den Parametern
+            
+            // Debug: Parameter ausgeben
+            error_log('ISPConfig createClient - session_id: ' . $this->session_id . ', reseller_id: ' . $reseller_id . ', params: ' . print_r($clientData, true));
+            
+            $result = $this->client->client_add($this->session_id, $reseller_id, $clientData);
             //$this->logRequest('/client/add', 'POST', $result !== false);
             return $result;
         } catch (Exception $e) {
@@ -3644,13 +3657,7 @@ class ServiceManager {
         return $this->ogpGet->getUserAssigned($email);
     }
     
-    public function createOGPUser($userData) {
-        $apiCheck = $this->checkAPIEnabled('ogp');
-        if ($apiCheck !== true) {
-            return $apiCheck;
-        }
-        return $this->ogpPost->createUser($userData);
-    }
+    // Alte createOGPUser Methode entfernt - wird durch die neue erweiterte Version ersetzt
     
     public function removeOGPUser($email) {
         $apiCheck = $this->checkAPIEnabled('ogp');
@@ -3688,13 +3695,7 @@ class ServiceManager {
     // PROXMOX USER MANAGEMENT
      
     
-    public function createProxmoxUser($userData) {
-        $apiCheck = $this->checkAPIEnabled('proxmox');
-        if ($apiCheck !== true) {
-            return $apiCheck;
-        }
-        return $this->proxmoxPost->createProxmoxUser($userData);
-    }
+    // Alte createProxmoxUser Methode entfernt - wird durch die neue erweiterte Version ersetzt
 
     public function deleteProxmoxUser($userid) {
         $apiCheck = $this->checkAPIEnabled('proxmox');
@@ -4345,6 +4346,302 @@ class ServiceManager {
             return "{$hours}h {$minutes}m";
         } else {
             return "{$minutes}m";
+        }
+    }
+    
+    // Benutzer-Management Methoden
+    public function createOGPUser($username, $password, $firstName, $lastName, $options = []) {
+        try {
+            $apiCheck = $this->checkAPIEnabled('ogp');
+            if ($apiCheck !== true) {
+                throw new Exception('OpenGamePanel API nicht verfügbar: ' . ($apiCheck['message'] ?? 'Unbekannter Fehler'));
+            }
+            
+            // OGP-spezifische Parameter basierend auf der API-Dokumentation
+            // ogp_api.php?user_admin/create (POST/GET {token}{email}{name}{password})
+            $ogpData = [
+                'email' => $options['email'] ?? '',
+                'name' => "$firstName $lastName",
+                'password' => $password
+            ];
+            
+            $result = $this->ogpPost->createUser($ogpData);
+            
+            // OGP API gibt "Account created" bei Erfolg zurück
+            if ($result && (isset($result['success']) && $result['success']) || (is_string($result) && strpos($result, 'Account created') !== false)) {
+                $this->__log("OGP User Created", "Benutzer $username erfolgreich in OpenGamePanel angelegt", "success");
+                return $result;
+            } else {
+                throw new Exception('Fehler beim Anlegen des OGP-Benutzers: ' . ($result['message'] ?? 'Unbekannter Fehler'));
+            }
+            
+        } catch (Exception $e) {
+            $this->__log("OGP User Creation Failed", "Fehler beim Anlegen des Benutzers $username: " . $e->getMessage(), "error");
+            throw $e;
+        }
+    }
+    
+    public function createProxmoxUser($username, $password, $firstName, $lastName, $options = []) {
+        try {
+            $apiCheck = $this->checkAPIEnabled('proxmox');
+            if ($apiCheck !== true) {
+                throw new Exception('Proxmox API nicht verfügbar: ' . ($apiCheck['message'] ?? 'Unbekannter Fehler'));
+            }
+            
+            // Proxmox-spezifische Parameter basierend auf dem Beispiel
+            // $newUserData = [
+            //     'userid' => 'bob@pve',
+            //     'email' => 'uncle.bob@mail.com',
+            //     'firstname' => 'Bob',
+            //     'lastname' => 'Marley',
+            //     'password' => 'StirItUp',
+            // ];
+            $realm = $options['realm'] ?? 'pve';
+            $proxmoxData = [
+                'userid' => $username . '@' . $realm,
+                'email' => $options['email'] ?? '',
+                'firstname' => $firstName,
+                'lastname' => $lastName,
+                'password' => $password,
+                'comment' => $options['comment'] ?? ''
+            ];
+            
+            $result = $this->proxmoxPost->createProxmoxUser($proxmoxData);
+            
+            if ($result && isset($result['success']) && $result['success']) {
+                $this->__log("Proxmox User Created", "Benutzer $username erfolgreich in Proxmox angelegt", "success");
+                return $result;
+            } else {
+                throw new Exception('Fehler beim Anlegen des Proxmox-Benutzers: ' . ($result['message'] ?? 'Unbekannter Fehler'));
+            }
+            
+        } catch (Exception $e) {
+            $this->__log("Proxmox User Creation Failed", "Fehler beim Anlegen des Benutzers $username: " . $e->getMessage(), "error");
+            throw $e;
+        }
+    }
+    
+    public function createISPConfigUser($username, $password, $firstName, $lastName, $options = []) {
+        try {
+            $apiCheck = $this->checkAPIEnabled('ispconfig');
+            if ($apiCheck !== true) {
+                throw new Exception('ISPConfig API nicht verfügbar: ' . ($apiCheck['message'] ?? 'Unbekannter Fehler'));
+            }
+            
+            // ISPConfig-spezifische Parameter basierend auf dem umfassenden Beispiel
+            $ispconfigData = [
+                'reseller_id' => 0,
+                'company_name' => $options['company'] ?? 'awesomecompany',
+                'contact_firstname' => $firstName,
+                'contact_name' => $lastName,
+                'customer_no' => $options['customer_no'] ?? 'CUST' . time(),
+                'vat_id' => $options['vat_id'] ?? 'VAT' . time(),
+                'street' => $options['street'] ?? 'fleetstreet',
+                'zip' => $options['zip'] ?? '21337',
+                'city' => $options['city'] ?? 'london',
+                'state' => $options['state'] ?? 'bavaria',
+                'country' => $options['country'] ?? 'DE',
+                'telephone' => $options['phone'] ?? '123456789',
+                'mobile' => $options['mobile'] ?? '987654321',
+                'fax' => $options['fax'] ?? '546718293',
+                'email' => $options['email'] ?? 'e@mail.int',
+                'internet' => '',
+                'notes' => 'awesome',
+                'default_mailserver' => 1,
+                'limit_maildomain' => -1,
+                'limit_mailbox' => -1,
+                'limit_mailalias' => -1,
+                'limit_mailaliasdomain' => -1,
+                'limit_mailforward' => -1,
+                'limit_mailcatchall' => -1,
+                'limit_mailrouting' => 0,
+                'limit_mailfilter' => -1,
+                'limit_fetchmail' => -1,
+                'limit_mailquota' => -1,
+                'limit_spamfilter_wblist' => -1,
+                'limit_spamfilter_user' => -1,
+                'limit_spamfilter_policy' => -1,
+                'default_webserver' => 1,
+                'limit_web_ip' => '',
+                'limit_web_domain' => -1,
+                'limit_web_quota' => -1,
+                'web_php_options' => 'no,fast-cgi,cgi,mod,suphp',
+                'limit_web_subdomain' => -1,
+                'limit_web_aliasdomain' => -1,
+                'limit_ftp_user' => -1,
+                'limit_shell_user' => 0,
+                'ssh_chroot' => 'no,jailkit,ssh-chroot',
+                'limit_webdav_user' => 0,
+                'default_dnsserver' => 1,
+                'limit_dns_zone' => -1,
+                'limit_dns_slave_zone' => -1,
+                'limit_dns_record' => -1,
+                'default_dbserver' => 1,
+                'limit_database' => -1,
+                'limit_cron' => 0,
+                'limit_cron_type' => 'url',
+                'limit_cron_frequency' => 5,
+                'limit_traffic_quota' => -1,
+                'limit_client' => 0,
+                'parent_client_id' => 0,
+                'username' => $username,
+                'password' => $password,
+                'language' => $options['language'] ?? 'en',
+                'usertheme' => 'default',
+                'template_master' => 0,
+                'template_additional' => '',
+                'created_at' => 0,
+                'limit_redis_instances' => 0,
+                'limit_redis_memory_per_instance' => 0,
+                'limit_redis_memory_total' => 0,
+                'limit_allow_docker_apps' => 'y',
+                'limit_allow_docker_databases' => 'y'
+            ];
+            
+            $result = $this->ispconfigPost->createClient($ispconfigData);
+            
+            if ($result && isset($result['success']) && $result['success']) {
+                $this->__log("ISPConfig User Created", "Benutzer $username erfolgreich in ISPConfig angelegt", "success");
+                return $result;
+            } else {
+                throw new Exception('Fehler beim Anlegen des ISPConfig-Benutzers: ' . ($result['message'] ?? 'Unbekannter Fehler'));
+            }
+            
+        } catch (Exception $e) {
+            $this->__log("ISPConfig User Creation Failed", "Fehler beim Anlegen des Benutzers $username: " . $e->getMessage(), "error");
+            throw $e;
+        }
+    }
+    
+    public function linkExistingUser($userId, $systemType, $systemUserId) {
+        try {
+            $db = Database::getInstance();
+            
+            // Verwende die bestehende user_permissions Tabelle
+            // Prüfe ob Verknüpfung bereits existiert
+            $stmt = $db->prepare("SELECT id FROM user_permissions WHERE user_id = ? AND permission_type = ?");
+            $db->execute($stmt, [$userId, $systemType]);
+            $existing = $db->fetch($stmt);
+            
+            if ($existing) {
+                // Update bestehende Verknüpfung
+                $stmt = $db->prepare("UPDATE user_permissions SET resource_id = ?, updated_at = NOW() WHERE user_id = ? AND permission_type = ?");
+                $db->execute($stmt, [$systemUserId, $userId, $systemType]);
+            } else {
+                // Neue Verknüpfung erstellen
+                $stmt = $db->prepare("INSERT INTO user_permissions (user_id, permission_type, resource_id, granted_by, created_at) VALUES (?, ?, ?, ?, NOW())");
+                $db->execute($stmt, [$userId, $systemType, $systemUserId, $userId]); // granted_by = user_id (selbst erteilt)
+            }
+            
+            $this->__log("User System Link", "Benutzer $userId mit $systemType verknüpft (ID: $systemUserId)", "success");
+            return true;
+            
+        } catch (Exception $e) {
+            $this->__log("User System Link Failed", "Fehler beim Verknüpfen: " . $e->getMessage(), "error");
+            throw $e;
+        }
+    }
+    
+    public function getUserSystemLinks($userId) {
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT permission_type, resource_id, created_at, expires_at FROM user_permissions WHERE user_id = ? AND permission_type IN ('proxmox', 'ispconfig', 'ovh')");
+            $db->execute($stmt, [$userId]);
+            return $db->fetchAll($stmt);
+            
+        } catch (Exception $e) {
+            $this->__log("Get User System Links Failed", "Fehler beim Abrufen der Verknüpfungen: " . $e->getMessage(), "error");
+            return [];
+        }
+    }
+    
+    public function createUserInAllSystems($username, $password, $firstName, $lastName, $options = []) {
+        try {
+            $results = [];
+            $errors = [];
+            
+            // Erstelle Benutzer in allen verfügbaren Systemen
+            if (Config::OGP_USEING) {
+                try {
+                    $ogpResult = $this->createOGPUser($username, $password, $firstName, $lastName, $options);
+                    if ($ogpResult && isset($ogpResult['success']) && $ogpResult['success']) {
+                        $results['ogp'] = $ogpResult;
+                        $this->__log("OGP User Creation", "Benutzer $username erfolgreich in OGP angelegt", "success");
+                    }
+                } catch (Exception $e) {
+                    $errors['ogp'] = $e->getMessage();
+                    $this->__log("OGP User Creation Failed", "Fehler beim Anlegen des OGP-Benutzers $username: " . $e->getMessage(), "error");
+                }
+            }
+            
+            if (Config::PROXMOX_USEING) {
+                try {
+                    $proxmoxResult = $this->createProxmoxUser($username, $password, $firstName, $lastName, $options);
+                    if ($proxmoxResult && isset($proxmoxResult['success']) && $proxmoxResult['success']) {
+                        $results['proxmox'] = $proxmoxResult;
+                        $this->__log("Proxmox User Creation", "Benutzer $username erfolgreich in Proxmox angelegt", "success");
+                    }
+                } catch (Exception $e) {
+                    $errors['proxmox'] = $e->getMessage();
+                    $this->__log("Proxmox User Creation Failed", "Fehler beim Anlegen des Proxmox-Benutzers $username: " . $e->getMessage(), "error");
+                }
+            }
+            
+            if (Config::ISPCONFIG_USEING) {
+                try {
+                    $ispconfigResult = $this->createISPConfigUser($username, $password, $firstName, $lastName, $options);
+                    if ($ispconfigResult && isset($ispconfigResult['success']) && $ispconfigResult['success']) {
+                        $results['ispconfig'] = $ispconfigResult;
+                        $this->__log("ISPConfig User Creation", "Benutzer $username erfolgreich in ISPConfig angelegt", "success");
+                    }
+                } catch (Exception $e) {
+                    $errors['ispconfig'] = $e->getMessage();
+                    $this->__log("ISPConfig User Creation Failed", "Fehler beim Anlegen des ISPConfig-Benutzers $username: " . $e->getMessage(), "error");
+                }
+            }
+            
+            return [
+                'success' => !empty($results),
+                'results' => $results,
+                'errors' => $errors,
+                'message' => !empty($results) ? 'Benutzer erfolgreich in ' . count($results) . ' System(en) angelegt' : 'Fehler beim Anlegen des Benutzers'
+            ];
+            
+        } catch (Exception $e) {
+            $this->__log("Multi-System User Creation Failed", "Fehler beim Anlegen des Benutzers $username in allen Systemen: " . $e->getMessage(), "error");
+            throw $e;
+        }
+    }
+    
+    public function mergeExistingUsers($localUserId, $systemUsers) {
+        try {
+            $db = Database::getInstance();
+            $results = [];
+            $errors = [];
+            
+            foreach ($systemUsers as $systemType => $systemUserId) {
+                if (!empty($systemUserId)) {
+                    try {
+                        $linkResult = $this->linkExistingUser($localUserId, $systemType, $systemUserId);
+                        if ($linkResult) {
+                            $results[$systemType] = "Erfolgreich verknüpft mit ID: $systemUserId";
+                        }
+                    } catch (Exception $e) {
+                        $errors[$systemType] = $e->getMessage();
+                    }
+                }
+            }
+            
+            return [
+                'success' => !empty($results),
+                'results' => $results,
+                'errors' => $errors,
+                'message' => !empty($results) ? 'Benutzer erfolgreich mit ' . count($results) . ' System(en) verknüpft' : 'Fehler beim Verknüpfen'
+            ];
+            
+        } catch (Exception $e) {
+            $this->__log("User Merge Failed", "Fehler beim Zusammenführen der Benutzer: " . $e->getMessage(), "error");
+            throw $e;
         }
     }
 }

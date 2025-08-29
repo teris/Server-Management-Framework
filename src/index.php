@@ -40,17 +40,27 @@ if (isset($_GET['logout'])) {
 
 // AJAX Handler
 if (isset($_POST['action'])) {
-    // Error reporting für AJAX-Requests deaktivieren
-    error_reporting(E_ERROR | E_WARNING | E_PARSE);
-    ini_set('display_errors', 0);
+    // Prüfen ob es sich um die createuser.php oder users.php Seite handelt
+    $isCreateUserPage = isset($_GET['option']) && $_GET['option'] === 'createuser';
+    $isUsersPage = isset($_GET['option']) && $_GET['option'] === 'users';
+    $isCreateUserForm = isset($_POST['createuser_form']);
     
-    header('Content-Type: application/json');
-    
-    // Session-Check für AJAX
-    if (!SessionManager::isLoggedIn()) {
-        echo json_encode(['success' => false, 'redirect' => 'login.php']);
-        exit;
-    }
+    // Wenn es die createuser.php Seite ist und das createuser_form Feld gesetzt ist,
+    // dann nicht als AJAX behandeln
+    if ($isCreateUserPage && $isCreateUserForm) {
+        // Normale Seitenverarbeitung fortsetzen
+    } else {
+        // Error reporting für AJAX-Requests deaktivieren
+        error_reporting(E_ERROR | E_WARNING | E_PARSE);
+        ini_set('display_errors', 0);
+        
+        header('Content-Type: application/json');
+        
+        // Session-Check für AJAX
+        if (!SessionManager::isLoggedIn()) {
+            echo json_encode(['success' => false, 'redirect' => 'login.php']);
+            exit;
+        }
     
     // Heartbeat
     if (isset($_POST['action']) && $_POST['action'] === 'heartbeat') {
@@ -99,6 +109,137 @@ if (isset($_POST['action'])) {
     // Legacy Support
     include("handler.php");
     exit;
+    }
+}
+
+// AJAX-Handler für users.php - muss vor HTML-Output stehen
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_GET['ajax']) && isset($_GET['option']) && $_GET['option'] === 'users') {
+    header('Content-Type: application/json');
+    
+    switch ($_POST['action']) {
+        case 'get_user_data':
+            try {
+                $userId = $_POST['user_id'];
+                $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
+                $db->execute($stmt, [$userId]);
+                $user = $db->fetch($stmt);
+                
+                if ($user) {
+                    // System-Verknüpfungen abrufen
+                    $stmt = $db->prepare("SELECT permission_type, resource_id FROM user_permissions WHERE user_id = ?");
+                    $db->execute($stmt, [$userId]);
+                    $systemLinks = $db->fetchAll($stmt);
+                    
+                    echo json_encode([
+                        'success' => true,
+                        'data' => $user,
+                        'system_links' => $systemLinks
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Benutzer nicht gefunden'
+                    ]);
+                }
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Fehler beim Laden der Benutzerdaten: ' . $e->getMessage()
+                ]);
+            }
+            exit;
+            
+        case 'get_user_systems':
+            try {
+                $userId = $_POST['user_id'];
+                $stmt = $db->prepare("SELECT permission_type, resource_id FROM user_permissions WHERE user_id = ?");
+                $db->execute($stmt, [$userId]);
+                $systems = $db->fetchAll($stmt);
+                
+                echo json_encode([
+                    'success' => true,
+                    'systems' => $systems
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Fehler beim Laden der System-Verknüpfungen: ' . $e->getMessage()
+                ]);
+            }
+            exit;
+            
+        case 'get_user_details':
+            try {
+                $userId = $_POST['user_id'];
+                $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
+                $db->execute($stmt, [$userId]);
+                $user = $db->fetch($stmt);
+                
+                if ($user) {
+                    // System-Verknüpfungen abrufen
+                    $stmt = $db->prepare("SELECT permission_type, resource_id FROM user_permissions WHERE user_id = ?");
+                    $db->execute($stmt, [$userId]);
+                    $systemLinks = $db->fetchAll($stmt);
+                    
+                    echo json_encode([
+                        'success' => true,
+                        'data' => $user,
+                        'system_links' => $systemLinks
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Benutzer nicht gefunden'
+                    ]);
+                }
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Fehler beim Laden der Benutzerdetails: ' . $e->getMessage()
+                ]);
+            }
+            exit;
+            
+        case 'get_system_user_data':
+            $systemType = $_POST['system_type'];
+            $systemUserId = $_POST['system_user_id'];
+            
+            $userData = [];
+            try {
+                // Hier können Sie die Logik für verschiedene Systemtypen implementieren
+                switch ($systemType) {
+                    case 'proxmox':
+                        // Proxmox-spezifische Logik
+                        break;
+                    case 'ispconfig':
+                        // ISPConfig-spezifische Logik
+                        break;
+                    case 'ovh':
+                        // OVH-spezifische Logik
+                        break;
+                    default:
+                        throw new Exception('Unbekannter Systemtyp: ' . $systemType);
+                }
+                
+                echo json_encode([
+                    'success' => true,
+                    'data' => $userData
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Fehler beim Laden der System-Benutzerdaten: ' . $e->getMessage()
+                ]);
+            }
+            exit;
+            
+        default:
+            echo json_encode([
+                'success' => false,
+                'message' => 'Unbekannte Aktion: ' . htmlspecialchars($_POST['action'])
+            ]);
+            exit;
+    }
 }
 
 // Session-Informationen
@@ -143,6 +284,8 @@ try {
     <script src="assets/main.js"></script>
     <script src="assets/admin-core.js"></script>
     <script src="assets/session.js"></script>
+    <!-- JavaScript-Loader für inc-js Dateien -->
+    <script src="assets/inc-js/inc-js-loader.js"></script>
     
     <!-- Plugin-spezifische Styles -->
     <?php foreach ($pluginManager->getAllStyles() as $style): ?>
@@ -174,6 +317,11 @@ try {
                 <li class="nav-item">
                     <a class="nav-link" href="?option=users">
                         <i class="bi bi-people"></i> <?= t('users') ?>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="?option=createuser">
+                        <i class="bi bi-person-plus"></i> <?= t('create_user') ?>
                     </a>
                 </li>
                 <!-- Persönliche Einstellungen -->
@@ -218,7 +366,7 @@ try {
                 <!-- Domain-Management -->
                 <li class="nav-item">
                     <a class="nav-link nav-link-category" href="#" data-bs-toggle="collapse" data-bs-target="#domainSubmenu" aria-expanded="true" aria-controls="domainSubmenu">
-                        <i class="bi bi-globe"></i> Domains
+                        <i class="bi bi-globe"></i> <?= t('domains') ?>
                         <i class="bi bi-chevron-up ms-auto"></i>
                     </a>
                     <div class="collapse show" id="domainSubmenu">
@@ -242,7 +390,7 @@ try {
                 <!-- Optionen -->
                 <li class="nav-item">
                     <a class="nav-link nav-link-category" href="#" data-bs-toggle="collapse" data-bs-target="#optionsSubmenu" aria-expanded="true" aria-controls="optionsSubmenu">
-                        <i class="bi bi-gear"></i> Optionen
+                        <i class="bi bi-gear"></i> <?= t('options') ?>
                         <i class="bi bi-chevron-up ms-auto"></i>
                     </a>
                     <div class="collapse show" id="optionsSubmenu">
@@ -364,7 +512,66 @@ try {
                                 include('inc/resources.php');
                                 break;
                             case 'users':
+                                // POST-Verarbeitung für Benutzerverwaltungsaktionen
+                                if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+                                    switch ($_POST['action']) {
+                                        case 'merge_users':
+                                            handleMergeUsers($serviceManager, $db);
+                                            break;
+                                        case 'link_existing_user':
+                                            handleLinkExistingUser($serviceManager, $db);
+                                            break;
+                                        case 'grant_access':
+                                            handleGrantAccess($serviceManager, $db);
+                                            break;
+                                        case 'revoke_access':
+                                            handleRevokeAccess($serviceManager, $db);
+                                            break;
+                                        case 'edit_user':
+                                            handleEditUser($serviceManager, $db);
+                                            break;
+                                        case 'delete_user':
+                                            handleDeleteUser($serviceManager, $db);
+                                            break;
+                                        case 'update_password':
+                                            handleUpdatePassword($serviceManager, $db);
+                                            break;
+                                        case 'extend_session':
+                                            // Session verlängern - einfache Implementierung
+                                            if (isset($_SESSION['user_id'])) {
+                                                $_SESSION['last_activity'] = time();
+                                                if (isset($_POST['ajax'])) {
+                                                    header('Content-Type: application/json');
+                                                    echo json_encode(['success' => true, 'message' => 'Session verlängert']);
+                                                    exit;
+                                                } else {
+                                                    $_SESSION['success_message'] = "Session erfolgreich verlängert!";
+                                                    header("Location: " . $_SERVER['REQUEST_URI']);
+                                                    exit;
+                                                }
+                                            } else {
+                                                if (isset($_POST['ajax'])) {
+                                                    header('Content-Type: application/json');
+                                                    echo json_encode(['success' => false, 'message' => 'Keine aktive Session']);
+                                                    exit;
+                                                } else {
+                                                    $_SESSION['error_message'] = "Keine aktive Session gefunden!";
+                                                    header("Location: " . $_SERVER['REQUEST_URI']);
+                                                    exit;
+                                                }
+                                            }
+                                            break;
+                                        default:
+                                            $_SESSION['error_message'] = "Unbekannte Aktion: " . htmlspecialchars($_POST['action']);
+                                            header("Location: " . $_SERVER['REQUEST_URI']);
+                                            exit;
+                                    }
+                                }
+                                
                                 include('inc/users.php');
+                                break;
+                            case 'createuser':
+                                include('inc/createuser.php');
                                 break;
                             case 'domain-registrations':
                                 include('inc/domain-registrations.php');
@@ -403,7 +610,7 @@ try {
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h2>Footer</h2>
+                        <h2><?= t('footer') ?></h2>
                     </div>
                     <div class="card-body">
                         <div class="row">

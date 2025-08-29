@@ -592,7 +592,7 @@ CREATE TABLE `user_activity_overview` (
 CREATE TABLE `user_permissions` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `permission_type` enum('proxmox','ispconfig','ovh','admin','readonly') NOT NULL,
+  `permission_type` enum('proxmox','ispconfig','ovh','ogp','admin','readonly') NOT NULL,
   `resource_id` varchar(255) DEFAULT NULL,
   `granted_by` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
@@ -1407,3 +1407,45 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- Update user_permissions table to add 'ogp' to permission_type enum
+-- This script fixes the "Data truncated for column 'permission_type'" error
+
+-- First, create a temporary table with the new structure
+CREATE TABLE `user_permissions_new` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `permission_type` enum('proxmox','ispconfig','ovh','ogp','admin','readonly') NOT NULL,
+  `resource_id` varchar(255) DEFAULT NULL,
+  `granted_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `expires_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Copy data from old table to new table
+INSERT INTO `user_permissions_new` 
+SELECT * FROM `user_permissions`;
+
+-- Drop the old table
+DROP TABLE `user_permissions`;
+
+-- Rename the new table to the original name
+RENAME TABLE `user_permissions_new` TO `user_permissions`;
+
+-- Recreate the indexes
+ALTER TABLE `user_permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `permission_type` (`permission_type`),
+  ADD KEY `granted_by` (`granted_by`);
+
+-- Set auto increment
+ALTER TABLE `user_permissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+-- Recreate the foreign key constraints
+ALTER TABLE `user_permissions`
+  ADD CONSTRAINT `user_permissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_permissions_ibfk_2` FOREIGN KEY (`granted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+-- Alternative method (if the above doesn't work):
+-- ALTER TABLE `user_permissions` MODIFY COLUMN `permission_type` enum('proxmox','ispconfig','ovh','ogp','admin','readonly') NOT NULL;

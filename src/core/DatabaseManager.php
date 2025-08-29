@@ -59,7 +59,8 @@ class MySQLDriver extends DatabaseDriver {
     
     public function query($sql, $params = []) {
         $stmt = $this->prepare($sql);
-        return $this->execute($stmt, $params);
+        $this->execute($stmt, $params);
+        return $stmt;
     }
     
     public function prepare($sql) {
@@ -123,7 +124,8 @@ class PostgreSQLDriver extends DatabaseDriver {
     
     public function query($sql, $params = []) {
         $stmt = $this->prepare($sql);
-        return $this->execute($stmt, $params);
+        $this->execute($stmt, $params);
+        return $stmt;
     }
     
     public function prepare($sql) {
@@ -194,7 +196,8 @@ class SQLiteDriver extends DatabaseDriver {
     
     public function query($sql, $params = []) {
         $stmt = $this->prepare($sql);
-        return $this->execute($stmt, $params);
+        $this->execute($stmt, $params);
+        return $stmt;
     }
     
     public function prepare($sql) {
