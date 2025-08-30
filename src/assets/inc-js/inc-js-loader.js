@@ -32,7 +32,7 @@
         var path = window.location.pathname;
         
         // Prüfe verschiedene Möglichkeiten, die aktuelle Seite zu identifizieren
-        if (url.includes('option=users') || url.includes('users.php')) {
+        if (url.includes('option=users') || url.includes('users.php') || document.querySelector('#customers-tab')) {
             return 'users';
         } else if (url.includes('option=createuser') || url.includes('createuser.php')) {
             return 'createuser';

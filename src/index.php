@@ -515,6 +515,9 @@ try {
                                 // POST-Verarbeitung für Benutzerverwaltungsaktionen
                                 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     switch ($_POST['action']) {
+                                        case 'activate_customer':
+                                            handleActivateCustomer($serviceManager, $db);
+                                            break;
                                         case 'merge_users':
                                             handleMergeUsers($serviceManager, $db);
                                             break;
@@ -692,3 +695,246 @@ try {
     </script>
 </body>
 </html>
+
+<?php
+/**
+ * Funktionen für die Kundenaktivierung
+ */
+
+/**
+ * Kunden aktivieren und in allen Systemen anlegen
+ */
+function handleActivateCustomer($serviceManager, $db) {
+    try {
+        if (!isset($_POST['customer_id'])) {
+            throw new Exception('Keine Kunden-ID angegeben');
+        }
+        
+        $customerId = intval($_POST['customer_id']);
+        
+        // Kundendaten abrufen
+        $stmt = $db->prepare("SELECT * FROM customers WHERE id = ? AND status = 'pending'");
+        $stmt->execute([$customerId]);
+        $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$customer) {
+            throw new Exception('Kunde nicht gefunden oder bereits aktiviert');
+        }
+        
+        // Für jedes externe System ein eigenes Passwort generieren
+        $systemPasswords = [];
+        
+        if (Config::ISPCONFIG_USEING) {
+            $systemPasswords['ispconfig'] = bin2hex(random_bytes(8)); // 16 Zeichen
+        }
+        if (Config::OGP_USEING) {
+            $systemPasswords['ogp'] = bin2hex(random_bytes(8)); // 16 Zeichen
+        }
+        if (Config::PROXMOX_USEING) {
+            $systemPasswords['proxmox'] = bin2hex(random_bytes(8)); // 16 Zeichen
+        }
+        
+        // Benutzername aus E-Mail generieren
+        $username = strtolower(explode('@', $customer['email'])[0]);
+        
+        // Benutzer in allen Systemen erstellen
+        $creationResult = $serviceManager->createUserInAllSystems(
+            $username,
+            $systemPasswords,
+            $customer['first_name'],
+            $customer['last_name'],
+            [
+                'email' => $customer['email'],
+                'company' => $customer['company'] ?? '',
+                'phone' => $customer['phone'] ?? ''
+            ]
+        );
+        
+        if ($creationResult['success']) {
+            // Kundenstatus auf aktiv setzen
+            $stmt = $db->prepare("UPDATE customers SET status = 'active', activated_at = NOW(), updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$customerId]);
+            
+            // E-Mail mit System-Anmeldedaten senden
+            $emailSent = sendSystemCredentialsEmail(
+                $customer['email'],
+                $customer['first_name'],
+                $username,
+                $systemPasswords,
+                $creationResult['results']
+            );
+            
+            if ($emailSent) {
+                $_SESSION['success_message'] = "Kunde erfolgreich aktiviert! Systemkonten wurden angelegt und eine E-Mail mit den Anmeldedaten wurde gesendet.";
+            } else {
+                $_SESSION['warning_message'] = "Kunde aktiviert, aber E-Mail konnte nicht gesendet werden. Bitte manuell versenden.";
+            }
+            
+            // Erfolg loggen
+            $db->logAction(
+                'Customer Activation',
+                "Kunde $customerId erfolgreich aktiviert und in allen Systemen angelegt",
+                'success'
+            );
+            
+        } else {
+            throw new Exception('Fehler beim Anlegen der Systemkonten: ' . json_encode($creationResult['errors']));
+        }
+        
+    } catch (Exception $e) {
+        error_log("Customer Activation Error: " . $e->getMessage());
+        $_SESSION['error_message'] = "Fehler bei der Kundenaktivierung: " . $e->getMessage();
+        
+        // Fehler loggen
+        if (isset($db)) {
+            $db->logAction(
+                'Customer Activation Failed',
+                "Fehler bei der Aktivierung von Kunde $customerId: " . $e->getMessage(),
+                'error'
+            );
+        }
+    }
+    
+    // Zurück zur Benutzerverwaltung
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit;
+}
+
+/**
+ * E-Mail mit System-Anmeldedaten senden
+ */
+function sendSystemCredentialsEmail($email, $firstName, $username, $systemPasswords, $systemResults) {
+    try {
+        $to = $email;
+        $subject = "Ihre System-Anmeldedaten - " . Config::FRONTPANEL_SITE_NAME;
+        
+        // Portal-Links aus der Config laden
+        $portalLinks = [];
+        if (Config::ISPCONFIG_USEING) {
+            $portalLinks['ispconfig'] = Config::ISPCONFIG_HOST;
+        }
+        if (Config::OGP_USEING) {
+            $portalLinks['ogp'] = Config::OGP_HOST;
+        }
+        if (Config::PROXMOX_USEING) {
+            $portalLinks['proxmox'] = Config::PROXMOX_HOST;
+        }
+        
+        $message = "
+        <html>
+        <head>
+            <title>System-Anmeldedaten</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <h2 style='color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px;'>
+                    Ihre System-Anmeldedaten
+                </h2>
+                
+                <p>Hallo {$firstName},</p>
+                
+                <p>Ihr Konto wurde erfolgreich aktiviert! Ihre Benutzerkonten in den folgenden Systemen wurden erfolgreich angelegt:</p>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff;'>
+                    <h3 style='margin-top: 0; color: #007bff;'>🎯 Frontpanel-Anmeldung</h3>
+                    <p><strong>Portal:</strong> <a href='" . Config::FRONTPANEL_SITE_URL . "/public/login.php'>" . Config::FRONTPANEL_SITE_URL . "/public/login.php</a></p>
+                    <p><strong>E-Mail:</strong> {$email}</p>
+                    <p><strong>Passwort:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>Das Passwort, das Sie bei der Registrierung angegeben haben</span></p>
+                </div>
+                
+                <h3 style='color: #28a745;'>🔐 Externe Systeme - Neue Anmeldedaten</h3>
+                <p><strong>Wichtig:</strong> Für jedes externe System wurde ein eigenes Passwort generiert. Bitte ändern Sie diese Passwörter nach dem ersten Login aus Sicherheitsgründen!</p>
+                
+                <div style='margin: 20px 0;'>";
+        
+        // ISPConfig
+        if (isset($systemPasswords['ispconfig']) && isset($portalLinks['ispconfig'])) {
+            $message .= "
+                    <div style='background: #fff3cd; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #ffeaa7;'>
+                        <h4 style='margin-top: 0; color: #856404;'>🌐 ISPConfig - Webhosting-Verwaltung</h4>
+                        <p><strong>Portal:</strong> <a href='{$portalLinks['ispconfig']}'>{$portalLinks['ispconfig']}</a></p>
+                        <p><strong>Benutzername:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$username}</span></p>
+                        <p><strong>Passwort:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$systemPasswords['ispconfig']}</span></p>
+                    </div>";
+        }
+        
+        // OpenGamePanel
+        if (isset($systemPasswords['ogp']) && isset($portalLinks['ogp'])) {
+            $message .= "
+                    <div style='background: #d1ecf1; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #bee5eb;'>
+                        <h4 style='margin-top: 0; color: #0c5460;'>🎮 OpenGamePanel - Spieleserver-Verwaltung</h4>
+                        <p><strong>Portal:</strong> <a href='{$portalLinks['ogp']}'>{$portalLinks['ogp']}</a></p>
+                        <p><strong>Benutzername:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$username}</span></p>
+                        <p><strong>Passwort:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$systemPasswords['ogp']}</span></p>
+                    </div>";
+        }
+        
+        // Proxmox
+        if (isset($systemPasswords['proxmox']) && isset($portalLinks['proxmox'])) {
+            $message .= "
+                    <div style='background: #d4edda; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #c3e6cb;'>
+                        <h4 style='margin-top: 0; color: #155724;'>🖥️ Proxmox - Virtuelle Maschinen</h4>
+                        <p><strong>Portal:</strong> <a href='{$portalLinks['proxmox']}'>{$portalLinks['proxmox']}</a></p>
+                        <p><strong>Benutzername:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$username}</span></p>
+                        <p><strong>Passwort:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$systemPasswords['proxmox']}</span></p>
+                    </div>";
+        }
+        
+        $message .= "
+                </div>
+                
+                <div style='background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ffeaa7;'>
+                    <h3 style='margin-top: 0; color: #856404;'>⚠️ WICHTIGER SICHERHEITSHINWEIS</h3>
+                    <p><strong>Bitte ändern Sie die Passwörter in den externen Systemen nach dem ersten Login!</strong></p>
+                    <p>Die generierten Passwörter sind nur für den ersten Login gedacht. Aus Sicherheitsgründen sollten Sie diese sofort durch eigene, sichere Passwörter ersetzen.</p>
+                    <ul>
+                        <li>Verwenden Sie mindestens 12 Zeichen</li>
+                        <li>Kombinieren Sie Groß- und Kleinbuchstaben, Zahlen und Sonderzeichen</li>
+                        <li>Verwenden Sie für jedes System ein unterschiedliches Passwort</li>
+                        <li>Speichern Sie die neuen Passwörter sicher ab</li>
+                    </ul>
+                </div>
+                
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='" . Config::FRONTPANEL_SITE_URL . "/public/login.php' 
+                       style='background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;'>
+                        🚀 Jetzt im Frontpanel anmelden
+                    </a>
+                </div>
+                
+                <p>Falls der Button nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:</p>
+                <p style='word-break: break-all; color: #666; background: #f8f9fa; padding: 10px; border-radius: 4px;'>" . Config::FRONTPANEL_SITE_URL . "/public/login.php</p>
+                
+                <p>Falls Sie Fragen haben oder Probleme beim Login haben, kontaktieren Sie uns gerne unter <strong>" . Config::FRONTPANEL_SUPPORT_EMAIL . "</strong></p>
+                
+                <p>Mit freundlichen Grüßen<br>
+                Ihr <strong>" . Config::FRONTPANEL_SITE_NAME . "</strong> Team</p>
+            </div>
+        </body>
+        </html>
+        ";
+        
+        $headers = [
+            'MIME-Version: 1.0',
+            'Content-type: text/html; charset=utf-8',
+            'From: ' . Config::FRONTPANEL_SYSTEM_EMAIL,
+            'Reply-To: ' . Config::FRONTPANEL_SUPPORT_EMAIL,
+            'X-Mailer: PHP/' . phpversion()
+        ];
+        
+        $mailResult = mail($to, $subject, $message, implode("\r\n", $headers));
+        
+        if ($mailResult) {
+            error_log("System credentials email sent successfully to: " . $email);
+        } else {
+            error_log("Failed to send system credentials email to: " . $email);
+        }
+        
+        return $mailResult;
+        
+    } catch (Exception $e) {
+        error_log("Failed to send system credentials email: " . $e->getMessage());
+        return false;
+    }
+}
+?>

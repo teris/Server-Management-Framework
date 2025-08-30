@@ -4428,69 +4428,73 @@ class ServiceManager {
                 throw new Exception('ISPConfig API nicht verfügbar: ' . ($apiCheck['message'] ?? 'Unbekannter Fehler'));
             }
             
-            // ISPConfig-spezifische Parameter basierend auf dem umfassenden Beispiel
+            // ISPConfig-spezifische Parameter basierend auf dem umfassenden Beispiel aus createuser.php
             $ispconfigData = [
-                'reseller_id' => 0,
-                'company_name' => $options['company'] ?? 'awesomecompany',
+                // Must Have Parameter
+                'company_name' => $options['company'] ?? '',
                 'contact_firstname' => $firstName,
                 'contact_name' => $lastName,
-                'customer_no' => $options['customer_no'] ?? 'CUST' . time(),
-                'vat_id' => $options['vat_id'] ?? 'VAT' . time(),
-                'street' => $options['street'] ?? 'fleetstreet',
-                'zip' => $options['zip'] ?? '21337',
-                'city' => $options['city'] ?? 'london',
-                'state' => $options['state'] ?? 'bavaria',
-                'country' => $options['country'] ?? 'DE',
-                'telephone' => $options['phone'] ?? '123456789',
-                'mobile' => $options['mobile'] ?? '987654321',
-                'fax' => $options['fax'] ?? '546718293',
-                'email' => $options['email'] ?? 'e@mail.int',
-                'internet' => '',
-                'notes' => 'awesome',
-                'default_mailserver' => 1,
-                'limit_maildomain' => -1,
-                'limit_mailbox' => -1,
-                'limit_mailalias' => -1,
-                'limit_mailaliasdomain' => -1,
-                'limit_mailforward' => -1,
-                'limit_mailcatchall' => -1,
-                'limit_mailrouting' => 0,
-                'limit_mailfilter' => -1,
-                'limit_fetchmail' => -1,
-                'limit_mailquota' => -1,
-                'limit_spamfilter_wblist' => -1,
-                'limit_spamfilter_user' => -1,
-                'limit_spamfilter_policy' => -1,
-                'default_webserver' => 1,
-                'limit_web_ip' => '',
-                'limit_web_domain' => -1,
-                'limit_web_quota' => -1,
-                'web_php_options' => 'no,fast-cgi,cgi,mod,suphp',
-                'limit_web_subdomain' => -1,
-                'limit_web_aliasdomain' => -1,
-                'limit_ftp_user' => -1,
-                'limit_shell_user' => 0,
-                'ssh_chroot' => 'no,jailkit,ssh-chroot',
-                'limit_webdav_user' => 0,
-                'default_dnsserver' => 1,
-                'limit_dns_zone' => -1,
-                'limit_dns_slave_zone' => -1,
-                'limit_dns_record' => -1,
-                'default_dbserver' => 1,
-                'limit_database' => -1,
-                'limit_cron' => 0,
-                'limit_cron_type' => 'url',
-                'limit_cron_frequency' => 5,
-                'limit_traffic_quota' => -1,
-                'limit_client' => 0,
-                'parent_client_id' => 0,
+                'email' => $options['email'] ?? '',
+                'default_mailserver' => $options['default_mailserver'] ?? '1',
+                'default_webserver' => $options['default_webserver'] ?? '1',
+                'ssh_chroot' => $options['ssh_chroot'] ?? 'no,jailkit,ssh-chroot',
+                'default_dnsserver' => $options['default_dnsserver'] ?? '1',
+                'default_dbserver' => $options['default_dbserver'] ?? '1',
                 'username' => $username,
                 'password' => $password,
-                'language' => $options['language'] ?? 'en',
+                'language' => $options['language'] ?? 'de',
                 'usertheme' => 'default',
+                'web_php_options' => $options['web_php_options'] ?? 'no,fast-cgi,cgi,mod,suphp',
+                'limit_cron_type' => $options['limit_cron_type'] ?? 'url',
+                
+                // Optional Parameter Mail-Server
+                'limit_maildomain' => intval($options['limit_maildomain'] ?? -1),
+                'limit_mailbox' => intval($options['limit_mailbox'] ?? -1),
+                'limit_mailalias' => intval($options['limit_mailalias'] ?? -1),
+                'limit_mailaliasdomain' => intval($options['limit_mailaliasdomain'] ?? -1),
+                'limit_mailforward' => intval($options['limit_mailforward'] ?? -1),
+                'limit_mailcatchall' => intval($options['limit_mailcatchall'] ?? -1),
+                'limit_mailrouting' => intval($options['limit_mailrouting'] ?? 0),
+                'limit_mailfilter' => intval($options['limit_mailfilter'] ?? -1),
+                'limit_fetchmail' => intval($options['limit_fetchmail'] ?? -1),
+                'limit_mailquota' => intval($options['limit_mailquota'] ?? -1),
+                'limit_spamfilter_wblist' => intval($options['limit_spamfilter_wblist'] ?? -1),
+                'limit_spamfilter_user' => intval($options['limit_spamfilter_user'] ?? -1),
+                'limit_spamfilter_policy' => intval($options['limit_spamfilter_policy'] ?? -1),
+                
+                // Optional Parameter WebServer
+                'limit_web_ip' => $options['limit_web_ip'] ?? '',
+                'limit_web_domain' => intval($options['limit_web_domain'] ?? -1),
+                'limit_web_quota' => intval($options['limit_web_quota'] ?? -1),
+                'limit_web_subdomain' => intval($options['limit_web_subdomain'] ?? -1),
+                'limit_web_aliasdomain' => intval($options['limit_web_aliasdomain'] ?? -1),
+                'limit_ftp_user' => intval($options['limit_ftp_user'] ?? -1),
+                'limit_shell_user' => intval($options['limit_shell_user'] ?? 0),
+                'limit_webdav_user' => intval($options['limit_webdav_user'] ?? 0),
+                
+                // Optional Parameter DNSServer
+                'limit_dns_zone' => intval($options['limit_dns_zone'] ?? -1),
+                'limit_dns_slave_zone' => intval($options['limit_dns_slave_zone'] ?? -1),
+                'limit_dns_record' => intval($options['limit_dns_record'] ?? -1),
+                
+                // Optional Parameter Database
+                'limit_database' => intval($options['limit_database'] ?? -1),
+                
+                // Optional Parameter CronJobs
+                'limit_cron' => intval($options['limit_cron'] ?? 0),
+                'limit_cron_frequency' => intval($options['limit_cron_frequency'] ?? 5),
+                'limit_traffic_quota' => intval($options['limit_traffic_quota'] ?? -1),
+                
+                // Optional Parameter Stuff
+                'limit_client' => 0, // If this value is > 0, then the client is a reseller
+                'parent_client_id' => 0,
+                
+                // Optional Parameter Templates
                 'template_master' => 0,
                 'template_additional' => '',
                 'created_at' => 0,
+                
+                // Optional Parameter Options
                 'limit_redis_instances' => 0,
                 'limit_redis_memory_per_instance' => 0,
                 'limit_redis_memory_total' => 0,
@@ -4498,13 +4502,45 @@ class ServiceManager {
                 'limit_allow_docker_databases' => 'y'
             ];
             
+            // Zusätzliche Kontaktdaten hinzufügen, falls verfügbar
+            if (!empty($options['phone'])) {
+                $ispconfigData['contact_phone'] = $options['phone'];
+            }
+            if (!empty($options['mobile'])) {
+                $ispconfigData['contact_mobile'] = $options['mobile'];
+            }
+            if (!empty($options['fax'])) {
+                $ispconfigData['contact_fax'] = $options['fax'];
+            }
+            if (!empty($options['street'])) {
+                $ispconfigData['contact_street'] = $options['street'];
+            }
+            if (!empty($options['zip'])) {
+                $ispconfigData['contact_zip'] = $options['zip'];
+            }
+            if (!empty($options['city'])) {
+                $ispconfigData['contact_city'] = $options['city'];
+            }
+            if (!empty($options['state'])) {
+                $ispconfigData['contact_state'] = $options['state'];
+            }
+            if (!empty($options['country'])) {
+                $ispconfigData['contact_country'] = $options['country'];
+            }
+            if (!empty($options['customer_no'])) {
+                $ispconfigData['customer_no'] = $options['customer_no'];
+            }
+            if (!empty($options['vat_id'])) {
+                $ispconfigData['vat_id'] = $options['vat_id'];
+            }
+            
             $result = $this->ispconfigPost->createClient($ispconfigData);
             
             if ($result && isset($result['success']) && $result['success']) {
                 $this->__log("ISPConfig User Created", "Benutzer $username erfolgreich in ISPConfig angelegt", "success");
                 return $result;
             } else {
-                throw new Exception('Fehler beim Anlegen des ISPConfig-Benutzers: ' . ($result['message'] ?? 'Unbekannter Fehler'));
+                throw new Exception('Fehler beim Anlegen des ISPConfig-Benutzers: ' . (is_array($result) ? json_encode($result) : $result));
             }
             
         } catch (Exception $e) {
@@ -4555,7 +4591,7 @@ class ServiceManager {
         }
     }
     
-    public function createUserInAllSystems($username, $password, $firstName, $lastName, $options = []) {
+    public function createUserInAllSystems($username, $systemPasswords, $firstName, $lastName, $options = []) {
         try {
             $results = [];
             $errors = [];
@@ -4563,7 +4599,8 @@ class ServiceManager {
             // Erstelle Benutzer in allen verfügbaren Systemen
             if (Config::OGP_USEING) {
                 try {
-                    $ogpResult = $this->createOGPUser($username, $password, $firstName, $lastName, $options);
+                    $ogpPassword = is_array($systemPasswords) && isset($systemPasswords['ogp']) ? $systemPasswords['ogp'] : $systemPasswords;
+                    $ogpResult = $this->createOGPUser($username, $ogpPassword, $firstName, $lastName, $options);
                     if ($ogpResult && isset($ogpResult['success']) && $ogpResult['success']) {
                         $results['ogp'] = $ogpResult;
                         $this->__log("OGP User Creation", "Benutzer $username erfolgreich in OGP angelegt", "success");
@@ -4576,7 +4613,8 @@ class ServiceManager {
             
             if (Config::PROXMOX_USEING) {
                 try {
-                    $proxmoxResult = $this->createProxmoxUser($username, $password, $firstName, $lastName, $options);
+                    $proxmoxPassword = is_array($systemPasswords) && isset($systemPasswords['proxmox']) ? $systemPasswords['proxmox'] : $systemPasswords;
+                    $proxmoxResult = $this->createProxmoxUser($username, $proxmoxPassword, $firstName, $lastName, $options);
                     if ($proxmoxResult && isset($proxmoxResult['success']) && $proxmoxResult['success']) {
                         $results['proxmox'] = $proxmoxResult;
                         $this->__log("Proxmox User Creation", "Benutzer $username erfolgreich in Proxmox angelegt", "success");
@@ -4589,7 +4627,8 @@ class ServiceManager {
             
             if (Config::ISPCONFIG_USEING) {
                 try {
-                    $ispconfigResult = $this->createISPConfigUser($username, $password, $firstName, $lastName, $options);
+                    $ispconfigPassword = is_array($systemPasswords) && isset($systemPasswords['ispconfig']) ? $systemPasswords['ispconfig'] : $systemPasswords;
+                    $ispconfigResult = $this->createISPConfigUser($username, $ispconfigPassword, $firstName, $lastName, $options);
                     if ($ispconfigResult && isset($ispconfigResult['success']) && $ispconfigResult['success']) {
                         $results['ispconfig'] = $ispconfigResult;
                         $this->__log("ISPConfig User Creation", "Benutzer $username erfolgreich in ISPConfig angelegt", "success");

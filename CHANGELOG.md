@@ -2,6 +2,21 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.0.7]
+
+### Fehlerbehebung
+- Fehler im Regestationsporzess der Systemanmeldungen
+- Fehler in der Verwendung von createISPConfigUser()
+
+### Benutzerregestration
+- Benutzer werden nun automatisch per E-Mail benachrichtigt
+- Verifizierungsprozess erzeugt benutzer inkl. Random Passwörter in den Systemen
+- Login in die Systeme einzelnd möglich
+
+### Sicherheit
+- Verifizierung ist nur 24h Gültig
+- Bei Aktivierung des Benutzers aus dem BackEnd, werden keine weiteren System-Benutzer angelegt
+
 ## [3.0.6]
 ### Fehlerbehbung
 - Der DatabaseManager hatte zwei kritische Fehler, die zu Fatal Errors führten:

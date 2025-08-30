@@ -7,6 +7,110 @@ if (!isset($db)) {
 // ServiceManager initialisieren
 $serviceManager = new ServiceManager();
 
+// Kunden abrufen
+try {
+    $customers = [];
+    $stmt = $db->query("SELECT * FROM customers ORDER BY created_at DESC");
+    $customers = $db->fetchAll($stmt);
+} catch (Exception $e) {
+    $customers = [];
+    error_log("Fehler beim Laden der Kunden: " . $e->getMessage());
+}
+
+// Aktionsverarbeitung für Kundenaktivierung
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'activate_customer') {
+    $customerId = (int)($_POST['customer_id'] ?? 0);
+    
+    if ($customerId > 0) {
+        try {
+            // Kundendaten abrufen
+            $stmt = $db->prepare("SELECT * FROM customers WHERE id = ? AND status = 'pending'");
+            $stmt->execute([$customerId]);
+            $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($customer) {
+                // Konto aktivieren
+                $stmt = $db->prepare("UPDATE customers SET status = 'active', email_verified_at = NOW(), updated_at = NOW() WHERE id = ?");
+                $result = $stmt->execute([$customerId]);
+                
+                if ($result) {
+                    // Benutzerkonten in allen Systemen erstellen
+                    try {
+                        // Benutzername aus E-Mail generieren
+                        $username = strtolower(explode('@', $customer['email'])[0]);
+                        
+                        // Neues Passwort generieren
+                        $newPassword = bin2hex(random_bytes(8)); // 16 Zeichen
+                        
+                        // Passwort in der Datenbank aktualisieren
+                        $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+                        $stmt = $db->prepare("UPDATE customers SET password_hash = ? WHERE id = ?");
+                        $stmt->execute([$passwordHash, $customerId]);
+                        
+                        // Benutzer in allen Systemen erstellen
+                        $creationResult = $serviceManager->createUserInAllSystems(
+                            $username,
+                            $newPassword,
+                            $customer['first_name'],
+                            $customer['last_name'],
+                            [
+                                'email' => $customer['email'],
+                                'company' => $customer['company'] ?? '',
+                                'phone' => $customer['phone'] ?? ''
+                            ]
+                        );
+                        
+                        if ($creationResult['success']) {
+                            // Erfolgreiche Systemerstellung loggen
+                            $db->logAction(
+                                'Admin Customer Activation',
+                                "Kunde {$customer['email']} erfolgreich aktiviert und in allen Systemen angelegt: " . implode(', ', array_keys($creationResult['results'])),
+                                'success'
+                            );
+                            
+                            // E-Mail mit Anmeldedaten senden
+                            sendSystemCredentialsEmail($customer['email'], $customer['first_name'], $username, $newPassword, $creationResult['results']);
+                            
+                            $_SESSION['success_message'] = "Kunde {$customer['email']} erfolgreich aktiviert und Systemkonten angelegt.";
+                        } else {
+                            $_SESSION['warning_message'] = "Kunde aktiviert, aber Fehler beim Anlegen der Systemkonten: " . json_encode($creationResult['errors']);
+                            
+                            // Fehler loggen
+                            $db->logAction(
+                                'Admin Customer Activation',
+                                "Kunde {$customer['email']} aktiviert, aber Fehler bei Systemkonten: " . json_encode($creationResult['errors']),
+                                'error'
+                            );
+                        }
+                        
+                    } catch (Exception $e) {
+                        $_SESSION['warning_message'] = "Kunde aktiviert, aber Fehler beim Anlegen der Systemkonten: " . $e->getMessage();
+                        error_log("System User Creation Error: " . $e->getMessage());
+                        
+                        // Fehler loggen
+                        $db->logAction(
+                            'Admin Customer Activation',
+                            "Exception beim Anlegen der Systemkonten für Kunde {$customer['email']}: " . $e->getMessage(),
+                            'error'
+                        );
+                    }
+                    
+                } else {
+                    $_SESSION['error_message'] = "Fehler bei der Kontoaktivierung.";
+                }
+            } else {
+                $_SESSION['error_message'] = "Kunde nicht gefunden oder bereits aktiviert.";
+            }
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = "Fehler: " . $e->getMessage();
+            error_log("Customer Activation Error: " . $e->getMessage());
+        }
+        
+        // Weiterleitung zur gleichen Seite
+        header("Location: " . $_SERVER['REQUEST_URI']);
+        exit;
+    }
+}
 
 
 // Benutzerdaten abrufen - Verwende direkte Datenbankabfrage statt adminCore
@@ -400,6 +504,8 @@ function handleUpdatePassword($serviceManager, $db) {
         exit;
     }
 }
+
+
 ?>
     <div class="row mb-4">
         <div class="col-12">
@@ -420,6 +526,11 @@ function handleUpdatePassword($serviceManager, $db) {
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="link-tab" data-bs-toggle="tab" data-bs-target="#link" type="button" role="tab">
                                 <i class="bi bi-arrow-left-right"></i> Bestehende Benutzer verknüpfen
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">
+                                <i class="bi bi-people-fill"></i> Kundenverwaltung
                             </button>
                         </li>
                     </ul>
@@ -1159,6 +1270,138 @@ function handleUpdatePassword($serviceManager, $db) {
                                 </button>
                             </form>
                         </div>
+
+                        <!-- Kundenverwaltung Tab -->
+                        <div class="tab-pane fade" id="customers" role="tabpanel">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                Hier können Sie neue Kunden anlegen und bestehende verwalten.
+                            </div>
+                            <div class="card mb-4">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0"><i class="bi bi-people-fill"></i> Kundenverwaltung</h6>
+                                    <button class="btn btn-sm btn-primary" onclick="showCreateCustomerModal()">
+                                        <i class="bi bi-plus-circle"></i> Neuen Kunden anlegen
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-3">
+                                            <input type="text" class="form-control" id="customerSearchInput" placeholder="<?= t('search_customers') ?>" onkeyup="debounce(loadCustomers, 500)()">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select" id="customerStatusFilter" onchange="loadCustomers()">
+                                                <option value=""><?= t('all_statuses') ?></option>
+                                                <option value="active"><?= t('active') ?></option>
+                                                <option value="inactive"><?= t('inactive') ?></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select" id="customerTypeFilter" onchange="loadCustomers()">
+                                                <option value=""><?= t('all_customer_types') ?></option>
+                                                <option value="reseller"><?= t('resellers') ?></option>
+                                                <option value="customer"><?= t('customers') ?></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover" id="customersTable">
+                                            <thead>
+                                                <tr>
+                                                    <th><?= t('customer_id') ?></th>
+                                                    <th>Name</th>
+                                                    <th>E-Mail</th>
+                                                    <th>Firma</th>
+                                                    <th>Telefon</th>
+                                                    <th>Status</th>
+                                                    <th>Registriert am</th>
+                                                    <th>Aktionen</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="customersTableBody">
+                                                <?php if (!empty($customers)): ?>
+                                                    <?php foreach ($customers as $customer): ?>
+                                                        <tr data-customer-id="<?= htmlspecialchars($customer['id']) ?>">
+                                                            <td><?= htmlspecialchars($customer['id']) ?></td>
+                                                            <td>
+                                                                <strong><?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) ?></strong>
+                                                            </td>
+                                                            <td>
+                                                                <a href="mailto:<?= htmlspecialchars($customer['email']) ?>">
+                                                                    <?= htmlspecialchars($customer['email']) ?>
+                                                                </a>
+                                                            </td>
+                                                            <td><?= htmlspecialchars($customer['company'] ?? '-') ?></td>
+                                                            <td><?= htmlspecialchars($customer['phone'] ?? '-') ?></td>
+                                                            <td>
+                                                                <?php
+                                                                $statusClass = '';
+                                                                $statusText = '';
+                                                                switch ($customer['status']) {
+                                                                    case 'pending':
+                                                                        $statusClass = 'warning';
+                                                                        $statusText = 'Ausstehend';
+                                                                        break;
+                                                                    case 'active':
+                                                                        $statusClass = 'success';
+                                                                        $statusText = 'Aktiv';
+                                                                        break;
+                                                                    case 'suspended':
+                                                                        $statusClass = 'danger';
+                                                                        $statusText = 'Gesperrt';
+                                                                        break;
+                                                                    case 'deleted':
+                                                                        $statusClass = 'secondary';
+                                                                        $statusText = 'Gelöscht';
+                                                                        break;
+                                                                    default:
+                                                                        $statusClass = 'secondary';
+                                                                        $statusText = 'Unbekannt';
+                                                                }
+                                                                ?>
+                                                                <span class="badge bg-<?= $statusClass ?>"><?= $statusText ?></span>
+                                                            </td>
+                                                            <td>
+                                                                <?= $customer['created_at'] ? date('d.m.Y H:i', strtotime($customer['created_at'])) : '-' ?>
+                                                            </td>
+                                                            <td>
+                                                                <?php if ($customer['status'] === 'pending'): ?>
+                                                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Kunde wirklich aktivieren?')">
+                                                                        <input type="hidden" name="action" value="activate_customer">
+                                                                        <input type="hidden" name="customer_id" value="<?= $customer['id'] ?>">
+                                                                        <button type="submit" class="btn btn-success btn-sm" title="Kunde aktivieren">
+                                                                            <i class="bi bi-check"></i> Aktivieren
+                                                                        </button>
+                                                                    </form>
+                                                                <?php elseif ($customer['status'] === 'active'): ?>
+                                                                    <span class="text-success">
+                                                                        <i class="bi bi-check-circle"></i> Aktiviert
+                                                                    </span>
+                                                                <?php endif; ?>
+                                                                
+                                                                <button type="button" class="btn btn-info btn-sm ms-1" 
+                                                                        onclick="showCustomerDetails(<?= $customer['id'] ?>)" 
+                                                                        title="Details anzeigen">
+                                                                    <i class="bi bi-eye"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr>
+                                                        <td colspan="8" class="text-center">
+                                                            <div class="alert alert-info">
+                                                                <i class="bi bi-info-circle"></i> <?= t('no_customers_found') ?>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1294,6 +1537,24 @@ function handleUpdatePassword($serviceManager, $db) {
                     <button type="submit" class="btn btn-danger">Löschen</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Kundendetails -->
+<div class="modal fade" id="customerDetailsModal" tabindex="-1" aria-labelledby="customerDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerDetailsModalLabel">Kundendetails</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="customerDetailsContent">
+                <!-- Wird dynamisch geladen -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
         </div>
     </div>
 </div>

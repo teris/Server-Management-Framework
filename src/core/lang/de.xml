@@ -1208,4 +1208,34 @@
     <domain_extension>Domain-Endung</domain_extension>
     <select_extension>Endung auswählen</select_extension>
     <all_tlds>Alle TLDs (Alle Endungen prüfen)</all_tlds>
+    
+    <!-- Kundenverwaltung -->
+    <search_customers>Kunden suchen</search_customers>
+    <all_customer_types>Alle Kundentypen</all_customer_types>
+    <resellers>Wiederverkäufer</resellers>
+    <customers>Kunden</customers>
+    <customer_id>Kunden-ID</customer_id>
+    <customer_name>Kundenname</customer_name>
+    <no_customers_found>Keine Kunden gefunden</no_customers_found>
+    <create_customer>Kunde erstellen</create_customer>
+    <edit_customer>Kunde bearbeiten</edit_customer>
+    <delete_customer>Kunde löschen</delete_customer>
+    <view_customer_details>Kundendetails anzeigen</view_customer_details>
+    <customer_management>Kundenverwaltung</customer_management>
+    <customer_type>Kundentyp</customer_type>
+    <customer_status>Kundenstatus</customer_status>
+    <customer_created>Kunde erfolgreich erstellt</customer_created>
+    <customer_updated>Kunde erfolgreich aktualisiert</customer_updated>
+    <customer_deleted>Kunde erfolgreich gelöscht</customer_deleted>
+    <error_creating_customer>Fehler beim Erstellen des Kunden</error_creating_customer>
+    <error_updating_customer>Fehler beim Aktualisieren des Kunden</error_updating_customer>
+    <error_deleting_customer>Fehler beim Löschen des Kunden</error_deleting_customer>
+    <confirm_delete_customer>Möchten Sie diesen Kunden wirklich löschen?</confirm_delete_customer>
+    <customer_activation>Kundenaktivierung</customer_activation>
+    <activate_customer>Kunde aktivieren</activate_customer>
+    <customer_activated>Kunde erfolgreich aktiviert</customer_activated>
+    <system_accounts_created>Systemkonten erfolgreich angelegt</system_accounts_created>
+    <error_activating_customer>Fehler bei der Kundenaktivierung</error_activating_customer>
+    <customer_not_found>Kunde nicht gefunden</customer_not_found>
+    <customer_already_active>Kunde ist bereits aktiv</customer_already_active>
 </translations> 

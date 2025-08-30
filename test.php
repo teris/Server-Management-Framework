@@ -7,21 +7,21 @@ echo "<pre>";
 $serviceManager = new ServiceManager();
 
 // Spezifische Methoden
-$servers = $serviceManager->getOGPServerList();
+//$servers = $serviceManager->getISPConfigClients();
+//$ovhDomain	= $serviceManager->getSystemInfo();
+//$getOGPGamesList = $serviceManager->getOGPGamesList("windows","32");
+//echo "<h2>getOGPServerList</h2>";
+//print_r($servers);;
+//echo "<h2>getOGPGameServers</h2>";
+//print_r($ovhDomain);
+//echo "<h2>getOGPGamesList</h2>";
+//print_r($getOGPGamesList);
 
-$ovhDomain	= $serviceManager->getOVHDomains();
-
-$ispDomain = $serviceManager->getISPConfigEmails();
-
-$networks = $serviceManager->getProxmoxNetwork();
+// Korrigierter Aufruf mit dem fehlenden zweiten Parameter
+// Der zweite Parameter ist normalerweise eine client_id oder ein Filter-Array
+//print_r($serviceManager->IspconfigAPI('get', 'client_templates_get_all'));
 
 
+print_r($serviceManager->IspconfigAPI('get', 'get_function_list'));
 
-echo "<h2>getOGPServerList - OGP</h2>";
-print_r($servers);;
-echo "<h2>getDomains - OVH</h2>";
-print_r($ovhDomain);
-echo "<h2>getISPConfigEmails - ISPConfig 3</h2>";
-print_r($ispDomain);
-echo "<h2>getProxmoxNetwork - Proxmox</h2>";
-print_r($networks);
+

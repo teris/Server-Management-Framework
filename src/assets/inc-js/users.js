@@ -259,3 +259,34 @@ function showCreateUserModal() {
     // Zum ersten Tab wechseln
     $('#create-tab').tab('show');
 }
+
+// Kundendetails anzeigen
+function showCustomerDetails(customerId) {
+    // Hier könnte AJAX verwendet werden, um detaillierte Kundendaten zu laden
+    // Für den Moment zeigen wir nur eine einfache Nachricht
+    
+    // Modal-Inhalt aktualisieren
+    document.getElementById('customerDetailsModalLabel').textContent = 'Kundendetails';
+    document.getElementById('customerDetailsContent').innerHTML = `
+        <div class="text-center">
+            <p>Kundendetails für ID: ${customerId}</p>
+            <p>Diese Funktion kann erweitert werden, um detaillierte Informationen anzuzeigen.</p>
+            <p>Sie können hier weitere Informationen wie:</p>
+            <ul class="text-start">
+                <li>Registrierungsdatum</li>
+                <li>Letzte Aktivität</li>
+                <li>Systemkonten-Status</li>
+                <li>Verknüpfte Dienste</li>
+            </ul>
+        </div>
+    `;
+    
+    // Bootstrap Modal öffnen
+    var modalElement = document.getElementById('customerDetailsModal');
+    if (modalElement) {
+        var modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } else {
+        console.error('Modal-Element nicht gefunden');
+    }
+}
