@@ -17,9 +17,53 @@ class AdminCore {
     }
     
     /**
-     * Hole Dashboard-Statistiken
+     * Sichere Eigenschaftsabfrage für Objekte
      */
-    public function getDashboardStats() {
+    private function safeGetProperty($object, $propertyName, $default = null) {
+        if (!is_object($object)) {
+            return $default;
+        }
+        
+        if (property_exists($object, $propertyName)) {
+            try {
+                $value = $object->$propertyName;
+                return $value !== null ? $value : $default;
+            } catch (Exception $e) {
+                error_log("Error accessing property {$propertyName}: " . $e->getMessage());
+                return $default;
+            }
+        }
+        
+        return $default;
+    }
+    
+    /**
+     * Sichere Array-Wert-Abfrage
+     */
+    private function safeGetArrayValue($array, $key, $default = null) {
+        if (!is_array($array)) {
+            return $default;
+        }
+        
+        return $array[$key] ?? $default;
+    }
+    
+    /**
+     * Sichere Datenbankverbindung abrufen
+     */
+    private function getSafeDbConnection() {
+        $connection = $this->db->getConnection();
+        if (!$connection) {
+            throw new Exception("Database connection is not available");
+        }
+        return $connection;
+    }
+    
+    /**
+     * Hole Dashboard-Statistiken
+     * @return array Dashboard-Statistiken als Array
+     */
+    public function getDashboardStats(): array {
         $stats = [
             'vms' => [
                 'label' => 'Virtuelle Maschinen',
@@ -76,20 +120,52 @@ class AdminCore {
                 $status = null;
                 
                 if (is_object($vm)) {
-                    // Versuche verschiedene Eigenschaftsnamen
-                    if (property_exists($vm, 'status')) {
-                        $status = $vm->status;
-                    } elseif (property_exists($vm, 'state')) {
-                        $status = $vm->state;
-                    } elseif (method_exists($vm, 'getStatus')) {
-                        $status = $vm->getStatus();
+                    // Versuche verschiedene Eigenschaftsnamen mit sicherer Abfrage
+                    $status = $this->safeGetProperty($vm, 'status');
+                    if ($status === null) {
+                        $status = $this->safeGetProperty($vm, 'state');
+                    }
+                    if ($status === null) {
+                        $status = $this->safeGetProperty($vm, 'vm_status');
+                    }
+                    if ($status === null) {
+                        $status = $this->safeGetProperty($vm, 'vm_state');
+                    }
+                    if ($status === null) {
+                        $status = $this->safeGetProperty($vm, 'running_state');
+                    }
+                    
+                    // Versuche Methodenaufruf als Fallback
+                    if ($status === null && method_exists($vm, 'getStatus')) {
+                        try {
+                            $status = $vm->getStatus();
+                        } catch (Exception $e) {
+                            error_log("Error calling getStatus method: " . $e->getMessage());
+                            $status = null;
+                        }
                     }
                 } elseif (is_array($vm)) {
-                    $status = $vm['status'] ?? $vm['state'] ?? null;
+                    $status = $this->safeGetArrayValue($vm, 'status');
+                    if ($status === null) {
+                        $status = $this->safeGetArrayValue($vm, 'state');
+                    }
+                    if ($status === null) {
+                        $status = $this->safeGetArrayValue($vm, 'vm_status');
+                    }
+                    if ($status === null) {
+                        $status = $this->safeGetArrayValue($vm, 'vm_state');
+                    }
+                    if ($status === null) {
+                        $status = $this->safeGetArrayValue($vm, 'running_state');
+                    }
                 }
                 
-                if ($status === 'running' || $status === 'active') {
-                    $running++;
+                // Status normalisieren und prüfen
+                if ($status !== null) {
+                    $status = strtolower(trim((string)$status));
+                    if (in_array($status, ['running', 'active', 'started', 'up', 'online', '1', 'true'])) {
+                        $running++;
+                    }
                 }
             }
             $stats['vms']['status_text'] = "$running laufend";
@@ -110,15 +186,51 @@ class AdminCore {
                 $is_active = false;
                 
                 if (is_object($site)) {
-                    // Versuche verschiedene Eigenschaftsnamen
-                    if (property_exists($site, 'active')) {
-                        $is_active = ($site->active === 'y' || $site->active === true);
-                    } elseif (property_exists($site, 'status')) {
-                        $is_active = ($site->status === 'active' || $site->status === 'y');
+                    // Versuche verschiedene Eigenschaftsnamen mit sicherer Abfrage
+                    $active_val = $this->safeGetProperty($site, 'active');
+                    if ($active_val !== null) {
+                        $is_active = ($active_val === 'y' || $active_val === true || $active_val === 1);
+                    }
+                    
+                    if (!$is_active) {
+                        $status_val = $this->safeGetProperty($site, 'status');
+                        if ($status_val !== null) {
+                            $is_active = ($status_val === 'active' || $status_val === 'y' || $status_val === 1);
+                        }
+                    }
+                    
+                    if (!$is_active) {
+                        $enabled_val = $this->safeGetProperty($site, 'enabled');
+                        if ($enabled_val !== null) {
+                            $is_active = ($enabled_val === 'y' || $enabled_val === true || $enabled_val === 1);
+                        }
+                    }
+                    
+                    if (!$is_active) {
+                        $is_active_val = $this->safeGetProperty($site, 'is_active');
+                        if ($is_active_val !== null) {
+                            $is_active = ($is_active_val === 'y' || $is_active_val === true || $is_active_val === 1);
+                        }
                     }
                 } elseif (is_array($site)) {
-                    $active_val = $site['active'] ?? $site['status'] ?? null;
-                    $is_active = ($active_val === 'y' || $active_val === true || $active_val === 'active');
+                    $active_val = $this->safeGetArrayValue($site, 'active');
+                    if ($active_val !== null) {
+                        $is_active = ($active_val === 'y' || $active_val === true || $active_val === 1);
+                    }
+                    
+                    if (!$is_active) {
+                        $status_val = $this->safeGetArrayValue($site, 'status');
+                        if ($status_val !== null) {
+                            $is_active = ($status_val === 'active' || $status_val === 'y' || $status_val === 1);
+                        }
+                    }
+                    
+                    if (!$is_active) {
+                        $enabled_val = $this->safeGetArrayValue($site, 'enabled');
+                        if ($enabled_val !== null) {
+                            $is_active = ($enabled_val === 'y' || $enabled_val === true || $enabled_val === 1);
+                        }
+                    }
                 }
                 
                 if ($is_active) {
@@ -211,7 +323,11 @@ class AdminCore {
         global $modus_type;
         try {
             if ($modus_type['modus']  == 'mysql') {
-                $db = Database::getInstance()->getConnection();
+                $dbInstance = Database::getInstance();
+                $db = $dbInstance->getConnection();
+                if (!$db) {
+                    throw new Exception("Database connection is not available");
+                }
                 $sql = "SELECT vm_id, name, node, status, cores, memory, disk_size, ip_address, mac_address FROM vms";
                 $stmt = $db->prepare($sql);
                 $stmt->execute();
@@ -257,7 +373,11 @@ class AdminCore {
         global $modus_type;
         try {
             if ($modus_type['modus']  === 'mysql') {
-                $db = Database::getInstance()->getConnection();
+                $dbInstance = Database::getInstance();
+                $db = $dbInstance->getConnection();
+                if (!$db) {
+                    throw new Exception("Database connection is not available");
+                }
                 $sql = "SELECT domain, ip_address, system_user, system_group, document_root, hd_quota, traffic_quota, active, ssl_enabled FROM websites";
                 $stmt = $db->prepare($sql);
                 $stmt->execute();
@@ -303,7 +423,11 @@ class AdminCore {
         global $modus_type;
         try {
             if ($modus_type['modus']  === 'mysql') {
-                $db = Database::getInstance()->getConnection();
+                $dbInstance = Database::getInstance();
+                $db = $dbInstance->getConnection();
+                if (!$db) {
+                    throw new Exception("Database connection is not available");
+                }
                 $sql = "SELECT database_name, database_user, database_type, server_id, charset, remote_access, active FROM sm_databases";
                 $stmt = $db->prepare($sql);
                 $stmt->execute();
@@ -347,7 +471,11 @@ class AdminCore {
         global $modus_type;
         try {
             if ($modus_type['modus']  === 'mysql') {
-                $db = Database::getInstance()->getConnection();
+                $dbInstance = Database::getInstance();
+                $db = $dbInstance->getConnection();
+                if (!$db) {
+                    throw new Exception("Database connection is not available");
+                }
                 $sql = "SELECT email_address, login_name, full_name, domain, quota_mb, active, autoresponder, forward_to FROM email_accounts";
                 $stmt = $db->prepare($sql);
                 $stmt->execute();
@@ -392,7 +520,11 @@ class AdminCore {
         global $modus_type;
         try {
             if ($modus_type['modus'] === 'mysql') {
-                $db = Database::getInstance()->getConnection();
+                $dbInstance = Database::getInstance();
+                $db = $dbInstance->getConnection();
+                if (!$db) {
+                    throw new Exception("Database connection is not available");
+                }
                 $sql = "SELECT domain_name, registrar, expiration_date, auto_renew, nameservers, status FROM domains";
                 $stmt = $db->prepare($sql);
                 $stmt->execute();
@@ -436,7 +568,11 @@ class AdminCore {
         try {
             if ($modus_type['modus']  === 'mysql') {
                 // Aus der Datenbank lesen
-                $db = Database::getInstance()->getConnection();
+                $dbInstance = Database::getInstance();
+                $db = $dbInstance->getConnection();
+                if (!$db) {
+                    throw new Exception("Database connection is not available");
+                }
                 $sql = "SELECT subnet, ip_reverse, reverse, ttl FROM ips";
                 $stmt = $db->prepare($sql);
                 $stmt->execute();
@@ -853,7 +989,8 @@ class AdminCore {
     // --- API-Zugangsdaten ---
     public function getApiCredentials() {
         try {
-            $stmt = $this->db->getConnection()->query("SELECT * FROM api_credentials");
+            $connection = $this->getSafeDbConnection();
+            $stmt = $connection->query("SELECT * FROM api_credentials");
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             // Werte aus config/config.inc.php holen
             require_once dirname(__DIR__) . '/config/config.inc.php';
@@ -882,7 +1019,7 @@ class AdminCore {
     }
     public function saveApiCredentials($data) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             foreach ($data as $key => $value) {
                 if (preg_match('/^api_url_(\d+)$/', $key, $m)) {
                     $id = $m[1];
@@ -901,7 +1038,8 @@ class AdminCore {
     // --- Module ---
     public function getModules() {
         try {
-            $stmt = $this->db->getConnection()->query("SELECT * FROM modules");
+            $connection = $this->getSafeDbConnection();
+            $stmt = $connection->query("SELECT * FROM modules");
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return ['success' => true, 'data' => $data];
         } catch (Exception $e) {
@@ -910,7 +1048,7 @@ class AdminCore {
     }
     public function saveModules($data) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             $stmt = $db->query("SELECT id FROM modules");
             $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
             foreach ($ids as $id) {
@@ -925,7 +1063,8 @@ class AdminCore {
     // --- Benutzer ---
     public function getUsers() {
         try {
-            $stmt = $this->db->getConnection()->query("SELECT * FROM users");
+            $connection = $this->getSafeDbConnection();
+            $stmt = $connection->query("SELECT * FROM users");
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return ['success' => true, 'data' => $data];
         } catch (Exception $e) {
@@ -938,7 +1077,7 @@ class AdminCore {
      */
     public function getAllUsers($page = 1, $limit = 25, $search = '', $status = '', $userType = '') {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             $offset = ($page - 1) * $limit;
             
             // Admin-Benutzer laden
@@ -1039,7 +1178,8 @@ class AdminCore {
     }
     public function getUser($id) {
         try {
-            $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE id=?");
+            $connection = $this->getSafeDbConnection();
+            $stmt = $connection->prepare("SELECT * FROM users WHERE id=?");
             $stmt->execute([$id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             return ['success' => true, 'data' => $data];
@@ -1049,7 +1189,7 @@ class AdminCore {
     }
     public function saveUser($data) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             $id = $data['user_id'] ?? null;
             $username = $data['username'] ?? '';
             $full_name = $data['full_name'] ?? '';
@@ -1086,7 +1226,8 @@ class AdminCore {
     }
     public function deleteUser($id) {
         try {
-            $stmt = $this->db->getConnection()->prepare("DELETE FROM users WHERE id=?");
+            $connection = $this->getSafeDbConnection();
+            $stmt = $connection->prepare("DELETE FROM users WHERE id=?");
             $stmt->execute([$id]);
             return ['success' => true];
         } catch (Exception $e) {
@@ -1099,7 +1240,7 @@ class AdminCore {
      */
     public function saveCustomer($data) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             $id = $data['customer_id'] ?? null;
             $firstName = $data['first_name'] ?? '';
             $lastName = $data['last_name'] ?? '';
@@ -1137,7 +1278,8 @@ class AdminCore {
      */
     public function deleteCustomer($id) {
         try {
-            $stmt = $this->db->getConnection()->prepare("DELETE FROM customers WHERE id=?");
+            $connection = $this->getSafeDbConnection();
+            $stmt = $connection->prepare("DELETE FROM customers WHERE id=?");
             $stmt->execute([$id]);
             return ['success' => true];
         } catch (Exception $e) {
@@ -1150,7 +1292,7 @@ class AdminCore {
      */
     public function toggleCustomerStatus($id) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             $stmt = $db->prepare("UPDATE customers SET status = CASE WHEN status = 'active' THEN 'inactive' ELSE 'active' END, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$id]);
             return ['success' => true];
@@ -1161,7 +1303,8 @@ class AdminCore {
     // --- Gruppen ---
     public function getGroups() {
         try {
-            $stmt = $this->db->getConnection()->query("SELECT * FROM groups");
+            $connection = $this->getSafeDbConnection();
+            $stmt = $connection->query("SELECT * FROM groups");
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return ['success' => true, 'data' => $data];
         } catch (Exception $e) {
@@ -1170,7 +1313,8 @@ class AdminCore {
     }
     public function getGroup($id) {
         try {
-            $stmt = $this->db->getConnection()->prepare("SELECT * FROM groups WHERE id=?");
+            $connection = $this->getSafeDbConnection();
+            $stmt = $connection->prepare("SELECT * FROM groups WHERE id=?");
             $stmt->execute([$id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             return ['success' => true, 'data' => $data];
@@ -1180,7 +1324,7 @@ class AdminCore {
     }
     public function saveGroup($data) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             $id = $data['group_id'] ?? null;
             $name = $data['group_name'] ?? '';
             $desc = $data['group_description'] ?? '';
@@ -1209,7 +1353,7 @@ class AdminCore {
     }
     public function deleteGroup($id) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             $db->prepare("DELETE FROM group_module_permissions WHERE group_id=?")->execute([$id]);
             $db->prepare("DELETE FROM groups WHERE id=?")->execute([$id]);
             return ['success' => true];
@@ -1219,7 +1363,7 @@ class AdminCore {
     }
     public function getGroupModules($groupId = null) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             $modules = $db->query("SELECT * FROM modules")->fetchAll(PDO::FETCH_ASSOC);
             if ($groupId) {
                 $perms = $db->prepare("SELECT module_id, can_access FROM group_module_permissions WHERE group_id=?");
@@ -1244,7 +1388,7 @@ class AdminCore {
     
     public function saveGroupModules($data) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             $groupId = $data['group_id'] ?? null;
             if (!$groupId) {
                 return ['success' => false, 'error' => 'Group ID required'];
@@ -1252,12 +1396,23 @@ class AdminCore {
             
             // Modulrechte speichern
             $db->prepare("DELETE FROM group_module_permissions WHERE group_id=?")->execute([$groupId]);
-            foreach ($data as $key => $value) {
-                if (preg_match('/^module_(\d+)$/', $key, $m)) {
-                    $module_id = $m[1];
-                    $can_access = $value === 'on' ? 1 : 0;
+            
+            // Verarbeite Module-Array falls vorhanden
+            if (isset($data['modules']) && is_array($data['modules'])) {
+                foreach ($data['modules'] as $module_id => $can_access) {
+                    $can_access = $can_access ? 1 : 0;
                     $db->prepare("INSERT INTO group_module_permissions (group_id, module_id, can_access) VALUES (?, ?, ?)")
                         ->execute([$groupId, $module_id, $can_access]);
+                }
+            } else {
+                // Fallback für das alte Format
+                foreach ($data as $key => $value) {
+                    if (preg_match('/^module_(\d+)$/', $key, $m)) {
+                        $module_id = $m[1];
+                        $can_access = $value === 'on' ? 1 : 0;
+                        $db->prepare("INSERT INTO group_module_permissions (group_id, module_id, can_access) VALUES (?, ?, ?)")
+                            ->execute([$groupId, $module_id, $can_access]);
+                    }
                 }
             }
             return ['success' => true];
@@ -1268,7 +1423,7 @@ class AdminCore {
     
     public function toggleUserStatus($userId, $status = null) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             
             // Wenn kein Status angegeben, aktuellen Status umschalten
             if ($status === null) {
@@ -1291,7 +1446,7 @@ class AdminCore {
     
     public function resetUserPassword($userId) {
         try {
-            $db = $this->db->getConnection();
+            $db = $this->getSafeDbConnection();
             
             // Generiere ein sicheres Passwort
             $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';

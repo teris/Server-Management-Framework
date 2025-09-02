@@ -30,6 +30,9 @@ Für Fragen, Diskussionen und allgemeine Hilfe verwenden Sie [GitHub Discussions
 **Problem:** OVH API Authentifizierung fehlschlägt
 - **Lösung:** Erstellen Sie einen neuen Consumer Key unter https://eu.api.ovh.com/createToken/
 
+**Problem** OpenGamePanel API Fehler
+- **Lösung** Erstellen Sie einen neuen Token direkt in der Benutzerverwaltung vom OpenGamePanel
+
 ## 📚 Ressourcen
 
 ### Dokumentation
@@ -43,6 +46,7 @@ Für Fragen, Diskussionen und allgemeine Hilfe verwenden Sie [GitHub Discussions
 - [Proxmox VE Dokumentation](https://pve.proxmox.com/wiki/Documentation)
 - [ISPConfig Dokumentation](https://www.ispconfig.org/documentation/)
 - [OVH API Dokumentation](https://docs.ovh.com/gb/en/api/)
+- [OpenGamePanel API Dokumentation](https://github.com/OpenGamePanel/OGP-Website/blob/master/ogp_api.php)
 
 ## 🧪 Debugging
 
@@ -62,9 +66,7 @@ php debug.php
 php auth_handler.php
 
 # Spezifische Debug-Tests
-php debug/ispconfig_debug.php
-php debug/ovh_failover_mac.php
-php debug/soap_test.php
+php debug/index.php
 ```
 
 ### Logs überprüfen

@@ -1,8 +1,8 @@
-<?php
+﻿<?php
 require_once 'config/config.inc.php';
 require_once 'src/core/DatabaseManager.php';
 
-// DATABASE CLASS - Kompatibilitätsklasse für bestehenden Code
+// DATABASE CLASS - KompatibilitÃ¤tsklasse fÃ¼r bestehenden Code
 class Database {
     private static $instance = null;
     private $dbManager;
@@ -38,7 +38,7 @@ class Database {
         return $this->dbManager->clearActivityLogs();
     }
 
-    // PDO Wrapper-Methoden für Kompatibilität
+    // PDO Wrapper-Methoden fÃ¼r KompatibilitÃ¤t
     public function prepare($sql) {
         return $this->dbManager->prepare($sql);
     }
@@ -49,7 +49,7 @@ class Database {
 
     public function exec($sql) {
         if ($this->dbManager->isMongoDB()) {
-            // MongoDB unterstützt keine SQL-Exec-Befehle
+            // MongoDB unterstÃ¼tzt keine SQL-Exec-Befehle
             return false;
         }
         return $this->dbManager->getConnection()->exec($sql);
@@ -73,7 +73,7 @@ class Database {
 
     public function inTransaction() {
         if ($this->dbManager->isMongoDB()) {
-            // MongoDB unterstützt Transaktionen ab Version 4.0
+            // MongoDB unterstÃ¼tzt Transaktionen ab Version 4.0
             return false;
         }
         return $this->dbManager->getConnection()->inTransaction();
@@ -81,7 +81,7 @@ class Database {
 
     public function quote($string, $type = PDO::PARAM_STR) {
         if ($this->dbManager->isMongoDB()) {
-            // MongoDB benötigt kein Quoting
+            // MongoDB benÃ¶tigt kein Quoting
             return $string;
         }
         return $this->dbManager->getConnection()->quote($string, $type);
@@ -140,7 +140,7 @@ class VirtualMac {
         $this->ips = $data['ips'] ?? [];
         $this->reverseEntries = $data['reverseEntries'] ?? [];
 
-        // Alle anderen Properties dynamisch hinzufügen
+        // Alle anderen Properties dynamisch hinzufÃ¼gen
         foreach ($data as $key => $value) {
             if (!property_exists($this, $key)) {
                 $this->$key = $value;
@@ -541,6 +541,10 @@ class ProxmoxGet extends BaseAPI {
 
     public function makeRequest($method, $url, $data = null) {
         $ch = curl_init();
+        
+        if ($ch === false) {
+            return false;
+        }
 
         $headers = [];
         if ($this->ticket) {
@@ -567,8 +571,15 @@ class ProxmoxGet extends BaseAPI {
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
+        // Prüfe auf cURL Fehler
+        if ($response === false) {
+            return false;
+        }
+
         if ($httpCode >= 200 && $httpCode < 300) {
-            return json_decode($response, true);
+            $decoded = json_decode($response, true);
+            // Stelle sicher, dass json_decode erfolgreich war
+            return $decoded !== null ? $decoded : false;
         }
 
         return false;
@@ -719,7 +730,7 @@ class ProxmoxPost extends ProxmoxGet {
 class ISPConfigGet extends BaseAPI {
     public $session_id;
     public $client;
-    private $debug_mode = false; // Für Debugging aktivieren
+    private $debug_mode = false; // FÃ¼r Debugging aktivieren
 
     public function __construct() {
         $this->host = Config::ISPCONFIG_HOST;
@@ -772,7 +783,7 @@ class ISPConfigGet extends BaseAPI {
             ////$this->logRequest('/remote/login', 'POST', $this->session_id !== false);
             
             if (!$this->session_id) {
-                throw new Exception("ISPConfig Login fehlgeschlagen - Überprüfen Sie Zugangsdaten");
+                throw new Exception("ISPConfig Login fehlgeschlagen - ÃœberprÃ¼fen Sie Zugangsdaten");
             }
 
         } catch (SoapFault $e) {
@@ -855,14 +866,14 @@ class ISPConfigGet extends BaseAPI {
     public function getEmailAccounts($filter = []) {
         try {
             if (!$this->session_id) {
-                throw new Exception("Keine gültige ISPConfig Session");
+                throw new Exception("Keine gÃ¼ltige ISPConfig Session");
             }
 
             if ($this->debug_mode) {
                 error_log("ISPConfig: Rufe E-Mail Accounts ab mit Filter: " . json_encode($filter));
             }
 
-            // Strategie 1: Versuche mail_user_get mit primary_id (leer für alle)
+            // Strategie 1: Versuche mail_user_get mit primary_id (leer fÃ¼r alle)
             try {
                 if ($this->debug_mode) {
                     error_log("ISPConfig: Versuche mail_user_get mit primary_id");
@@ -912,7 +923,7 @@ class ISPConfigGet extends BaseAPI {
 
                 if (!empty($emails)) {
                     if ($this->debug_mode) {
-                        error_log("ISPConfig: Über IDs abgerufen: " . count($emails) . " E-Mails");
+                        error_log("ISPConfig: Ãœber IDs abgerufen: " . count($emails) . " E-Mails");
                     }
 
                     return array_map(function($email) {
@@ -932,7 +943,7 @@ class ISPConfigGet extends BaseAPI {
             }
 
             if ($this->debug_mode) {
-                error_log("ISPConfig: Keine E-Mails über alle Methoden gefunden");
+                error_log("ISPConfig: Keine E-Mails Ã¼ber alle Methoden gefunden");
             }
 
             return [];
@@ -950,8 +961,8 @@ class ISPConfigGet extends BaseAPI {
             if ($websites && is_array($websites)) {
                 foreach ($websites as $website) {
                     if (isset($website['domain_id'])) {
-                        // Versuche zugehörige E-Mail-Accounts zu finden
-                        // ISPConfig verknüpft oft E-Mails mit Domain-IDs
+                        // Versuche zugehÃ¶rige E-Mail-Accounts zu finden
+                        // ISPConfig verknÃ¼pft oft E-Mails mit Domain-IDs
                         $ids[] = $website['domain_id'];
                     }
                 }
@@ -1056,7 +1067,7 @@ class ISPConfigGet extends BaseAPI {
 
                 if ($result && is_array($result) && count($result) > 0) {
                     if ($this->debug_mode) {
-                        error_log("ISPConfig: Alternative Funktion {$function} erfolgreich: " . count($result) . " Einträge");
+                        error_log("ISPConfig: Alternative Funktion {$function} erfolgreich: " . count($result) . " EintrÃ¤ge");
                     }
 
                     // Transformiere verschiedene Datentypen zu E-Mail-Format
@@ -1175,7 +1186,7 @@ class ISPConfigGet extends BaseAPI {
 
                 if ($this->debug_mode) {
                     error_log("ISPConfig: Test Fall " . ($index + 1) . " erfolgreich: " . 
-                        (is_array($result) ? count($result) . " Einträge" : "Einzelresultat"));
+                        (is_array($result) ? count($result) . " EintrÃ¤ge" : "Einzelresultat"));
                 }
 
             } catch (Exception $e) {
@@ -1271,7 +1282,7 @@ class ISPConfigGet extends BaseAPI {
             }
         }
 
-        // Füge restliche gefundene Funktionen hinzu
+        // FÃ¼ge restliche gefundene Funktionen hinzu
         foreach ($mailFunctions as $func) {
             if (!in_array($func, $sortedFunctions)) {
                 $sortedFunctions[] = $func;
@@ -1381,7 +1392,7 @@ class ISPConfigGet extends BaseAPI {
     }
 
     /**
-     * Direkte SOAP-Calls für spezielle ISPConfig-Versionen
+     * Direkte SOAP-Calls fÃ¼r spezielle ISPConfig-Versionen
      */
     private function tryDirectSoapCalls() {
         // ISPConfig 3.0.x direkte Calls
@@ -1602,9 +1613,9 @@ class ISPConfigPost extends ISPConfigGet {
     
     public function createClient($clientData) {
         try {
-            // Prüfe ob SOAP Client verfügbar ist
+            // PrÃ¼fe ob SOAP Client verfÃ¼gbar ist
             if (!$this->client) {
-                error_log('ISPConfig SOAP Client nicht verfügbar');
+                error_log('ISPConfig SOAP Client nicht verfÃ¼gbar');
                 return false;
             }
             
@@ -1736,7 +1747,7 @@ class OVHGet extends BaseAPI {
             $ips = $this->makeRequest('GET', $ipsUrl);
             $details['ips'] = $ips ?: [];
 
-            // MAC-Adresse für jede IP abrufen
+            // MAC-Adresse fÃ¼r jede IP abrufen
             $macAddresses = [];
             if ($ips) {
                 foreach ($ips as $ip) {
@@ -1788,7 +1799,7 @@ class OVHGet extends BaseAPI {
      
 
     /**
-     * Holt alle Virtual MAC-Adressen für einen bestimmten Dedicated Server
+     * Holt alle Virtual MAC-Adressen fÃ¼r einen bestimmten Dedicated Server
      */
     public function getVirtualMacAddresses($serviceName) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac";
@@ -1812,7 +1823,7 @@ class OVHGet extends BaseAPI {
     }
 
     /**
-     * Holt alle Virtual MAC-Adressen mit Details für einen Service
+     * Holt alle Virtual MAC-Adressen mit Details fÃ¼r einen Service
      */
     public function getAllVirtualMacDetails($serviceName) {
         $macAddresses = $this->getVirtualMacAddresses($serviceName);
@@ -1831,7 +1842,7 @@ class OVHGet extends BaseAPI {
     }
 
     /**
-     * Holt alle IPs für eine Virtual MAC-Adresse
+     * Holt alle IPs fÃ¼r eine Virtual MAC-Adresse
      */
     public function getVirtualMacIPs($serviceName, $macAddress) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress";
@@ -1851,7 +1862,7 @@ class OVHGet extends BaseAPI {
     }
 
     /**
-     * Holt Reverse-DNS Informationen für eine IP-Adresse
+     * Holt Reverse-DNS Informationen fÃ¼r eine IP-Adresse
      */
     public function getIPReverse($ipAddress) {
         $encodedIp = urlencode($ipAddress);
@@ -1874,7 +1885,7 @@ class OVHGet extends BaseAPI {
     }
 
     /**
-     * Holt alle Virtual MAC-Adressen für alle Dedicated Server
+     * Holt alle Virtual MAC-Adressen fÃ¼r alle Dedicated Server
      */
     public function getAllVirtualMacAddresses() {
         $servers = $this->getDedicatedServers();
@@ -1893,13 +1904,13 @@ class OVHGet extends BaseAPI {
     }
 
     /**
-     * Holt alle Virtual MAC-Adressen mit ihren IPs und Reverse-DNS für einen Service
+     * Holt alle Virtual MAC-Adressen mit ihren IPs und Reverse-DNS fÃ¼r einen Service
      */
     public function getAllVirtualMacDetailsWithIPs($serviceName) {
         $virtualMacs = $this->getAllVirtualMacDetails($serviceName);
         
         foreach ($virtualMacs as &$virtualMac) {
-            // IPs für diese MAC-Adresse holen
+            // IPs fÃ¼r diese MAC-Adresse holen
             $ips = $this->getVirtualMacIPs($serviceName, $virtualMac->macAddress);
             $virtualMac->ips = [];
             $virtualMac->reverseEntries = [];
@@ -1912,7 +1923,7 @@ class OVHGet extends BaseAPI {
                         $virtualMac->ips[] = $ipDetails;
                     }
 
-                    // Reverse-DNS für diese IP holen
+                    // Reverse-DNS fÃ¼r diese IP holen
                     $reverseEntries = $this->getIPReverse($ip);
                     if (!empty($reverseEntries)) {
                         $virtualMac->reverseEntries[$ip] = $reverseEntries;
@@ -1979,14 +1990,15 @@ class OVHGet extends BaseAPI {
         curl_close($ch);
 
         if ($httpCode >= 200 && $httpCode < 300) {
-            return json_decode($response, true);
+            $decoded = json_decode($response, true);
+            return $decoded !== null ? $decoded : [];
         }
 
         return false;
     }
 
     /**
-     * Holt und gibt alle Reverse-DNS-Details für alle IPs dynamisch aus OVH zurück.
+     * Holt und gibt alle Reverse-DNS-Details fÃ¼r alle IPs dynamisch aus OVH zurÃ¼ck.
      * Beispiel-Ausgabe:
     **/
     public function getAllIPReverseDetails() {
@@ -1997,11 +2009,11 @@ class OVHGet extends BaseAPI {
         if (is_array($ipList)) {
             foreach ($ipList as $ip) {
                 $ipEncoded = str_replace('/', '%2F', $ip);
-                // Schritt 2: Reverse-IPs für jede IP abrufen
+                // Schritt 2: Reverse-IPs fÃ¼r jede IP abrufen
                 $reverseList = $this->makeRequest('GET', "https://eu.api.ovh.com/1.0/ip/{$ipEncoded}/reverse");
                 if (is_array($reverseList) && count($reverseList) > 0) {
                     foreach ($reverseList as $ipReverse) {
-                        // Schritt 3: Details für jede Reverse-IP abrufen
+                        // Schritt 3: Details fÃ¼r jede Reverse-IP abrufen
                         $details = $this->makeRequest('GET', "https://eu.api.ovh.com/1.0/ip/{$ipEncoded}/reverse/{$ipReverse}");
                         $result[$ip][$ipReverse] = $details;
                     }
@@ -2017,7 +2029,7 @@ class OVHGet extends BaseAPI {
     }
 }
 
-// OVH POST CLASS - ERWEITERT FÜR VIRTUAL MAC
+// OVH POST CLASS - ERWEITERT FÃœR VIRTUAL MAC
 class OVHPost extends OVHGet {
 
     public function orderDomain($domain, $duration = 1) {
@@ -2069,28 +2081,28 @@ class OVHPost extends OVHGet {
 
     public function refreshDNSZone($domain) {
         $url = "https://eu.api.ovh.com/1.0/domain/zone/$domain/refresh";
-        $response = $this->makeRequest('POST', $url);
+        $response = $this->makeRequest('POST', $url, []);
         //$this->logRequest("/domain/zone/$domain/refresh", 'POST', $response !== false);
         return $response;
     }
 
     public function rebootVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/reboot";
-        $response = $this->makeRequest('POST', $url);
+        $response = $this->makeRequest('POST', $url, []);
         //$this->logRequest("/vps/$vpsName/reboot", 'POST', $response !== false);
         return $response;
     }
 
     public function stopVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/stop";
-        $response = $this->makeRequest('POST', $url);
+        $response = $this->makeRequest('POST', $url, []);
         //$this->logRequest("/vps/$vpsName/stop", 'POST', $response !== false);
         return $response;
     }
 
     public function startVPS($vpsName) {
         $url = "https://eu.api.ovh.com/1.0/vps/$vpsName/start";
-        $response = $this->makeRequest('POST', $url);
+        $response = $this->makeRequest('POST', $url, []);
         //$this->logRequest("/vps/$vpsName/start", 'POST', $response !== false);
         return $response;
     }
@@ -2116,7 +2128,7 @@ class OVHPost extends OVHGet {
     }
 
     /**
-     * Löscht eine Virtual MAC-Adresse
+     * LÃ¶scht eine Virtual MAC-Adresse
      */
     public function deleteVirtualMac($serviceName, $macAddress) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress";
@@ -2126,7 +2138,7 @@ class OVHPost extends OVHGet {
     }
 
     /**
-     * Fügt eine IP-Adresse zu einer Virtual MAC hinzu
+     * FÃ¼gt eine IP-Adresse zu einer Virtual MAC hinzu
      */
     public function addVirtualMacIP($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface) {
         $url = "https://eu.api.ovh.com/1.0/dedicated/server/$serviceName/virtualMac/$macAddress/virtualAddress";
@@ -2186,7 +2198,7 @@ class OVHPost extends OVHGet {
     }
 
     /**
-     * Löscht einen Reverse-DNS Eintrag
+     * LÃ¶scht einen Reverse-DNS Eintrag
      */
     public function deleteIPReverse($ipAddress, $reverseIP) {
         $encodedIp = urlencode($ipAddress);
@@ -2212,7 +2224,7 @@ class OGPGet extends BaseAPI {
     }
 
     protected function authenticate() {
-        // Token erstellen für OGP API
+        // Token erstellen fÃ¼r OGP API
         $url = $this->host . "/ogp_api.php?token/create/" . urlencode($this->user) . "/" . urlencode($this->password);
         $response = $this->makeRequest('GET', $url);
         
@@ -2617,7 +2629,7 @@ class ServiceManager {
         }
         
 
-        // ISPConfig nur initialisieren wenn SOAP verfügbar ist und aktiviert
+        // ISPConfig nur initialisieren wenn SOAP verfÃ¼gbar ist und aktiviert
         if (Config::ISPCONFIG_USEING && class_exists('SoapClient')) {
             try {
                 $this->ispconfigGet = new ISPConfigGet();
@@ -2628,7 +2640,7 @@ class ServiceManager {
                 $this->ispconfigPost = null;
             }
         } else if (Config::ISPCONFIG_USEING && !class_exists('SoapClient')) {
-            error_log("SOAP nicht verfügbar - ISPConfig wird nicht initialisiert");
+            error_log("SOAP nicht verfÃ¼gbar - ISPConfig wird nicht initialisiert");
         }
         
         // OVH API initialisieren nur wenn aktiviert
@@ -2676,9 +2688,9 @@ class ServiceManager {
         }
     }
     /**
-     * Prüft ob eine API aktiviert ist
+     * PrÃ¼ft ob eine API aktiviert ist
      * @param string $apiName Name der API (proxmox, ispconfig, ovh, ogp)
-     * @return array|true Gibt true zurück wenn API aktiviert ist, sonst strukturierte Fehlermeldung
+     * @return array|true Gibt true zurÃ¼ck wenn API aktiviert ist, sonst strukturierte Fehlermeldung
      */
     private function checkAPIEnabled($apiName) {
         try {
@@ -2702,19 +2714,19 @@ class ServiceManager {
                         'solution' => 'Setzen Sie PROXMOX_USEING = true in der config.inc.php'
                     ];
                     
-                    return $errorResponse;
                     $this->__log("checkAPIEnabled", $errorResponse, "error");
+                    return $errorResponse;
                 }
-                if (!isset($this->proxmoxGet) || !isset($this->proxmoxPost)) {
+                if (!$this->proxmoxGet || !$this->proxmoxPost) {
                     $errorResponse = [
                         'success' => false,
                         'error' => 'API_NOT_INITIALIZED',
                         'message' => 'Proxmox API konnte nicht initialisiert werden',
                         'api' => 'proxmox',
-                        'solution' => 'Überprüfen Sie die Proxmox-Konfiguration in der config.inc.php'
+                        'solution' => 'ÃœberprÃ¼fen Sie die Proxmox-Konfiguration in der config.inc.php'
                     ];                    
-                    return $errorResponse;
                     $this->__log("checkAPIEnabled", $errorResponse, "error");
+                    return $errorResponse;
                 }
                 
                 break;
@@ -2731,33 +2743,37 @@ class ServiceManager {
                     ];
                     
                     // Log API check failure to database
-                    $db->logAction(
-                        "API Check: ISPConfig",
-                        "API deaktiviert - Config: ISPCONFIG_USEING = false",
-                        'error'
-                    );
+                    if ($db) {
+                        $db->logAction(
+                            "API Check: ISPConfig",
+                            "API deaktiviert - Config: ISPCONFIG_USEING = false",
+                            'error'
+                        );
+                    }
                     
-                    return $errorResponse;
                     $this->__log("checkAPIEnabled", $errorResponse, "error");
+                    return $errorResponse;
                 }
-                if (!isset($this->ispconfigGet) || !isset($this->ispconfigPost)) {
+                if (!$this->ispconfigGet || !$this->ispconfigPost) {
                     $errorResponse = [
                         'success' => false,
                         'error' => 'API_NOT_INITIALIZED',
                         'message' => 'ISPConfig API konnte nicht initialisiert werden',
                         'api' => 'ispconfig',
-                        'solution' => 'Überprüfen Sie die ISPConfig-Konfiguration in der config.inc.php'
+                        'solution' => 'ÃœberprÃ¼fen Sie die ISPConfig-Konfiguration in der config.inc.php'
                     ];
                     
                     // Log API initialization failure to database
-                    $db->logAction(
-                        "API Check: ISPConfig",
-                        "API nicht initialisiert - ISPConfigGet/Post Objekte fehlen",
-                        'error'
-                    );
+                    if ($db) {
+                        $db->logAction(
+                            "API Check: ISPConfig",
+                            "API nicht initialisiert - ISPConfigGet/Post Objekte fehlen",
+                            'error'
+                        );
+                    }
                     
-                    return $errorResponse;
                     $this->__log("checkAPIEnabled", $errorResponse, "error");
+                    return $errorResponse;
                 }
                 
                 break;
@@ -2774,33 +2790,37 @@ class ServiceManager {
                     ];
                     
                     // Log API check failure to database
-                    $db->logAction(
-                        "API Check: OVH",
-                        "API deaktiviert - Config: OVH_USEING = false",
-                        'error'
-                    );
+                    if ($db) {
+                        $db->logAction(
+                            "API Check: OVH",
+                            "API deaktiviert - Config: OVH_USEING = false",
+                            'error'
+                        );
+                    }
                     
-                    return $errorResponse;
                     $this->__log("checkAPIEnabled", $errorResponse, "error");
+                    return $errorResponse;
                 }
-                if (!isset($this->ovhGet) || !isset($this->ovhPost)) {
+                if (!$this->ovhGet || !$this->ovhPost) {
                     $errorResponse = [
                         'success' => false,
                         'error' => 'API_NOT_INITIALIZED',
                         'message' => 'OVH API konnte nicht initialisiert werden',
                         'api' => 'ovh',
-                        'solution' => 'Überprüfen Sie die OVH-Konfiguration in der config.inc.php'
+                        'solution' => 'ÃœberprÃ¼fen Sie die OVH-Konfiguration in der config.inc.php'
                     ];
                     
                     // Log API initialization failure to database
-                    $db->logAction(
-                        "API Check: OVH",
-                        "API nicht initialisiert - OVHGet/Post Objekte fehlen",
-                        'error'
-                    );
+                    if ($db) {
+                        $db->logAction(
+                            "API Check: OVH",
+                            "API nicht initialisiert - OVHGet/Post Objekte fehlen",
+                            'error'
+                        );
+                    }
                     
-                    return $errorResponse;
                     $this->__log("checkAPIEnabled", $errorResponse, "error");
+                    return $errorResponse;
                 }
                 
                 break;
@@ -2817,33 +2837,37 @@ class ServiceManager {
                     ];
                     
                     // Log API check failure to database
-                    $db->logAction(
-                        "API Check: OGP",
-                        "API deaktiviert - Config: OGP_USEING = false",
-                        'error'
-                    );
+                    if ($db) {
+                        $db->logAction(
+                            "API Check: OGP",
+                            "API deaktiviert - Config: OGP_USEING = false",
+                            'error'
+                        );
+                    }
                     
-                    return $errorResponse;
                     $this->__log("checkAPIEnabled", $errorResponse, "error");
+                    return $errorResponse;
                 }
-                if (!isset($this->ogpGet) || !isset($this->ogpPost)) {
+                if (!$this->ogpGet || !$this->ogpPost) {
                     $errorResponse = [
                         'success' => false,
                         'error' => 'API_NOT_INITIALIZED',
                         'message' => 'OGP API konnte nicht initialisiert werden',
                         'api' => 'ogp',
-                        'solution' => 'Überprüfen Sie die OGP-Konfiguration in der config.inc.php'
+                        'solution' => 'ÃœberprÃ¼fen Sie die OGP-Konfiguration in der config.inc.php'
                     ];
                     
                     // Log API initialization failure to database
-                    $db->logAction(
-                        "API Check: OGP",
-                        "API nicht initialisiert - OGPGet/Post Objekte fehlen",
-                        'error'
-                    );
+                    if ($db) {
+                        $db->logAction(
+                            "API Check: OGP",
+                            "API nicht initialisiert - OGPGet/Post Objekte fehlen",
+                            'error'
+                        );
+                    }
                     
-                    return $errorResponse;
                     $this->__log("checkAPIEnabled", $errorResponse, "error");
+                    return $errorResponse;
                 }
                 break;
                 
@@ -2854,11 +2878,65 @@ class ServiceManager {
                     'message' => 'Unbekannte API: ' . $apiName,
                     'api' => $apiName
                 ];                
-                return $errorResponse;
                 $this->__log("checkAPIEnabled", $errorResponse, "error");
+                return $errorResponse;
         }
         return true;
     }
+    
+    /**
+     * Zusätzliche Validierung der API-Objekte
+     * @param string $apiName Name der API
+     * @param object $getObject Das GET-Objekt der API
+     * @param object $postObject Das POST-Objekt der API
+     * @return array|true Gibt true zurück wenn Objekte gültig sind, sonst Fehlermeldung
+     */
+    private function validateAPIObjects($apiName, $getObject, $postObject) {
+        if (!$getObject || !$postObject) {
+            return [
+                'success' => false,
+                'error' => 'API_OBJECTS_NULL',
+                'message' => "$apiName API Objekte sind null",
+                'api' => $apiName,
+                'solution' => 'Überprüfen Sie die API-Initialisierung'
+            ];
+        }
+        return true;
+    }
+    
+    /**
+     * Sicherer API-Aufruf mit Null-Check
+     * @param string $apiName Name der API
+     * @param object $apiObject Das API-Objekt
+     * @param string $methodName Name der aufzurufenden Methode
+     * @param array $params Parameter für den Methodenaufruf
+     * @return mixed API Response oder Fehlermeldung
+     */
+    private function safeAPICall($apiName, $apiObject, $methodName, $params = []) {
+        if (!$apiObject) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => "$apiName API nicht initialisiert",
+                'api' => $apiName,
+                'method' => $methodName
+            ];
+        }
+        
+        try {
+            return call_user_func_array([$apiObject, $methodName], $params);
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => 'API_CALL_FAILED',
+                'message' => "$apiName API Aufruf fehlgeschlagen: " . $e->getMessage(),
+                'api' => $apiName,
+                'method' => $methodName
+            ];
+        }
+    }
+    
+
 	
 	 
     // GENERISCHE API FUNKTIONEN
@@ -2867,7 +2945,7 @@ class ServiceManager {
      * Generische Proxmox API Funktion
      * @param string $type HTTP-Methode (get, post, delete, put)
      * @param string $url API-Pfad (z.B. "/nodes/pve/qemu/100/status/start")
-     * @param mixed $code Optionale Daten für POST/PUT Requests
+     * @param mixed $code Optionale Daten fÃ¼r POST/PUT Requests
      * @return mixed API Response oder false bei Fehler
      * 
      * Beispiele:
@@ -2880,6 +2958,14 @@ class ServiceManager {
         $apiCheck = $this->checkAPIEnabled('proxmox');
         if ($apiCheck !== true) {
             return $apiCheck;
+        }// Expliziter Null-Check fÃ¼r zusÃ¤tzliche Sicherheit
+        if (!$this->proxmoxGet) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => 'Proxmox API nicht initialisiert',
+                'api' => 'proxmox'
+            ];
         }
         
         try {
@@ -2905,7 +2991,7 @@ class ServiceManager {
      * Generische OVH API Funktion
      * @param string $type HTTP-Methode (get, post, delete, put)
      * @param string $url API-Pfad (z.B. "/domain/zone/example.com/record")
-     * @param mixed $code Optionale Daten für POST/PUT Requests
+     * @param mixed $code Optionale Daten fÃ¼r POST/PUT Requests
      * @return mixed API Response oder false bei Fehler
      * 
      * Beispiele:
@@ -2918,6 +3004,14 @@ class ServiceManager {
         $apiCheck = $this->checkAPIEnabled('ovh');
         if ($apiCheck !== true) {
             return $apiCheck;
+        }// Expliziter Null-Check fÃ¼r zusÃ¤tzliche Sicherheit
+        if (!$this->ovhGet) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => 'OVH API nicht initialisiert',
+                'api' => 'ovh'
+            ];
         }
         
         try {
@@ -2945,7 +3039,7 @@ class ServiceManager {
      * Generische ISPConfig API Funktion
      * @param string $type HTTP-Methode (get, post, delete, put)
      * @param string $url API-Pfad/Funktion (z.B. "sites_web_domain_add")
-     * @param mixed $code Optionale Daten für POST/PUT Requests
+     * @param mixed $code Optionale Daten fÃ¼r POST/PUT Requests
      * @return mixed API Response oder false bei Fehler
      * 
      * Beispiele:
@@ -2958,19 +3052,27 @@ class ServiceManager {
         $apiCheck = $this->checkAPIEnabled('ispconfig');
         if ($apiCheck !== true) {
             return $apiCheck;
+        }// Expliziter Null-Check fÃ¼r zusÃ¤tzliche Sicherheit
+        if (!$this->ispconfigGet || !$this->ispconfigPost) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => 'ISPConfig API nicht initialisiert',
+                'api' => 'ispconfig'
+            ];
         }
         
         try {
             $type = strtolower($type);
             
-            // ISPConfig verwendet SOAP, daher müssen wir die URL als Funktionsname interpretieren
-            // Entferne führende Slashes
+            // ISPConfig verwendet SOAP, daher mÃ¼ssen wir die URL als Funktionsname interpretieren
+            // Entferne fÃ¼hrende Slashes
             $function = ltrim($url, '/');
             
             // Bestimme die richtige SOAP-Funktion basierend auf Type und URL
             switch($type) {
                 case 'get':
-                    // Keine automatische Suffix-Anfügung mehr - verwende den Funktionsnamen direkt
+                    // Keine automatische Suffix-AnfÃ¼gung mehr - verwende den Funktionsnamen direkt
                     if ($code !== null) {
                         $result = $this->ispconfigGet->client->$function($this->ispconfigGet->session_id, $code);
                     } else {
@@ -2991,7 +3093,7 @@ class ServiceManager {
                     break;
                     
                 case 'put':
-                    // Für Updates brauchen wir: session_id, client_id, primary_id, params
+                    // FÃ¼r Updates brauchen wir: session_id, client_id, primary_id, params
                     if (is_array($code)) {
                         $client_id = $code['client_id'] ?? 1;
                         $primary_id = $code['id'] ?? $code['primary_id'] ?? null;
@@ -3011,7 +3113,7 @@ class ServiceManager {
                     break;
                     
                 case 'delete':
-                    // Für Delete brauchen wir die ID
+                    // FÃ¼r Delete brauchen wir die ID
                     $result = $this->ispconfigPost->client->$function($this->ispconfigPost->session_id, $code);
                     break;
                     
@@ -3035,17 +3137,26 @@ class ServiceManager {
     }
     
     /**
-     * Hilfsfunktion für erweiterte ISPConfig Operationen
+     * Hilfsfunktion fÃ¼r erweiterte ISPConfig Operationen
      * Erlaubt direkten Zugriff auf SOAP-Funktionen
      */
     public function IspconfigSOAP($function, $params = []) {
         $apiCheck = $this->checkAPIEnabled('ispconfig');
         if ($apiCheck !== true) {
             return $apiCheck;
+        }// ZusÃ¤tzlicher Null-Check fÃ¼r zusÃ¤tzliche Sicherheit
+        if (!$this->ispconfigGet || !$this->ispconfigGet->client) {
+            return [
+                'success' => false,
+                'error' => 'SOAP_CLIENT_NOT_AVAILABLE',
+                'message' => 'ISPConfig SOAP Client nicht verfÃ¼gbar',
+                'api' => 'ispconfig',
+                'function' => $function
+            ];
         }
         
         try {
-            // Füge session_id als ersten Parameter hinzu
+            // FÃ¼ge session_id als ersten Parameter hinzu
             array_unshift($params, $this->ispconfigGet->session_id);
             
             // Rufe die SOAP-Funktion dynamisch auf
@@ -3069,7 +3180,7 @@ class ServiceManager {
      * Generische OGP API Funktion
      * @param string $type HTTP-Methode (get, post, delete, put)
      * @param string $url API-Pfad (z.B. "server/list", "user_games/create")
-     * @param mixed $code Optionale Daten für POST/PUT Requests
+     * @param mixed $code Optionale Daten fÃ¼r POST/PUT Requests
      * @return mixed API Response oder false bei Fehler
      * 
      * Beispiele:
@@ -3082,6 +3193,14 @@ class ServiceManager {
         $apiCheck = $this->checkAPIEnabled('ogp');
         if ($apiCheck !== true) {
             return $apiCheck;
+        }// Expliziter Null-Check fÃ¼r zusÃ¤tzliche Sicherheit
+        if (!$this->ogpGet) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => 'OGP API nicht initialisiert',
+                'api' => 'ogp'
+            ];
         }
         
         try {
@@ -3110,6 +3229,17 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
+        
+        // Expliziter Null-Check für zusätzliche Sicherheit
+        if (!$this->proxmoxGet) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => 'Proxmox API nicht initialisiert',
+                'api' => 'proxmox'
+            ];
+        }
+        
         return $this->proxmoxGet->getVMs();
     }
     public function getProxmoxNodes() {
@@ -3117,6 +3247,17 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
+        
+        // Expliziter Null-Check für zusätzliche Sicherheit
+        if (!$this->proxmoxGet) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => 'Proxmox API nicht initialisiert',
+                'api' => 'proxmox'
+            ];
+        }
+        
         return $this->proxmoxGet->getNodes();
     }
     public function getProxmoxStorage() {
@@ -3124,20 +3265,294 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->proxmoxGet->getStorages();
+        
+        // Expliziter Null-Check für zusätzliche Sicherheit
+        if (!$this->proxmoxGet) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => 'Proxmox API nicht initialisiert',
+                'api' => 'proxmox'
+            ];
+        }
+        
+        return $this->safeAPICall('proxmox', $this->proxmoxGet, 'getStorages', []);
+    }
+
+    /**
+     * Gibt grundlegende Systeminformationen zurück
+     * @return array Array mit Systeminformationen
+     */
+    public function getSystemInfo() {
+        try {
+            $systemInfo = [
+                'uptime' => $this->getSystemUptime(),
+                'memory' => $this->getSystemMemory(),
+                'disk' => $this->getSystemDisk(),
+                'load' => $this->getSystemLoad(),
+                'php_version' => PHP_VERSION,
+                'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown',
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+            
+            return $systemInfo;
+        } catch (Exception $e) {
+            error_log("SystemInfo Error: " . $e->getMessage());
+            return [
+                'uptime' => 'N/A',
+                'memory' => 'N/A',
+                'disk' => 'N/A',
+                'load' => 'N/A',
+                'php_version' => PHP_VERSION,
+                'server_software' => 'Unknown',
+                'timestamp' => date('Y-m-d H:i:s'),
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Holt die System-Uptime
+     * @return string Uptime als formatierter String
+     */
+    private function getSystemUptime() {
+        // Methode 1: PHP-interne Funktionen (sicher)
+        if (function_exists('sys_getloadavg')) {
+            $uptime = sys_getloadavg();
+            if ($uptime !== false && isset($uptime[0])) {
+                return number_format($uptime[0], 2) . ' (1min)';
+            }
+        }
+        
+        // Methode 2: Versuche über exec zu holen (nur auf Linux/Unix)
+        if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+            // Versuche verschiedene Uptime-Befehle
+            $commands = [
+                'uptime -p 2>/dev/null',
+                'cat /proc/uptime 2>/dev/null',
+                'ps -eo etime= -p 1 2>/dev/null'
+            ];
+            
+            foreach ($commands as $command) {
+                $uptime = @exec($command);
+                if ($uptime) {
+                    // Verarbeite uptime -p Format
+                    if (strpos($command, 'uptime -p') !== false) {
+                        return trim($uptime);
+                    }
+                    
+                    // Verarbeite /proc/uptime Format
+                    if (strpos($command, '/proc/uptime') !== false) {
+                        $seconds = (float) explode(' ', $uptime)[0];
+                        return $this->formatUptime($seconds);
+                    }
+                    
+                    // Verarbeite ps Format
+                    if (strpos($command, 'ps -eo etime') !== false) {
+                        return trim($uptime);
+                    }
+                }
+            }
+        }
+        
+        // Methode 3: PHP-interne Zeitstempel als Fallback
+        // Verwende einen sicheren Fallback-Wert
+        return 'N/A';
+    }
+
+    /**
+     * Formatiert Uptime in Sekunden zu lesbarem Format
+     * @param int $seconds Anzahl der Sekunden
+     * @return string Formatierte Uptime
+     */
+    private function formatUptime($seconds) {
+        $days = floor($seconds / 86400);
+        $hours = floor(($seconds % 86400) / 3600);
+        $minutes = floor(($seconds % 3600) / 60);
+        
+        if ($days > 0) {
+            return "{$days}d {$hours}h {$minutes}m";
+        } elseif ($hours > 0) {
+            return "{$hours}h {$minutes}m";
+        } else {
+            return "{$minutes}m";
+        }
+    }
+
+    /**
+     * Holt die Speicherinformationen
+     * @return array Array mit Speicherinformationen
+     */
+    private function getSystemMemory() {
+        $memory = [];
+        
+        if (function_exists('memory_get_usage')) {
+            $memory['used'] = $this->formatBytes(memory_get_usage(true));
+            $memory['peak'] = $this->formatBytes(memory_get_peak_usage(true));
+        }
+        
+        // Versuche System-Speicher zu holen (Linux/Unix)
+        if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+            $memInfo = @exec('free -h 2>/dev/null');
+            if ($memInfo) {
+                $lines = explode("\n", $memInfo);
+                if (isset($lines[1])) {
+                    $parts = preg_split('/\s+/', trim($lines[1]));
+                    if (count($parts) >= 3) {
+                        $memory['total'] = $parts[1];
+                        $memory['used'] = $parts[2];
+                        $memory['free'] = $parts[3];
+                    }
+                }
+            }
+        }
+        
+        return $memory;
+    }
+
+    /**
+     * Holt die Festplatteninformationen
+     * @return array Array mit Festplatteninformationen
+     */
+    private function getSystemDisk() {
+        $disk = [];
+        
+        if (function_exists('disk_free_space') && function_exists('disk_total_space')) {
+            // Versuche verschiedene Verzeichnisse, die wahrscheinlich verfügbar sind
+            $directories = [
+                __DIR__, // Aktuelles Verzeichnis
+                dirname(__DIR__), // Übergeordnetes Verzeichnis
+                '/tmp', // Temp-Verzeichnis
+                '/var/tmp' // Alternative Temp-Verzeichnis
+            ];
+            
+            $free = false;
+            $total = false;
+            
+            foreach ($directories as $dir) {
+                if (is_dir($dir) && is_readable($dir)) {
+                    $free = disk_free_space($dir);
+                    $total = disk_total_space($dir);
+                    
+                    if ($free !== false && $total !== false) {
+                        break; // Erfolgreich, beende die Schleife
+                    }
+                }
+            }
+            
+            if ($free !== false && $total !== false) {
+                $used = $total - $free;
+                $percent = round(($used / $total) * 100, 2);
+                
+                $disk['total'] = $this->formatBytes($total);
+                $disk['used'] = $this->formatBytes($used);
+                $disk['free'] = $this->formatBytes($free);
+                $disk['percent'] = $percent;
+            } else {
+                // Fallback: Versuche über exec zu holen (nur auf Linux/Unix)
+                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+                    $dfOutput = @exec('df -h / 2>/dev/null');
+                    if ($dfOutput) {
+                        $lines = explode("\n", $dfOutput);
+                        if (isset($lines[1])) {
+                            $parts = preg_split('/\s+/', trim($lines[1]));
+                            if (count($parts) >= 5) {
+                                $disk['total'] = $parts[1];
+                                $disk['used'] = $parts[2];
+                                $disk['free'] = $parts[3];
+                                $disk['percent'] = rtrim($parts[4], '%');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Wenn immer noch keine Daten verfügbar sind, setze Standardwerte
+        if (empty($disk)) {
+            $disk = [
+                'total' => 'N/A',
+                'used' => 'N/A',
+                'free' => 'N/A',
+                'percent' => 'N/A',
+                'note' => 'open_basedir restriction'
+            ];
+        }
+        
+        return $disk;
+    }
+
+    /**
+     * Holt die System-Last
+     * @return array Array mit Load-Average Informationen
+     */
+    private function getSystemLoad() {
+        $load = [];
+        
+        if (function_exists('sys_getloadavg')) {
+            $loadAvg = sys_getloadavg();
+            if ($loadAvg !== false) {
+                $load['1min'] = number_format($loadAvg[0], 2);
+                $load['5min'] = number_format($loadAvg[1], 2);
+                $load['15min'] = number_format($loadAvg[2], 2);
+            }
+        }
+        
+        // Fallback: Versuche über exec zu holen
+        if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+            $loadAvg = @exec('cat /proc/loadavg 2>/dev/null');
+            if ($loadAvg) {
+                $parts = explode(' ', $loadAvg);
+                if (count($parts) >= 3) {
+                    $load['1min'] = number_format((float) $parts[0], 2);
+                    $load['5min'] = number_format((float) $parts[1], 2);
+                    $load['15min'] = number_format((float) $parts[2], 2);
+                }
+            }
+        }
+        
+        return $load;
+    }
+
+    /**
+     * Formatiert Bytes in lesbare Einheiten
+     * @param int $bytes Anzahl der Bytes
+     * @return string Formatierte Größe
+     */
+    private function formatBytes($bytes) {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        
+        $bytes /= pow(1024, $pow);
+        
+        return round($bytes, 2) . ' ' . $units[$pow];
     }
 
     public function getProxmoxNetwork() {
         $apiCheck = $this->checkAPIEnabled('proxmox');
         if ($apiCheck !== true) {
             return $apiCheck;
-        }
-        
-        $networks = [];
+        }$networks = [];
         $nodes = $this->getProxmoxNodes();
+        
+        // PrÃ¼fe ob nodes erfolgreich abgerufen wurden
+        if (!is_array($nodes)) {
+            return $nodes; // Gibt den Fehler zurÃ¼ck
+        }
         
         foreach ($nodes as $nodeData) {
             $nodeName = is_array($nodeData) ? $nodeData['node'] : $nodeData;
+            // Expliziter Null-Check für zusätzliche Sicherheit
+            if (!$this->proxmoxGet) {
+                return [
+                    'success' => false,
+                    'error' => 'API_NOT_INITIALIZED',
+                    'message' => 'Proxmox API nicht initialisiert',
+                    'api' => 'proxmox'
+                ];
+            }
             $nodeNetworks = $this->proxmoxGet->getNetworks($nodeName);
             
             if (!empty($nodeNetworks)) {
@@ -3155,6 +3570,17 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
+        
+        // Expliziter Null-Check für zusätzliche Sicherheit
+        if (!$this->proxmoxPost) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => 'Proxmox API nicht initialisiert',
+                'api' => 'proxmox'
+            ];
+        }
+        
         return $this->proxmoxPost->createVM($vmData);
     }
 
@@ -3163,22 +3589,23 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
+        
         switch ($action) {
             case 'start':
-                return $this->proxmoxPost->startVM($node, $vmid);
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'startVM', [$node, $vmid]);
             case 'stop':
-                return $this->proxmoxPost->stopVM($node, $vmid);
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'stopVM', [$node, $vmid]);
             case 'reset':
-                return $this->proxmoxPost->resetVM($node, $vmid);
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'resetVM', [$node, $vmid]);
             case 'suspend':
-                return $this->proxmoxPost->suspendVM($node, $vmid);
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'suspendVM', [$node, $vmid]);
             case 'resume':
-                return $this->proxmoxPost->resumeVM($node, $vmid);
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'resumeVM', [$node, $vmid]);
             default:
                 return [
                     'success' => false,
                     'error' => 'INVALID_ACTION',
-                    'message' => 'Ungültige Aktion: ' . $action,
+                    'message' => 'UngÃ¼ltige Aktion: ' . $action,
                     'api' => 'proxmox',
                     'valid_actions' => ['start', 'stop', 'reset', 'suspend', 'resume']
                 ];
@@ -3190,7 +3617,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->proxmoxPost->deleteVM($node, $vmid);
+        
+        return $this->safeAPICall('proxmox', $this->proxmoxPost, 'deleteVM', [$node, $vmid]);
     }
 
     // ISPConfig Methods
@@ -3199,7 +3627,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigGet->getWebsites(['active' => 'y']);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getWebsites', [['active' => 'y']]);
     }
 
     public function createISPConfigWebsite($websiteData) {
@@ -3207,7 +3636,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigPost->createWebsite($websiteData);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createWebsite', [$websiteData]);
     }
 
     public function deleteISPConfigWebsite($domainId) {
@@ -3215,7 +3645,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigPost->deleteWebsite($domainId);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'deleteWebsite', [$domainId]);
     }
 
     public function getISPConfigDatabases() {
@@ -3223,7 +3654,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigGet->getDatabases(['active' => 'y']);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getDatabases', [['active' => 'y']]);
     }
 
     public function createISPConfigDatabase($dbData) {
@@ -3231,7 +3663,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigPost->createDatabase($dbData);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createDatabase', [$dbData]);
     }
 
     public function deleteISPConfigDatabase($databaseId) {
@@ -3239,7 +3672,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigPost->deleteDatabase($databaseId);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'deleteDatabase', [$databaseId]);
     }
 
     public function getISPConfigEmails() {
@@ -3247,7 +3681,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigGet->getEmailAccounts(['active' => 'y']);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getEmailAccounts', [['active' => 'y']]);
     }
 
     public function createISPConfigEmail($emailData) {
@@ -3255,7 +3690,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigPost->createEmailAccount($emailData);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createEmailAccount', [$emailData]);
     }
 
     public function deleteISPConfigEmail($mailuserId) {
@@ -3263,7 +3699,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigPost->deleteEmailAccount($mailuserId);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'deleteEmailAccount', [$mailuserId]);
     }
     
     public function getISPConfigClients($filter = []) {
@@ -3271,7 +3708,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigGet->getClients($filter);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getClients', [$filter]);
     }
     
     public function createISPConfigClient($clientData) {
@@ -3279,7 +3717,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigPost->createClient($clientData);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createClient', [$clientData]);
     }
     
     public function updateISPConfigClient($clientId, $clientData) {
@@ -3287,7 +3726,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigPost->updateClient($clientId, $clientData);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'updateClient', [$clientId, $clientData]);
     }
     
     public function deleteISPConfigClient($clientId) {
@@ -3295,7 +3735,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ispconfigPost->deleteClient($clientId);
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'deleteClient', [$clientId]);
     }
 
     // OVH Methods
@@ -3304,7 +3745,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhGet->getDomains();
+        
+        return $this->safeAPICall('ovh', $this->ovhGet, 'getDomains', []);
     }
 
     public function orderOVHDomain($domain, $duration) {
@@ -3312,7 +3754,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhPost->orderDomain($domain, $duration);
+        
+        return $this->safeAPICall('ovh', $this->ovhPost, 'orderDomain', [$domain, $duration]);
     }
 
     public function getOVHVPS() {
@@ -3320,7 +3763,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhGet->getVPSList();
+        
+        return $this->safeAPICall('ovh', $this->ovhGet, 'getVPSList', []);
     }
 
     public function getOvhIP(){
@@ -3328,14 +3772,23 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhGet->getAllIPReverseDetails();
+        
+        return $this->safeAPICall('ovh', $this->ovhGet, 'getAllIPReverseDetails', []);
     }
+    
     public function getOVHFailoverIPs() {
         $apiCheck = $this->checkAPIEnabled('ovh');
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        $failoverIPs = $this->ovhGet->getFailoverIPs();
+        
+        $failoverIPs = $this->safeAPICall('ovh', $this->ovhGet, 'getFailoverIPs', []);
+        
+        // PrÃ¼fe ob failoverIPs erfolgreich abgerufen wurden
+        if (!is_array($failoverIPs)) {
+            return $failoverIPs; // Gibt den Fehler zurÃ¼ck
+        }
+        
         $detailedIPs = [];
 
         if (!empty($failoverIPs)) {
@@ -3343,7 +3796,7 @@ class ServiceManager {
                 // The getFailoverIPs method returns a list of IP strings.
                 // Each string can be a single IP or a block (e.g., x.x.x.x/32).
                 // We pass this string directly to getFailoverIPDetails.
-                $details = $this->ovhGet->getFailoverIPDetails($ip);
+                $details = $this->safeAPICall('ovh', $this->ovhGet, 'getFailoverIPDetails', [$ip]);
                 if ($details) {
                     // Assuming $details is already in a suitable format (e.g., an associative array or an object)
                     // Map the raw details to a FailoverIP object.
@@ -3359,7 +3812,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        $vps = $this->ovhGet->getVPS($vpsName);
+        
+        $vps = $this->safeAPICall('ovh', $this->ovhGet, 'getVPS', [$vpsName]);
         if ($vps && !empty($vps->ips) && !empty($vps->mac_addresses)) {
             $firstIp = $vps->ips[0];
             return [
@@ -3371,17 +3825,18 @@ class ServiceManager {
     }
 
     /**
-     * Holt alle Virtual MAC-Adressen für einen bestimmten Service
+     * Holt alle Virtual MAC-Adressen fÃ¼r einen bestimmten Service
      */
     public function getVirtualMacAddresses($serviceName = null) {
         $apiCheck = $this->checkAPIEnabled('ovh');
         if ($apiCheck !== true) {
             return $apiCheck;
         }
+        
         if ($serviceName) {
-            return $this->ovhGet->getAllVirtualMacDetailsWithIPs($serviceName);
+            return $this->safeAPICall('ovh', $this->ovhGet, 'getAllVirtualMacDetailsWithIPs', [$serviceName]);
         } else {
-            return $this->ovhGet->getAllVirtualMacAddresses();
+            return $this->safeAPICall('ovh', $this->ovhGet, 'getAllVirtualMacAddresses', []);
         }
     }
 
@@ -3393,7 +3848,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhGet->getVirtualMacDetails($serviceName, $macAddress);
+        
+        return $this->safeAPICall('ovh', $this->ovhGet, 'getVirtualMacDetails', [$serviceName, $macAddress]);
     }
 
     /**
@@ -3404,29 +3860,32 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhPost->createVirtualMac($serviceName, $virtualNetworkInterface, $type);
+        
+        return $this->safeAPICall('ovh', $this->ovhPost, 'createVirtualMac', [$serviceName, $virtualNetworkInterface, $type]);
     }
 
     /**
-     * Löscht eine Virtual MAC-Adresse
+     * LÃ¶scht eine Virtual MAC-Adresse
      */
     public function deleteVirtualMac($serviceName, $macAddress) {
         $apiCheck = $this->checkAPIEnabled('ovh');
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhPost->deleteVirtualMac($serviceName, $macAddress);
+        
+        return $this->safeAPICall('ovh', $this->ovhPost, 'deleteVirtualMac', [$serviceName, $macAddress]);
     }
 
     /**
-     * Fügt IP zu Virtual MAC hinzu
+     * FÃ¼gt IP zu Virtual MAC hinzu
      */
     public function addIPToVirtualMac($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface) {
         $apiCheck = $this->checkAPIEnabled('ovh');
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhPost->addVirtualMacIP($serviceName, $macAddress, $ipAddress, $virtualNetworkInterface);
+        
+        return $this->safeAPICall('ovh', $this->ovhPost, 'addVirtualMacIP', [$serviceName, $macAddress, $ipAddress, $virtualNetworkInterface]);
     }
 
     /**
@@ -3437,7 +3896,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhPost->removeVirtualMacIP($serviceName, $macAddress, $ipAddress);
+        
+        return $this->safeAPICall('ovh', $this->ovhPost, 'removeVirtualMacIP', [$serviceName, $macAddress, $ipAddress]);
     }
 
     // Reverse DNS Methods
@@ -3446,7 +3906,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhGet->getIPReverse($ipAddress);
+        
+        return $this->safeAPICall('ovh', $this->ovhGet, 'getIPReverse', [$ipAddress]);
     }
 
     public function createIPReverse($ipAddress, $reverse) {
@@ -3454,7 +3915,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhPost->createIPReverse($ipAddress, $reverse);
+        
+        return $this->safeAPICall('ovh', $this->ovhPost, 'createIPReverse', [$ipAddress, $reverse]);
     }
 
     public function updateIPReverse($ipAddress, $reverseIP, $newReverse) {
@@ -3462,7 +3924,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhPost->updateIPReverse($ipAddress, $reverseIP, $newReverse);
+        
+        return $this->safeAPICall('ovh', $this->ovhPost, 'updateIPReverse', [$ipAddress, $reverseIP, $newReverse]);
     }
 
     public function deleteIPReverse($ipAddress, $reverseIP) {
@@ -3470,17 +3933,27 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ovhPost->deleteIPReverse($ipAddress, $reverseIP);
+        
+        return $this->safeAPICall('ovh', $this->ovhPost, 'deleteIPReverse', [$ipAddress, $reverseIP]);
     }
 
     // Convenience Methods
     public function getCompleteVirtualMacInfo($serviceName = null) {
+        $apiCheck = $this->checkAPIEnabled('ovh');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
         $result = [];
         
         if ($serviceName) {
             $servers = [$serviceName];
         } else {
-            $servers = $this->ovhGet->getDedicatedServers();
+            $servers = $this->safeAPICall('ovh', $this->ovhGet, 'getDedicatedServers', []);
+            // PrÃ¼fe ob servers erfolgreich abgerufen wurden
+            if (!is_array($servers)) {
+                return $servers; // Gibt den Fehler zurÃ¼ck
+            }
         }
 
         foreach ($servers as $server) {
@@ -3493,7 +3966,7 @@ class ServiceManager {
                     'totalIPs' => 0
                 ];
 
-                // IPs zählen
+                // IPs zÃ¤hlen
                 foreach ($virtualMacs as $mac) {
                     if (isset($mac->ips)) {
                         $result[$server]['totalIPs'] += count($mac->ips);
@@ -3505,9 +3978,7 @@ class ServiceManager {
         return $result;
     }
     
-     
     // OGP METHODS
-     
     
     // Token Management
     public function testOGPToken() {
@@ -3515,7 +3986,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->testToken();
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'testToken', []);
     }
     
     // Remote Servers
@@ -3524,7 +3996,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getServerList();
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getServerList', []);
     }
     
     public function getOGPServerStatus($remoteServerId) {
@@ -3532,7 +4005,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getServerStatus($remoteServerId);
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getServerStatus', [$remoteServerId]);
     }
     
     public function getOGPServerIPs($remoteServerId) {
@@ -3540,7 +4014,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getServerIPs($remoteServerId);
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getServerIPs', [$remoteServerId]);
     }
     
     public function restartOGPServer($remoteServerId) {
@@ -3548,7 +4023,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->restartServer($remoteServerId);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'restartServer', [$remoteServerId]);
     }
     
     public function createOGPServer($serverData) {
@@ -3556,7 +4032,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->createServer($serverData);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'createServer', [$serverData]);
     }
     
     public function removeOGPServer($remoteServerId) {
@@ -3564,7 +4041,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->removeServer($remoteServerId);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'removeServer', [$remoteServerId]);
     }
     
     public function addOGPServerIP($remoteServerId, $ip) {
@@ -3572,7 +4050,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->addServerIP($remoteServerId, $ip);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'addServerIP', [$remoteServerId, $ip]);
     }
     
     public function removeOGPServerIP($remoteServerId, $ip) {
@@ -3580,7 +4059,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->removeServerIP($remoteServerId, $ip);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'removeServerIP', [$remoteServerId, $ip]);
     }
     
     public function editOGPServerIP($remoteServerId, $oldIp, $newIp) {
@@ -3588,7 +4068,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->editServerIP($remoteServerId, $oldIp, $newIp);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'editServerIP', [$remoteServerId, $oldIp, $newIp]);
     }
     
     // Game Servers
@@ -3597,7 +4078,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getGamesList($system, $architecture);
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getGamesList', [$system, $architecture]);
     }
     
     public function getOGPGameServers() {
@@ -3605,7 +4087,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getGameServers();
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getGameServers', []);
     }
     
     public function createOGPGameServer($gameServerData) {
@@ -3613,7 +4096,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->createGameServer($gameServerData);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'createGameServer', [$gameServerData]);
     }
     
     public function cloneOGPGameServer($cloneData) {
@@ -3621,7 +4105,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->cloneGameServer($cloneData);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'cloneGameServer', [$cloneData]);
     }
     
     public function setOGPGameServerExpiration($homeId, $timestamp) {
@@ -3629,7 +4114,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->setGameServerExpiration($homeId, $timestamp);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'setGameServerExpiration', [$homeId, $timestamp]);
     }
     
     // Users
@@ -3638,7 +4124,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getUsers();
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getUsers', []);
     }
     
     public function getOGPUser($email) {
@@ -3646,7 +4133,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getUser($email);
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getUser', [$email]);
     }
     
     public function getOGPUserAssigned($email) {
@@ -3654,7 +4142,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getUserAssigned($email);
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getUserAssigned', [$email]);
     }
     
     // Alte createOGPUser Methode entfernt - wird durch die neue erweiterte Version ersetzt
@@ -3664,7 +4153,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->removeUser($email);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'removeUser', [$email]);
     }
     
     public function setOGPUserExpiration($email, $timestamp) {
@@ -3672,7 +4162,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->setUserExpiration($email, $timestamp);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'setUserExpiration', [$email, $timestamp]);
     }
     
     public function assignOGPUser($email, $homeId, $timestamp = null) {
@@ -3680,7 +4171,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->assignUser($email, $homeId, $timestamp);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'assignUser', [$email, $homeId, $timestamp]);
     }
     
     public function removeOGPUserAssignment($email, $homeId) {
@@ -3688,12 +4180,11 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->removeUserAssignment($email, $homeId);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'removeUserAssignment', [$email, $homeId]);
     }
 
-     
     // PROXMOX USER MANAGEMENT
-     
     
     // Alte createProxmoxUser Methode entfernt - wird durch die neue erweiterte Version ersetzt
 
@@ -3702,7 +4193,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->proxmoxPost->deleteProxmoxUser($userid);
+        
+        return $this->safeAPICall('proxmox', $this->proxmoxPost, 'deleteProxmoxUser', [$userid]);
     }
 
     public function updateProxmoxUser($userid, $userData) {
@@ -3710,7 +4202,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->proxmoxPost->updateProxmoxUser($userid, $userData);
+        
+        return $this->safeAPICall('proxmox', $this->proxmoxPost, 'updateProxmoxUser', [$userid, $userData]);
     }
 
     public function getProxmoxUsers() {
@@ -3718,7 +4211,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->proxmoxPost->getProxmoxUsers();
+        
+        return $this->safeAPICall('proxmox', $this->proxmoxPost, 'getProxmoxUsers', []);
     }
 
     public function getProxmoxUser($userid) {
@@ -3726,7 +4220,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->proxmoxPost->getProxmoxUser($userid);
+        
+        return $this->safeAPICall('proxmox', $this->proxmoxPost, 'getProxmoxUser', [$userid]);
     }
     
     // Game Manager
@@ -3735,7 +4230,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->startGameManager($ip, $port, $modKey);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'startGameManager', [$ip, $port, $modKey]);
     }
     
     public function stopOGPGameManager($ip, $port, $modKey) {
@@ -3743,7 +4239,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->stopGameManager($ip, $port, $modKey);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'stopGameManager', [$ip, $port, $modKey]);
     }
     
     public function restartOGPGameManager($ip, $port, $modKey) {
@@ -3751,7 +4248,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->restartGameManager($ip, $port, $modKey);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'restartGameManager', [$ip, $port, $modKey]);
     }
     
     public function sendOGPRconCommand($ip, $port, $modKey, $command) {
@@ -3759,7 +4257,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->sendRconCommand($ip, $port, $modKey, $command);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'sendRconCommand', [$ip, $port, $modKey, $command]);
     }
     
     public function updateOGPGameManager($ip, $port, $modKey, $type, $manualUrl = null) {
@@ -3767,7 +4266,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->updateGameManager($ip, $port, $modKey, $type, $manualUrl);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'updateGameManager', [$ip, $port, $modKey, $type, $manualUrl]);
     }
     
     // Lite File Manager
@@ -3776,7 +4276,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->listFiles($ip, $port, $relativePath);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'listFiles', [$ip, $port, $relativePath]);
     }
     
     public function getOGPFile($ip, $port, $relativePath) {
@@ -3784,7 +4285,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->getFile($ip, $port, $relativePath);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'getFile', [$ip, $port, $relativePath]);
     }
     
     public function saveOGPFile($ip, $port, $relativePath, $contents) {
@@ -3792,7 +4294,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->saveFile($ip, $port, $relativePath, $contents);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'saveFile', [$ip, $port, $relativePath, $contents]);
     }
     
     public function removeOGPFile($ip, $port, $relativePath) {
@@ -3800,7 +4303,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->removeFile($ip, $port, $relativePath);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'removeFile', [$ip, $port, $relativePath]);
     }
     
     // Addons Manager
@@ -3809,7 +4313,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getAddonsList();
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getAddonsList', []);
     }
     
     public function installOGPAddon($ip, $port, $modKey, $addonId) {
@@ -3817,7 +4322,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->installAddon($ip, $port, $modKey, $addonId);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'installAddon', [$ip, $port, $modKey, $addonId]);
     }
     
     // Steam Workshop
@@ -3826,7 +4332,8 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpPost->installSteamWorkshop($ip, $port, $modsList);
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'installSteamWorkshop', [$ip, $port, $modsList]);
     }
     
     // Panel Settings
@@ -3835,853 +4342,171 @@ class ServiceManager {
         if ($apiCheck !== true) {
             return $apiCheck;
         }
-        return $this->ogpGet->getSetting($settingName);
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getSetting', [$settingName]);
     }
     
-    // System-Informationen
-    public function getSystemInfo() {
+    /**
+     * Erstellt Benutzer in allen aktivierten Systemen
+     * @param string $username Benutzername
+     * @param array $systemPasswords Array mit Passwörtern für jedes System
+     * @param string $firstName Vorname
+     * @param string $lastName Nachname
+     * @param array $additionalData Zusätzliche Daten (E-Mail, Firma, etc.)
+     * @return array Ergebnis der Benutzererstellung
+     */
+    public function createUserInAllSystems($username, $systemPasswords, $firstName, $lastName, $additionalData = []) {
+        $results = [];
+        $errors = [];
+        $success = true;
+        
         try {
-            $systemInfo = [
-                'cpu_usage' => $this->getCPUUsage(),
-                'memory_usage' => $this->getMemoryUsage(),
-                'disk_usage' => $this->getDiskUsage(),
-                'uptime' => $this->getUptime(),
-                'load_average' => $this->getLoadAverage(),
-                'network_status' => $this->getNetworkStatus()
-            ];
-            return $systemInfo;
-        } catch (Exception $e) {
-            error_log("Error getting system info: " . $e->getMessage());
-            return [];
-        }
-    }
-    
-    private function getCPUUsage() {
-        try {
-            $cpuUsage = null;
-            
-            // Methode 1: sys_getloadavg mit robuster Berechnung
-            if (function_exists('sys_getloadavg')) {
+            // ISPConfig Benutzer erstellen
+            if (Config::ISPCONFIG_USEING && isset($systemPasswords['ispconfig'])) {
                 try {
-                    $load = @sys_getloadavg();
-                    if ($load !== false && is_array($load) && isset($load[0]) && is_numeric($load[0])) {
-                        // Vereinfachte CPU-Berechnung basierend auf Load Average
-                        $loadValue = (float)$load[0];
-                        $cpuUsage = min(100, round($loadValue * 25, 2)); // Max 100%
-                    }
-                } catch (Exception $e) {
-                    // Ignoriere Fehler
-                }
-            }
-            
-            // Methode 2: /proc/stat (Linux) - nur versuchen wenn verfügbar
-            if ($cpuUsage === null) {
-                try {
-                    if (@file_exists('/proc/stat')) {
-                        $statContent = @file_get_contents('/proc/stat');
-                        if ($statContent !== false) {
-                            $lines = explode("\n", $statContent);
-                            foreach ($lines as $line) {
-                                if (strpos($line, 'cpu ') === 0) {
-                                    $parts = preg_split('/\s+/', trim($line));
-                                    if (count($parts) >= 5) {
-                                        $total = array_sum(array_slice($parts, 1, 4));
-                                        $idle = (int)$parts[4];
-                                        if ($total > 0) {
-                                            $cpuUsage = round((($total - $idle) / $total) * 100, 2);
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception $e) {
-                    // Ignoriere Fehler
-                }
-            }
-            
-            // Methode 3: top-Befehl über exec (falls verfügbar)
-            if ($cpuUsage === null) {
-                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
-                    try {
-                        $output = [];
-                        $returnVar = 0;
-                        @exec('top -bn1 | grep "Cpu(s)" 2>/dev/null', $output, $returnVar);
-                        
-                        if ($returnVar === 0 && !empty($output)) {
-                            $topLine = $output[0];
-                            if (preg_match('/(\d+\.?\d*)%us/', $topLine, $matches)) {
-                                $cpuUsage = round((float)$matches[1], 2);
-                            }
-                        }
-                    } catch (Exception $e) {
-                        // Ignoriere exec-Fehler
-                    }
-                }
-            }
-            
-            if ($cpuUsage !== null && $cpuUsage >= 0 && $cpuUsage <= 100) {
-                return $cpuUsage;
-            }
-            
-            return 0;
-        } catch (Exception $e) {
-            error_log("Error getting CPU usage: " . $e->getMessage());
-            return 0;
-        }
-    }
-    
-    private function getMemoryUsage() {
-        try {
-            $memoryData = null;
-            
-            // Methode 1: PHP memory_get_* Funktionen
-            if (function_exists('memory_get_usage') && function_exists('memory_get_peak_usage')) {
-                try {
-                    $memoryUsage = @memory_get_usage(true);
-                    $memoryPeak = @memory_get_peak_usage(true);
-                    $memoryLimit = @ini_get('memory_limit');
+                    $clientData = [
+                        'company_name' => $additionalData['company'] ?? '',
+                        'contact_firstname' => $firstName,
+                        'contact_name' => $lastName,
+                        'email' => $additionalData['email'] ?? '',
+                        'username' => $username,
+                        'password' => $systemPasswords['ispconfig'],
+                        'language' => 'de',
+                        'usertheme' => 'default',
+                        'template_master' => 0,
+                        'template_additional' => '',
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
                     
-                    if ($memoryUsage !== false && $memoryPeak !== false) {
-                        // Konvertiere memory_limit zu Bytes
-                        $limitBytes = $this->convertToBytes($memoryLimit);
-                        
-                        $usagePercent = 0;
-                        if ($limitBytes > 0) {
-                            $usagePercent = round(($memoryPeak / $limitBytes) * 100, 2);
-                        }
-                        
-                        $memoryData = [
-                            'current' => $this->formatBytes($memoryUsage),
-                            'peak' => $this->formatBytes($memoryPeak),
-                            'limit' => $memoryLimit ?: 'Unbekannt',
-                            'usage_percent' => $usagePercent,
-                            'type' => 'php'
+                    $result = $this->createISPConfigClient($clientData);
+                    if ($result && !isset($result['error'])) {
+                        $results['ispconfig'] = [
+                            'success' => true,
+                            'username' => $username,
+                            'system' => 'ISPConfig',
+                            'message' => 'Benutzer erfolgreich erstellt'
                         ];
-                    }
-                } catch (Exception $e) {
-                    // Ignoriere Fehler
-                }
-            }
-            
-            // Methode 2: /proc/meminfo (Linux) - nur versuchen wenn verfügbar
-            if ($memoryData === null) {
-                try {
-                    if (@file_exists('/proc/meminfo')) {
-                        $meminfoContent = @file_get_contents('/proc/meminfo');
-                        if ($meminfoContent !== false) {
-                            $lines = explode("\n", $meminfoContent);
-                            $memTotal = null;
-                            $memAvailable = null;
-                            
-                            foreach ($lines as $line) {
-                                if (strpos($line, 'MemTotal:') === 0) {
-                                    $parts = preg_split('/\s+/', trim($line));
-                                    if (count($parts) >= 2) {
-                                        $memTotal = (int)$parts[1] * 1024; // KB zu Bytes
-                                    }
-                                } elseif (strpos($line, 'MemAvailable:') === 0) {
-                                    $parts = preg_split('/\s+/', trim($line));
-                                    if (count($parts) >= 2) {
-                                        $memAvailable = (int)$parts[1] * 1024; // KB zu Bytes
-                                    }
-                                }
-                            }
-                            
-                            if ($memTotal !== null && $memAvailable !== null && $memTotal > 0) {
-                                $memUsed = $memTotal - $memAvailable;
-                                $usagePercent = round(($memUsed / $memTotal) * 100, 2);
-                                
-                                $memoryData = [
-                                    'current' => $this->formatBytes($memUsed),
-                                    'peak' => $this->formatBytes($memTotal),
-                                    'limit' => $this->formatBytes($memTotal),
-                                    'usage_percent' => $usagePercent,
-                                    'type' => 'system'
-                                ];
-                            }
-                        }
-                    }
-                } catch (Exception $e) {
-                    // Ignoriere Fehler
-                }
-            }
-            
-            // Methode 3: free-Befehl über exec (falls verfügbar)
-            if ($memoryData === null) {
-                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
-                    try {
-                        $output = [];
-                        $returnVar = 0;
-                        @exec('free -b 2>/dev/null', $output, $returnVar);
-                        
-                        if ($returnVar === 0 && !empty($output) && count($output) > 1) {
-                            $parts = preg_split('/\s+/', trim($output[1]));
-                            if (count($parts) >= 4) {
-                                $memTotal = (int)$parts[1];
-                                $memUsed = (int)$parts[2];
-                                
-                                if ($memTotal > 0) {
-                                    $usagePercent = round(($memUsed / $memTotal) * 100, 2);
-                                    
-                                    $memoryData = [
-                                        'current' => $this->formatBytes($memUsed),
-                                        'peak' => $this->formatBytes($memTotal),
-                                        'limit' => $this->formatBytes($memTotal),
-                                        'usage_percent' => $usagePercent,
-                                        'type' => 'free_command'
-                                    ];
-                                }
-                            }
-                        }
-                    } catch (Exception $e) {
-                        // Ignoriere exec-Fehler
-                    }
-                }
-            }
-            
-            if ($memoryData !== null) {
-                return $memoryData;
-            }
-            
-            // Fallback: Standardwerte
-            return [
-                'current' => 'Unbekannt',
-                'peak' => 'Unbekannt',
-                'limit' => 'Unbekannt',
-                'usage_percent' => 0,
-                'type' => 'unavailable'
-            ];
-        } catch (Exception $e) {
-            error_log("Error getting memory usage: " . $e->getMessage());
-            return [
-                'current' => 'Fehler',
-                'peak' => 'Fehler',
-                'limit' => 'Fehler',
-                'usage_percent' => 0,
-                'type' => 'error'
-            ];
-        }
-    }
-    
-    private function getDiskUsage() {
-        try {
-            // Verwende nur das aktuelle Verzeichnis und relative Pfade
-            $directories = ['.', './tmp', './logs'];
-            $diskTotal = null;
-            $diskFree = null;
-            
-            foreach ($directories as $dir) {
-                try {
-                    // Verwende @ Operator um alle Warnungen zu unterdrücken
-                    $testTotal = @disk_total_space($dir);
-                    $testFree = @disk_free_space($dir);
-                    
-                    if ($testTotal !== false && $testTotal > 0 && $testFree !== false) {
-                        $diskTotal = $testTotal;
-                        $diskFree = $testFree;
-                        break;
-                    }
-                } catch (Exception $e) {
-                    // Ignoriere Fehler und versuche das nächste Verzeichnis
-                    continue;
-                }
-            }
-            
-            // Fallback: Versuche df-Befehl über exec (falls verfügbar)
-            if ($diskTotal === null || $diskFree === null) {
-                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
-                    try {
-                        $output = [];
-                        $returnVar = 0;
-                        @exec('df -B1 . 2>/dev/null', $output, $returnVar);
-                        
-                        if ($returnVar === 0 && !empty($output) && count($output) > 1) {
-                            $parts = preg_split('/\s+/', trim($output[1]));
-                            if (count($parts) >= 4) {
-                                $diskTotal = (int)$parts[1];
-                                $diskFree = (int)$parts[3];
-                            }
-                        }
-                    } catch (Exception $e) {
-                        // Ignoriere exec-Fehler
-                    }
-                }
-            }
-            
-            // Wenn immer noch keine Daten verfügbar sind, verwende Standardwerte
-            if ($diskTotal === null || $diskFree === null || $diskTotal <= 0) {
-                return [
-                    'total' => 'Unbekannt',
-                    'used' => 'Unbekannt',
-                    'free' => 'Unbekannt',
-                    'usage_percent' => 0,
-                    'status' => 'unavailable'
-                ];
-            }
-            
-            // Berechne Werte nur wenn gültige Daten vorhanden sind
-            $diskUsed = $diskTotal - $diskFree;
-            $diskUsagePercent = ($diskTotal > 0) ? round(($diskUsed / $diskTotal) * 100, 2) : 0;
-            
-            return [
-                'total' => $this->formatBytes($diskTotal),
-                'used' => $this->formatBytes($diskUsed),
-                'free' => $this->formatBytes($diskFree),
-                'usage_percent' => $diskUsagePercent,
-                'status' => 'available'
-            ];
-            
-        } catch (Exception $e) {
-            error_log("Error getting disk usage: " . $e->getMessage());
-            return [
-                'total' => 'Fehler',
-                'used' => 'Fehler',
-                'free' => 'Fehler',
-                'usage_percent' => 0,
-                'status' => 'error'
-            ];
-        }
-    }
-    
-    private function getUptime() {
-        try {
-            // Versuche verschiedene Methoden für Uptime
-            $uptime = null;
-            
-            // Methode 1: /proc/uptime (Linux) - nur versuchen wenn verfügbar
-            try {
-                if (@file_exists('/proc/uptime')) {
-                    $uptimeContent = @file_get_contents('/proc/uptime');
-                    if ($uptimeContent !== false) {
-                        $parts = explode(' ', trim($uptimeContent));
-                        if (!empty($parts[0]) && is_numeric($parts[0])) {
-                            $uptime = (float)$parts[0];
-                        }
-                    }
-                }
-            } catch (Exception $e) {
-                // Ignoriere Fehler
-            }
-            
-            // Methode 2: uptime-Befehl über exec
-            if ($uptime === null) {
-                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
-                    try {
-                        $output = [];
-                        $returnVar = 0;
-                        @exec('uptime -s 2>/dev/null', $output, $returnVar);
-                        
-                        if ($returnVar === 0 && !empty($output)) {
-                            $startTime = strtotime($output[0]);
-                            if ($startTime !== false) {
-                                $uptime = time() - $startTime;
-                            }
-                        }
-                    } catch (Exception $e) {
-                        // Ignoriere exec-Fehler
-                    }
-                }
-            }
-            
-            // Methode 3: sys_getloadavg mit Fallback
-            if ($uptime === null) {
-                if (function_exists('sys_getloadavg')) {
-                    try {
-                        $load = @sys_getloadavg();
-                        if ($load !== false && isset($load[0])) {
-                            // Schätze Uptime basierend auf Load Average (sehr ungenau)
-                            $uptime = 3600; // 1 Stunde als Standard
-                        }
-                    } catch (Exception $e) {
-                        // Ignoriere Fehler
-                    }
-                }
-            }
-            
-            if ($uptime !== null && $uptime > 0) {
-                return $this->formatUptime($uptime);
-            }
-            
-            return 'Unbekannt';
-        } catch (Exception $e) {
-            error_log("Error getting uptime: " . $e->getMessage());
-            return 'Unbekannt';
-        }
-    }
-    
-    private function getLoadAverage() {
-        try {
-            $load = null;
-            
-            // Methode 1: sys_getloadavg (Standard PHP-Funktion)
-            if (function_exists('sys_getloadavg')) {
-                try {
-                    $loadData = @sys_getloadavg();
-                    if ($loadData !== false && is_array($loadData) && count($loadData) >= 3) {
-                        $load = [
-                            '1min' => is_numeric($loadData[0]) ? round((float)$loadData[0], 2) : 0,
-                            '5min' => is_numeric($loadData[1]) ? round((float)$loadData[1], 2) : 0,
-                            '15min' => is_numeric($loadData[2]) ? round((float)$loadData[2], 2) : 0
-                        ];
-                    }
-                } catch (Exception $e) {
-                    // Ignoriere Fehler
-                }
-            }
-            
-            // Methode 2: /proc/loadavg (Linux) - nur versuchen wenn verfügbar
-            if ($load === null) {
-                try {
-                    if (@file_exists('/proc/loadavg')) {
-                        $loadContent = @file_get_contents('/proc/loadavg');
-                        if ($loadContent !== false) {
-                            $parts = explode(' ', trim($loadContent));
-                            if (count($parts) >= 3) {
-                                $load = [
-                                    '1min' => is_numeric($parts[0]) ? round((float)$parts[0], 2) : 0,
-                                    '5min' => is_numeric($parts[1]) ? round((float)$parts[1], 2) : 0,
-                                    '15min' => is_numeric($parts[2]) ? round((float)$parts[2], 2) : 0
-                                ];
-                            }
-                        }
-                    }
-                } catch (Exception $e) {
-                    // Ignoriere Fehler
-                }
-            }
-            
-            // Methode 3: uptime-Befehl über exec
-            if ($load === null) {
-                if (function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
-                    try {
-                        $output = [];
-                        $returnVar = 0;
-                        @exec('uptime 2>/dev/null', $output, $returnVar);
-                        
-                        if ($returnVar === 0 && !empty($output)) {
-                            $uptimeLine = $output[0];
-                            if (preg_match('/load average: ([\d.]+), ([\d.]+), ([\d.]+)/', $uptimeLine, $matches)) {
-                                $load = [
-                                    '1min' => round((float)$matches[1], 2),
-                                    '5min' => round((float)$matches[2], 2),
-                                    '15min' => round((float)$matches[3], 2)
-                                ];
-                            }
-                        }
-                    } catch (Exception $e) {
-                        // Ignoriere exec-Fehler
-                    }
-                }
-            }
-            
-            if ($load !== null) {
-                return $load;
-            }
-            
-            return ['1min' => 0, '5min' => 0, '15min' => 0];
-        } catch (Exception $e) {
-            error_log("Error getting load average: " . $e->getMessage());
-            return ['1min' => 0, '5min' => 0, '15min' => 0];
-        }
-    }
-    
-    private function getNetworkStatus() {
-        try {
-            // Vereinfachte Netzwerk-Status-Prüfung
-            $networkStatus = 'online';
-            
-            // Prüfe ob externe Verbindung möglich ist
-            if (function_exists('fsockopen')) {
-                $connection = @fsockopen('8.8.8.8', 53, $errno, $errstr, 5);
-                if (!$connection) {
-                    $networkStatus = 'offline';
-                } else {
-                    fclose($connection);
-                }
-            }
-            
-            return [
-                'status' => $networkStatus,
-                'timestamp' => date('Y-m-d H:i:s')
-            ];
-        } catch (Exception $e) {
-            return ['status' => 'unknown', 'timestamp' => date('Y-m-d H:i:s')];
-        }
-    }
-    
-    private function convertToBytes($sizeStr) {
-        $sizeStr = trim($sizeStr);
-        $last = strtolower($sizeStr[strlen($sizeStr) - 1]);
-        $size = (int) $sizeStr;
-        
-        switch ($last) {
-            case 'g': $size *= 1024;
-            case 'm': $size *= 1024;
-            case 'k': $size *= 1024;
-        }
-        
-        return $size;
-    }
-    
-    private function formatBytes($bytes, $precision = 2) {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        
-        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
-            $bytes /= 1024;
-        }
-        
-        return round($bytes, $precision) . ' ' . $units[$i];
-    }
-    
-    private function formatUptime($seconds) {
-        $days = floor($seconds / 86400);
-        $hours = floor(($seconds % 86400) / 3600);
-        $minutes = floor(($seconds % 3600) / 60);
-        
-        if ($days > 0) {
-            return "{$days}d {$hours}h {$minutes}m";
-        } elseif ($hours > 0) {
-            return "{$hours}h {$minutes}m";
-        } else {
-            return "{$minutes}m";
-        }
-    }
-    
-    // Benutzer-Management Methoden
-    public function createOGPUser($username, $password, $firstName, $lastName, $options = []) {
-        try {
-            $apiCheck = $this->checkAPIEnabled('ogp');
-            if ($apiCheck !== true) {
-                throw new Exception('OpenGamePanel API nicht verfügbar: ' . ($apiCheck['message'] ?? 'Unbekannter Fehler'));
-            }
-            
-            // OGP-spezifische Parameter basierend auf der API-Dokumentation
-            // ogp_api.php?user_admin/create (POST/GET {token}{email}{name}{password})
-            $ogpData = [
-                'email' => $options['email'] ?? '',
-                'name' => "$firstName $lastName",
-                'password' => $password
-            ];
-            
-            $result = $this->ogpPost->createUser($ogpData);
-            
-            // OGP API gibt "Account created" bei Erfolg zurück
-            if ($result && (isset($result['success']) && $result['success']) || (is_string($result) && strpos($result, 'Account created') !== false)) {
-                $this->__log("OGP User Created", "Benutzer $username erfolgreich in OpenGamePanel angelegt", "success");
-                return $result;
-            } else {
-                throw new Exception('Fehler beim Anlegen des OGP-Benutzers: ' . ($result['message'] ?? 'Unbekannter Fehler'));
-            }
-            
-        } catch (Exception $e) {
-            $this->__log("OGP User Creation Failed", "Fehler beim Anlegen des Benutzers $username: " . $e->getMessage(), "error");
-            throw $e;
-        }
-    }
-    
-    public function createProxmoxUser($username, $password, $firstName, $lastName, $options = []) {
-        try {
-            $apiCheck = $this->checkAPIEnabled('proxmox');
-            if ($apiCheck !== true) {
-                throw new Exception('Proxmox API nicht verfügbar: ' . ($apiCheck['message'] ?? 'Unbekannter Fehler'));
-            }
-            
-            // Proxmox-spezifische Parameter basierend auf dem Beispiel
-            // $newUserData = [
-            //     'userid' => 'bob@pve',
-            //     'email' => 'uncle.bob@mail.com',
-            //     'firstname' => 'Bob',
-            //     'lastname' => 'Marley',
-            //     'password' => 'StirItUp',
-            // ];
-            $realm = $options['realm'] ?? 'pve';
-            $proxmoxData = [
-                'userid' => $username . '@' . $realm,
-                'email' => $options['email'] ?? '',
-                'firstname' => $firstName,
-                'lastname' => $lastName,
-                'password' => $password,
-                'comment' => $options['comment'] ?? ''
-            ];
-            
-            $result = $this->proxmoxPost->createProxmoxUser($proxmoxData);
-            
-            if ($result && isset($result['success']) && $result['success']) {
-                $this->__log("Proxmox User Created", "Benutzer $username erfolgreich in Proxmox angelegt", "success");
-                return $result;
-            } else {
-                throw new Exception('Fehler beim Anlegen des Proxmox-Benutzers: ' . ($result['message'] ?? 'Unbekannter Fehler'));
-            }
-            
-        } catch (Exception $e) {
-            $this->__log("Proxmox User Creation Failed", "Fehler beim Anlegen des Benutzers $username: " . $e->getMessage(), "error");
-            throw $e;
-        }
-    }
-    
-    public function createISPConfigUser($username, $password, $firstName, $lastName, $options = []) {
-        try {
-            $apiCheck = $this->checkAPIEnabled('ispconfig');
-            if ($apiCheck !== true) {
-                throw new Exception('ISPConfig API nicht verfügbar: ' . ($apiCheck['message'] ?? 'Unbekannter Fehler'));
-            }
-            
-            // ISPConfig-spezifische Parameter basierend auf dem umfassenden Beispiel aus createuser.php
-            $ispconfigData = [
-                // Must Have Parameter
-                'company_name' => $options['company'] ?? '',
-                'contact_firstname' => $firstName,
-                'contact_name' => $lastName,
-                'email' => $options['email'] ?? '',
-                'default_mailserver' => $options['default_mailserver'] ?? '1',
-                'default_webserver' => $options['default_webserver'] ?? '1',
-                'ssh_chroot' => $options['ssh_chroot'] ?? 'no,jailkit,ssh-chroot',
-                'default_dnsserver' => $options['default_dnsserver'] ?? '1',
-                'default_dbserver' => $options['default_dbserver'] ?? '1',
-                'username' => $username,
-                'password' => $password,
-                'language' => $options['language'] ?? 'de',
-                'usertheme' => 'default',
-                'web_php_options' => $options['web_php_options'] ?? 'no,fast-cgi,cgi,mod,suphp',
-                'limit_cron_type' => $options['limit_cron_type'] ?? 'url',
-                
-                // Optional Parameter Mail-Server
-                'limit_maildomain' => intval($options['limit_maildomain'] ?? -1),
-                'limit_mailbox' => intval($options['limit_mailbox'] ?? -1),
-                'limit_mailalias' => intval($options['limit_mailalias'] ?? -1),
-                'limit_mailaliasdomain' => intval($options['limit_mailaliasdomain'] ?? -1),
-                'limit_mailforward' => intval($options['limit_mailforward'] ?? -1),
-                'limit_mailcatchall' => intval($options['limit_mailcatchall'] ?? -1),
-                'limit_mailrouting' => intval($options['limit_mailrouting'] ?? 0),
-                'limit_mailfilter' => intval($options['limit_mailfilter'] ?? -1),
-                'limit_fetchmail' => intval($options['limit_fetchmail'] ?? -1),
-                'limit_mailquota' => intval($options['limit_mailquota'] ?? -1),
-                'limit_spamfilter_wblist' => intval($options['limit_spamfilter_wblist'] ?? -1),
-                'limit_spamfilter_user' => intval($options['limit_spamfilter_user'] ?? -1),
-                'limit_spamfilter_policy' => intval($options['limit_spamfilter_policy'] ?? -1),
-                
-                // Optional Parameter WebServer
-                'limit_web_ip' => $options['limit_web_ip'] ?? '',
-                'limit_web_domain' => intval($options['limit_web_domain'] ?? -1),
-                'limit_web_quota' => intval($options['limit_web_quota'] ?? -1),
-                'limit_web_subdomain' => intval($options['limit_web_subdomain'] ?? -1),
-                'limit_web_aliasdomain' => intval($options['limit_web_aliasdomain'] ?? -1),
-                'limit_ftp_user' => intval($options['limit_ftp_user'] ?? -1),
-                'limit_shell_user' => intval($options['limit_shell_user'] ?? 0),
-                'limit_webdav_user' => intval($options['limit_webdav_user'] ?? 0),
-                
-                // Optional Parameter DNSServer
-                'limit_dns_zone' => intval($options['limit_dns_zone'] ?? -1),
-                'limit_dns_slave_zone' => intval($options['limit_dns_slave_zone'] ?? -1),
-                'limit_dns_record' => intval($options['limit_dns_record'] ?? -1),
-                
-                // Optional Parameter Database
-                'limit_database' => intval($options['limit_database'] ?? -1),
-                
-                // Optional Parameter CronJobs
-                'limit_cron' => intval($options['limit_cron'] ?? 0),
-                'limit_cron_frequency' => intval($options['limit_cron_frequency'] ?? 5),
-                'limit_traffic_quota' => intval($options['limit_traffic_quota'] ?? -1),
-                
-                // Optional Parameter Stuff
-                'limit_client' => 0, // If this value is > 0, then the client is a reseller
-                'parent_client_id' => 0,
-                
-                // Optional Parameter Templates
-                'template_master' => 0,
-                'template_additional' => '',
-                'created_at' => 0,
-                
-                // Optional Parameter Options
-                'limit_redis_instances' => 0,
-                'limit_redis_memory_per_instance' => 0,
-                'limit_redis_memory_total' => 0,
-                'limit_allow_docker_apps' => 'y',
-                'limit_allow_docker_databases' => 'y'
-            ];
-            
-            // Zusätzliche Kontaktdaten hinzufügen, falls verfügbar
-            if (!empty($options['phone'])) {
-                $ispconfigData['contact_phone'] = $options['phone'];
-            }
-            if (!empty($options['mobile'])) {
-                $ispconfigData['contact_mobile'] = $options['mobile'];
-            }
-            if (!empty($options['fax'])) {
-                $ispconfigData['contact_fax'] = $options['fax'];
-            }
-            if (!empty($options['street'])) {
-                $ispconfigData['contact_street'] = $options['street'];
-            }
-            if (!empty($options['zip'])) {
-                $ispconfigData['contact_zip'] = $options['zip'];
-            }
-            if (!empty($options['city'])) {
-                $ispconfigData['contact_city'] = $options['city'];
-            }
-            if (!empty($options['state'])) {
-                $ispconfigData['contact_state'] = $options['state'];
-            }
-            if (!empty($options['country'])) {
-                $ispconfigData['contact_country'] = $options['country'];
-            }
-            if (!empty($options['customer_no'])) {
-                $ispconfigData['customer_no'] = $options['customer_no'];
-            }
-            if (!empty($options['vat_id'])) {
-                $ispconfigData['vat_id'] = $options['vat_id'];
-            }
-            
-            $result = $this->ispconfigPost->createClient($ispconfigData);
-            
-            if ($result && isset($result['success']) && $result['success']) {
-                $this->__log("ISPConfig User Created", "Benutzer $username erfolgreich in ISPConfig angelegt", "success");
-                return $result;
-            } else {
-                throw new Exception('Fehler beim Anlegen des ISPConfig-Benutzers: ' . (is_array($result) ? json_encode($result) : $result));
-            }
-            
-        } catch (Exception $e) {
-            $this->__log("ISPConfig User Creation Failed", "Fehler beim Anlegen des Benutzers $username: " . $e->getMessage(), "error");
-            throw $e;
-        }
-    }
-    
-    public function linkExistingUser($userId, $systemType, $systemUserId) {
-        try {
-            $db = Database::getInstance();
-            
-            // Verwende die bestehende user_permissions Tabelle
-            // Prüfe ob Verknüpfung bereits existiert
-            $stmt = $db->prepare("SELECT id FROM user_permissions WHERE user_id = ? AND permission_type = ?");
-            $db->execute($stmt, [$userId, $systemType]);
-            $existing = $db->fetch($stmt);
-            
-            if ($existing) {
-                // Update bestehende Verknüpfung
-                $stmt = $db->prepare("UPDATE user_permissions SET resource_id = ?, updated_at = NOW() WHERE user_id = ? AND permission_type = ?");
-                $db->execute($stmt, [$systemUserId, $userId, $systemType]);
-            } else {
-                // Neue Verknüpfung erstellen
-                $stmt = $db->prepare("INSERT INTO user_permissions (user_id, permission_type, resource_id, granted_by, created_at) VALUES (?, ?, ?, ?, NOW())");
-                $db->execute($stmt, [$userId, $systemType, $systemUserId, $userId]); // granted_by = user_id (selbst erteilt)
-            }
-            
-            $this->__log("User System Link", "Benutzer $userId mit $systemType verknüpft (ID: $systemUserId)", "success");
-            return true;
-            
-        } catch (Exception $e) {
-            $this->__log("User System Link Failed", "Fehler beim Verknüpfen: " . $e->getMessage(), "error");
-            throw $e;
-        }
-    }
-    
-    public function getUserSystemLinks($userId) {
-        try {
-            $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT permission_type, resource_id, created_at, expires_at FROM user_permissions WHERE user_id = ? AND permission_type IN ('proxmox', 'ispconfig', 'ovh')");
-            $db->execute($stmt, [$userId]);
-            return $db->fetchAll($stmt);
-            
-        } catch (Exception $e) {
-            $this->__log("Get User System Links Failed", "Fehler beim Abrufen der Verknüpfungen: " . $e->getMessage(), "error");
-            return [];
-        }
-    }
-    
-    public function createUserInAllSystems($username, $systemPasswords, $firstName, $lastName, $options = []) {
-        try {
-            $results = [];
-            $errors = [];
-            
-            // Erstelle Benutzer in allen verfügbaren Systemen
-            if (Config::OGP_USEING) {
-                try {
-                    $ogpPassword = is_array($systemPasswords) && isset($systemPasswords['ogp']) ? $systemPasswords['ogp'] : $systemPasswords;
-                    $ogpResult = $this->createOGPUser($username, $ogpPassword, $firstName, $lastName, $options);
-                    if ($ogpResult && isset($ogpResult['success']) && $ogpResult['success']) {
-                        $results['ogp'] = $ogpResult;
-                        $this->__log("OGP User Creation", "Benutzer $username erfolgreich in OGP angelegt", "success");
-                    }
-                } catch (Exception $e) {
-                    $errors['ogp'] = $e->getMessage();
-                    $this->__log("OGP User Creation Failed", "Fehler beim Anlegen des OGP-Benutzers $username: " . $e->getMessage(), "error");
-                }
-            }
-            
-            if (Config::PROXMOX_USEING) {
-                try {
-                    $proxmoxPassword = is_array($systemPasswords) && isset($systemPasswords['proxmox']) ? $systemPasswords['proxmox'] : $systemPasswords;
-                    $proxmoxResult = $this->createProxmoxUser($username, $proxmoxPassword, $firstName, $lastName, $options);
-                    if ($proxmoxResult && isset($proxmoxResult['success']) && $proxmoxResult['success']) {
-                        $results['proxmox'] = $proxmoxResult;
-                        $this->__log("Proxmox User Creation", "Benutzer $username erfolgreich in Proxmox angelegt", "success");
-                    }
-                } catch (Exception $e) {
-                    $errors['proxmox'] = $e->getMessage();
-                    $this->__log("Proxmox User Creation Failed", "Fehler beim Anlegen des Proxmox-Benutzers $username: " . $e->getMessage(), "error");
-                }
-            }
-            
-            if (Config::ISPCONFIG_USEING) {
-                try {
-                    $ispconfigPassword = is_array($systemPasswords) && isset($systemPasswords['ispconfig']) ? $systemPasswords['ispconfig'] : $systemPasswords;
-                    $ispconfigResult = $this->createISPConfigUser($username, $ispconfigPassword, $firstName, $lastName, $options);
-                    if ($ispconfigResult && isset($ispconfigResult['success']) && $ispconfigResult['success']) {
-                        $results['ispconfig'] = $ispconfigResult;
-                        $this->__log("ISPConfig User Creation", "Benutzer $username erfolgreich in ISPConfig angelegt", "success");
+                        $this->__log("User Creation", "ISPConfig Benutzer $username erfolgreich erstellt", "success");
+                    } else {
+                        $errors['ispconfig'] = $result['message'] ?? 'Unbekannter Fehler';
+                        $success = false;
+                        $this->__log("User Creation", "ISPConfig Benutzer $username Fehler: " . ($result['message'] ?? 'Unbekannt'), "error");
                     }
                 } catch (Exception $e) {
                     $errors['ispconfig'] = $e->getMessage();
-                    $this->__log("ISPConfig User Creation Failed", "Fehler beim Anlegen des ISPConfig-Benutzers $username: " . $e->getMessage(), "error");
+                    $success = false;
+                    $this->__log("User Creation", "ISPConfig Benutzer $username Exception: " . $e->getMessage(), "error");
                 }
             }
             
-            return [
-                'success' => !empty($results),
-                'results' => $results,
-                'errors' => $errors,
-                'message' => !empty($results) ? 'Benutzer erfolgreich in ' . count($results) . ' System(en) angelegt' : 'Fehler beim Anlegen des Benutzers'
-            ];
+            // OGP Benutzer erstellen
+            if (Config::OGP_USEING && isset($systemPasswords['ogp'])) {
+                try {
+                    $userData = [
+                        'firstname' => $firstName,
+                        'lastname' => $lastName,
+                        'email' => $additionalData['email'] ?? '',
+                        'password' => $systemPasswords['ogp'],
+                        'phone' => $additionalData['phone'] ?? '',
+                        'role' => 'user'
+                    ];
+                    
+                    $result = $this->createOGPUser($userData);
+                    if ($result && !isset($result['error'])) {
+                        $results['ogp'] = [
+                            'success' => true,
+                            'username' => $firstName . ' ' . $lastName,
+                            'system' => 'OpenGamePanel',
+                            'message' => 'Benutzer erfolgreich erstellt'
+                        ];
+                        $this->__log("User Creation", "OGP Benutzer $username erfolgreich erstellt", "success");
+                    } else {
+                        $errors['ogp'] = $result['message'] ?? 'Unbekannter Fehler';
+                        $success = false;
+                        $this->__log("User Creation", "OGP Benutzer $username Fehler: " . ($result['message'] ?? 'Unbekannt'), "error");
+                    }
+                } catch (Exception $e) {
+                    $errors['ogp'] = $e->getMessage();
+                    $success = false;
+                    $this->__log("User Creation", "OGP Benutzer $username Exception: " . $e->getMessage(), "error");
+                }
+            }
+            
+            // Proxmox Benutzer erstellen
+            if (Config::PROXMOX_USEING && isset($systemPasswords['proxmox'])) {
+                try {
+                    $userData = [
+                        'username' => $username,
+                        'realm' => 'pve',
+                        'password' => $systemPasswords['proxmox'],
+                        'comment' => $firstName . ' ' . $lastName,
+                        'email' => $additionalData['email'] ?? '',
+                        'first_name' => $firstName,
+                        'last_name' => $lastName
+                    ];
+                    
+                    $result = $this->createProxmoxUser($userData);
+                    if ($result && !isset($result['error'])) {
+                        $results['proxmox'] = [
+                            'success' => true,
+                            'username' => $username,
+                            'system' => 'Proxmox',
+                            'message' => 'Benutzer erfolgreich erstellt'
+                        ];
+                        $this->__log("User Creation", "Proxmox Benutzer $username erfolgreich erstellt", "success");
+                    } else {
+                        $errors['proxmox'] = $result['message'] ?? 'Unbekannter Fehler';
+                        $success = false;
+                        $this->__log("User Creation", "Proxmox Benutzer $username Fehler: " . ($result['message'] ?? 'Unbekannt'), "error");
+                    }
+                } catch (Exception $e) {
+                    $errors['proxmox'] = $e->getMessage();
+                    $success = false;
+                    $this->__log("User Creation", "Proxmox Benutzer $username Exception: " . $e->getMessage(), "error");
+                }
+            }
             
         } catch (Exception $e) {
-            $this->__log("Multi-System User Creation Failed", "Fehler beim Anlegen des Benutzers $username in allen Systemen: " . $e->getMessage(), "error");
-            throw $e;
+            $this->__log("User Creation", "Allgemeiner Fehler bei Benutzererstellung für $username: " . $e->getMessage(), "error");
+            return [
+                'success' => false,
+                'error' => 'GENERAL_ERROR',
+                'message' => 'Allgemeiner Fehler bei der Benutzererstellung: ' . $e->getMessage(),
+                'results' => $results,
+                'errors' => $errors
+            ];
         }
+        
+        return [
+            'success' => $success,
+            'results' => $results,
+            'errors' => $errors,
+            'message' => $success ? 'Alle Benutzer erfolgreich erstellt' : 'Einige Benutzer konnten nicht erstellt werden'
+        ];
     }
     
-    public function mergeExistingUsers($localUserId, $systemUsers) {
-        try {
-            $db = Database::getInstance();
-            $results = [];
-            $errors = [];
-            
-            foreach ($systemUsers as $systemType => $systemUserId) {
-                if (!empty($systemUserId)) {
-                    try {
-                        $linkResult = $this->linkExistingUser($localUserId, $systemType, $systemUserId);
-                        if ($linkResult) {
-                            $results[$systemType] = "Erfolgreich verknüpft mit ID: $systemUserId";
-                        }
-                    } catch (Exception $e) {
-                        $errors[$systemType] = $e->getMessage();
-                    }
-                }
-            }
-            
-            return [
-                'success' => !empty($results),
-                'results' => $results,
-                'errors' => $errors,
-                'message' => !empty($results) ? 'Benutzer erfolgreich mit ' . count($results) . ' System(en) verknüpft' : 'Fehler beim Verknüpfen'
-            ];
-            
-        } catch (Exception $e) {
-            $this->__log("User Merge Failed", "Fehler beim Zusammenführen der Benutzer: " . $e->getMessage(), "error");
-            throw $e;
+    /**
+     * Erstellt OGP Benutzer (erweiterte Methode)
+     */
+    public function createOGPUser($userData) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
         }
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'createUser', [$userData]);
+    }
+    
+    /**
+     * Erstellt Proxmox Benutzer (erweiterte Methode)
+     */
+    public function createProxmoxUser($userData) {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('proxmox', $this->proxmoxPost, 'createProxmoxUser', [$userData]);
     }
 }
 
@@ -4699,7 +4524,7 @@ function getAllModules() {
     foreach ($dirs as $dir) {
         $module_key = basename($dir);
         
-        // Überspringe spezielle Verzeichnisse
+        // Ãœberspringe spezielle Verzeichnisse
         if (in_array($module_key, ['.', '..', 'assets', 'templates'])) {
             continue;
         }
@@ -4711,9 +4536,9 @@ function getAllModules() {
             $config = [
                 'key' => $module_key,
                 'path' => $dir,
-                'enabled' => true, // Standardmäßig aktiviert
+                'enabled' => true, // StandardmÃ¤ÃŸig aktiviert
                 'name' => ucfirst($module_key),
-                'icon' => '📦',
+                'icon' => 'ðŸ“¦',
                 'description' => 'Module ' . ucfirst($module_key),
                 'version' => '1.0.0',
                 'author' => 'System',
@@ -4755,12 +4580,12 @@ function canAccessModule($module_key, $user_role) {
         return false;
     }
     
-    // Standardmäßig haben alle Benutzer Zugriff
+    // StandardmÃ¤ÃŸig haben alle Benutzer Zugriff
     if (!isset($config['permissions'])) {
         return true;
     }
     
-    // Prüfe spezifische Berechtigungen
+    // PrÃ¼fe spezifische Berechtigungen
     $permissions = $config['permissions'];
     
     // Admin hat immer Zugriff
@@ -4768,7 +4593,7 @@ function canAccessModule($module_key, $user_role) {
         return true;
     }
     
-    // Prüfe Benutzerrolle
+    // PrÃ¼fe Benutzerrolle
     if (isset($permissions['roles'])) {
         if (!in_array($user_role, $permissions['roles'])) {
             return false;

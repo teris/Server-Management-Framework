@@ -173,8 +173,9 @@ function logActivity($message, $level = 'INFO', $module = null) {
     
     // Optional: In Datenbank schreiben
     try {
-        $db = Database::getInstance();
-        $db->insert('activity_logs', [
+        require_once __DIR__ . '/core/DatabaseOnlyFramework.php';
+        $activityLog = new ActivityLog();
+        $activityLog->insert([
             'user_id' => $log_entry['user_id'],
             'action' => $log_entry['module'] . '.' . $level,
             'details' => $log_entry['message'],

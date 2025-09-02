@@ -343,9 +343,9 @@ try {
                             if (isset($pluginManager) && method_exists($pluginManager, 'getEnabledPlugins')) {
                                 foreach ($pluginManager->getEnabledPlugins() as $plugin_key => $plugin_info): 
                             ?>
-                            <li class="nav-item">
-                                <a class="nav-link" href="?option=modules&mod=<?= $plugin_key ?>">
-                                    <i class="bi bi-puzzle"></i> <?= htmlspecialchars($plugin_info['name'] ?? ucfirst($plugin_key)) ?>
+                            <li>
+                                <a href="?option=modules&mod=<?= $plugin_key ?>">
+                                    <?= htmlspecialchars($plugin_info['name'] ?? ucfirst($plugin_key)) ?>
                                 </a>
                             </li>
                             <?php 
@@ -371,13 +371,13 @@ try {
                     </a>
                     <div class="collapse show" id="domainSubmenu">
                         <ul class="nav flex-column ms-3">
-                            <li class="nav-item">
-                                <a class="nav-link" href="?option=domain-settings">
+                            <li>
+                                <a href="?option=domain-settings">
                                     <i class="bi bi-gear"></i> <?= t('domain_settings') ?>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="?option=domain-registrations">
+                            <li>
+                                <a href="?option=domain-registrations">
                                     <i class="bi bi-list-ul"></i> <?= t('domain_registrations') ?>
                                 </a>
                             </li>
@@ -395,13 +395,13 @@ try {
                     </a>
                     <div class="collapse show" id="optionsSubmenu">
                         <ul class="nav flex-column ms-3">
-                            <li class="nav-item">
-                                <a class="nav-link" href="?option=system">
+                            <li >
+                                <a href="?option=system">
                                     <i class="bi bi-sliders"></i> <?= t('system_settings') ?>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="?option=settings">
+                            <li >
+                                <a href="?option=settings">
                                     <i class="bi bi-gear"></i> <?= t('settings') ?>
                                 </a>
                             </li>
@@ -563,7 +563,6 @@ try {
                                                     exit;
                                                 }
                                             }
-                                            break;
                                         default:
                                             $_SESSION['error_message'] = "Unbekannte Aktion: " . htmlspecialchars($_POST['action']);
                                             header("Location: " . $_SERVER['REQUEST_URI']);

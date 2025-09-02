@@ -52,12 +52,26 @@ abstract class Model {
     protected $db;
     protected $table;
     protected $primaryKey = 'id';
+    protected $data = [];
 
-    public function __construct() {
+    public function __construct($data = null) {
         $this->db = Database::getInstance()->getConnection();
+        if ($data !== null) {
+            $this->data = $data;
+        }
     }
+    
     public function getDb() {
         return $this->db;
+    }
+    
+    public function getData() {
+        return $this->data;
+    }
+    
+    public function setData($data) {
+        $this->data = $data;
+        return $this;
     }
 
     // Generische CRUD-Methoden
@@ -119,6 +133,7 @@ class LoginAttempt extends Model { protected $table = 'login_attempts'; }
 class Group extends Model { protected $table = 'groups'; }
 class UserPermission extends Model { protected $table = 'user_permissions'; }
 class UserSession extends Model { protected $table = 'user_sessions'; }
+class ActivityLog extends Model { protected $table = 'activity_log'; }
 class ProxmoxGet {
     public function getVMs($node = null) {
         $model = new VM();

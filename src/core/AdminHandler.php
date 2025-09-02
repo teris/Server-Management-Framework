@@ -429,6 +429,10 @@ class AdminHandler {
     private function refreshAllStats() {
         try {
             $stats = $this->adminCore->getDashboardStats();
+            // Sicherstellen, dass $stats nicht null ist
+            if ($stats === null || $stats === false) {
+                $stats = [];
+            }
             return $this->success($stats, 'Statistiken aktualisiert');
         } catch (Exception $e) {
             return $this->error($e->getMessage());
@@ -711,7 +715,7 @@ class AdminHandler {
                 return $this->error('Gruppen-ID erforderlich');
             }
             
-            $result = $this->adminCore->saveGroupModules($groupId, $modules);
+            $result = $this->adminCore->saveGroupModules(['group_id' => $groupId, 'modules' => $modules]);
             
             if ($result) {
                 $this->log("Group modules updated for group {$groupId} by admin {$this->user['username']}", 'INFO');

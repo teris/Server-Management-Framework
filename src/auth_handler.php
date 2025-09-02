@@ -150,7 +150,7 @@ class SessionManager {
      */
     public static function isAdmin() {
         $user = self::getUserInfo();
-        return $user && $user['role'] === 'admin';
+        return $user !== null && isset($user['role']) && $user['role'] === 'admin';
     }
     
     /**

@@ -208,14 +208,54 @@ function testSOAP() {
 // ISPConfig Test Funktion
 function testISPConfig() {
     try {
-        if (!class_exists('ISPConfigAPI')) {
-            return ['success' => false, 'error' => 'ISPConfigAPI class not found'];
+        // Prüfe ob die ISPConfig Klassen verfügbar sind
+        if (!class_exists('ISPConfigGet')) {
+            return ['success' => false, 'error' => 'ISPConfigGet class not found'];
         }
         
-        $ispconfig = new ISPConfigAPI();
-        $result = $ispconfig->testConnection();
+        if (!class_exists('ServiceManager')) {
+            return ['success' => false, 'error' => 'ServiceManager class not found'];
+        }
         
-        return ['success' => true, 'data' => $result];
+        // Teste eine einfache ISPConfig Funktion direkt
+        try {
+            $ispconfig = new ISPConfigGet();
+            
+            // Prüfe grundlegende Eigenschaften
+            $result = [
+                'class_loaded' => true,
+                'client_available' => isset($ispconfig->client) && $ispconfig->client !== null,
+                'session_available' => isset($ispconfig->session_id) && !empty($ispconfig->session_id)
+            ];
+            
+            // Teste Verbindung durch Session-Check
+            if ($result['session_available']) {
+                $result['connection'] = 'active_session';
+                $result['session_id'] = substr($ispconfig->session_id, 0, 10) . '...';
+                
+                // Teste eine einfache SOAP-Funktion wenn möglich
+                if ($result['client_available']) {
+                    try {
+                        // Teste mit einer einfachen Funktion
+                        $testResult = $ispconfig->client->get_function_list($ispconfig->session_id);
+                        $result['soap_test'] = 'success';
+                        $result['available_functions'] = is_array($testResult) ? count($testResult) : 'unknown';
+                    } catch (Exception $e) {
+                        $result['soap_test'] = 'failed';
+                        $result['soap_error'] = $e->getMessage();
+                    }
+                }
+            } else {
+                $result['connection'] = 'no_session';
+                $result['note'] = 'ISPConfig class loaded but no active session';
+            }
+            
+            return ['success' => true, 'data' => $result];
+            
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => 'ISPConfig initialization failed: ' . $e->getMessage()];
+        }
+        
     } catch (Exception $e) {
         return ['success' => false, 'error' => $e->getMessage()];
     }

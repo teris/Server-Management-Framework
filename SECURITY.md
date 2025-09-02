@@ -5,7 +5,7 @@
 Wenn Sie eine Sicherheitslücke in diesem Projekt gefunden haben, melden Sie diese bitte **nicht** über öffentliche GitHub Issues.
 
 ### Kontakt
-- **E-Mail:** [Ihre E-Mail-Adresse hier]
+- **E-Mail:** github [at] orga - consult [dot] eu
 - **Private Issue:** Erstellen Sie ein privates GitHub Issue mit dem Label "security"
 
 ### Was zu melden ist
@@ -58,19 +58,19 @@ Wenn Sie eine Sicherheitslücke in diesem Projekt gefunden haben, melden Sie die
 ## 📋 Sicherheits-Checkliste
 
 ### Vor dem Deployment
-- [ ] Alle Dependencies aktualisiert
-- [ ] API-Credentials sicher konfiguriert
+- [x] Alle Dependencies aktualisiert
+- [x] API-Credentials sicher konfiguriert
 - [ ] HTTPS aktiviert
-- [ ] Security Headers gesetzt
+- [x] Security Headers gesetzt
 - [ ] Error Reporting deaktiviert
 - [ ] Debug-Modus deaktiviert
 
 ### Regelmäßige Überprüfungen
-- [ ] Logs auf verdächtige Aktivitäten prüfen
-- [ ] API-Zugriffe überwachen
-- [ ] Backup-Integrität testen
-- [ ] Security Updates installieren
-- [ ] Zugriffsrechte überprüfen
+- [!] Logs auf verdächtige Aktivitäten prüfen
+- [!] API-Zugriffe überwachen
+- [!] Backup-Integrität testen
+- [!] Security Updates installieren
+- [!] Zugriffsrechte überprüfen
 
 ---
 

@@ -15,6 +15,22 @@ $currentLang = $lang->getCurrentLanguage();
 // ServiceManager für Server-Status
 $serviceManager = new ServiceManager();
 
+// Hilfsfunktion für sichere Array-Anzeige
+function safeDisplay($value, $default = 'N/A') {
+    if (is_array($value)) {
+        if (isset($value['1min'])) {
+            return htmlspecialchars($value['1min']);
+        } elseif (isset($value['total'])) {
+            return htmlspecialchars($value['total']);
+        } elseif (isset($value['used'])) {
+            return htmlspecialchars($value['used']);
+        } else {
+            return $default;
+        }
+    }
+    return htmlspecialchars($value ?? $default);
+}
+
 // Server-Status abrufen
 try {
     $proxmoxVMs = $serviceManager->getProxmoxVMs();
@@ -116,7 +132,7 @@ try {
                 <div class="col-md-3 col-6 mb-3">
                     <div class="stat-card">
                         <i class="bi bi-speedometer2 display-6"></i>
-                        <h3><?= $systemInfo['load'] ?? 'N/A' ?></h3>
+                        <h3><?= safeDisplay($systemInfo['load']) ?></h3>
                         <p><?= t('system_load') ?></p>
                     </div>
                 </div>

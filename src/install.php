@@ -192,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                 } catch (Exception $e) {
-                    if (isset($conn) && $conn->ping()) { // Ping prüft, ob die Verbindung noch aktiv ist
+                    if (isset($conn) && !$conn->connect_error) { // Prüft, ob die Verbindung noch gültig ist
                          $conn->rollback(); // Nur rollbacken, wenn Transaktion gestartet wurde und Verbindung besteht
                     }
                     $error_message = "Datenbank-Setup Fehler: " . $e->getMessage();
@@ -258,13 +258,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     // Prüfen ob Benutzer bereits existiert (sollte nicht der Fall sein bei Erstinstallation)
                     $stmt = $db_conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-                    $stmt->bind_param("ss", $admin_user, $admin_email);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                    if ($result->num_rows > 0) {
+                    $stmt->execute([$admin_user, $admin_email]);
+                    $result = $stmt->fetchAll();
+                    if (count($result) > 0) {
                         throw new Exception("Ein Benutzer mit diesem Benutzernamen oder E-Mail existiert bereits.");
                     }
-                    $stmt->close();
 
                     // AuthenticationHandler verwenden, um Benutzer zu erstellen
                     $authHandler = new AuthenticationHandler();

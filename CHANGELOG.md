@@ -2,6 +2,53 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.0.9]
+
+### Fehlerbehebung
+
+- Model-Klasse erweitert: Der Konstruktor akzeptiert jetzt einen optionalen $data Parameter
+- Daten-Speicherung hinzugefügt: Eine $data Eigenschaft zum Speichern der übergebenen Daten
+- Hilfsmethoden hinzugefügt: getData() und setData() Methoden für den Zugriff auf die Daten
+- Fehlende Klasse hinzugefügt: ActivityLog Klasse hinzugefügt, die von Model erbt
+
+### Geändert
+- bind_param("ss", $admin_user, $admin_email) → execute([$admin_user, $admin_email])
+- get_result() → fetchAll()
+- num_rows → count($result)
+- close() entfernt (nicht nötig bei PDO)
+- $conn->ping() durch !$conn->connect_error ersetzt
+- Null-Check für den Rückgabewert von getDashboardStats()
+- getConnection() Aufrufe ersetzt
+
+###Technische Verbesserung
+- Sicherstellung, dass immer ein gültiger Wert an $this->success() übergeben wird
+- MongoDBClientDummy für \MongoDB\Client
+- MongoDBUTCDateTimeDummy für \MongoDB\BSON\UTCDateTime
+- MongoDBDatabaseDummy für \MongoDB\Database
+- MongoDBCollectionDummy für \MongoDB\Collection
+- MongoDBInsertOneResultDummy für \MongoDB\InsertOneResult
+- MongoDBDeleteResultDummy für \MongoDB\DeleteResult
+- MongoDBCursorDummy für \MongoDB\Driver\Cursor
+
+### Bekannte Probleme
+- PHP1408 Fehler in src/core/AdminCore.php
+
+### Hinzugefügt
+- Eine neue private Methode getSafeDbConnection() wurde erstellt
+- createOGPUser($userData) - Erweiterte OGP Benutzererstellung
+- createProxmoxUser($userData) - Erweiterte Proxmox Benutzererstellung
+
+## [3.0.8]
+
+### Fehlerbehebung
+- Linter-Fehler P1006: Alle "Expected type 'object'. Found 'null'" Fehler wurden behoben
+- Robustheit: Zusätzliche Sicherheit durch explizite Null-Checks
+- Konsistenz: Alle Proxmox-Methoden haben jetzt einheitliche Fehlerbehandlung
+- Typsicherheit: Der Linter kann jetzt sicher sein, dass die Objekte nicht null sind
+- Undefined property: VM::$state - Der Hauptfehler wurde durch robuste Eigenschaftsabfrage behoben
+- Verbesserte Fehlerbehandlung - Alle Eigenschaftszugriffe sind jetzt sicher
+- Konsistente Codestruktur - Einheitliche Behandlung von Objekten und Arrays
+
 ## [3.0.7]
 
 ### Fehlerbehebung
