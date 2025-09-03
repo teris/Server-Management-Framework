@@ -2,6 +2,67 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.1.0]
+
+### Hinzugefügt
+- **Multi-Datenbank-Support**: Separate SQL-Dateien für MySQL, PostgreSQL und SQLite
+- **Optimierte Indizes**: Performance-optimierte Indizes für alle häufig verwendeten Abfragen
+- **Views**: Übersichts-Views für komplexe Abfragen (user_activity_overview, vm_overview, website_overview)
+- **Verbesserte Constraints**: Vollständige Foreign Key Constraints für Datenintegrität
+- **Standarddaten**: Grunddaten für sofortige Nutzung nach Installation
+- **Dokumentation**: Umfassende Dokumentation und Migrationsleitfaden
+
+### Geändert
+- **Tabellenstruktur**: Optimierte Spaltentypen und -größen
+- **Namenskonventionen**: Einheitliche Namenskonventionen für alle Tabellen und Spalten
+- **Auto-Increment**: Konsistente Auto-Increment Konfiguration
+- **Timestamps**: Standardisierte created_at und updated_at Felder
+
+### Entfernt
+- **Nicht verwendete Tabellen**: Entfernung von 10 nicht im System verwendeten Tabellen:
+  - `backup_jobs` - Backup-Jobs (nicht im Code verwendet)
+  - `domain_extensions` - Domain-Erweiterungen (nicht verwendet)
+  - `groups` - Gruppen (nicht verwendet)
+  - `group_module_permissions` - Gruppen-Modul-Berechtigungen (nicht verwendet)
+  - `module_configs` - Modul-Konfigurationen (nicht verwendet)
+  - `module_dependencies` - Modul-Abhängigkeiten (nicht verwendet)
+  - `module_permissions` - Modul-Berechtigungen (nicht verwendet)
+  - `network_config` - Netzwerk-Konfiguration (nicht verwendet)
+  - `server_resources` - Server-Ressourcen (nicht verwendet)
+  - `active_modules` - Aktive Module (nicht verwendet)
+
+### Behoben
+- **Datenintegrität**: Vollständige Referential Integrity durch Foreign Keys
+- **Performance**: Optimierte Abfragen durch bessere Indizierung
+- **Wartbarkeit**: Konsistente Struktur für einfachere Wartung
+
+### Technische Details
+- MySQL/MariaDB als Hauptdatenbank
+- UTF8 Zeichensatz
+- InnoDB Engine
+- Basis-Indizes
+- Grundlegende Constraints
+
+#### MySQL/MariaDB (`database-structure-optimized.sql`)
+- UTF8MB4 Zeichensatz für vollständige Unicode-Unterstützung
+- InnoDB Engine für Transaktionssicherheit
+- Optimierte Indizes für alle Abfrage-Patterns
+- Views für komplexe Übersichtsabfragen
+
+#### PostgreSQL (`database-structure-postgresql.sql`)
+- Native ENUM-Typen für bessere Typsicherheit
+- JSONB für Konfigurationsdaten
+- SERIAL für Auto-Increment Felder
+- Trigger für automatische updated_at Aktualisierung
+- PostgreSQL-spezifische Views
+
+#### SQLite (`database-structure-sqlite.sql`)
+- CHECK Constraints für ENUM-Simulation
+- INTEGER PRIMARY KEY für Auto-Increment
+- Trigger für updated_at Felder
+- SQLite-optimierte Views
+- WAL-Modus für bessere Performance
+
 ## [3.0.9]
 
 ### Fehlerbehebung

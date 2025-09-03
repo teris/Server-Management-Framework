@@ -138,7 +138,6 @@ class IspconfigModule extends ModuleBase {
                 'custom_php_ini' => '',
                 'backup_interval' => 'daily',
                 'backup_copies' => 7,
-                'active' => 'y',
                 'traffic_quota_lock' => 'n',
                 'system_user' => $data['user'],
                 'system_group' => $data['group']
