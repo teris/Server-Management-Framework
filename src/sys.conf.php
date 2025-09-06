@@ -11,6 +11,9 @@ if (file_exists(__DIR__ . '/core/LanguageManager.php')) {
 
 
 
+
+
+
 // --- PLUGINS START ---
 $plugins = array (
   'admin' => 
@@ -25,7 +28,7 @@ $plugins = array (
   ),
   'proxmox' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'Proxmox VM Management',
     'icon' => '🖥️',
     'path' => 'module/proxmox',
@@ -39,13 +42,13 @@ $plugins = array (
     'name' => 'ISPConfig Website Management',
     'icon' => '🌐',
     'path' => 'module/ispconfig',
-    'version' => '1.0.0',
+    'version' => '1.5.0',
     'description' => 'Websites und Webhosting mit ISPConfig verwalten',
     'require_admin' => false,
   ),
   'ovh' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'OVH Services',
     'icon' => '🔗',
     'path' => 'module/ovh',
@@ -59,13 +62,13 @@ $plugins = array (
     'name' => 'DNS Verwaltung',
     'icon' => '🌐',
     'path' => 'module/dns',
-    'version' => '1.0.0',
+    'version' => '2.0.0',
     'description' => 'DNS-Records und DNSSEC für OVH-Domains verwalten',
     'require_admin' => false,
   ),
   'virtual-mac' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'Virtual MAC Management',
     'icon' => '🔌',
     'path' => 'module/virtual-mac',
@@ -75,7 +78,7 @@ $plugins = array (
   ),
   'network' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'Netzwerk Konfiguration',
     'icon' => '🔧',
     'path' => 'module/network',
@@ -85,7 +88,7 @@ $plugins = array (
   ),
   'database' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'Datenbank Management',
     'icon' => '🗄️',
     'path' => 'module/database',
@@ -95,7 +98,7 @@ $plugins = array (
   ),
   'email' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'E-Mail Management',
     'icon' => '📧',
     'path' => 'module/email',
@@ -115,7 +118,7 @@ $plugins = array (
   ),
   'custom-module' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'Custom Module',
     'icon' => '🔧',
     'path' => 'module/custom-module',
@@ -133,8 +136,21 @@ $plugins = array (
     'description' => 'Support-Tickets verwalten und bearbeiten',
     'require_admin' => true,
   ),
+  'migration' => 
+  array (
+    'enabled' => true,
+    'name' => 'Migration',
+    'icon' => '',
+    'path' => 'module/migation',
+    'version' => '1.0.0',
+    'description' => 'Migrien von Daten aus Systemen',
+    'require_admin' => true,
+  ),
 );
 // --- PLUGINS END ---
+
+
+
 
 
 

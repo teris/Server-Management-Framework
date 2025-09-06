@@ -2,6 +2,52 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.1.1] - Modulupdate
+
+### DNS-Modul - Komplette Überarbeitung
+
+#### Benutzeroberfläche
+- **Formulare an die Spitze**: DNS-Formulare werden jetzt automatisch oben auf der Seite angezeigt
+- **Inline-Bearbeitung**: DNS-Records können direkt in der Tabelle bearbeitet werden
+- **Dynamische Formularanzeige**: "Record Hinzufügen" Button und Zone-Management nur bei ausgewählter Domain sichtbar
+- **Ladebalken**: Visueller Fortschrittsbalken beim Laden der Domains
+- **Responsive Design**: Optimierte Darstellung für verschiedene Bildschirmgrößen
+
+#### Performance & Stabilität
+- **Automatisches Laden**: Domains werden beim Modulaufruf automatisch geladen
+- **Verhindert Doppelklicks**: Schutz vor mehrfachen API-Aufrufen bei Add/Delete-Operationen
+- **Optimierte API-Calls**: Reduzierte Anzahl von API-Aufrufen durch intelligentes Caching
+- **Robuste Fehlerbehandlung**: Verbesserte Behandlung von API-Fehlern und ungültigen Daten
+
+#### Backend-Verbesserungen
+- **Zone-Export**: Generierung von DNS-Zone-Dateien im Standard-Format
+- **Download-Funktionalität**: Automatischer Download der exportierten Zone-Dateien
+- **Verbesserte Validierung**: Robuste Datenvalidierung für alle DNS-Record-Typen
+- **Activity-Logging**: Verwendung der Framework-`__log()` Funktion für bessere Nachverfolgung
+- **Typsichere Array-Zugriffe**: Behebung aller PHP-Warnungen bei Array-Zugriffen
+
+#### Code-Organisation
+- **CSS-Externalisierung**: Alle CSS-Styles in separate `style.css` Datei ausgelagert
+- **Modulare JavaScript-Struktur**: Verbesserte Event-Delegation und Code-Organisation
+- **Saubere Trennung**: Klare Trennung zwischen Frontend und Backend-Logik
+
+#### Fehlerbehebungen
+- **"Keine Domains verfügbar" Meldung**: Entfernt, da nicht mehr benötigt
+- **Doppelte DNS-Record-Erstellung**: Verhindert durch Request-Flags
+- **Lösch-Loop**: Behebung des kontinuierlichen Bestätigungsdialogs
+- **Domain-Dropdown-Laden**: Robuste DOM-Erkennung und Fallback-Mechanismen
+- **Download-URL-Fehler**: Korrektur der doppelten Slashes in Download-URLs
+
+#### Neue Features
+- **Zone-Import/Export**: Vollständige DNS-Zone-Verwaltung
+- **Dynamische UI-Elemente**: Buttons und Sektionen werden basierend auf Kontext angezeigt
+- **Verbesserte Benutzerführung**: Intuitivere Bedienung durch visuelle Rückmeldungen
+- **Standard-DNS-Format**: Export im RFC-konformen DNS-Zone-Format
+
+### Geändert
+- Anpassung der ISPConfig verwaltung, vorbereitet auf Version 2.0.0
+- migrationsmodul vorbereitet und testweise angepasst
+
 ## [3.1.0]
 
 ### Hinzugefügt

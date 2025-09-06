@@ -139,4 +139,132 @@
     <website_created_message>Website wurde erfolgreich erstellt!</website_created_message>
     <ftp_user_created_message>FTP-Benutzer wurde erfolgreich erstellt!</ftp_user_created_message>
     <subdomain_created_message>Subdomain wurde erfolgreich erstellt!</subdomain_created_message>
+    
+    <!-- Benutzer-Management -->
+    <users_overview>Benutzer-Übersicht</users_overview>
+    <user_details>Benutzer-Details</user_details>
+    <user_information>Benutzer-Informationen</user_information>
+    <statistics>Statistiken</statistics>
+    <search_users>Benutzer suchen...</search_users>
+    <all_status>Alle Status</all_status>
+    <sort_by_company>Nach Firma sortieren</sort_by_company>
+    <sort_by_contact>Nach Kontakt sortieren</sort_by_contact>
+    <sort_by_date>Nach Datum sortieren</sort_by_date>
+    <clear_filters>Filter zurücksetzen</clear_filters>
+    <loading_users>Benutzer werden geladen...</loading_users>
+    <no_users_found>Keine Benutzer gefunden</no_users_found>
+    <client_id>Client ID</client_id>
+    <company_name>Firma</company_name>
+    <contact_name>Kontakt</contact_name>
+    <email>E-Mail</email>
+    <phone>Telefon</phone>
+    <street>Straße</street>
+    <city>Stadt</city>
+    <zip>PLZ</zip>
+    <country>Land</country>
+    <created_at>Erstellt</created_at>
+    <close>Schließen</close>
+    
+    <!-- E-Mail-Management -->
+    <login_name>Login-Name</login_name>
+    <quota_mb>Quota (MB)</quota_mb>
+    <spam_filter>Spam-Filter</spam_filter>
+    
+    <!-- Datenbank-Management -->
+    <database_name>Datenbank-Name</database_name>
+    <database_user>Datenbank-Benutzer</database_user>
+    <database_type>Datenbank-Typ</database_type>
+    
+    <!-- FTP-Management -->
+    <username>Benutzername</username>
+    <quota_size>Quota-Größe</quota_size>
+    <directory>Verzeichnis</directory>
+    
+    <!-- Fehlermeldungen für Benutzer-Management -->
+    <error_getting_users>Fehler beim Abrufen der Benutzer</error_getting_users>
+    <user_not_found>Benutzer nicht gefunden</user_not_found>
+    
+    <!-- Domain-Management -->
+    <domain_management>Domain-Management</domain_management>
+    <search_domains>Domains suchen...</search_domains>
+    <all_assignments>Alle Zuordnungen</all_assignments>
+    <assigned>Zugewiesen</assigned>
+    <unassigned>Nicht zugewiesen</unassigned>
+    <sort_by_domain>Nach Domain sortieren</sort_by_domain>
+    <sort_by_user>Nach Benutzer sortieren</sort_by_user>
+    <loading_domains>Domains werden geladen...</loading_domains>
+    <no_domains_found>Keine Domains gefunden</no_domains_found>
+    <assigned_user>Zugewiesener Benutzer</assigned_user>
+    <ssl_enabled>SSL aktiviert</ssl_enabled>
+    <enabled>Aktiviert</enabled>
+    <disabled>Deaktiviert</enabled>
+    
+    <!-- Domain-Zuordnung -->
+    <assign_domain_to_user>Domain Benutzer zuweisen</assign_domain_to_user>
+    <select_user>Benutzer auswählen</select_user>
+    <select_user_placeholder>Benutzer auswählen...</select_user_placeholder>
+    <notes>Notizen</notes>
+    <assignment_notes_placeholder>Optionale Notizen zur Zuweisung...</assignment_notes_placeholder>
+    <assign>Zuweisen</assign>
+    
+    <!-- Domain-Einstellungen -->
+    <domain_settings>Domain-Einstellungen</domain_settings>
+    <save_changes>Änderungen speichern</save_changes>
+    
+    <!-- Bulk-Änderungen -->
+    <bulk_changes>Bulk-Änderungen</bulk_changes>
+    <preview_changes>Änderungs-Vorschau</preview_changes>
+    <total_changes>Gesamt Änderungen</total_changes>
+    <affected_users>Betroffene Benutzer</affected_users>
+    <affected_domains>Betroffene Domains</affected_domains>
+    <changes_details>Änderungsdetails</changes_details>
+    <execute_changes>Änderungen ausführen</execute_changes>
+    
+    <!-- Erfolgs- und Fehlermeldungen für Domain-Management -->
+    <domain_assigned_successfully>Domain erfolgreich zugewiesen</domain_assigned_successfully>
+    <domain_unassigned_successfully>Domain-Zuweisung erfolgreich entfernt</domain_unassigned_successfully>
+    <domain_settings_updated_successfully>Domain-Einstellungen erfolgreich aktualisiert</domain_settings_updated_successfully>
+    <error_getting_domains>Fehler beim Abrufen der Domains</error_getting_domains>
+    <domain_not_found>Domain nicht gefunden</domain_not_found>
+    
+    <!-- DNS-Management -->
+    <dns_management>DNS-Management</dns_management>
+    <combined_view>Kombinierte Ansicht</combined_view>
+    <add_dns_record>DNS-Eintrag hinzufügen</add_dns_record>
+    <sync_dns_records>DNS synchronisieren</sync_dns_records>
+    <loading_dns_records>DNS-Einträge werden geladen...</loading_dns_records>
+    <no_dns_records_found>Keine DNS-Einträge gefunden</no_dns_records_found>
+    <type>Typ</type>
+    <name>Name</name>
+    <value>Wert</value>
+    <ttl>TTL</ttl>
+    <priority>Priorität</priority>
+    <source>Quelle</source>
+    <edit_dns_record>DNS-Eintrag bearbeiten</edit_dns_record>
+    <delete>Löschen</delete>
+    <save>Speichern</save>
+    <close>Schließen</close>
+    
+    <!-- DNS-Synchronisation -->
+    <dns_synchronisation>DNS-Synchronisation</dns_synchronisation>
+    <sync_direction>Synchronisationsrichtung</sync_direction>
+    <warning>Warnung</warning>
+    <dns_sync_warning>Die Synchronisation kann bestehende DNS-Einträge überschreiben. Stellen Sie sicher, dass Sie eine Sicherung haben.</dns_sync_warning>
+    <sync_preview>Synchronisations-Vorschau</sync_preview>
+    <execute_sync>Synchronisation ausführen</execute_sync>
+    
+    <!-- Erfolgs- und Fehlermeldungen für DNS-Management -->
+    <dns_record_updated_successfully>DNS-Eintrag erfolgreich aktualisiert</dns_record_updated_successfully>
+    <dns_record_created_successfully>DNS-Eintrag erfolgreich erstellt</dns_record_created_successfully>
+    <dns_record_deleted_successfully>DNS-Eintrag erfolgreich gelöscht</dns_record_deleted_successfully>
+    <dns_sync_completed_successfully>DNS-Synchronisation erfolgreich abgeschlossen</dns_sync_completed_successfully>
+    <error_getting_dns_records>Fehler beim Abrufen der DNS-Einträge</error_getting_dns_records>
+    <error_getting_ovh_dns_records>Fehler beim Abrufen der OVH DNS-Einträge</error_getting_ovh_dns_records>
+    <error_updating_dns_record>Fehler beim Aktualisieren des DNS-Eintrags</error_updating_dns_record>
+    <error_creating_dns_record>Fehler beim Erstellen des DNS-Eintrags</error_creating_dns_record>
+    <error_deleting_dns_record>Fehler beim Löschen des DNS-Eintrags</error_deleting_dns_record>
+    <error_syncing_dns_records>Fehler bei der DNS-Synchronisation</error_syncing_dns_records>
+    <dns_record_not_found>DNS-Eintrag nicht gefunden</dns_record_not_found>
+    <dns_zone_not_found>DNS-Zone nicht gefunden</dns_zone_not_found>
+    <invalid_dns_source>Ungültige DNS-Quelle</invalid_dns_source>
 </translations> 

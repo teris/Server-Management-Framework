@@ -118,19 +118,9 @@ class DnsModule extends ModuleBase {
                 }
             }
             
-            // Debug-Logging hinzufügen
-            error_log("DNS Module: Loaded " . count($this->domains) . " domains: " . implode(', ', $this->domains));
-            
-            // Entferne die automatische Domain-Auswahl - keine Domain wird automatisch ausgewählt
-            // if (empty($this->currentDomain) && !empty($this->domains)) {
-            //     $this->currentDomain = $this->domains[0];
-            // }
-            
-            // Lade nur dann weitere Daten, wenn eine Domain explizit ausgewählt wurde
-            if (!empty($this->currentDomain)) {
-                $this->loadDNSRecords();
-                $this->loadDnssecStatus();
-                $this->loadDnssecKeys();
+            // Nur bei echten Fehlern loggen
+            if (empty($this->domains)) {
+                error_log("DNS Module: No domains loaded from OVH API");
             }
             
             return ['success' => true, 'message' => 'Domains geladen', 'data' => $this->domains];
@@ -146,28 +136,37 @@ class DnsModule extends ModuleBase {
      * Lädt DNS-Records für die aktuelle Domain
      */
     private function loadDNSRecords() {
-        if (!$this->currentDomain) return;
+        if (!$this->currentDomain) {
+            $this->dnsRecords = [];
+            return;
+        }
         
         try {
             $serviceManager = new ServiceManager();
             $records = $serviceManager->OvhAPI('get', "/domain/zone/{$this->currentDomain}/record");
             
-            if ($records === false) {
+            if ($records === false || !is_array($records)) {
                 $this->dnsRecords = [];
+                error_log("DNS Module: Failed to load DNS records for domain: " . $this->currentDomain);
                 return;
             }
             
             // Detaillierte Informationen für jeden Record holen
             $this->dnsRecords = [];
             foreach ($records as $recordId) {
-                $record = $serviceManager->OvhAPI('get', "/domain/zone/{$this->currentDomain}/record/{$recordId}");
-                if ($record !== false) {
-                    $record['id'] = $recordId;
-                    $this->dnsRecords[] = $record;
+                try {
+                    $record = $serviceManager->OvhAPI('get', "/domain/zone/{$this->currentDomain}/record/{$recordId}");
+                    if ($record !== false && is_array($record)) {
+                        $record['id'] = $recordId;
+                        $this->dnsRecords[] = $record;
+                    }
+                } catch (Exception $e) {
+                    error_log("DNS Module: Failed to load record {$recordId} for domain {$this->currentDomain}: " . $e->getMessage());
                 }
             }
             
         } catch (Exception $e) {
+            error_log("DNS Module: Exception loading DNS records for domain {$this->currentDomain}: " . $e->getMessage());
             $this->dnsRecords = [];
         }
     }
@@ -240,6 +239,8 @@ class DnsModule extends ModuleBase {
         ]);
         
         if (!empty($errors)) {
+            $serviceManager = new ServiceManager();
+            $serviceManager->__log('DNS Record Creation', 'Validierung fehlgeschlagen: ' . implode(', ', $errors), 'error');
             return ['success' => false, 'message' => 'Validierung fehlgeschlagen', 'errors' => $errors];
         }
         
@@ -249,26 +250,35 @@ class DnsModule extends ModuleBase {
             $recordData = [
                 'fieldType' => $data['recordType'],
                 'target' => $data['target'],
-                'ttl' => $data['ttl'] ?? 3600
+                'ttl' => (int)($data['ttl'] ?? 3600)
             ];
             
-            if (isset($data['subdomain'])) {
-                $recordData['subDomain'] = $data['subdomain'];
+            // Subdomain nur hinzufügen wenn nicht leer
+            if (isset($data['subdomain']) && !empty(trim($data['subdomain']))) {
+                $recordData['subDomain'] = trim($data['subdomain']);
             }
             
-            if (isset($data['priority']) && in_array($data['recordType'], ['MX', 'SRV'])) {
-                $recordData['priority'] = $data['priority'];
+            // Priority nur für MX und SRV Records hinzufügen
+            if (isset($data['priority']) && !empty($data['priority']) && in_array($data['recordType'], ['MX', 'SRV'])) {
+                $recordData['priority'] = (int)$data['priority'];
             }
+            
+            // Debug: Logge die zu sendenden Daten
+            $serviceManager->__log('DNS Record Creation', 'Versuche DNS-Record zu erstellen für Domain: ' . $data['domain'] . ' mit Daten: ' . json_encode($recordData), 'info');
             
             $result = $serviceManager->OvhAPI('post', "/domain/zone/{$data['domain']}/record", $recordData);
             
             if ($result === false) {
+                $serviceManager->__log('DNS Record Creation', 'DNS-Record konnte nicht erstellt werden für Domain: ' . $data['domain'], 'error');
                 return ['success' => false, 'message' => 'DNS-Record konnte nicht erstellt werden'];
             }
             
+            $serviceManager->__log('DNS Record Creation', 'DNS-Record erfolgreich erstellt für Domain: ' . $data['domain'] . ' (Typ: ' . $data['recordType'] . ')', 'success');
             return ['success' => true, 'message' => 'Record erfolgreich hinzugefügt'];
             
         } catch (Exception $e) {
+            $serviceManager = new ServiceManager();
+            $serviceManager->__log('DNS Record Creation', 'Fehler beim Erstellen des DNS-Records: ' . $e->getMessage(), 'error');
             return ['success' => false, 'message' => 'Fehler beim Hinzufügen: ' . $e->getMessage()];
         }
     }
@@ -285,6 +295,8 @@ class DnsModule extends ModuleBase {
         ]);
         
         if (!empty($errors)) {
+            $serviceManager = new ServiceManager();
+            $serviceManager->__log('DNS Record Update', 'Validierung fehlgeschlagen: ' . implode(', ', $errors), 'error');
             return ['success' => false, 'message' => 'Validierung fehlgeschlagen', 'errors' => $errors];
         }
         
@@ -294,26 +306,34 @@ class DnsModule extends ModuleBase {
             $recordData = [
                 'fieldType' => $data['recordType'],
                 'target' => $data['target'],
-                'ttl' => $data['ttl'] ?? 3600
+                'ttl' => (int)($data['ttl'] ?? 3600)
             ];
             
-            if (isset($data['subdomain'])) {
-                $recordData['subDomain'] = $data['subdomain'];
+            // Subdomain nur hinzufügen wenn nicht leer
+            if (isset($data['subdomain']) && !empty(trim($data['subdomain']))) {
+                $recordData['subDomain'] = trim($data['subdomain']);
             }
             
-            if (isset($data['priority']) && in_array($data['recordType'], ['MX', 'SRV'])) {
-                $recordData['priority'] = $data['priority'];
+            // Priority nur für MX und SRV Records hinzufügen
+            if (isset($data['priority']) && !empty($data['priority']) && in_array($data['recordType'], ['MX', 'SRV'])) {
+                $recordData['priority'] = (int)$data['priority'];
             }
+            
+            $serviceManager->__log('DNS Record Update', 'Versuche DNS-Record zu aktualisieren für Domain: ' . $data['domain'] . ' (ID: ' . $data['recordId'] . ') mit Daten: ' . json_encode($recordData), 'info');
             
             $result = $serviceManager->OvhAPI('put', "/domain/zone/{$data['domain']}/record/{$data['recordId']}", $recordData);
             
             if ($result === false) {
+                $serviceManager->__log('DNS Record Update', 'DNS-Record konnte nicht aktualisiert werden für Domain: ' . $data['domain'] . ' (ID: ' . $data['recordId'] . ')', 'error');
                 return ['success' => false, 'message' => 'DNS-Record konnte nicht aktualisiert werden'];
             }
             
+            $serviceManager->__log('DNS Record Update', 'DNS-Record erfolgreich aktualisiert für Domain: ' . $data['domain'] . ' (ID: ' . $data['recordId'] . ')', 'success');
             return ['success' => true, 'message' => 'Record erfolgreich aktualisiert'];
             
         } catch (Exception $e) {
+            $serviceManager = new ServiceManager();
+            $serviceManager->__log('DNS Record Update', 'Fehler beim Aktualisieren des DNS-Records: ' . $e->getMessage(), 'error');
             return ['success' => false, 'message' => 'Fehler beim Aktualisieren: ' . $e->getMessage()];
         }
     }
@@ -387,18 +407,193 @@ class DnsModule extends ModuleBase {
         
         try {
             $serviceManager = new ServiceManager();
-            $zone = $serviceManager->OvhAPI('get', "/domain/zone/{$data['domain']}/export");
             
-            if ($zone === false) {
-                return ['success' => false, 'message' => 'Zone konnte nicht exportiert werden'];
+            // Lade DNS-Records für die Domain
+            $records = $serviceManager->OvhAPI('get', "/domain/zone/{$data['domain']}/record");
+            
+            if ($records === false) {
+                return ['success' => false, 'message' => 'DNS-Records konnten nicht geladen werden'];
             }
             
-            $this->zoneContent = $zone;
-            return ['success' => true, 'message' => 'Zone exportiert'];
+            // Lade Zone-Informationen
+            $zoneInfo = $serviceManager->OvhAPI('get', "/domain/zone/{$data['domain']}");
+            
+            if ($zoneInfo === false) {
+                return ['success' => false, 'message' => 'Zone-Informationen konnten nicht geladen werden'];
+            }
+            
+            // Generiere Zone-Datei im Standard-Format
+            $zoneContent = $this->generateZoneFile($data['domain'], $records, $zoneInfo);
+            
+            // Speichere Zone-Content für Anzeige
+            $this->zoneContent = $zoneContent;
+            
+            $serviceManager->__log('DNS Zone Export', "Domain: {$data['domain']}, Records: " . count($records), 'info');
+            
+            return [
+                'success' => true, 
+                'message' => 'Zone erfolgreich exportiert',
+                'zoneContent' => $zoneContent,
+                'downloadUrl' => $this->generateDownloadUrl($data['domain'], $zoneContent)
+            ];
             
         } catch (Exception $e) {
-            return ['success' => false, 'message' => 'Fehler beim Exportieren: ' . $e->getMessage()];
+            $serviceManager = new ServiceManager();
+            $serviceManager->__log('DNS Zone Export Fehler', "Domain: {$data['domain']}, Fehler: " . $e->getMessage(), 'error');
+            return ['success' => false, 'message' => 'Fehler beim Exportieren der Zone: ' . $e->getMessage()];
         }
+    }
+    
+    /**
+     * Generiert eine Zone-Datei im Standard-DNS-Format
+     */
+    private function generateZoneFile($domain, $records, $zoneInfo) {
+        $zoneContent = [];
+        
+        // TTL aus Zone-Info oder Standard
+        $ttl = (is_array($zoneInfo) && isset($zoneInfo['ttl'])) ? (int)$zoneInfo['ttl'] : 3600;
+        
+        // Zone-Header
+        $zoneContent[] = '$TTL ' . $ttl;
+        
+        // SOA Record
+        $soaRecord = $this->findRecordByType($records, 'SOA');
+        if ($soaRecord && isset($soaRecord['target'])) {
+            $soa = $soaRecord['target'];
+            $zoneContent[] = "@\tIN SOA {$soa}";
+        } else {
+            // Fallback SOA
+            $zoneContent[] = "@\tIN SOA dns100.ovh.net. tech.ovh.net. (" . date('YmdH') . " 86400 3600 3600000 60)";
+        }
+        
+        // NS Records
+        $nsRecords = $this->findRecordsByType($records, 'NS');
+        foreach ($nsRecords as $nsRecord) {
+            if (isset($nsRecord['target'])) {
+                $zoneContent[] = "\tIN NS\t{$nsRecord['target']}";
+            }
+        }
+        
+        // Andere Records
+        $otherRecords = $this->findRecordsByType($records, ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'CAA', 'SRV']);
+        
+        foreach ($otherRecords as $record) {
+            $line = $this->formatRecordLine($record, $ttl);
+            if ($line) {
+                $zoneContent[] = $line;
+            }
+        }
+        
+        return implode("\n", $zoneContent);
+    }
+    
+    /**
+     * Findet Records nach Typ
+     */
+    private function findRecordByType($records, $type) {
+        if (!is_array($records)) {
+            return null;
+        }
+        
+        foreach ($records as $record) {
+            if (is_array($record) && isset($record['fieldType']) && $record['fieldType'] === $type) {
+                return $record;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Findet alle Records nach Typ(en)
+     */
+    private function findRecordsByType($records, $types) {
+        $found = [];
+        $types = is_array($types) ? $types : [$types];
+        
+        if (!is_array($records)) {
+            return $found;
+        }
+        
+        foreach ($records as $record) {
+            if (is_array($record) && isset($record['fieldType']) && in_array($record['fieldType'], $types)) {
+                $found[] = $record;
+            }
+        }
+        
+        return $found;
+    }
+    
+    /**
+     * Formatiert eine Record-Zeile für die Zone-Datei
+     */
+    private function formatRecordLine($record, $defaultTtl) {
+        if (!is_array($record) || !isset($record['fieldType']) || !isset($record['target'])) {
+            return null;
+        }
+        
+        $name = isset($record['subDomain']) && !empty($record['subDomain']) ? $record['subDomain'] : '@';
+        $ttl = isset($record['ttl']) ? (int)$record['ttl'] : $defaultTtl;
+        $type = $record['fieldType'];
+        $target = $record['target'];
+        
+        // Spezielle Formatierung für verschiedene Record-Typen
+        switch ($type) {
+            case 'MX':
+                $priority = isset($record['priority']) ? (int)$record['priority'] : 10;
+                return "{$name}\t{$ttl}\tIN MX\t{$priority} {$target}";
+                
+            case 'TXT':
+                // TXT Records in Anführungszeichen
+                $target = '"' . $target . '"';
+                return "{$name}\t{$ttl}\tIN TXT\t{$target}";
+                
+            case 'CNAME':
+                // CNAME Records mit Punkt am Ende
+                $target = rtrim($target, '.') . '.';
+                return "{$name}\t{$ttl}\tIN CNAME\t{$target}";
+                
+            case 'SRV':
+                $priority = isset($record['priority']) ? (int)$record['priority'] : 0;
+                $weight = isset($record['weight']) ? (int)$record['weight'] : 0;
+                $port = isset($record['port']) ? (int)$record['port'] : 0;
+                return "{$name}\t{$ttl}\tIN SRV\t{$priority} {$weight} {$port} {$target}";
+                
+            case 'CAA':
+                $flags = isset($record['flags']) ? (int)$record['flags'] : 0;
+                $tag = isset($record['tag']) ? $record['tag'] : 'issue';
+                return "{$name}\t{$ttl}\tIN CAA\t{$flags} {$tag} {$target}";
+                
+            default:
+                // Standard Records (A, AAAA, NS)
+                return "{$name}\t{$ttl}\tIN {$type}\t{$target}";
+        }
+    }
+    
+    /**
+     * Generiert Download-URL für Zone-Datei
+     */
+    private function generateDownloadUrl($domain, $zoneContent) {
+        // Erstelle temporäre Datei
+        $filename = $domain . '_dns_zone.txt';
+        $filepath = sys_get_temp_dir() . '/' . $filename;
+        
+        if (file_put_contents($filepath, $zoneContent) === false) {
+            return null;
+        }
+        
+        // Generiere Download-URL - verwende absolute URL
+        $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'];
+        
+        // Bestimme den korrekten Pfad
+        $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
+        if ($scriptDir === '/' || $scriptDir === '\\') {
+            $scriptDir = '';
+        }
+        
+        $baseUrl = $protocol . '://' . $host . $scriptDir;
+        
+        return $baseUrl . '/download_zone.php?file=' . urlencode($filename);
     }
     
     /**
@@ -703,13 +898,12 @@ class DnsModule extends ModuleBase {
         
         $selectedDomain = $data['domain'];
         
+        // Lade zuerst die Domains, falls sie noch nicht geladen sind
+        $this->loadDomains();
+        
         // Prüfe, ob die Domain in der Liste der verfügbaren Domains ist
         if (!in_array($selectedDomain, $this->domains)) {
-            // Lade zuerst die Domains, falls sie noch nicht geladen sind
-            $this->loadDomains();
-            if (!in_array($selectedDomain, $this->domains)) {
-                return ['success' => false, 'message' => 'Domain nicht gefunden: ' . $selectedDomain];
-            }
+            return ['success' => false, 'message' => 'Domain nicht gefunden: ' . $selectedDomain];
         }
         
         // Setze die ausgewählte Domain
@@ -720,7 +914,10 @@ class DnsModule extends ModuleBase {
         $this->loadDnssecStatus();
         $this->loadDnssecKeys();
         
-        error_log("DNS Module: Domain selected: " . $selectedDomain . ", loaded " . count($this->dnsRecords) . " DNS records");
+        // Nur bei echten Problemen loggen
+        if (empty($this->dnsRecords)) {
+            error_log("DNS Module: No DNS records loaded for domain: " . $selectedDomain);
+        }
         
         // Lade Übersetzungen
         $translations = $this->tMultiple([
@@ -743,7 +940,7 @@ class DnsModule extends ModuleBase {
             'no_dnssec_keys_found', 'weight', 'port', 'key_id', 'algorithm', 'select'
         ]);
         
-        // Rendere nur den Domain-spezifischen Inhalt
+        // Rendere den vollständigen Inhalt
         $content = $this->render('main', [
             'translations' => $translations,
             'domains' => $this->domains,

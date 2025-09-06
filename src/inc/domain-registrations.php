@@ -12,11 +12,6 @@ try {
         LEFT JOIN customers c ON dr.user_id = c.id
         ORDER BY dr.created_at DESC
     ");
-    
-    if ($stmt === false) {
-        throw new Exception("Failed to prepare SQL statement");
-    }
-    
     $stmt->execute();
     $domainRegistrations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
