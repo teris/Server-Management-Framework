@@ -40,24 +40,20 @@ $translations = $translations ?? [];
                     <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
                 </button>
                 
-                <?php if (!empty($domains)): ?>
-                    <div class="form-group mt-3">
-                        <label for="domain-select"><?= t('select_domain') ?></label>
-                        <select id="domain-select" class="form-control dns-domain-select">
-                            <option value=""><?= t('select_domain') ?></option>
+                <div class="form-group mt-3">
+                    <label for="domain-select"><?= t('select_domain') ?></label>
+                    <select id="domain-select" class="form-control dns-domain-select">
+                        <option value=""><?= t('select_domain') ?></option>
+                        <?php if (!empty($domains)): ?>
                             <?php foreach ($domains as $domain): ?>
                                 <option value="<?php echo htmlspecialchars($domain); ?>" 
                                         <?php echo ($currentDomain === $domain) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($domain); ?>
                                 </option>
                             <?php endforeach; ?>
-                        </select>
-                    </div>
-                <?php else: ?>
-                    <div class="alert alert-info mt-3">
-                        <?= t('no_domains_available') ?>
-                    </div>
-                <?php endif; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -69,22 +65,32 @@ $translations = $translations ?? [];
         <div id="dns-progressbar-inner" class="progress-bar progress-bar-striped progress-bar-animated" 
             role="progressbar" style="width: 0%">0%</div>
     </div>
-    <?php if ($currentDomain): ?>
-        <!-- DNS Records Management -->
-        <div class="dns-records-section">
-            <div class="card">
-                <div class="card-header">
-                    <h3><?= t('dns_records') ?> - <?php echo htmlspecialchars($currentDomain); ?></h3>
-                    <div class="header-actions">
-                        <button type="button" class="btn btn-success dns-action-btn" data-action="show_add_form">
-                            <i class="bi bi-plus"></i> <?= t('add_record') ?>
-                        </button>
-                        <button type="button" class="btn btn-info dns-action-btn" data-action="refresh_zone">
-                            <i class="bi bi-arrow-clockwise"></i> <?= t('refresh_zone') ?>
-                        </button>
-                    </div>
+
+    <!-- Dynamic Forms Container - Always at the top -->
+    <div id="dns-forms-container" style="display: none;">
+        <!-- Forms will be inserted here dynamically -->
+    </div>
+
+    <!-- DNS Records Management -->
+    <div class="dns-records-section">
+        <div class="card">
+            <div class="card-header">
+                <h3><?= t('dns_records') ?> <?php if ($currentDomain): ?>- <?php echo htmlspecialchars($currentDomain); ?><?php endif; ?></h3>
+                <div class="header-actions" id="dns-header-actions" style="display: none;">
+                    <button type="button" class="btn btn-success dns-action-btn" data-action="show_add_form">
+                        <i class="bi bi-plus-circle"></i> <?= t('add_record') ?>
+                    </button>
+                    <button type="button" class="btn btn-info dns-action-btn" data-action="refresh_zone">
+                        <i class="bi bi-arrow-clockwise"></i> <?= t('refresh_zone') ?>
+                    </button>
                 </div>
-                <div class="card-body">
+            </div>
+            <div class="card-body">
+                <?php if (!$currentDomain): ?>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Bitte wählen Sie zuerst eine Domain aus, um DNS-Records zu verwalten.
+                    </div>
+                <?php else: ?>
                     <div id="dns-records-table-container">
                         <table id="dns-records-table" class="table table-striped">
                             <thead>
@@ -100,19 +106,52 @@ $translations = $translations ?? [];
                             <tbody id="dns-records-tbody">
                                 <?php if (!empty($dnsRecords)): ?>
                                     <?php foreach ($dnsRecords as $record): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($record['fieldType'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($record['subDomain'] ?? '-'); ?></td>
-                                            <td><?php echo htmlspecialchars($record['target'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($record['ttl'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($record['priority'] ?? '-'); ?></td>
+                                        <tr data-record-id="<?php echo htmlspecialchars($record['id']); ?>">
+                                            <td class="editable" data-field="fieldType">
+                                                <span class="display-value"><?php echo htmlspecialchars($record['fieldType'] ?? ''); ?></span>
+                                                <select class="form-control edit-input" style="display: none;">
+                                                    <option value="A" <?php echo ($record['fieldType'] === 'A') ? 'selected' : ''; ?>>A</option>
+                                                    <option value="AAAA" <?php echo ($record['fieldType'] === 'AAAA') ? 'selected' : ''; ?>>AAAA</option>
+                                                    <option value="CNAME" <?php echo ($record['fieldType'] === 'CNAME') ? 'selected' : ''; ?>>CNAME</option>
+                                                    <option value="MX" <?php echo ($record['fieldType'] === 'MX') ? 'selected' : ''; ?>>MX</option>
+                                                    <option value="NS" <?php echo ($record['fieldType'] === 'NS') ? 'selected' : ''; ?>>NS</option>
+                                                    <option value="PTR" <?php echo ($record['fieldType'] === 'PTR') ? 'selected' : ''; ?>>PTR</option>
+                                                    <option value="SRV" <?php echo ($record['fieldType'] === 'SRV') ? 'selected' : ''; ?>>SRV</option>
+                                                    <option value="TXT" <?php echo ($record['fieldType'] === 'TXT') ? 'selected' : ''; ?>>TXT</option>
+                                                    <option value="CAA" <?php echo ($record['fieldType'] === 'CAA') ? 'selected' : ''; ?>>CAA</option>
+                                                </select>
+                                            </td>
+                                            <td class="editable" data-field="subDomain">
+                                                <span class="display-value"><?php echo htmlspecialchars($record['subDomain'] ?? '-'); ?></span>
+                                                <input type="text" class="form-control edit-input" value="<?php echo htmlspecialchars($record['subDomain'] ?? ''); ?>" style="display: none;">
+                                            </td>
+                                            <td class="editable" data-field="target">
+                                                <span class="display-value"><?php echo htmlspecialchars($record['target'] ?? ''); ?></span>
+                                                <input type="text" class="form-control edit-input" value="<?php echo htmlspecialchars($record['target'] ?? ''); ?>" style="display: none;">
+                                            </td>
+                                            <td class="editable" data-field="ttl">
+                                                <span class="display-value"><?php echo htmlspecialchars($record['ttl'] ?? ''); ?></span>
+                                                <input type="number" class="form-control edit-input" value="<?php echo htmlspecialchars($record['ttl'] ?? '3600'); ?>" min="60" max="86400" style="display: none;">
+                                            </td>
+                                            <td class="editable" data-field="priority">
+                                                <span class="display-value"><?php echo htmlspecialchars($record['priority'] ?? '-'); ?></span>
+                                                <input type="number" class="form-control edit-input" value="<?php echo htmlspecialchars($record['priority'] ?? ''); ?>" min="0" max="65535" style="display: none;">
+                                            </td>
                                             <td>
-                                                <button type="button" class="btn btn-sm btn-primary dns-action-btn" data-action="edit_record" data-record-id="<?php echo htmlspecialchars($record['id']); ?>" data-record-type="<?php echo htmlspecialchars($record['fieldType']); ?>" data-subdomain="<?php echo htmlspecialchars($record['subDomain'] ?? ''); ?>" data-target="<?php echo htmlspecialchars($record['target']); ?>" data-ttl="<?php echo htmlspecialchars($record['ttl']); ?>" data-priority="<?php echo htmlspecialchars($record['priority'] ?? ''); ?>">
-                                                    <i class="bi bi-pencil"></i> <?= t('edit') ?>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-danger dns-action-btn" data-action="delete_record" data-record-id="<?php echo htmlspecialchars($record['id']); ?>">
-                                                    <i class="bi bi-trash"></i> <?= t('delete') ?>
-                                                </button>
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn btn-sm btn-primary edit-btn" data-record-id="<?php echo htmlspecialchars($record['id']); ?>">
+                                                        <i class="bi bi-pencil"></i> Bearbeiten
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-success save-btn" data-record-id="<?php echo htmlspecialchars($record['id']); ?>" style="display: none;">
+                                                        <i class="bi bi-check"></i> Speichern
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-secondary cancel-btn" data-record-id="<?php echo htmlspecialchars($record['id']); ?>" style="display: none;">
+                                                        <i class="bi bi-x"></i> Abbrechen
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-danger dns-action-btn" data-action="delete_record" data-record-id="<?php echo htmlspecialchars($record['id']); ?>">
+                                                        <i class="bi bi-trash"></i> <?= t('delete') ?>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -126,12 +165,13 @@ $translations = $translations ?? [];
                             </tbody>
                         </table>
                     </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
+    </div>
 
         <!-- Zone Management -->
-        <div class="zone-management-section">
+        <div class="zone-management-section" id="zone-management-section" style="display: none;">
             <div class="row">
                 <div class="col-md-6">
                     <div class="card">
@@ -248,13 +288,9 @@ $translations = $translations ?? [];
                 </div>
             </div>
         </div>
-    <?php endif; ?>
 
 
 </div>
 
-<style>
-
-</style>
-
-<script src="module/dns/assets/module.js"></script> 
+<link rel="stylesheet" href="module/dns/assets/style.css">
+<script src="module/dns/assets/module.js"></script>

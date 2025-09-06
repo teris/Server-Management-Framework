@@ -1,284 +1,243 @@
 /**
  * ISPConfig Module JavaScript
- * Verwaltet alle AJAX-Requests für das ISPConfig-Modul
+ * Grundlegende Funktionalitäten für das ISPConfig-Modul
  */
 
-window.ispconfigModule = {
+// ISPConfig Module Namespace
+window.ISPConfigModule = window.ISPConfigModule || {};
+
+// Globale Variablen im Namespace
+ISPConfigModule.allUsers = [];
+ISPConfigModule.filteredUsers = [];
+ISPConfigModule.currentUserDetails = null;
+ISPConfigModule.allDomains = [];
+ISPConfigModule.filteredDomains = [];
+ISPConfigModule.allDnsRecords = {
+    ispconfig: [],
+    ovh: [],
+    combined: []
+};
+ISPConfigModule.currentDomain = '';
+ISPConfigModule.currentDnsTab = 'combined';
+ISPConfigModule.pendingChanges = [];
+
+// Tab-Management
+function switchTab(tabName) {
+    // Alle Tab-Inhalte verstecken
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Alle Tab-Buttons deaktivieren
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Gewählten Tab aktivieren
+    document.getElementById(tabName + '-tab').classList.add('active');
+    event.target.classList.add('active');
+    
+    // Tab-spezifische Behandlung
+    switch(tabName) {
+        case 'users':
+            if (typeof loadAllUsers === 'function') {
+                loadAllUsers();
+            }
+            break;
+        case 'domains':
+            if (typeof loadAllDomains === 'function') {
+                loadAllDomains();
+            }
+            break;
+        case 'websites':
+            if (typeof loadAllWebsites === 'function') {
+                loadAllWebsites();
+            }
+            break;
+    }
+}
+
+// Benutzer-Tab-Management
+function switchUserTab(tabName) {
+    // Alle User-Tab-Inhalte verstecken
+    document.querySelectorAll('#user-details-modal .user-tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Alle User-Tab-Buttons deaktivieren
+    document.querySelectorAll('#user-details-modal .tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Gewählten User-Tab aktivieren
+    document.getElementById('user-' + tabName + '-tab').classList.add('active');
+    event.target.classList.add('active');
+    
+    // Daten laden
+    if (ISPConfigModule.currentUserDetails) {
+        if (typeof loadUserTabData === 'function') {
+            loadUserTabData(tabName, ISPConfigModule.currentUserDetails.client_id);
+        }
+    }
+}
+
+// DNS-Tab-Management
+function switchDnsTab(tabName) {
+    ISPConfigModule.currentDnsTab = tabName;
+    
+    // Tab-Buttons aktualisieren
+    document.querySelectorAll('.dns-tabs .tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    const activeBtn = document.getElementById(`dns-tab-${tabName}`);
+    if (activeBtn) activeBtn.classList.add('active');
+    
+    // Records neu anzeigen
+    if (typeof displayDnsRecords === 'function') {
+        displayDnsRecords();
+    }
+}
+
+// Globale Funktionen für Template-Zugriff
+window.switchTab = switchTab;
+window.switchUserTab = switchUserTab;
+window.switchDnsTab = switchDnsTab;
+
+// ISPConfig Module Manager
+window.ISPConfigModuleManager = {
     /**
      * Erstellt eine neue Website
      */
     createWebsite: function(formData) {
-        this.showLoading();
-        ModuleManager.makeRequest('ispconfig', 'create_website', formData)
-            .then(response => {
-                this.showResult(response.success, response.message);
-                if (response.success) {
-                    this.reloadContent();
-                }
-                this.hideLoading();
-            })
-            .catch(error => {
-                this.showResult(false, 'Fehler beim Erstellen der Website');
-                this.hideLoading();
-            });
+        return ModuleManager.makeRequest('ispconfig', 'create_website', formData);
     },
     
     /**
-     * Erstellt einen FTP-Benutzer
+     * Lädt alle Websites
      */
-    createFTPUser: function(formData) {
-        this.showLoading();
-        ModuleManager.makeRequest('ispconfig', 'create_ftp_user', formData)
-            .then(response => {
-                this.showResult(response.success, response.message);
-                if (response.success) {
-                    this.reloadContent();
-                }
-                this.hideLoading();
-            })
-            .catch(error => {
-                this.showResult(false, 'Fehler beim Erstellen des FTP-Benutzers');
-                this.hideLoading();
-            });
+    getWebsites: function() {
+        return ModuleManager.makeRequest('ispconfig', 'get_websites');
     },
     
     /**
-     * Erstellt eine Subdomain
+     * Lädt alle Benutzer
      */
-    createSubdomain: function(formData) {
-        this.showLoading();
-        ModuleManager.makeRequest('ispconfig', 'create_subdomain', formData)
-            .then(response => {
-                this.showResult(response.success, response.message);
-                if (response.success) {
-                    this.reloadContent();
-                }
-                this.hideLoading();
-            })
-            .catch(error => {
-                this.showResult(false, 'Fehler beim Erstellen der Subdomain');
-                this.hideLoading();
-            });
+    getAllUsers: function() {
+        return ModuleManager.makeRequest('ispconfig', 'get_all_users');
     },
     
     /**
-     * Lädt ISPConfig-Clients
+     * Lädt Benutzer-Details
      */
-    loadISPConfigClients: function() {
-        this.showLoading();
-        ModuleManager.makeRequest('ispconfig', 'get_ispconfig_clients')
-            .then(response => {
-                this.showResult(response.success, response.message);
-                this.hideLoading();
-            })
-            .catch(error => {
-                this.showResult(false, 'Fehler beim Laden der Clients');
-                this.hideLoading();
-            });
+    getUserDetails: function(clientId) {
+        return ModuleManager.makeRequest('ispconfig', 'get_user_details', { client_id: clientId });
     },
     
     /**
-     * Lädt Server-Konfiguration
+     * Lädt alle Domains
      */
-    loadServerConfig: function() {
-        this.showLoading();
-        ModuleManager.makeRequest('ispconfig', 'get_ispconfig_server_config')
-            .then(response => {
-                this.showResult(response.success, response.message);
-                this.hideLoading();
-            })
-            .catch(error => {
-                this.showResult(false, 'Fehler beim Laden der Server-Konfiguration');
-                this.hideLoading();
-            });
+    getAllDomains: function() {
+        return ModuleManager.makeRequest('ispconfig', 'get_all_domains');
     },
     
     /**
-     * Zeigt Website-Details an
+     * Lädt DNS-Einträge für Domain
      */
-    showWebsiteDetails: function() {
-        this.showLoading();
-        ModuleManager.makeRequest('ispconfig', 'get_website_details')
-            .then(response => {
-                this.showResult(response.success, response.message);
-                this.hideLoading();
-            })
-            .catch(error => {
-                this.showResult(false, 'Fehler beim Laden der Website-Details');
-                this.hideLoading();
-            });
-    },
-    
-    /**
-     * Zeigt ein Ergebnis an
-     */
-    showResult: function(success, message) {
-        const resultDiv = document.getElementById('action-result');
-        if (resultDiv) {
-            resultDiv.className = `alert alert-${success ? 'success' : 'danger'}`;
-            resultDiv.textContent = message;
-            resultDiv.style.display = 'block';
-            
-            // Nach 5 Sekunden ausblenden
-            setTimeout(() => {
-                resultDiv.style.display = 'none';
-            }, 5000);
-        }
-    },
-    
-    /**
-     * Zeigt Loading-Animation
-     */
-    showLoading: function() {
-        // Loading-Overlay anzeigen
-        const overlay = document.createElement('div');
-        overlay.id = 'loading-overlay';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        `;
-        overlay.innerHTML = '<div class="spinner-border text-light" role="status"><span class="visually-hidden">Laden...</span></div>';
-        document.body.appendChild(overlay);
-    },
-    
-    /**
-     * Versteckt Loading-Animation
-     */
-    hideLoading: function() {
-        const overlay = document.getElementById('loading-overlay');
-        if (overlay) {
-            overlay.remove();
-        }
-    },
-    
-    /**
-     * Lädt den Modul-Inhalt neu
-     */
-    reloadContent: function() {
-        this.showLoading();
-        
-        // Modul-Inhalt über AJAX neu laden
-        ModuleManager.makeRequest('ispconfig', 'getContent')
-            .then(response => {
-                if (response.success) {
-                    // Inhalt in den ISPConfig-Container einfügen
-                    const contentDiv = document.getElementById('ispconfig-content');
-                    if (contentDiv) {
-                        contentDiv.innerHTML = response.content;
-                        
-                        // Script-Tags aus dem geladenen Content extrahieren und ausführen
-                        const scripts = contentDiv.querySelectorAll('script');
-                        scripts.forEach(function(script) {
-                            const newScript = document.createElement('script');
-                            if (script.src) {
-                                newScript.src = script.src;
-                            } else {
-                                newScript.textContent = script.textContent;
-                            }
-                            document.head.appendChild(newScript);
-                        });
-                        
-                        // Modul neu initialisieren
-                        if (window.ispconfigModule) {
-                            window.ispconfigModule.init();
-                        }
-                    }
-                }
-                this.hideLoading();
-            })
-            .catch(error => {
-                console.error('Fehler beim Neuladen des Inhalts:', error);
-                this.hideLoading();
-            });
-    },
-    
-    /**
-     * Initialisiert das Modul
-     */
-    init: function() {
-        console.log('ISPConfig Module initialized');
-        
-        // Event-Listener für Formulare hinzufügen
-        this.setupEventListeners();
-    },
-    
-    /**
-     * Richtet Event-Listener ein
-     */
-    setupEventListeners: function() {
-        // Event-Listener für Formulare
-        document.addEventListener('submit', (e) => {
-            if (e.target.classList.contains('ispconfig-form')) {
-                e.preventDefault();
-                this.handleFormSubmit(e.target);
-            }
-        });
-        
-        // Event-Listener für Buttons
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('ispconfig-action-btn')) {
-                e.preventDefault();
-                this.handleButtonClick(e.target);
-            }
-        });
-    },
-    
-    /**
-     * Behandelt Formular-Submits
-     */
-    handleFormSubmit: function(form) {
-        const formData = new FormData(form);
-        const data = {};
-        
-        for (let [key, value] of formData.entries()) {
-            data[key] = value;
-        }
-        
-        const action = data.action;
-        delete data.action;
-        
-        switch (action) {
-            case 'create_website':
-                this.createWebsite(data);
-                break;
-            case 'create_ftp_user':
-                this.createFTPUser(data);
-                break;
-            case 'create_subdomain':
-                this.createSubdomain(data);
-                break;
-        }
-    },
-    
-    /**
-     * Behandelt Button-Klicks
-     */
-    handleButtonClick: function(button) {
-        const action = button.dataset.action;
-        
-        switch (action) {
-            case 'load_clients':
-                this.loadISPConfigClients();
-                break;
-            case 'load_server_config':
-                this.loadServerConfig();
-                break;
-            case 'show_website_details':
-                this.showWebsiteDetails();
-                break;
-        }
+    getDomainDnsRecords: function(domain) {
+        return ModuleManager.makeRequest('ispconfig', 'get_domain_dns_records', { domain: domain });
     }
 };
 
-// Modul sofort initialisieren, wenn das Script geladen wird
-if (window.ispconfigModule) {
-    window.ispconfigModule.init();
-} 
+// Einfache loadAllWebsites Funktion
+function loadAllWebsites() {
+    console.log('Loading websites...');
+    // Diese Funktion kann später erweitert werden
+}
+
+// Globale Funktion für Template-Zugriff
+window.loadAllWebsites = loadAllWebsites;
+
+// Hilfsfunktionen
+window.ISPConfigUtils = {
+    /**
+     * Zeigt eine Erfolgsmeldung an
+     */
+    showSuccess: function(message) {
+        if (typeof showSuccess === 'function') {
+            showSuccess(message);
+        } else {
+            alert('Erfolg: ' + message);
+        }
+    },
+    
+    /**
+     * Zeigt eine Fehlermeldung an
+     */
+    showError: function(message) {
+        if (typeof showError === 'function') {
+            showError(message);
+        } else {
+            alert('Fehler: ' + message);
+        }
+    },
+    
+    /**
+     * Formatiert ein Datum
+     */
+    formatDate: function(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('de-DE');
+        } catch (e) {
+            return dateString;
+        }
+    },
+    
+    /**
+     * Formatiert eine Dateigröße
+     */
+    formatFileSize: function(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+};
+
+// Initialisierung
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('ISPConfig Module initialized');
+    
+    // Event-Listener für Tab-Wechsel
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            const tabName = this.getAttribute('onclick')?.match(/switchTab\('([^']+)'\)/)?.[1];
+            if (tabName) {
+                switchTab(tabName);
+            }
+        });
+    });
+    
+    // Event-Listener für User-Tab-Wechsel
+    document.querySelectorAll('#user-details-modal .tab-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            const tabName = this.getAttribute('onclick')?.match(/switchUserTab\('([^']+)'\)/)?.[1];
+            if (tabName) {
+                switchUserTab(tabName);
+            }
+        });
+    });
+    
+    // Event-Listener für DNS-Tab-Wechsel
+    document.querySelectorAll('.dns-tabs .tab-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            const tabName = this.getAttribute('onclick')?.match(/switchDnsTab\('([^']+)'\)/)?.[1];
+            if (tabName) {
+                switchDnsTab(tabName);
+            }
+        });
+    });
+});
