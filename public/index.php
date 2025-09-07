@@ -1,5 +1,11 @@
 <?php
 /**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
  * Frontpanel - Öffentliche Hauptseite
  * Zeigt Server-Status, Kundenlogin und Ticket-System
  */

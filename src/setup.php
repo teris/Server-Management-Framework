@@ -1,7 +1,9 @@
 <?php
 /**
- * Setup-Script für Server Management Interface
- * Erstellt den ersten Admin-Benutzer und initialisiert das System
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
  */
 
 require_once '../framework.php';

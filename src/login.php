@@ -1,6 +1,9 @@
 <?php
 /**
- * Login-Seite für Server Management Interface
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
  */
 
 require_once '../framework.php';

@@ -31,9 +31,7 @@ class MigrationModule extends ModuleBase {
     public function __construct($module_key) {
         parent::__construct($module_key);
         
-        $this->db = new DatabaseManager();
-        $this->logger = new ActivityLogger();
-        $this->config = new Config();
+        $this->db = DatabaseManager::getInstance();
     }
     
     /**

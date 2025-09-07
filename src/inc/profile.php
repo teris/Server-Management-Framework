@@ -1,4 +1,11 @@
 <?php
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
 require_once dirname(__DIR__) . '/sys.conf.php';
 require_once dirname(__DIR__) . '/../config/config.inc.php';
 

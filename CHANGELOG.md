@@ -2,6 +2,42 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.1.2]
+
+### Hinzugefügt
+- Manual Updater mit folgenden Funktionen:
+  - Automatische Versionsprüfung über GitHub API (Latest und Tag-basierte Releases)
+  - Versionsvergleich mit `CHANGELOG.md` und Nightly-Erkennung (Stable vs. Nightly)
+  - Update-Typen: Framework Only und Vollständiges Update (Asset-Auswahl je nach Typ)
+  - Optionales Backup vor Installation (Dateien und – optional – Datenbank)
+  - Mehrsprachigkeit (DE/EN) via Framework-`t()` Integration
+- Backup-Management im Admin-Panel:
+  - Erstellung von ZIP-Backups mit Datei- und optionalem Datenbank-Inhalt
+  - Auflistung vorhandener Backups inkl. Größe, Datum und Aktionen (Download/Löschen)
+  - Debug-/Test-Tools: Debug-Infos, ZIP-Test, schrittweiser Backup-Test
+- UI/UX für Updates:
+  - Systeminfo (PHP-Version, ZIP-Status, Temp-Verzeichnis)
+  - Auswahl des Update-Typs, Fortschrittsbalken und Live-Log-Ausgabe
+
+### Geändert
+- Kopfkommentar in `src/inc/manualupdater.php` aktualisiert: Projekttitel auf "Server Management Framework" und Version `3.1.2`.
+
+### Behoben
+- Intelephense-Hinweis PHP6613 in `src/inc/manualupdater.php` unterdrückt mittels `// @intelephense-ignore-file` (reine Editor-/Analyse-Anpassung, keine Laufzeitänderung).
+
+### Technische Details
+- GitHub REST API v3: `releases/latest` und `releases/tags/{tag}`
+- Asset-Auswahl: `framework-standalone.zip` für Framework-Only; sonst Haupt-Release-Asset
+- Sicherheitsmaßnahmen: HTTPS-Downloads, ZIP-Validierung/Extraktion, Schutz von `sys.conf.php` bei Vollupdates, automatische Bereinigung temporärer Dateien
+
+### Systemanforderungen
+- PHP-Extension: `zip` (Pflicht für ZIP-Operationen)
+- Netzwerkzugriff für GitHub API (über `file_get_contents` oder `curl`)
+- Schreibrechte auf Framework- und Temp-Verzeichnisse
+
+### Dokumentation
+- `src/inc/README_manualupdater.md` ergänzt: Nutzung, Features, Sicherheitshinweise und Best Practices.
+
 ## [3.1.1] - Modulupdate
 
 ### DNS-Modul - Komplette Überarbeitung

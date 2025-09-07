@@ -1,6 +1,9 @@
 <?php
 /**
- * Passwort ändern für eingeloggte Benutzer
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
  */
 
 require_once '../framework.php';

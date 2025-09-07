@@ -86,3 +86,4 @@ Jede Frontend-Datei muss folgende Includes einbinden:
 ---
 
 *To be extended:* Neue Module, Includes oder Framework-Komponenten werden hier ergänzt.
+

@@ -1,5 +1,11 @@
 <?php
 /**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
  * Kunden-Profilseite - Bearbeitung der persönlichen Daten
  */
 

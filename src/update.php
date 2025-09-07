@@ -1,5 +1,11 @@
 <?php
 /**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
  * Update Script - Synchronisiert API-Daten mit der lokalen Datenbank
  * Speichert auch die API-Credentials aus config.inc.php in der Datenbank
  */

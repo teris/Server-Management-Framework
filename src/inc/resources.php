@@ -1,7 +1,10 @@
 <?php
-//require_once __DIR__ . '/../framework.php';
-//require_once dirname(__DIR__) . '/core/AdminCore.php';
-//$core = new AdminCore();
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
 
 $vms = $adminCore->getResources('vms');
 $websites = $adminCore->getResources('websites');

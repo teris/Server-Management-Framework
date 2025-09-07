@@ -1602,4 +1602,69 @@
     <zone>Zone</zone>
     <zone_management>Zone Management</zone_management>
     <zones>Zones</zones>
+    
+    <!-- Manual Updater -->
+    <manual_updater_title>Manual Updater</manual_updater_title>
+    <update_check>Update Check</update_check>
+    <system_info>System Information</system_info>
+    <current_version>Current Version</current_version>
+    <changelog_version>CHANGELOG Version</changelog_version>
+    <github_version>GitHub Version</github_version>
+    <update_available>Update Available</update_available>
+    <framework_only>Framework Only</framework_only>
+    <full_update>Full Update</full_update>
+    <create_backup>Create Backup Before Update</create_backup>
+    <start_update>Start Update</start_update>
+    <update_progress>Update Progress</update_progress>
+    <update_log>Update Log</update_log>
+    <nightly_version>Nightly Version</nightly_version>
+    <stable_version>Stable Version</stable_version>
+    <check_for_updates>Check for Updates</check_for_updates>
+    <yes>Yes</yes>
+    <no>No</no>
+    <select_update_type>Select Update Type</select_update_type>
+    <ready_for_update>Ready for update...</ready_for_update>
+    <update_available_msg>Update available</update_available_msg>
+    <no_update_available>No update available. System is up to date.</no_update_available>
+    <update_check_error>Error checking for updates</update_check_error>
+    <select_update_type_error>Please select an update type and check for updates.</select_update_type_error>
+    <update_successful>Update successfully installed!</update_successful>
+    <reload_page_info>Please reload the page to see the changes.</reload_page_info>
+    <zip_available>Available</zip_available>
+    <zip_not_available>Not available</zip_not_available>
+    <framework_only_description>Updates only the framework (framework.php, config/, src/core/). Ideal for minimal updates without UI changes.</framework_only_description>
+    <full_update_description>Updates the complete system including all modules, templates and assets. Keeps sys.conf.php.</full_update_description>
+    <update_preparing>Update is being prepared...</update_preparing>
+    <php_version>PHP Version</php_version>
+    <zip_extension>ZIP Extension</zip_extension>
+    <temp_directory>Temp Directory</temp_directory>
+    <nightly_version_detected>Nightly Version detected</nightly_version_detected>
+    <nightly_version_warning>The version in sys.conf.php does not match the CHANGELOG.md. This version is considered a Nightly Version and should only be used at your own risk.</nightly_version_warning>
+    <update_successfully_installed>Update successfully installed</update_successfully_installed>
+    <file_could_not_be_saved>File could not be saved</file_could_not_be_saved>
+    
+    <!-- Backup Management -->
+    <backup_management>Backup Management</backup_management>
+    <create_backup>Create Backup</create_backup>
+    <include_database_backup>Include Database Backup</include_database_backup>
+    <existing_backups>Existing Backups</existing_backups>
+    <refresh_backups>Refresh Backups</refresh_backups>
+    <backup_list>Backup List</backup_list>
+    <backup_name>Backup Name</backup_name>
+    <created>Created</created>
+    <type>Type</type>
+    <size>Size</size>
+    <backup_successfully_created>Backup successfully created</backup_successfully_created>
+    <database_backup_successfully_created>Database backup successfully created</database_backup_successfully_created>
+    <files_backup_successfully_created>%count% files successfully backed up</files_backup_successfully_created>
+    <creating_backup>Creating backup</creating_backup>
+    <files_backed_up>Files backed up</files_backed_up>
+    <database_backed_up>Database backed up</database_backed_up>
+    <backup_failed>Backup failed</backup_failed>
+    <backup_error>Backup error</backup_error>
+    <backup_list_error>Error loading backup list</backup_list_error>
+    <full_backup>Full</full_backup>
+    <files_only>Files Only</files_only>
+    <confirm_delete_backup>Really delete backup?</confirm_delete_backup>
+    <delete_backup_not_implemented>Backup deletion not yet implemented</delete_backup_not_implemented>
 </translations> 

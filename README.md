@@ -73,6 +73,39 @@ Basierend auf den [aktuellen Releases](https://github.com/teris/Server-Managemen
 - ✅ **Standarddaten** - Grunddaten für sofortige Nutzung nach Installation
 - ✅ **Umfassende Dokumentation** - Migrationsleitfaden und detaillierte Anweisungen
 
+## 🔄 Manual Updater
+
+Der Manual Updater ermöglicht es, das Framework direkt aus dem Admin-Panel zu aktualisieren. Er prüft GitHub-Releases, bietet die Wahl zwischen „Framework Only“ und „Vollständigem Update“ und kann optional vorab ein Backup erstellen.
+
+### Features
+- 🔍 Automatische Versionsprüfung über GitHub API (Latest/Tag)
+- 🌓 Stable/Nightly-Erkennung durch Vergleich mit `CHANGELOG.md`
+- 🎯 Update-Typen: Framework Only oder Vollständiges Update (asset-basiert)
+- 🛡️ Optionale Backups (Dateien und – optional – Datenbank) vor der Installation
+- 🌐 Mehrsprachigkeit (DE/EN) via Framework-`t()` Integration
+- 🧪 Debug-/Tests: ZIP-Test, schrittweiser Backup-Test, Debug-Infos
+
+### Verwendung (Admin-Panel)
+- Navigation → Optionen → Manual Updater
+- Ablauf:
+  1) Systeminformationen prüfen, 2) Updates suchen, 3) Update-Typ wählen,
+  4) optional Backup erstellen, 5) Update installieren (Fortschritt & Log sichtbar)
+
+### Technische Details
+- GitHub REST API v3: `releases/latest`, `releases/tags/{tag}`
+- Asset-Auswahl: `framework-standalone.zip` für Framework Only; sonst Haupt-Release-Asset
+- Sicherheit: HTTPS-Downloads, ZIP-Validierung/Extraktion, Schutz von `sys.conf.php` (bei Vollupdate), Aufräumen temporärer Dateien
+
+### System-Anforderungen
+- PHP-Extension `zip`
+- Netzwerkzugriff für GitHub API (`file_get_contents` oder `curl`)
+- Schreibrechte auf Framework- und temporäre Verzeichnisse
+
+### Sicherheit & Best Practices
+- Nightly-Versionen nur in Testumgebungen einsetzen
+- Vor wichtigen Updates stets ein Backup erstellen
+- Wartungsfenster nutzen und Logs nach Updates prüfen
+
 ## 🚀 Quick Start
 
 ### **Option 1: Framework Only (Empfohlen für Entwickler)**

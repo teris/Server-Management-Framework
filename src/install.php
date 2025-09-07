@@ -1,7 +1,10 @@
 <?php
-// install.php
-// Installationsskript für das Framework mit Multi-Datenbank-Support
-
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
 session_start();
 
 $step = $_SESSION['install_step'] ?? 1;

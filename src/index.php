@@ -5,6 +5,10 @@
  */
 
 require_once 'sys.conf.php';
+
+// Framework-Loaded Konstante für Sicherheitschecks
+define('FRAMEWORK_LOADED', true);
+
 $frameworkFile = '../framework.php';
 if ($modus_type['modus'] === 'mysql') {
     $frameworkFile = 'core/DatabaseOnlyFramework.php';
@@ -84,6 +88,19 @@ if (isset($_POST['action'])) {
         exit;
     }
     
+    // Manual Updater Actions
+    if (isset($_GET['option']) && $_GET['option'] === 'manualupdater') {
+        try {
+            require_once 'inc/manualupdater.php';
+            // Der AJAX-Handler ist bereits in der manualupdater.php definiert
+            // und wird hier automatisch ausgeführt
+        } catch (Exception $e) {
+            error_log('ManualUpdater Exception: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+    
     // Plugin Actions
     if (isset($_POST['plugin'])) {
         $plugin_key = $_POST['plugin'];
@@ -110,6 +127,19 @@ if (isset($_POST['action'])) {
     include("handler.php");
     exit;
     }
+}
+
+// Früher GET-Handler für Manual Updater Downloads (muss vor jeglichem HTML-Output stehen)
+if (
+    isset($_GET['option']) && $_GET['option'] === 'manualupdater' &&
+    isset($_GET['action']) && $_GET['action'] === 'download_backup'
+) {
+    // Keine Ausgabe vor den Headern zulassen
+    if (ob_get_level()) {
+        @ob_end_clean();
+    }
+    require_once 'inc/manualupdater.php';
+    exit;
 }
 
 // AJAX-Handler für users.php - muss vor HTML-Output stehen
@@ -405,6 +435,11 @@ try {
                                     <i class="bi bi-gear"></i> <?= t('settings') ?>
                                 </a>
                             </li>
+                            <li >
+                                <a href="?option=manualupdater">
+                                    <i class="bi bi-arrow-clockwise"></i> Manual Updater
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>
@@ -584,6 +619,9 @@ try {
                             case 'system':
                                 include('inc/system.php');
                                 break;
+                            case 'manualupdater':
+                                include('inc/manualupdater.php');
+                                break;
                             default:
                                 echo'<!-- Willkommensbereich (Standard) -->
                                         <div id="welcome-area" class="mt-5">
@@ -664,7 +702,13 @@ try {
             'js_data_load_error', 'js_data_save_error', 'js_data_update_error', 'js_data_delete_error',
             'js_please_wait', 'js_retry_later', 'js_contact_admin', 'js_debug_info',
             'js_available_plugins', 'js_session_info', 'js_not_available', 'js_admin_dashboard_initialized',
-            'name', 'domain', 'status', 'actions', 'active', 'inactive', 'edit', 'delete'
+            'name', 'domain', 'status', 'actions', 'active', 'inactive', 'edit', 'delete',
+           'check_for_updates', 'start_update', 'nightly_version', 'stable_version', 'yes', 'no',
+           'update_available_msg', 'no_update_available', 'update_check_error', 'select_update_type_error',
+           'update_successful', 'reload_page_info', 'zip_available', 'zip_not_available',
+           'creating_backup', 'backup_successfully_created', 'files_backed_up', 'database_backed_up',
+           'backup_failed', 'backup_error', 'backup_list_error', 'full_backup', 'files_only',
+           'confirm_delete_backup', 'delete_backup_not_implemented', 'create_backup'
         ])) ?>;
 
         // URL-Parameter auswerten

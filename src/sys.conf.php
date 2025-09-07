@@ -1,18 +1,15 @@
 <?php
 /**
- * System Configuration
- * Admin Dashboard Core mit Plugin-System
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
  */
 
 // LanguageManager einbinden (falls verfügbar)
 if (file_exists(__DIR__ . '/core/LanguageManager.php')) {
     require_once __DIR__ . '/core/LanguageManager.php';
 }
-
-
-
-
-
 
 // --- PLUGINS START ---
 $plugins = array (
@@ -157,7 +154,7 @@ $plugins = array (
 
 // --- SYSTEM_CONFIG START ---
 $system_config = array (
-  'version' => '3.0.0',
+  'version' => '3.1.2',
   'theme' => 'default',
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',

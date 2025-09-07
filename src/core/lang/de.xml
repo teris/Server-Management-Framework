@@ -1238,4 +1238,69 @@
     <error_activating_customer>Fehler bei der Kundenaktivierung</error_activating_customer>
     <customer_not_found>Kunde nicht gefunden</customer_not_found>
     <customer_already_active>Kunde ist bereits aktiv</customer_already_active>
+    
+    <!-- Manual Updater -->
+    <manual_updater_title>Manual Updater</manual_updater_title>
+    <update_check>Update-Prüfung</update_check>
+    <system_info>System-Informationen</system_info>
+    <current_version>Aktuelle Version</current_version>
+    <changelog_version>CHANGELOG Version</changelog_version>
+    <github_version>GitHub Version</github_version>
+    <update_available>Update verfügbar</update_available>
+    <framework_only>Framework Only</framework_only>
+    <full_update>Vollständiges Update</full_update>
+    <create_backup>Backup vor Update erstellen</create_backup>
+    <start_update>Update starten</start_update>
+    <update_progress>Update-Fortschritt</update_progress>
+    <update_log>Update-Log</update_log>
+    <nightly_version>Nightly Version</nightly_version>
+    <stable_version>Stable Version</stable_version>
+    <check_for_updates>Nach Updates suchen</check_for_updates>
+    <yes>Ja</yes>
+    <no>Nein</no>
+    <select_update_type>Update-Typ auswählen</select_update_type>
+    <ready_for_update>Bereit für Update...</ready_for_update>
+    <update_available_msg>Update verfügbar</update_available_msg>
+    <no_update_available>Kein Update verfügbar. System ist aktuell.</no_update_available>
+    <update_check_error>Fehler beim Prüfen der Updates</update_check_error>
+    <select_update_type_error>Bitte wählen Sie einen Update-Typ aus und prüfen Sie Updates.</select_update_type_error>
+    <update_successful>Update erfolgreich installiert!</update_successful>
+    <reload_page_info>Bitte laden Sie die Seite neu, um die Änderungen zu sehen.</reload_page_info>
+    <zip_available>Verfügbar</zip_available>
+    <zip_not_available>Nicht verfügbar</zip_not_available>
+    <framework_only_description>Aktualisiert nur das Framework (framework.php, config/, src/core/). Ideal für minimale Updates ohne UI-Änderungen.</framework_only_description>
+    <full_update_description>Aktualisiert das komplette System inklusive aller Module, Templates und Assets. Behält sys.conf.php bei.</full_update_description>
+    <update_preparing>Update wird vorbereitet...</update_preparing>
+    <php_version>PHP Version</php_version>
+    <zip_extension>ZIP Extension</zip_extension>
+    <temp_directory>Temp Verzeichnis</temp_directory>
+    <nightly_version_detected>Nightly Version erkannt</nightly_version_detected>
+    <nightly_version_warning>Die Version in sys.conf.php stimmt nicht mit der CHANGELOG.md überein. Diese Version wird als Nightly Version betrachtet und sollte nur auf eigene Gefahr verwendet werden.</nightly_version_warning>
+    <update_successfully_installed>Update erfolgreich installiert</update_successfully_installed>
+    <file_could_not_be_saved>Datei konnte nicht gespeichert werden</file_could_not_be_saved>
+    
+    <!-- Backup Management -->
+    <backup_management>Backup-Verwaltung</backup_management>
+    <create_backup>Backup erstellen</create_backup>
+    <include_database_backup>Datenbank-Backup einschließen</include_database_backup>
+    <existing_backups>Vorhandene Backups</existing_backups>
+    <refresh_backups>Backups aktualisieren</refresh_backups>
+    <backup_list>Backup-Liste</backup_list>
+    <backup_name>Backup-Name</backup_name>
+    <created>Erstellt</created>
+    <type>Typ</type>
+    <size>Größe</size>
+    <backup_successfully_created>Backup erfolgreich erstellt</backup_successfully_created>
+    <database_backup_successfully_created>Datenbank-Backup erfolgreich erstellt</database_backup_successfully_created>
+    <files_backup_successfully_created>%count% Dateien erfolgreich gesichert</files_backup_successfully_created>
+    <creating_backup>Backup wird erstellt</creating_backup>
+    <files_backed_up>Dateien gesichert</files_backed_up>
+    <database_backed_up>Datenbank gesichert</database_backed_up>
+    <backup_failed>Backup fehlgeschlagen</backup_failed>
+    <backup_error>Backup-Fehler</backup_error>
+    <backup_list_error>Fehler beim Laden der Backup-Liste</backup_list_error>
+    <full_backup>Vollständig</full_backup>
+    <files_only>Nur Dateien</files_only>
+    <confirm_delete_backup>Backup wirklich löschen?</confirm_delete_backup>
+    <delete_backup_not_implemented>Backup-Löschung noch nicht implementiert</delete_backup_not_implemented>
 </translations> 

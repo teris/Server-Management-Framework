@@ -1,5 +1,11 @@
 <?php
 /**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
  * AdminHandler - Verarbeitet AJAX-Requests für das Admin Dashboard
  */
 

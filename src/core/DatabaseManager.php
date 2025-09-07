@@ -1,5 +1,11 @@
 <?php
 /**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
  * Database Manager - Flexible Datenbankabstraktion für verschiedene Datenbanktypen
  * Unterstützt: MySQL, MariaDB, PostgreSQL, SQLite, MongoDB
  * 

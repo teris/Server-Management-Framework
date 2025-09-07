@@ -1,6 +1,9 @@
 <?php
 /**
- * Download-Script für DNS-Zone-Dateien
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
  */
 
 // Sicherheitsprüfung

@@ -1,4 +1,10 @@
 <?php
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
 if (!isset($db)) {
     require_once dirname(__DIR__) . '/core/DatabaseManager.php';
     $db = DatabaseManager::getInstance();

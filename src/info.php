@@ -1,4 +1,11 @@
 <?php
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+
 echo "<pre>";
 
 require_once '../framework.php';

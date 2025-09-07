@@ -1,3 +1,11 @@
+<?php
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+?>
 <div id="plugin-area">
     <div class="row mb-4">
         <div class="col-12">

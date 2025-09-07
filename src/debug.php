@@ -1,7 +1,9 @@
 <?php
 /**
- * Debug-Version der index.php
- * Nutzen Sie diese temporär um das Problem zu finden
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
  */
 
 require_once '../framework.php';

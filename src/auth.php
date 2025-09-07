@@ -1,8 +1,9 @@
 <?php
 /**
- * Authentication Tester - Fixed Version
- * Testet die Verbindung zu allen APIs (Proxmox, ISPConfig, OVH)
- * Mit Web-Interface und verbesserter Fehlerbehandlung
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
  */
 
 // Error Reporting aktivieren

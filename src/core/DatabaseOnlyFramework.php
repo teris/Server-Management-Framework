@@ -1,6 +1,12 @@
 <?php
 /**
  * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
+ * Server Management Framework
  * Modulares Framework für Proxmox, ISPConfig und OVH API-Integration
  * Erweitert um Virtual MAC Support
  */

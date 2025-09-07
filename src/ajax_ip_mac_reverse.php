@@ -1,4 +1,10 @@
 <?php
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
 require_once __DIR__ . '/../framework.php';
 require_once __DIR__ . '/core/AdminCore.php';
 $core = new AdminCore();

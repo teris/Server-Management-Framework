@@ -1,7 +1,9 @@
 <?php
 /**
- * Authentication Handler und Session Management
- * Verwaltet Login, Logout und Session-Timeout (10 Minuten)
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
  */
 
 class SessionManager {

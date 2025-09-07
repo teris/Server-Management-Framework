@@ -1,5 +1,11 @@
 <?php
 /**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
  * AdminCore - Kern-Funktionalität des Admin Dashboards
  * Nutzt das modulare System aus framework.php
  */

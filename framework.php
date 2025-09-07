@@ -1,4 +1,10 @@
 ﻿<?php
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
 require_once 'config/config.inc.php';
 require_once 'src/core/DatabaseManager.php';
 

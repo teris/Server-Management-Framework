@@ -1,4 +1,11 @@
 <?php
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
     require_once dirname(__DIR__) . '/../config/config.inc.php';
     require_once dirname(__DIR__) . '/../core/DatabaseManager.php';

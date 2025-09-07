@@ -1,5 +1,11 @@
 <?php
 /**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
+/**
  * Debug Tools Index - Zentrale Anlaufstelle für alle Debug-Funktionen
  * Integriert alle Debug-Tools in eine übersichtliche Oberfläche
  */
