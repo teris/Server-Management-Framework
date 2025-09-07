@@ -5,7 +5,7 @@
  * @author Teris
  * @version 3.1.2
  */
-/**
+
 if (__FILE__ === $_SERVER['SCRIPT_FILENAME']) {
     header('Location: ../index.php');
     exit;
