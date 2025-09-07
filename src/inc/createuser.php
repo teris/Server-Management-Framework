@@ -5,7 +5,7 @@
  * @author Teris
  * @version 3.1.2
  */
-/**
+
 // AJAX-Request verhindern - diese Seite soll immer als normale HTML-Seite geladen werden
 if (isset($_POST['action']) && !isset($_POST['createuser_form'])) {
     // Wenn es ein AJAX-Request ist, aber nicht von unserem Formular kommt, 
