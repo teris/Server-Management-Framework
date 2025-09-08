@@ -1,13 +1,13 @@
 <div class="support-tickets-module">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-headset"></i> <?= $translations['module_title'] ?? 'Support Tickets' ?></h2>
+        <h2><i class="bi bi-headset"></i> <?= t('module_title') ?></h2>
         <div class="btn-group">
             <button type="button" class="btn btn-outline-primary" onclick="loadStatistics()">
-                <i class="bi bi-graph-up"></i> <?= $translations['statistics'] ?? 'Statistics' ?>
+                <i class="bi bi-graph-up"></i> <?= t('statistics') ?>
             </button>
             <button type="button" class="btn btn-primary" onclick="showCreateTicketModal()">
-                <i class="bi bi-plus-circle"></i> <?= $translations['new_tickets'] ?? 'New Ticket' ?>
+                <i class="bi bi-plus-circle"></i> <?= t('new_tickets') ?>
             </button>
         </div>
     </div>
@@ -17,30 +17,30 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-3">
-                    <label for="statusFilter" class="form-label"><?= $translations['filter_by_status'] ?? 'Status' ?></label>
+                    <label for="statusFilter" class="form-label"><?= t('filter_by_status') ?></label>
                     <select class="form-select" id="statusFilter" onchange="loadTickets()">
-                        <option value=""><?= $translations['all_tickets'] ?? 'All Tickets' ?></option>
-                        <option value="open"><?= $translations['open'] ?? 'Open' ?></option>
-                        <option value="in_progress"><?= $translations['in_progress'] ?? 'In Progress' ?></option>
-                        <option value="waiting_customer"><?= $translations['waiting_customer'] ?? 'Waiting Customer' ?></option>
-                        <option value="waiting_admin"><?= $translations['waiting_admin'] ?? 'Waiting Admin' ?></option>
-                        <option value="resolved"><?= $translations['resolved'] ?? 'Resolved' ?></option>
-                        <option value="closed"><?= $translations['closed'] ?? 'Closed' ?></option>
+                        <option value=""><?= t('all_tickets') ?></option>
+                        <option value="open"><?= t('open') ?></option>
+                        <option value="in_progress"><?= t('in_progress') ?></option>
+                        <option value="waiting_customer"><?= t('waiting_customer') ?></option>
+                        <option value="waiting_admin"><?= t('waiting_admin') ?></option>
+                        <option value="resolved"><?= t('resolved') ?></option>
+                        <option value="closed"><?= t('closed') ?></option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label for="priorityFilter" class="form-label"><?= $translations['filter_by_priority'] ?? 'Priority' ?></label>
+                    <label for="priorityFilter" class="form-label"><?= t('filter_by_priority') ?></label>
                     <select class="form-select" id="priorityFilter" onchange="loadTickets()">
-                        <option value=""><?= $translations['all_tickets'] ?? 'All Tickets' ?></option>
-                        <option value="low"><?= $translations['low'] ?? 'Low' ?></option>
-                        <option value="medium"><?= $translations['medium'] ?? 'Medium' ?></option>
-                        <option value="high"><?= $translations['high'] ?? 'High' ?></option>
-                        <option value="urgent"><?= $translations['urgent'] ?? 'Urgent' ?></option>
+                        <option value=""><?= t('all_tickets') ?></option>
+                        <option value="low"><?= t('low') ?></option>
+                        <option value="medium"><?= t('medium') ?></option>
+                        <option value="high"><?= t('high') ?></option>
+                        <option value="urgent"><?= t('urgent') ?></option>
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label for="searchInput" class="form-label"><?= $translations['search_tickets'] ?? 'Search' ?></label>
-                    <input type="text" class="form-control" id="searchInput" placeholder="<?= $translations['search_tickets'] ?? 'Search tickets...' ?>" onkeyup="debounce(loadTickets, 500)()">
+                    <label for="searchInput" class="form-label"><?= t('search_tickets') ?></label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="<?= t('search_tickets') ?>" onkeyup="debounce(loadTickets, 500)()">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">&nbsp;</label>
@@ -57,20 +57,20 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span id="selectedCount">0</span> <?= $translations['tickets'] ?? 'tickets' ?> <?= $translations['selected'] ?? 'selected' ?>
+                    <span id="selectedCount">0</span> <?= t('tickets') ?> <?= t('selected') ?>
                 </div>
                 <div class="btn-group">
                     <button type="button" class="btn btn-outline-warning" onclick="bulkAction('change_priority')">
-                        <i class="bi bi-flag"></i> <?= $translations['bulk_change_priority'] ?? 'Change Priority' ?>
+                        <i class="bi bi-flag"></i> <?= t('bulk_change_priority') ?>
                     </button>
                     <button type="button" class="btn btn-outline-info" onclick="bulkAction('change_status')">
-                        <i class="bi bi-arrow-repeat"></i> <?= $translations['bulk_change_status'] ?? 'Change Status' ?>
+                        <i class="bi bi-arrow-repeat"></i> <?= t('bulk_change_status') ?>
                     </button>
                     <button type="button" class="btn btn-outline-success" onclick="bulkAction('close')">
-                        <i class="bi bi-check-circle"></i> <?= $translations['bulk_close'] ?? 'Close' ?>
+                        <i class="bi bi-check-circle"></i> <?= t('bulk_close') ?>
                     </button>
                     <button type="button" class="btn btn-outline-danger" onclick="bulkAction('delete')">
-                        <i class="bi bi-trash"></i> <?= $translations['bulk_delete'] ?? 'Delete' ?>
+                        <i class="bi bi-trash"></i> <?= t('bulk_delete') ?>
                     </button>
                 </div>
             </div>
@@ -87,21 +87,21 @@
                             <th>
                                 <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
                             </th>
-                            <th><?= $translations['ticket_id'] ?? 'ID' ?></th>
-                            <th><?= $translations['customer'] ?? 'Customer' ?></th>
-                            <th><?= $translations['subject'] ?? 'Subject' ?></th>
-                            <th><?= $translations['priority'] ?? 'Priority' ?></th>
-                            <th><?= $translations['status'] ?? 'Status' ?></th>
-                            <th><?= $translations['created'] ?? 'Created' ?></th>
-                            <th><?= $translations['updated'] ?? 'Updated' ?></th>
-                            <th><?= $translations['actions'] ?? 'Actions' ?></th>
+                            <th><?= t('ticket_id') ?></th>
+                            <th><?= t('customer') ?></th>
+                            <th><?= t('subject') ?></th>
+                            <th><?= t('priority') ?></th>
+                            <th><?= t('status') ?></th>
+                            <th><?= t('created') ?></th>
+                            <th><?= t('updated') ?></th>
+                            <th><?= t('actions') ?></th>
                         </tr>
                     </thead>
                     <tbody id="ticketsTableBody">
                         <tr>
                             <td colspan="9" class="text-center">
                                 <div class="spinner-border" role="status">
-                                    <span class="visually-hidden"><?= $translations['loading'] ?? 'Loading...' ?></span>
+                                    <span class="visually-hidden"><?= t('loading') ?></span>
                                 </div>
                             </td>
                         </tr>
@@ -122,7 +122,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><?= $translations['new_tickets'] ?? 'New Ticket' ?></h5>
+                <h5 class="modal-title"><?= t('new_tickets') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -130,20 +130,20 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="customerSelect" class="form-label"><?= $translations['customer'] ?? 'Customer' ?></label>
+                                <label for="customerSelect" class="form-label"><?= t('customer') ?></label>
                                 <select class="form-select" id="customerSelect" name="customer_id" required>
-                                    <option value=""><?= $translations['select_customer'] ?? 'Select Customer' ?></option>
+                                    <option value=""><?= t('select_customer') ?></option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="prioritySelect" class="form-label"><?= $translations['priority'] ?? 'Priority' ?></label>
+                                <label for="prioritySelect" class="form-label"><?= t('priority') ?></label>
                                 <select class="form-select" id="prioritySelect" name="priority">
-                                    <option value="low"><?= $translations['low'] ?? 'Low' ?></option>
-                                    <option value="medium" selected><?= $translations['medium'] ?? 'Medium' ?></option>
-                                    <option value="high"><?= $translations['high'] ?? 'High' ?></option>
-                                    <option value="urgent"><?= $translations['urgent'] ?? 'Urgent' ?></option>
+                                    <option value="low"><?= t('low') ?></option>
+                                    <option value="medium" selected><?= t('medium') ?></option>
+                                    <option value="high"><?= t('high') ?></option>
+                                    <option value="urgent"><?= t('urgent') ?></option>
                                 </select>
                             </div>
                         </div>
@@ -151,30 +151,30 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="categoryInput" class="form-label"><?= $translations['category'] ?? 'Category' ?></label>
+                                <label for="categoryInput" class="form-label"><?= t('category') ?></label>
                                 <input type="text" class="form-control" id="categoryInput" name="category">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="departmentInput" class="form-label"><?= $translations['department'] ?? 'Department' ?></label>
+                                <label for="departmentInput" class="form-label"><?= t('department') ?></label>
                                 <input type="text" class="form-control" id="departmentInput" name="department">
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="subjectInput" class="form-label"><?= $translations['subject'] ?? 'Subject' ?></label>
+                        <label for="subjectInput" class="form-label"><?= t('subject') ?></label>
                         <input type="text" class="form-control" id="subjectInput" name="subject" required>
                     </div>
                     <div class="mb-3">
-                        <label for="messageInput" class="form-label"><?= $translations['message'] ?? 'Message' ?></label>
+                        <label for="messageInput" class="form-label"><?= t('message') ?></label>
                         <textarea class="form-control" id="messageInput" name="message" rows="5" required></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $translations['cancel'] ?? 'Cancel' ?></button>
-                <button type="button" class="btn btn-primary" onclick="createTicket()"><?= $translations['create'] ?? 'Create' ?></button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                <button type="button" class="btn btn-primary" onclick="createTicket()"><?= t('create') ?></button>
             </div>
         </div>
     </div>
@@ -185,7 +185,7 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="ticketModalTitle"><?= $translations['ticket_details'] ?? 'Ticket Details' ?></h5>
+                <h5 class="modal-title" id="ticketModalTitle"><?= t('ticket_details') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -194,7 +194,7 @@
                         <!-- Ticket Information -->
                         <div class="card mb-3">
                             <div class="card-header">
-                                <h6 class="mb-0"><?= $translations['ticket_information'] ?? 'Ticket Information' ?></h6>
+                                <h6 class="mb-0"><?= t('ticket_information') ?></h6>
                             </div>
                             <div class="card-body" id="ticketInfo">
                                 <!-- Ticket details will be loaded here -->
@@ -204,7 +204,7 @@
                         <!-- Replies -->
                         <div class="card">
                             <div class="card-header">
-                                <h6 class="mb-0"><?= $translations['replies'] ?? 'Replies' ?></h6>
+                                <h6 class="mb-0"><?= t('replies') ?></h6>
                             </div>
                             <div class="card-body" id="ticketReplies">
                                 <!-- Replies will be loaded here -->
@@ -215,24 +215,24 @@
                         <!-- Quick Actions -->
                         <div class="card mb-3">
                             <div class="card-header">
-                                <h6 class="mb-0"><?= $translations['quick_actions'] ?? 'Quick Actions' ?></h6>
+                                <h6 class="mb-0"><?= t('quick_actions') ?></h6>
                             </div>
                             <div class="card-body">
                                 <div class="d-grid gap-2">
                                     <button type="button" class="btn btn-outline-primary" onclick="showReplyModal()">
-                                        <i class="bi bi-reply"></i> <?= $translations['reply'] ?? 'Reply' ?>
+                                        <i class="bi bi-reply"></i> <?= t('reply') ?>
                                     </button>
                                     <button type="button" class="btn btn-outline-warning" onclick="showPriorityModal()">
-                                        <i class="bi bi-flag"></i> <?= $translations['change_priority'] ?? 'Change Priority' ?>
+                                        <i class="bi bi-flag"></i> <?= t('change_priority') ?>
                                     </button>
                                     <button type="button" class="btn btn-outline-info" onclick="showStatusModal()">
-                                        <i class="bi bi-arrow-repeat"></i> <?= $translations['change_status'] ?? 'Change Status' ?>
+                                        <i class="bi bi-arrow-repeat"></i> <?= t('change_status') ?>
                                     </button>
                                     <button type="button" class="btn btn-outline-success" onclick="closeTicket()">
-                                        <i class="bi bi-check-circle"></i> <?= $translations['close'] ?? 'Close' ?>
+                                        <i class="bi bi-check-circle"></i> <?= t('close') ?>
                                     </button>
                                     <button type="button" class="btn btn-outline-danger" onclick="deleteTicket()">
-                                        <i class="bi bi-trash"></i> <?= $translations['delete'] ?? 'Delete' ?>
+                                        <i class="bi bi-trash"></i> <?= t('delete') ?>
                                     </button>
                                 </div>
                             </div>
@@ -241,12 +241,12 @@
                         <!-- Internal Notes -->
                         <div class="card">
                             <div class="card-header">
-                                <h6 class="mb-0"><?= $translations['internal_notes'] ?? 'Internal Notes' ?></h6>
+                                <h6 class="mb-0"><?= t('internal_notes') ?></h6>
                             </div>
                             <div class="card-body">
-                                <textarea class="form-control" id="internalNote" rows="3" placeholder="<?= $translations['add_internal_note'] ?? 'Add internal note...' ?>"></textarea>
+                                <textarea class="form-control" id="internalNote" rows="3" placeholder="<?= t('add_internal_note') ?>"></textarea>
                                 <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addInternalNote()">
-                                    <?= $translations['add_note'] ?? 'Add Note' ?>
+                                    <?= t('add_note') ?>
                                 </button>
                             </div>
                         </div>
@@ -262,20 +262,20 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><?= $translations['reply_message'] ?? 'Reply to Ticket' ?></h5>
+                <h5 class="modal-title"><?= t('reply_message') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="replyForm">
                     <div class="mb-3">
-                        <label for="replyMessage" class="form-label"><?= $translations['message'] ?? 'Message' ?></label>
+                        <label for="replyMessage" class="form-label"><?= t('message') ?></label>
                         <textarea class="form-control" id="replyMessage" rows="5" required></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $translations['cancel'] ?? 'Cancel' ?></button>
-                <button type="button" class="btn btn-primary" onclick="sendReply()"><?= $translations['send_reply'] ?? 'Send Reply' ?></button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                <button type="button" class="btn btn-primary" onclick="sendReply()"><?= t('send_reply') ?></button>
             </div>
         </div>
     </div>
@@ -286,23 +286,23 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><?= $translations['change_priority'] ?? 'Change Priority' ?></h5>
+                <h5 class="modal-title"><?= t('change_priority') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label for="newPriority" class="form-label"><?= $translations['priority'] ?? 'Priority' ?></label>
+                    <label for="newPriority" class="form-label"><?= t('priority') ?></label>
                     <select class="form-select" id="newPriority">
-                        <option value="low"><?= $translations['low'] ?? 'Low' ?></option>
-                        <option value="medium"><?= $translations['medium'] ?? 'Medium' ?></option>
-                        <option value="high"><?= $translations['high'] ?? 'High' ?></option>
-                        <option value="urgent"><?= $translations['urgent'] ?? 'Urgent' ?></option>
+                        <option value="low"><?= t('low') ?></option>
+                        <option value="medium"><?= t('medium') ?></option>
+                        <option value="high"><?= t('high') ?></option>
+                        <option value="urgent"><?= t('urgent') ?></option>
                     </select>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $translations['cancel'] ?? 'Cancel' ?></button>
-                <button type="button" class="btn btn-primary" onclick="changePriority()"><?= $translations['save_changes'] ?? 'Save Changes' ?></button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                <button type="button" class="btn btn-primary" onclick="changePriority()"><?= t('save_changes') ?></button>
             </div>
         </div>
     </div>
@@ -313,25 +313,25 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><?= $translations['change_status'] ?? 'Change Status' ?></h5>
+                <h5 class="modal-title"><?= t('change_status') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label for="newStatus" class="form-label"><?= $translations['status'] ?? 'Status' ?></label>
+                    <label for="newStatus" class="form-label"><?= t('status') ?></label>
                     <select class="form-select" id="newStatus">
-                        <option value="open"><?= $translations['open'] ?? 'Open' ?></option>
-                        <option value="in_progress"><?= $translations['in_progress'] ?? 'In Progress' ?></option>
-                        <option value="waiting_customer"><?= $translations['waiting_customer'] ?? 'Waiting Customer' ?></option>
-                        <option value="waiting_admin"><?= $translations['waiting_admin'] ?? 'Waiting Admin' ?></option>
-                        <option value="resolved"><?= $translations['resolved'] ?? 'Resolved' ?></option>
-                        <option value="closed"><?= $translations['closed'] ?? 'Closed' ?></option>
+                        <option value="open"><?= t('open') ?></option>
+                        <option value="in_progress"><?= t('in_progress') ?></option>
+                        <option value="waiting_customer"><?= t('waiting_customer') ?></option>
+                        <option value="waiting_admin"><?= t('waiting_admin') ?></option>
+                        <option value="resolved"><?= t('resolved') ?></option>
+                        <option value="closed"><?= t('closed') ?></option>
                     </select>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $translations['cancel'] ?? 'Cancel' ?></button>
-                <button type="button" class="btn btn-primary" onclick="changeStatus()"><?= $translations['save_changes'] ?? 'Save Changes' ?></button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                <button type="button" class="btn btn-primary" onclick="changeStatus()"><?= t('save_changes') ?></button>
             </div>
         </div>
     </div>
@@ -342,7 +342,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><?= $translations['statistics'] ?? 'Statistics' ?></h5>
+                <h5 class="modal-title"><?= t('statistics') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="statisticsContent">

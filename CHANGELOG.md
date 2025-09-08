@@ -2,6 +2,44 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.1.9]
+
+### Geändert
+- **Support-Tickets-Modul Übersetzungen**: Vollständige Umstellung auf die neue globale `t()`-Funktion
+- **Support-Tickets-Modul Template**: Entfernung der manuellen Übersetzungs-Arrays und Vereinfachung der Template-Logik
+- **Support-Tickets-Modul JavaScript**: Keine Änderungen erforderlich - bereits optimiert mit direkten deutschen Texten
+- **Modul-System**: Konsistente Verwendung der globalen `t()`-Funktion in allen Modulen
+
+### Technische Details
+- **Entfernte Funktionen**: Manuelle `$translations`-Arrays aus `getContent()`-Methode
+- **Vereinfachte Templates**: Keine manuellen Übersetzungs-Arrays mehr erforderlich
+- **Automatische Modul-Erkennung**: Support-Tickets-Modul nutzt jetzt die automatische Modul-Erkennung der globalen `t()`-Funktion
+- **Konsistente Übersetzungen**: Alle Template-Strings verwenden jetzt die globale `t()`-Funktion
+
+### Verbesserungen
+- **Wartbarkeit**: Einfachere Wartung durch zentrale Übersetzungslogik
+- **Performance**: Reduzierte Server-Last durch Entfernung redundanter Übersetzungsabfragen
+- **Konsistenz**: Einheitliche Übersetzungsbehandlung in allen Modulen
+
+## [3.1.8]
+
+### Geändert
+- **DNS-Modul Übersetzungen**: Vollständige Umstellung auf die neue globale `t()`-Funktion
+- **DNS-Modul Template**: Entfernung der manuellen Übersetzungs-Arrays und Vereinfachung der Template-Logik
+- **DNS-Modul JavaScript**: Keine Änderungen erforderlich - bereits optimiert mit direkten deutschen Texten
+- **Modul-System**: Konsistente Verwendung der globalen `t()`-Funktion in allen Modulen
+
+### Technische Details
+- **Entfernte Funktionen**: Manuelle `$translations`-Arrays aus `getContent()`, `getContentResponse()` und `selectDomain()`-Methoden
+- **Vereinfachte Templates**: Keine manuellen Übersetzungs-Arrays mehr erforderlich
+- **Automatische Modul-Erkennung**: DNS-Modul nutzt jetzt die automatische Modul-Erkennung der globalen `t()`-Funktion
+- **Konsistente Übersetzungen**: Alle Template-Strings verwenden jetzt die globale `t()`-Funktion
+
+### Verbesserungen
+- **Wartbarkeit**: Einfachere Wartung durch zentrale Übersetzungslogik
+- **Performance**: Reduzierte Server-Last durch Entfernung redundanter Übersetzungsabfragen
+- **Konsistenz**: Einheitliche Übersetzungsbehandlung in allen Modulen
+
 ## [3.1.7]
 
 ### Geändert

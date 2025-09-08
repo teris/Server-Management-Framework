@@ -148,7 +148,7 @@ $plugins = array (
 
 // --- SYSTEM_CONFIG START ---
 $system_config = array (
-  'version' => '3.1.4',
+  'version' => '3.1.9',
   'theme' => 'default',
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',

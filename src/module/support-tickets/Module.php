@@ -14,54 +14,7 @@ class SupportTicketsModule extends ModuleBase {
         }
         
         try {
-            return $this->render('main', [
-                'translations' => $this->tMultiple([
-                    'module_title', 'tickets', 'new_tickets', 'open_tickets', 'closed_tickets',
-                    'ticket_id', 'customer', 'subject', 'priority', 'status', 'created', 'updated',
-                    'actions', 'view', 'edit', 'delete', 'reply', 'close', 'reopen', 'change_priority',
-                    'low', 'medium', 'high', 'urgent', 'open', 'in_progress', 'waiting_customer', 
-                    'waiting_admin', 'resolved', 'closed', 'message', 'reply_message', 'send_reply',
-                    'confirm_delete', 'confirm_close', 'confirm_reopen', 'loading', 'no_tickets',
-                    'filter_by_status', 'filter_by_priority', 'search_tickets', 'all_tickets',
-                    'customer_name', 'email', 'phone', 'company', 'ticket_number', 'category',
-                    'assigned_to', 'department', 'source', 'estimated_resolution_time',
-                    'actual_resolution_time', 'customer_satisfaction', 'internal_notes', 'tags',
-                    'due_date', 'resolved_at', 'closed_at', 'last_reply', 'replies_count',
-                    'attachments', 'add_attachment', 'remove_attachment', 'file_size_limit',
-                    'allowed_file_types', 'upload_progress', 'upload_success', 'upload_error',
-                    'save_changes', 'cancel', 'back', 'refresh', 'export', 'import', 'bulk_actions',
-                    'select_all', 'deselect_all', 'bulk_close', 'bulk_delete', 'bulk_assign',
-                    'bulk_change_priority', 'bulk_change_status', 'bulk_export', 'bulk_import',
-                    'statistics', 'tickets_by_status', 'tickets_by_priority', 'tickets_by_department',
-                    'average_resolution_time', 'customer_satisfaction_avg', 'tickets_per_day',
-                    'tickets_per_week', 'tickets_per_month', 'response_time_avg', 'escalation_rate',
-                    'auto_assignment', 'auto_escalation', 'auto_notification', 'auto_reminder',
-                    'settings', 'general_settings', 'notification_settings', 'escalation_settings',
-                    'auto_assignment_settings', 'template_settings', 'email_templates',
-                    'sms_templates', 'webhook_settings', 'api_settings', 'integration_settings',
-                    'custom_fields', 'add_custom_field', 'edit_custom_field', 'delete_custom_field',
-                    'field_name', 'field_type', 'field_required', 'field_options', 'field_default',
-                    'field_validation', 'field_help_text', 'field_order', 'field_active',
-                    'reports', 'generate_report', 'report_type', 'report_period', 'report_format',
-                    'report_columns', 'report_filters', 'report_schedule', 'report_email',
-                    'report_recipients', 'report_frequency', 'daily', 'weekly', 'monthly',
-                    'quarterly', 'yearly', 'custom', 'report_name', 'report_description',
-                    'save_report', 'load_report', 'delete_report', 'share_report', 'export_report',
-                    'print_report', 'email_report', 'schedule_report', 'unschedule_report',
-                    'report_history', 'report_logs', 'report_errors', 'report_success',
-                    'help', 'documentation', 'faq', 'contact_support', 'feedback', 'bug_report',
-                    'feature_request', 'improvement_suggestion', 'rate_module', 'module_reviews',
-                    'module_rating', 'module_comments', 'module_suggestions', 'module_bugs',
-                    'module_features', 'module_improvements', 'module_help', 'module_docs',
-                    'module_tutorial', 'module_video', 'module_screenshots', 'module_examples',
-                    'module_templates', 'module_themes', 'module_plugins', 'module_extensions',
-                    'module_updates', 'module_version', 'module_changelog', 'module_license',
-                    'module_author', 'module_website', 'module_support', 'module_donation',
-                    'module_affiliate', 'module_partner', 'module_reseller', 'module_developer',
-                    'module_contributor', 'module_translator', 'module_designer', 'module_tester',
-                    'module_reviewer', 'module_moderator', 'module_admin', 'module_super_admin'
-                ])
-            ]);
+            return $this->render('main');
         } catch (Exception $e) {
             error_log("SupportTicketsModule getContent error: " . $e->getMessage());
             return '<div class="alert alert-danger">' . $this->t('error_loading_module') . ': ' . htmlspecialchars($e->getMessage()) . '</div>';
