@@ -2,6 +2,21 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.1.7]
+
+### Geändert
+- **Database-Modul Übersetzungen**: Vollständige Umstellung auf die neue globale `t()`-Funktion
+- **Database-Modul Template**: Entfernung der manuellen Übersetzungs-Arrays und JavaScript-Übersetzungslogik
+- **Database-Modul JavaScript**: Vereinfachte Initialisierung ohne Server-seitige Übersetzungsabfrage
+- **Modul-System**: Konsistente Verwendung der globalen `t()`-Funktion in allen Modulen
+
+### Technische Details
+- **Entfernte Funktionen**: `getTranslations()`-Methode und `get_translations`-Ajax-Aktion
+- **Vereinfachte Templates**: Keine manuellen `$translations`-Arrays mehr erforderlich
+- **Automatische Modul-Erkennung**: Database-Modul nutzt jetzt die automatische Modul-Erkennung der globalen `t()`-Funktion
+- **JavaScript-Optimierung**: Reduzierte Komplexität der Client-seitigen Übersetzungslogik
+- **Hardcodierte Texte**: JavaScript-Funktionen verwenden jetzt direkte deutsche Texte statt Übersetzungsabfragen
+
 ## [3.1.6]
 
 ### Geändert

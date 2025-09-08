@@ -86,27 +86,12 @@
 window.databaseModule = {
     init: function() {
         console.log('Database module initialized');
-        this.loadTranslations();
-    },
-    
-    translations: {},
-    
-    loadTranslations: function() {
-        // Lade Übersetzungen vom Server mit neuem Format
-        ModuleManager.makeRequest('database', 'get_translations')
-            .then(data => {
-                if (data.success) {
-                    this.translations = data.translations;
-                    console.log('Database translations loaded:', this.translations);
-                } else {
-                    console.error('Failed to load translations:', data.error);
-                }
-            })
-            .catch(error => console.error('Error loading translations:', error));
     },
     
     t: function(key, params = {}) {
-        let text = this.translations[key] || key;
+        // Übersetzungen werden jetzt über die globale t() Funktion geladen
+        // Diese Funktion ist nur noch für JavaScript-spezifische Übersetzungen
+        let text = key; // Fallback auf Schlüssel
         
         // Parameter ersetzen
         Object.keys(params).forEach(param => {
@@ -117,7 +102,7 @@ window.databaseModule = {
     },
     
     showDatabaseInfo: function() {
-        showNotification(this.t('database_info_message'), 'info');
+        showNotification('MySQL/MariaDB Server läuft auf Port 3306', 'info');
     },
     
     generatePassword: function() {
@@ -130,7 +115,7 @@ window.databaseModule = {
         }
         
         document.getElementById('db_password').value = password;
-        showNotification(this.t('secure_password_generated'), 'success');
+        showNotification('Sicheres Passwort generiert', 'success');
     }
 };
 
@@ -155,25 +140,22 @@ async function createDatabase(event) {
         const result = await ModuleManager.makeRequest('database', 'create_database', formData);
         
         if (result.success) {
-            showNotification(databaseModule.t('database_created_message'), 'success');
+            showNotification('Datenbank wurde erfolgreich erstellt!', 'success');
             
             // Zeige Verbindungsdaten
             const dbName = formData.get('name');
             const dbUser = formData.get('user');
             
-            const alertMessage = databaseModule.t('database_connection_alert', {
-                dbName: dbName,
-                dbUser: dbUser
-            });
+            const alertMessage = `Datenbank erfolgreich erstellt!\n\nVerbindungsdaten:\nHost: localhost\nDatenbank: ${dbName}\nBenutzer: ${dbUser}\nPasswort: [Ihr gewähltes Passwort]`;
             
             alert(alertMessage);
             
             form.reset();
         } else {
-            showNotification('Fehler: ' + (result.error || databaseModule.t('unknown_error')), 'error');
+            showNotification('Fehler: ' + (result.error || 'Unbekannter Fehler'), 'error');
         }
     } catch (error) {
-        showNotification(databaseModule.t('network_error') + ': ' + error.message, 'error');
+        showNotification('Netzwerkfehler: ' + error.message, 'error');
     }
     
     setLoading(form, false);
@@ -185,12 +167,4 @@ document.addEventListener('DOMContentLoaded', function() {
         window.databaseModule.init();
     }
 });
-
-// Fallback: Initialisierung nach kurzer Verzögerung
-setTimeout(function() {
-    if (window.databaseModule && !window.databaseModule.translations || Object.keys(window.databaseModule.translations).length === 0) {
-        console.log('Auto-initializing database module');
-        window.databaseModule.init();
-    }
-}, 100);
 </script>

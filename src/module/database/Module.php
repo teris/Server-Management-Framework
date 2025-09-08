@@ -9,17 +9,7 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class DatabaseModule extends ModuleBase {
     
     public function getContent() {
-        $translations = $this->tMultiple([
-            'module_title', 'create_database', 'database_name', 'database_user', 'password',
-            'password_min_length', 'connection_info', 'host', 'port', 'charset', 'advanced_options',
-            'database_server_info', 'generate_secure_password', 'connection_details', 'host_info',
-            'port_info', 'charset_info', 'phpmyadmin_info', 'phpmyadmin_url', 'save', 'cancel',
-            'edit', 'delete', 'create', 'refresh', 'actions', 'status'
-        ]);
-        
-        return $this->render('main', [
-            'translations' => $translations
-        ]);
+        return $this->render('main');
     }
     
     public function handleAjaxRequest($action, $data) {
@@ -30,8 +20,6 @@ class DatabaseModule extends ModuleBase {
                 return $this->getAllDatabases();
             case 'delete_database':
                 return $this->deleteDatabase($data);
-            case 'get_translations':
-                return $this->getTranslations();
             default:
                 return $this->error($this->t('unknown_action') . ': ' . $action);
         }
@@ -113,17 +101,5 @@ class DatabaseModule extends ModuleBase {
         }
     }
     
-    private function getTranslations() {
-        $translations = $this->tMultiple([
-            'database_created_message', 'secure_password_generated', 'database_info_message',
-            'network_error', 'unknown_error', 'database_connection_alert'
-        ]);
-        
-        return [
-            'success' => true,
-            'message' => 'Operation successful',
-            'translations' => $translations
-        ];
-    }
 }
 ?>
