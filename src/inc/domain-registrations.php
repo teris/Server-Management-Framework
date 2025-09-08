@@ -3,7 +3,7 @@
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.1.2
+ * @version 3.1.3
  */
 
 // Domain-Registrierungen Verwaltung für Admins

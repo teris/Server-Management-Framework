@@ -3,7 +3,7 @@
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.1.2
+ * @version 3.1.3
  */
 if (!isset($db)) {
     require_once dirname(__DIR__) . '/core/DatabaseManager.php';
@@ -54,9 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         $stmt->execute([$passwordHash, $customerId]);
                         
                         // Benutzer in allen Systemen erstellen
+                        $systemPasswords = [
+                            'ispconfig' => $newPassword,
+                            'ogp' => $newPassword,
+                            'proxmox' => $newPassword,
+                        ];
                         $creationResult = $serviceManager->createUserInAllSystems(
                             $username,
-                            $newPassword,
+                            $systemPasswords,
                             $customer['first_name'],
                             $customer['last_name'],
                             [

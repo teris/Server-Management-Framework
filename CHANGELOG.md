@@ -2,6 +2,18 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.1.3]
+
+### Hinzugefügt
+- Manual Updater (BETA): Neue Sektion zur Anzeige des letzten GitHub-Commits inkl. geänderter Dateien und selektivem Anwenden einzelner Dateien
+
+### Geändert
+- Manual Updater (BETA): Branch für Commit-Ansicht und selektives Update fest auf `main` gesetzt
+- Versions-Update-Logik: Setzt Version über den `// --- SYSTEM_CONFIG START/END ---` Block in `src/sys.conf.php` (konsistent mit `src/inc/system.php`)
+
+### Behoben
+- Pfadkorrektur beim Schreiben der Version aus dem Manual Updater
+
 ## [3.1.2]
 
 ### Hinzugefügt

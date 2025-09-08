@@ -4,7 +4,7 @@
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.1.2
+ * @version 3.1.3
  */
 
 // Sicherheitscheck - wird von index.php gesetzt
@@ -1571,7 +1571,7 @@ class ManualUpdater {
      * Version in sys.conf.php aktualisieren
      */
     private function updateVersionInConfig() {
-        $configPath = __DIR__ . '/sys.conf.php';
+        $configPath = __DIR__ . '/../sys.conf.php';
         $content = file_get_contents($configPath);
         
         // Version ersetzen
@@ -1583,6 +1583,223 @@ class ManualUpdater {
         );
         
         file_put_contents($configPath, $content);
+    }
+
+    /**
+     * BETA: Letzten Commit (Branch) abfragen und geänderte Dateien mit lokalem Stand vergleichen
+     */
+    public function getLatestCommitChangesBeta(string $branch = 'main') {
+        try {
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'header' => [
+                        'User-Agent: Server-Management-Framework-Updater/1.0',
+                        'Accept: application/vnd.github.v3+json'
+                    ],
+                    'timeout' => 30
+                ]
+            ]);
+
+            $url = GITHUB_API_BASE . '/commits/' . rawurlencode($branch);
+            $data = @file_get_contents($url, false, $context);
+            if ($data === false) {
+                throw new Exception('GitHub API nicht erreichbar');
+            }
+            $json = json_decode($data, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Ungültige JSON-Antwort von GitHub');
+            }
+
+            $rootPath = realpath(__DIR__ . '/../../') . '/';
+            $filesOut = [];
+            if (!empty($json['files']) && is_array($json['files'])) {
+                foreach ($json['files'] as $file) {
+                    $status = strtolower($file['status'] ?? 'modified');
+                    $remoteFile = $file['filename'] ?? '';
+                    if ($remoteFile === '') { continue; }
+
+                    $localPath = $rootPath . $remoteFile;
+                    $localExists = file_exists($localPath);
+
+                    $remoteUrl = 'https://raw.githubusercontent.com/' . GITHUB_REPO . '/' . rawurlencode($branch) . '/' . $remoteFile;
+                    $remoteContent = @file_get_contents($remoteUrl);
+                    $remoteExists = $remoteContent !== false;
+
+                    $differs = false;
+                    if ($status === 'removed') {
+                        $differs = $localExists; // entfernt im Repo, lokal existiert evtl. noch
+                    } else {
+                        if ($remoteExists) {
+                            $remoteHash = sha1($remoteContent);
+                            $localHash = $localExists ? sha1_file($localPath) : null;
+                            $differs = !$localHash || $localHash !== $remoteHash;
+                        } else {
+                            $differs = true; // remote nicht lesbar => als Unterschied markieren
+                        }
+                    }
+
+                    $filesOut[] = [
+                        'filename' => $remoteFile,
+                        'status' => $status,
+                        'local_exists' => $localExists,
+                        'remote_exists' => $remoteExists,
+                        'differs' => $differs,
+                    ];
+                }
+            }
+
+            $commitInfo = [
+                'sha' => $json['sha'] ?? '',
+                'author' => $json['commit']['author']['name'] ?? '',
+                'date' => $json['commit']['author']['date'] ?? '',
+                'message' => $json['commit']['message'] ?? ''
+            ];
+
+            return [
+                'success' => true,
+                'commit' => $commitInfo,
+                'files' => $filesOut
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * BETA: Ausgewählte Dateien vom Branch holen und lokal aktualisieren/entfernen
+     */
+    public function applyBetaFiles(array $selectedFiles, string $branch = 'main') {
+        $rootPath = realpath(__DIR__ . '/../../');
+        if ($rootPath === false) {
+            return ['success' => false, 'error' => 'Projektpfad nicht gefunden'];
+        }
+        $rootPath = rtrim($rootPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+        // Sicherheitsfilter: Nur Pfade innerhalb des Projekts erlauben
+        $normalize = function(string $path) use ($rootPath) {
+            $full = $rootPath . str_replace(['..', '\\'], ['', '/'], ltrim($path, '/\\'));
+            return $full;
+        };
+
+        // Backup-Verzeichnis
+        $backupDir = $rootPath . 'backups';
+        if (!is_dir($backupDir)) {
+            @mkdir($backupDir, 0755, true);
+        }
+        $timestamp = date('Y-m-d_H-i-s');
+        $updated = [];
+        $deleted = [];
+        $errors = [];
+
+        // Status-Map anhand des aktuellen Commits ermitteln (für removed/renamed Erkennung)
+        $diff = $this->getLatestCommitChangesBeta($branch);
+        $statusMap = [];
+        if (!empty($diff['files'])) {
+            foreach ($diff['files'] as $f) {
+                $statusMap[$f['filename']] = $f['status'];
+            }
+        }
+
+        foreach ($selectedFiles as $relFile) {
+            $relFile = trim($relFile);
+            if ($relFile === '') { continue; }
+            $status = strtolower($statusMap[$relFile] ?? 'modified');
+            $localFile = $normalize($relFile);
+
+            // sicherstellen, dass Pfad innerhalb des Projektes liegt
+            if (strpos(realpath(dirname($localFile)) ?: '', $rootPath) !== 0) {
+                $errors[] = "$relFile: unzulässiger Pfad";
+                continue;
+            }
+
+            if ($status === 'removed') {
+                if (file_exists($localFile)) {
+                    // Backup
+                    $backupSub = $backupDir . DIRECTORY_SEPARATOR . 'beta_' . $timestamp . DIRECTORY_SEPARATOR . dirname($relFile);
+                    if (!is_dir($backupSub)) { @mkdir($backupSub, 0755, true); }
+                    @copy($localFile, $backupSub . DIRECTORY_SEPARATOR . basename($relFile));
+                    if (@unlink($localFile)) {
+                        $deleted[] = $relFile;
+                    } else {
+                        $errors[] = "$relFile: konnte nicht gelöscht werden";
+                    }
+                }
+                continue;
+            }
+
+            // remote laden
+            $remoteUrl = 'https://raw.githubusercontent.com/' . GITHUB_REPO . '/' . rawurlencode($branch) . '/' . $relFile;
+            $remoteContent = @file_get_contents($remoteUrl);
+            if ($remoteContent === false) {
+                $errors[] = "$relFile: Remote-Inhalt nicht abrufbar";
+                continue;
+            }
+
+            // Backup existierender Datei
+            if (file_exists($localFile)) {
+                $backupSub = $backupDir . DIRECTORY_SEPARATOR . 'beta_' . $timestamp . DIRECTORY_SEPARATOR . dirname($relFile);
+                if (!is_dir($backupSub)) { @mkdir($backupSub, 0755, true); }
+                @copy($localFile, $backupSub . DIRECTORY_SEPARATOR . basename($relFile));
+            } else {
+                $dir = dirname($localFile);
+                if (!is_dir($dir)) { @mkdir($dir, 0755, true); }
+            }
+
+            if (@file_put_contents($localFile, $remoteContent) === false) {
+                $errors[] = "$relFile: Schreiben fehlgeschlagen";
+            } else {
+                $updated[] = $relFile;
+            }
+        }
+
+        // Version auf Beta anheben
+        $betaVersion = $this->determineBetaVersion();
+        $this->updateVersionInConfigUsingSystemPattern($betaVersion);
+
+        return [
+            'success' => empty($errors),
+            'updated' => $updated,
+            'deleted' => $deleted,
+            'errors' => $errors,
+            'new_version' => $betaVersion
+        ];
+    }
+
+    /**
+     * BETA: Zielversion bestimmen (GitHub Release > Changelog > aktuelle Version) + " - Beta" anhängen
+     */
+    private function determineBetaVersion(): string {
+        $base = $this->githubVersion ?: $this->changelogVersion ?: $this->currentVersion;
+        if (strpos($base, ' - Beta') === false) {
+            $base .= ' - Beta';
+        }
+        return $base;
+    }
+
+    /**
+     * BETA: Version mit der in system.php verwendeten Methode in sys.conf.php schreiben (SYSTEM_CONFIG Block)
+     */
+    private function updateVersionInConfigUsingSystemPattern(string $newVersion): void {
+        // Aus globaler Konfiguration lesen und Version setzen
+        global $system_config;
+        if (!is_array($system_config)) { $system_config = []; }
+        $system_config['version'] = $newVersion;
+
+        $confPath = dirname(__DIR__) . '/sys.conf.php';
+        $confContent = @file_get_contents($confPath);
+        if ($confContent === false) { return; }
+
+        $export = var_export($system_config, true);
+        $confContent = preg_replace(
+            '/\/\/ --- SYSTEM_CONFIG START ---.*?\/\/ --- SYSTEM_CONFIG END ---/s',
+            "\n// --- SYSTEM_CONFIG START ---\n\$system_config = $export;\n// --- SYSTEM_CONFIG END ---\n",
+            $confContent
+        );
+        @file_put_contents($confPath, $confContent);
     }
     
     /**
@@ -1708,6 +1925,19 @@ if (isset($_POST['action'])) {
             
         case 'system_info':
             $response = $updater->getSystemInfo();
+            break;
+        
+        case 'beta_list_changes':
+            $branch = 'main';
+            $response = $updater->getLatestCommitChangesBeta($branch);
+            break;
+
+        case 'beta_apply_files':
+            $branch = 'main';
+            $filesJson = $_POST['files'] ?? '[]';
+            $files = json_decode($filesJson, true);
+            if (!is_array($files)) { $files = []; }
+            $response = $updater->applyBetaFiles($files, $branch);
             break;
             
         case 'create_backup':
@@ -2513,6 +2743,44 @@ if (isset($_POST['action'])) {
                     </div>
                 </div>
                 
+                <!-- BETA: GitHub Commit-Änderungen (experimentell) -->
+                <div class="card mb-4 border-warning" id="beta-changes-card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0"><i class="bi bi-beaker"></i> BETA: Letzter Commit & geänderte Dateien</h5>
+                        <span class="badge bg-warning text-dark">BETA</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Branch</label>
+                            <div class="input-group" style="max-width: 420px;">
+                                <input type="text" class="form-control" id="beta-branch" value="main" disabled>
+                                <button class="btn btn-outline-warning" id="beta-load-changes-btn"><i class="bi bi-git"></i> Laden</button>
+                            </div>
+                        </div>
+                        <div id="beta-commit-info" class="mb-3" style="display:none;">
+                            <div><strong>SHA:</strong> <span id="beta-commit-sha">-</span></div>
+                            <div><strong>Autor:</strong> <span id="beta-commit-author">-</span></div>
+                            <div><strong>Datum:</strong> <span id="beta-commit-date">-</span></div>
+                            <div><strong>Nachricht:</strong><br><pre id="beta-commit-message" style="white-space:pre-wrap; background:#f8f9fa; padding:8px; border-radius:4px; border:1px solid #eee;">-</pre></div>
+                        </div>
+                        <div class="table-responsive" id="beta-files-container" style="display:none;">
+                            <table class="table table-sm align-middle">
+                                <thead>
+                                    <tr>
+                                        <th style="width:40px;"><input type="checkbox" id="beta-select-all"></th>
+                                        <th>Datei</th>
+                                        <th style="width:120px;">Status</th>
+                                        <th style="width:120px;">Vergleich</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="beta-files-body"></tbody>
+                            </table>
+                            <button class="btn btn-warning" id="beta-apply-btn" disabled><i class="bi bi-cloud-download"></i> Ausgewählte Dateien anwenden</button>
+                            <div class="small text-muted mt-2">Nur die ausgewählten Dateien werden aktualisiert oder entfernt. Version wird auf Beta gesetzt.</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Backup Management -->
                 <div class="card mb-4">
                     <div class="card-header">
@@ -2672,6 +2940,105 @@ if (isset($_POST['action'])) {
             });
         });
         
+        // BETA: Änderungen laden
+        const betaLoadBtn = document.getElementById('beta-load-changes-btn');
+        const betaBranchInput = document.getElementById('beta-branch');
+        const betaFilesBody = document.getElementById('beta-files-body');
+        const betaFilesContainer = document.getElementById('beta-files-container');
+        const betaCommitInfo = document.getElementById('beta-commit-info');
+        const betaApplyBtn = document.getElementById('beta-apply-btn');
+        const betaSelectAll = document.getElementById('beta-select-all');
+
+        function renderBetaFiles(files) {
+            betaFilesBody.innerHTML = '';
+            files.forEach(f => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="beta-file-check" data-file="${f.filename}"></td>
+                    <td><code>${f.filename}</code></td>
+                    <td><span class="badge ${f.status==='removed'?'bg-danger':'bg-secondary'}">${f.status}</span></td>
+                    <td>${f.differs ? '<span class="text-warning">abweichend</span>' : '<span class="text-success">aktuell</span>'}</td>
+                `;
+                betaFilesBody.appendChild(tr);
+            });
+            betaFilesContainer.style.display = '';
+            betaApplyBtn.disabled = true;
+        }
+
+        function updateBetaApplyDisabled() {
+            const anyChecked = Array.from(document.querySelectorAll('.beta-file-check')).some(cb => cb.checked);
+            betaApplyBtn.disabled = !anyChecked;
+        }
+
+        betaSelectAll?.addEventListener('change', function() {
+            const checked = this.checked;
+            document.querySelectorAll('.beta-file-check').forEach(cb => { cb.checked = checked; });
+            updateBetaApplyDisabled();
+        });
+
+        betaFilesBody.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('beta-file-check')) {
+                updateBetaApplyDisabled();
+            }
+        });
+
+        betaLoadBtn?.addEventListener('click', function() {
+            const branch = 'main';
+            betaLoadBtn.disabled = true;
+            betaLoadBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Laden...';
+            fetch('?option=manualupdater', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=beta_list_changes'
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    document.getElementById('beta-commit-sha').textContent = data.commit.sha || '-';
+                    document.getElementById('beta-commit-author').textContent = data.commit.author || '-';
+                    document.getElementById('beta-commit-date').textContent = data.commit.date || '-';
+                    document.getElementById('beta-commit-message').textContent = data.commit.message || '-';
+                    betaCommitInfo.style.display = '';
+                    renderBetaFiles(data.files || []);
+                } else {
+                    addLog('BETA: Laden fehlgeschlagen: ' + (data.error || 'Unbekannter Fehler'), 'error');
+                }
+            }).catch(err => {
+                addLog('BETA: Netzwerkfehler: ' + err, 'error');
+            }).finally(() => {
+                betaLoadBtn.disabled = false;
+                betaLoadBtn.innerHTML = '<i class="bi bi-git"></i> Laden';
+            });
+        });
+
+        // BETA: Ausgewählte anwenden
+        betaApplyBtn?.addEventListener('click', function() {
+            const branch = 'main';
+            const files = Array.from(document.querySelectorAll('.beta-file-check'))
+                .filter(cb => cb.checked)
+                .map(cb => cb.dataset.file);
+            if (!files.length) return;
+            betaApplyBtn.disabled = true;
+            betaApplyBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Anwenden...';
+            addLog('BETA: Wende ' + files.length + ' Datei(en) an...', 'info');
+            fetch('?option=manualupdater', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=beta_apply_files&files=' + encodeURIComponent(JSON.stringify(files))
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    addLog('BETA: Aktualisiert: ' + (data.updated || []).join(', '), 'success');
+                    if ((data.deleted || []).length) addLog('BETA: Entfernt: ' + data.deleted.join(', '), 'warning');
+                    if ((data.errors || []).length) addLog('BETA: Fehler: ' + data.errors.join(' | '), 'error');
+                    if (data.new_version) addLog('Version gesetzt auf: ' + data.new_version, 'info');
+                } else {
+                    addLog('BETA: Anwenden fehlgeschlagen: ' + (data.error || 'Unbekannter Fehler'), 'error');
+                }
+            }).catch(err => {
+                addLog('BETA: Netzwerkfehler: ' + err, 'error');
+            }).finally(() => {
+                betaApplyBtn.disabled = false;
+                betaApplyBtn.innerHTML = '<i class="bi bi-cloud-download"></i> Ausgewählte Dateien anwenden';
+            });
+        });
         // Update starten
         document.getElementById('start-update-btn').addEventListener('click', function() {
             if (!selectedUpdateType || !currentReleaseData) {

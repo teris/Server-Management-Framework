@@ -3,7 +3,7 @@
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.1.2
+ * @version 3.1.3
  */
 
 // LanguageManager einbinden (falls verfügbar)
@@ -154,7 +154,7 @@ $plugins = array (
 
 // --- SYSTEM_CONFIG START ---
 $system_config = array (
-  'version' => '3.1.2',
+  'version' => '3.1.3',
   'theme' => 'default',
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',
