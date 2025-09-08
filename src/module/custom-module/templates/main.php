@@ -51,27 +51,12 @@
 window.customModule = {
     init: function() {
         console.log('Custom module initialized');
-        this.loadTranslations();
-    },
-    
-    translations: {},
-    
-    loadTranslations: function() {
-        // Lade Übersetzungen vom Server mit neuem Format
-        ModuleManager.makeRequest('custom-module', 'get_translations')
-            .then(data => {
-                if (data.success) {
-                    this.translations = data.translations;
-                    console.log('Custom module translations loaded:', this.translations);
-                } else {
-                    console.error('Failed to load translations:', data.error);
-                }
-            })
-            .catch(error => console.error('Error loading translations:', error));
     },
     
     t: function(key, params = {}) {
-        let text = this.translations[key] || key;
+        // Übersetzungen werden jetzt über die globale t() Funktion geladen
+        // Diese Funktion ist nur noch für JavaScript-spezifische Übersetzungen
+        let text = key; // Fallback auf Schlüssel
         
         // Parameter ersetzen
         Object.keys(params).forEach(param => {
@@ -87,14 +72,14 @@ function runCustomTest() {
     ModuleManager.makeRequest('custom-module', 'test')
         .then(data => {
             if (data.success) {
-                showNotification(customModule.t('test_successful'), 'success');
+                showNotification('Test erfolgreich', 'success');
             } else {
-                showNotification('Fehler: ' + (data.error || customModule.t('unknown_error')), 'error');
+                showNotification('Fehler: ' + (data.error || 'Unbekannter Fehler'), 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification(customModule.t('operation_failed'), 'error');
+            showNotification('Operation fehlgeschlagen', 'error');
         });
 }
 
@@ -104,12 +89,4 @@ document.addEventListener('DOMContentLoaded', function() {
         window.customModule.init();
     }
 });
-
-// Fallback: Initialisierung nach kurzer Verzögerung
-setTimeout(function() {
-    if (window.customModule && !window.customModule.translations || Object.keys(window.customModule.translations).length === 0) {
-        console.log('Auto-initializing custom module');
-        window.customModule.init();
-    }
-}, 100);
 </script>

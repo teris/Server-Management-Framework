@@ -58,6 +58,10 @@
     <error_deleting_website>Fehler beim Löschen der Website</error_deleting_website>
     <error_deleting_database>Fehler beim Löschen der Datenbank</error_deleting_database>
     <error_deleting_email>Fehler beim Löschen der E-Mail</error_deleting_email>
+    <error_controlling_vm>Fehler beim Steuern der VM</error_controlling_vm>
+    <error_clearing_logs>Fehler beim Leeren der Logs</error_clearing_logs>
+    <vm_control_successful>VM-Steuerung erfolgreich</vm_control_successful>
+    <logs_cleared_successfully>Logs erfolgreich geleert</logs_cleared_successfully>
     
     <!-- Tabellen-Header -->
     <actions>Aktionen</actions>
@@ -90,4 +94,44 @@
     <error>Fehler</error>
     <warning>Warnung</warning>
     <info>Info</info>
+    
+    <!-- Gameserver -->
+    <gameservers>Gameserver</gameservers>
+    <new_gameserver>Neuer Gameserver</new_gameserver>
+    <total_servers>Gesamt Server</total_servers>
+    <online_servers>Online Server</online_servers>
+    <players_online>Spieler Online</players_online>
+    <active_servers>Aktive Server</active_servers>
+    <server_name>Server Name</server_name>
+    <game_type>Spiel-Typ</game_type>
+    <players>Spieler</players>
+    <max_players>Max. Spieler</max_players>
+    <ip_address>IP-Adresse</ip_address>
+    <port>Port</port>
+    <start>Starten</start>
+    <stop>Stoppen</stop>
+    <restart>Neustart</restart>
+    <starting>Startet...</starting>
+    <stopping>Stoppt...</stopping>
+    
+    <!-- OGP/Gameserver Übersetzungen -->
+    <active_servers>Aktive Server</active_servers>
+    <online_players>Online Spieler</online_players>
+    <server_performance>Server Performance</server_performance>
+    <ogp_servers>OGP Server</ogp_servers>
+    <server_control>Server Steuerung</server_control>
+    <start_server>Server starten</start_server>
+    <stop_server>Server stoppen</stop_server>
+    <restart_server>Server neustarten</restart_server>
+    <server_logs>Server Logs</server_logs>
+    <player_count>Spieler Anzahl</player_count>
+    <server_status>Server Status</server_status>
+    <cpu_usage>CPU Auslastung</cpu_usage>
+    <memory_usage>RAM Auslastung</memory_usage>
+    <disk_usage>Festplatten Auslastung</disk_usage>
+    <network_usage>Netzwerk Auslastung</network_usage>
+    <active_vms>Aktive VMs</active_vms>
+    <total_websites>Websites gesamt</total_websites>
+    <total_databases>Datenbanken gesamt</total_databases>
+    <total_emails>E-Mail Postfächer gesamt</total_emails>
 </translations> 

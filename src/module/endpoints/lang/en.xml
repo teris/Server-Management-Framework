@@ -78,4 +78,9 @@
     <invalid_json>Invalid JSON in parameters</invalid_json>
     <total_endpoints>Total Endpoints</total_endpoints>
     <active_modules>Active Modules</active_modules>
+    <ogp_api_endpoints>OpenGamePanel API Endpoints</ogp_api_endpoints>
+    <ogp_list_servers>List Servers</ogp_list_servers>
+    <ogp_list_games>List Games</ogp_list_games>
+    <ogp_list_user_servers>List User Servers</ogp_list_user_servers>
+    <ogp_server_status>Server Status</ogp_server_status>
 </translations> 

@@ -5,13 +5,14 @@
 
 window.endpointsModule = {
     lastResponse: null,
+    i18n: {},
     
     /**
      * Testet einen Endpoint ohne Parameter
      */
     testEndpoint: function(module, action) {
         this.showLoading();
-        ModuleManager.makeRequest(module, action)
+        this.sendRequest(module, action)
             .then(result => {
                 this.displayResult(module, action, result);
                 this.hideLoading();
@@ -30,7 +31,7 @@ window.endpointsModule = {
         const params = {};
         params[paramName] = paramValue;
         
-        ModuleManager.makeRequest(module, action, params)
+        this.sendRequest(module, action, params)
             .then(result => {
                 this.displayResult(module, action, result);
                 this.hideLoading();
@@ -46,7 +47,7 @@ window.endpointsModule = {
      */
     testEndpointWithParams: function(module, action, params) {
         this.showLoading();
-        ModuleManager.makeRequest(module, action, params)
+        this.sendRequest(module, action, params)
             .then(result => {
                 this.displayResult(module, action, result);
                 this.hideLoading();
@@ -79,7 +80,7 @@ window.endpointsModule = {
      */
     testCustomEndpoint: function(module, action, params) {
         this.showLoading();
-        ModuleManager.makeRequest(module, action, params)
+        this.sendRequest(module, action, params)
             .then(result => {
                 this.displayResult(module, action, result);
                 this.hideLoading();
@@ -89,6 +90,20 @@ window.endpointsModule = {
                 this.hideLoading();
             });
     },
+
+    /**
+     * Sendet eine Anfrage. Wenn ein fremdes Modul angesprochen wird,
+     * wird automatisch über endpoints/proxy_endpoint geroutet.
+     */
+    sendRequest: function(module, action, params = {}) {
+        // Sonderfall: Übersetzungen und eigene Actions des Endpoints-Moduls
+        const isEndpointsModule = module === 'endpoints' || !module;
+        if (!isEndpointsModule) {
+            const effectiveParams = Object.assign({}, params, { module: module, action: action });
+            return ModuleManager.makeRequest('endpoints', 'proxy_endpoint', effectiveParams);
+        }
+        return ModuleManager.makeRequest(module || 'endpoints', action, params);
+    },
     
     /**
      * Zeigt das Ergebnis eines Endpoint-Tests an
@@ -97,10 +112,10 @@ window.endpointsModule = {
         const statusEl = document.getElementById('endpoint-status');
         if (statusEl) {
             if (result.success) {
-                statusEl.textContent = '✅ Success';
+                statusEl.textContent = '✅ ' + (this.t('success') || 'Success');
                 statusEl.style.color = '#10b981';
             } else {
-                statusEl.textContent = '❌ Error';
+                statusEl.textContent = '❌ ' + (this.t('error') || 'Error');
                 statusEl.style.color = '#ef4444';
             }
         }
@@ -118,7 +133,8 @@ window.endpointsModule = {
             responseEl.textContent = this.lastResponse;
         }
         
-        this.showResult(result.success, `Endpoint ${module}.${action} getestet`);
+        const testedMsg = (this.t('testing') || 'Testing') + `: ${module}.${action}`;
+        this.showResult(result.success, testedMsg);
     },
     
     /**
@@ -128,10 +144,10 @@ window.endpointsModule = {
         if (this.lastResponse) {
             navigator.clipboard.writeText(this.lastResponse)
                 .then(() => {
-                    this.showResult(true, 'Antwort in Zwischenablage kopiert!');
+                    this.showResult(true, this.t('response_copied') || 'Response copied!');
                 })
                 .catch(() => {
-                    this.showResult(false, 'Kopieren fehlgeschlagen');
+                    this.showResult(false, this.t('copy_failed') || 'Copy failed');
                 });
         }
     },
@@ -235,6 +251,9 @@ window.endpointsModule = {
         
         // Event-Listener für Buttons hinzufügen
         this.setupEventListeners();
+
+        // Übersetzungen laden
+        this.loadTranslations();
     },
     
     /**
@@ -268,12 +287,18 @@ window.endpointsModule = {
         const paramValue = button.dataset.paramValue;
         const params = button.dataset.params;
         
+        // Sonderfall: Heartbeat-Button
+        if (action === 'testHeartbeat') {
+            this.testHeartbeat();
+            return;
+        }
+
         if (params) {
             try {
                 const parsedParams = JSON.parse(params);
                 this.testEndpointWithParams(module, action, parsedParams);
             } catch (error) {
-                this.showResult(false, 'Ungültige Parameter');
+                this.showResult(false, this.t('invalid_json') || 'Invalid JSON in parameters');
             }
         } else if (paramName && paramValue) {
             this.testEndpointWithParam(module, action, paramName, paramValue);
@@ -294,12 +319,27 @@ window.endpointsModule = {
             try {
                 params = JSON.parse(form.params.value);
             } catch (e) {
-                this.showResult(false, 'Ungültiges JSON in Parametern');
+                this.showResult(false, this.t('invalid_json') || 'Invalid JSON in parameters');
                 return;
             }
         }
         
         this.testCustomEndpoint(module, action, params);
+    },
+
+    loadTranslations: function() {
+        ModuleManager.makeRequest('endpoints', 'get_translations')
+            .then(result => {
+                if (result.success) {
+                    this.i18n = result.data || result;
+                }
+            })
+            .catch(() => {});
+    },
+
+    t: function(key) {
+        if (!key) return '';
+        return this.i18n?.[key] || window?.t?.(key) || key;
     }
 };
 

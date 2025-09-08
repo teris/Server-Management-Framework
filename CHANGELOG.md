@@ -2,6 +2,54 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.1.6]
+
+### Geändert
+- **Custom-Modul Übersetzungen**: Vollständige Umstellung auf die neue globale `t()`-Funktion
+- **Custom-Modul Template**: Entfernung der manuellen Übersetzungs-Arrays und JavaScript-Übersetzungslogik
+- **Custom-Modul JavaScript**: Vereinfachte Initialisierung ohne Server-seitige Übersetzungsabfrage
+- **Modul-System**: Konsistente Verwendung der globalen `t()`-Funktion in allen Modulen
+
+### Technische Details
+- **Entfernte Funktionen**: `getTranslations()`-Methode und `get_translations`-Ajax-Aktion
+- **Vereinfachte Templates**: Keine manuellen `$translations`-Arrays mehr erforderlich
+- **Automatische Modul-Erkennung**: Custom-Modul nutzt jetzt die automatische Modul-Erkennung der globalen `t()`-Funktion
+- **JavaScript-Optimierung**: Reduzierte Komplexität der Client-seitigen Übersetzungslogik
+
+## [3.1.5]
+
+### Hinzugefügt
+- **API-Verbindungstest-Funktion**: Neue `testAllAPIConnections()` Methode in der `ServiceManager`-Klasse
+  - Testet alle verfügbaren APIs (Proxmox, OVH, ISPConfig, OGP, Database)
+  - Unterstützt sowohl Einzeltests als auch Gesamttests aller APIs
+  - Gibt detaillierte Statusinformationen und Fehlermeldungen zurück
+  - Beispiel-Verwendung: `$serviceManager->testAllAPIConnections("ovh")` für einzelne API oder `$serviceManager->testAllAPIConnections()` für alle APIs
+- **Gameserver-Tab im Admin-Panel**: Neuer Tab in der Ressourcen-Verwaltung
+  - Übersichtliche Statistik-Karten für Gameserver-Metriken
+  - Anzeige von Gesamt-Servern, Online-Servern, Spielern und aktiven Servern
+  - Vorbereitet für JavaScript-Integration mit `loadGameserverData()` und `createGameserver()`
+  - Responsive Design mit Bootstrap-Karten und Icons
+
+### Geändert
+- **Admin-Modul Template**: `ServiceManager`-Instanz wird jetzt korrekt an Templates weitergegeben
+- **Header-Template**: API-Status-Anzeige zeigt jetzt "Verbunden" oder "Nicht verbunden" statt `true`/`false`
+- **Framework-Integration**: Verbesserte Fehlerbehandlung bei fehlenden ServiceManager-Instanzen
+- **Admin-Modul Übersetzungen**: Vollständige Umstellung auf die neue globale `t()`-Funktion
+- **Template-System**: Entfernung aller hardcodierten Übersetzungs-Arrays aus Templates
+
+### Behoben
+- **Doppelte Methodendeklaration**: Entfernung der duplizierten `createOGPServer()` Methode in der `ServiceManager`-Klasse
+- **Template-Variable-Fehler**: `$serviceManager` ist jetzt in allen Admin-Templates verfügbar
+- **API-Test-Integration**: Korrekte Einbindung der API-Tests in das Admin-Panel
+
+### Technische Details
+- **API-Test-Funktionen**: 
+  - `testSingleAPI($apiName)` - Testet eine spezifische API
+  - `testAllAPIConnections($apiName = null)` - Testet alle oder eine spezifische API
+  - Unterstützte APIs: `proxmox`, `ovh`, `ispconfig`, `ogp`, `database`
+- **Template-Struktur**: Fallback-Logik für ServiceManager-Instanzen in Templates
+- **Übersetzungen**: Neue deutsche Übersetzungen für Gameserver-Funktionen
+
 ## [3.1.4]
 
 ### Geändert

@@ -50,6 +50,10 @@ class Database {
     public function clearActivityLogs() {
         return $this->dbManager->clearActivityLogs();
     }
+    
+    public function clearActivityLog() {
+        return $this->dbManager->clearActivityLogs();
+    }
 }
 // =============================================================================
 // PROXMOX GET/POST (DB)
@@ -182,11 +186,19 @@ class ProxmoxPost extends ProxmoxGet {
         $stmt->execute(array_merge(array_values($vmData), [$node, $vmid]));
         return $stmt->rowCount();
     }
-    public function deleteVM($node, $vmid) {
+    public function controlVM($vmId, $action) {
         $model = new VM();
-        $stmt = $model->getDb()->prepare("DELETE FROM vms WHERE node = ? AND vm_id = ?");
-        $stmt->execute([$node, $vmid]);
-        return $stmt->rowCount();
+        // Aktualisiere den Status der VM basierend auf der Aktion
+        $status = $action === 'start' ? 'running' : ($action === 'stop' ? 'stopped' : 'unknown');
+        $stmt = $model->getDb()->prepare("UPDATE vms SET status = ? WHERE vm_id = ?");
+        $stmt->execute([$status, $vmId]);
+        return $stmt->rowCount() > 0;
+    }
+    public function deleteVM($vmId) {
+        $model = new VM();
+        $stmt = $model->getDb()->prepare("DELETE FROM vms WHERE vm_id = ?");
+        $stmt->execute([$vmId]);
+        return $stmt->rowCount() > 0;
     }
 }
 // =============================================================================
@@ -664,7 +676,8 @@ class ServiceManager {
     // Proxmox
     public function getProxmoxVMs() { return $this->proxmoxGet->getVMs(); }
     public function createProxmoxVM($vmData) { return $this->proxmoxPost->createVM($vmData); }
-    public function deleteProxmoxVM($node, $vmid) { return $this->proxmoxPost->deleteVM($node, $vmid); }
+    public function controlProxmoxVM($vmId, $action) { return $this->proxmoxPost->controlVM($vmId, $action); }
+    public function deleteProxmoxVM($vmId) { return $this->proxmoxPost->deleteVM($vmId); }
     // ISPConfig
     public function getISPConfigWebsites() { return $this->ispconfigGet->getWebsites(['active'=>'y']); }
     public function createISPConfigWebsite($websiteData) { return $this->ispconfigPost->createWebsite($websiteData); }

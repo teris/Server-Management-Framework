@@ -22,7 +22,7 @@ ISPConfigModule.currentDnsTab = 'combined';
 ISPConfigModule.pendingChanges = [];
 
 // Tab-Management
-function switchTab(tabName) {
+function switchTab(tabName, ev) {
     // Alle Tab-Inhalte verstecken
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -35,7 +35,10 @@ function switchTab(tabName) {
     
     // Gewählten Tab aktivieren
     document.getElementById(tabName + '-tab').classList.add('active');
-    event.target.classList.add('active');
+    const e = ev || window.event;
+    if (e && e.target) {
+        e.target.classList.add('active');
+    }
     
     // Tab-spezifische Behandlung
     switch(tabName) {
@@ -150,9 +153,50 @@ window.ISPConfigModuleManager = {
 };
 
 // Einfache loadAllWebsites Funktion
-function loadAllWebsites() {
-    console.log('Loading websites...');
-    // Diese Funktion kann später erweitert werden
+async function loadAllWebsites() {
+    const loadingEl = document.getElementById('websites-loading');
+    const tbodyEl = document.getElementById('websites-tbody');
+    const emptyEl = document.getElementById('no-websites');
+
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (tbodyEl) tbodyEl.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    try {
+        const response = await ModuleManager.makeRequest('ispconfig', 'get_websites');
+        if (response.success) {
+            const websites = response.data || [];
+            if (websites.length === 0) {
+                if (emptyEl) emptyEl.style.display = 'block';
+                return;
+            }
+            if (tbodyEl) {
+                tbodyEl.innerHTML = websites.map(site => `
+                    <tr>
+                        <td>${site.domain}</td>
+                        <td>${site.assigned_user ? (site.assigned_user.company_name || site.assigned_user.contact_name || '-') : '-'}</td>
+                        <td>${site.ip_address || '-'}</td>
+                        <td>${site.hd_quota} MB</td>
+                        <td>${site.traffic_quota} MB</td>
+                        <td><span class="badge ${site.ssl_enabled === 'y' ? 'badge-success' : 'badge-secondary'}">${site.ssl_enabled === 'y' ? 'SSL' : 'No SSL'}</span></td>
+                        <td><span class="badge ${site.active === 'y' ? 'badge-success' : 'badge-danger'}">${site.active === 'y' ? 'Aktiv' : 'Inaktiv'}</span></td>
+                        <td>${ISPConfigUtils.formatDate(site.created_at)}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-secondary" title="Details" onclick="void(0)">ℹ️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } else {
+            ISPConfigUtils.showError('Fehler beim Laden der Websites: ' + (response.error || 'Unbekannter Fehler'));
+        }
+    } catch (err) {
+        ISPConfigUtils.showError('Fehler beim Laden der Websites: ' + err.message);
+    } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+    }
 }
 
 // Globale Funktion für Template-Zugriff

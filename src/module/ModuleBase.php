@@ -107,12 +107,21 @@ abstract class ModuleBase {
             throw new Exception("Template not found: $template_path");
         }
         
-        // Extract variables
+        // Store data in a way that can be accessed by included files
+        $GLOBALS['_template_data'] = $data;
+        
+        // Extract variables to make them available in current scope
         extract($data);
         
         // Start output buffering
         ob_start();
+        
+        // Include the template with variables available
         include $template_path;
+        
+        // Clean up
+        unset($GLOBALS['_template_data']);
+        
         return ob_get_clean();
     }
     

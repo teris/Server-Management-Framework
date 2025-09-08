@@ -138,7 +138,7 @@ $plugins = array (
     'enabled' => true,
     'name' => 'Migration',
     'icon' => '',
-    'path' => 'module/migation',
+    'path' => 'module/migration',
     'version' => '1.0.0',
     'description' => 'Migrien von Daten aus Systemen',
     'require_admin' => true,
@@ -274,6 +274,45 @@ function getPluginConfig($plugin_key) {
     return isset($plugins[$plugin_key]) ? $plugins[$plugin_key] : null;
 }
 
+/**
+ * Erkennt das aktuelle Modul basierend auf dem Call-Stack
+ */
+function getCurrentModule() {
+    // Prüfe den Call-Stack nach Modul-Klassen
+    $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+    
+    foreach ($backtrace as $frame) {
+        if (isset($frame['class'])) {
+            $class_name = $frame['class'];
+            
+            // Prüfe ob es sich um ein Modul handelt (endet mit "Module")
+            if (strpos($class_name, 'Module') !== false && $class_name !== 'ModuleBase') {
+                // Extrahiere den Modul-Namen aus dem Klassennamen
+                $module_name = str_replace('Module', '', $class_name);
+                $module_name = strtolower($module_name);
+                
+                // Prüfe ob das Modul existiert
+                if (getPluginConfig($module_name)) {
+                    return $module_name;
+                }
+            }
+        }
+        
+        // Prüfe auch nach Dateipfaden, die auf Module hinweisen
+        if (isset($frame['file'])) {
+            $file_path = $frame['file'];
+            if (preg_match('/\/module\/([^\/]+)\//', $file_path, $matches)) {
+                $module_name = $matches[1];
+                if (getPluginConfig($module_name)) {
+                    return $module_name;
+                }
+            }
+        }
+    }
+    
+    return null;
+}
+
 // System Helper Functions
 function isMaintenanceMode() {
     global $system_config;
@@ -370,16 +409,28 @@ function getAvailableLanguages() {
     return $lm->getAvailableLanguages();
 }
 
-// Core Translation Helper Functions
-function t($key, $default = null) {
+// Enhanced Translation Helper Functions
+function t($key, $default = null, $module_key = null) {
     $lm = getLanguageManager();
     if (!$lm) {
         return $default !== null ? $default : $key;
     }
+    
+    // Wenn kein Modul angegeben wurde, versuche das aktuelle Modul zu erkennen
+    if ($module_key === null) {
+        $module_key = getCurrentModule();
+    }
+    
+    // Wenn ein Modul erkannt wurde, verwende Modul-Übersetzungen
+    if ($module_key && $module_key !== 'core') {
+        return $lm->translate($module_key, $key, $default);
+    }
+    
+    // Fallback auf Core-Übersetzungen
     return $lm->translateCore($key, $default);
 }
 
-function tMultiple($keys) {
+function tMultiple($keys, $module_key = null) {
     $lm = getLanguageManager();
     if (!$lm) {
         $result = [];
@@ -388,6 +439,18 @@ function tMultiple($keys) {
         }
         return $result;
     }
+    
+    // Wenn kein Modul angegeben wurde, versuche das aktuelle Modul zu erkennen
+    if ($module_key === null) {
+        $module_key = getCurrentModule();
+    }
+    
+    // Wenn ein Modul erkannt wurde, verwende Modul-Übersetzungen
+    if ($module_key && $module_key !== 'core') {
+        return $lm->translateMultiple($module_key, $keys);
+    }
+    
+    // Fallback auf Core-Übersetzungen
     return $lm->translateCoreMultiple($keys);
 }
 ?>

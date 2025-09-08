@@ -58,6 +58,10 @@
     <error_deleting_website>Error deleting website</error_deleting_website>
     <error_deleting_database>Error deleting database</error_deleting_database>
     <error_deleting_email>Error deleting email</error_deleting_email>
+    <error_controlling_vm>Error controlling VM</error_controlling_vm>
+    <error_clearing_logs>Error clearing logs</error_clearing_logs>
+    <vm_control_successful>VM control successful</vm_control_successful>
+    <logs_cleared_successfully>Logs cleared successfully</logs_cleared_successfully>
     
     <!-- Table Headers -->
     <actions>Actions</actions>
@@ -90,4 +94,44 @@
     <error>Error</error>
     <warning>Warning</warning>
     <info>Info</info>
+    
+    <!-- Game Servers -->
+    <gameservers>Game Servers</gameservers>
+    <new_gameserver>New Game Server</new_gameserver>
+    <total_servers>Total Servers</total_servers>
+    <online_servers>Online Servers</online_servers>
+    <players_online>Players Online</players_online>
+    <active_servers>Active Servers</active_servers>
+    <server_name>Server Name</server_name>
+    <game_type>Game Type</game_type>
+    <players>Players</players>
+    <max_players>Max Players</max_players>
+    <ip_address>IP Address</ip_address>
+    <port>Port</port>
+    <start>Start</start>
+    <stop>Stop</stop>
+    <restart>Restart</restart>
+    <starting>Starting...</starting>
+    <stopping>Stopping...</stopping>
+    
+    <!-- OGP/Game Server Translations -->
+    <active_servers>Active Servers</active_servers>
+    <online_players>Online Players</online_players>
+    <server_performance>Server Performance</server_performance>
+    <ogp_servers>OGP Servers</ogp_servers>
+    <server_control>Server Control</server_control>
+    <start_server>Start Server</start_server>
+    <stop_server>Stop Server</stop_server>
+    <restart_server>Restart Server</restart_server>
+    <server_logs>Server Logs</server_logs>
+    <player_count>Player Count</player_count>
+    <server_status>Server Status</server_status>
+    <cpu_usage>CPU Usage</cpu_usage>
+    <memory_usage>Memory Usage</memory_usage>
+    <disk_usage>Disk Usage</disk_usage>
+    <network_usage>Network Usage</network_usage>
+    <active_vms>Active VMs</active_vms>
+    <total_websites>Total Websites</total_websites>
+    <total_databases>Total Databases</total_databases>
+    <total_emails>Total Email Accounts</total_emails>
 </translations> 

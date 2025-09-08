@@ -2376,6 +2376,93 @@ class OGPGet extends BaseAPI {
             return false;
         }
     }
+    
+    /**
+     * Holt alle OGP-Server (Alias für getServerList)
+     */
+    public function getOGPServers() {
+        return $this->getServerList();
+    }
+    
+    /**
+     * Holt aktive OGP-Server
+     */
+    public function getActiveOGPServers() {
+        $servers = $this->getServerList();
+        if (!$servers || !isset($servers['servers'])) {
+            return [];
+        }
+        
+        $activeServers = [];
+        foreach ($servers['servers'] as $server) {
+            $status = $this->getServerStatus($server['id']);
+            if ($status && isset($status['status']) && $status['status'] === 'online') {
+                $activeServers[] = $server;
+            }
+        }
+        
+        return $activeServers;
+    }
+    
+    /**
+     * Holt Online-Spieler von allen OGP-Servern
+     */
+    public function getOGPOnlinePlayers() {
+        $servers = $this->getServerList();
+        if (!$servers || !isset($servers['servers'])) {
+            return ['total_players' => 0, 'servers' => []];
+        }
+        
+        $totalPlayers = 0;
+        $serverPlayers = [];
+        
+        foreach ($servers['servers'] as $server) {
+            $status = $this->getServerStatus($server['id']);
+            if ($status && isset($status['players'])) {
+                $playerCount = count($status['players']);
+                $totalPlayers += $playerCount;
+                $serverPlayers[] = [
+                    'server_id' => $server['id'],
+                    'server_name' => $server['name'],
+                    'players' => $playerCount,
+                    'player_list' => $status['players']
+                ];
+            }
+        }
+        
+        return [
+            'total_players' => $totalPlayers,
+            'servers' => $serverPlayers
+        ];
+    }
+    
+    /**
+     * Holt Performance-Daten von OGP-Servern
+     */
+    public function getOGPServerPerformance() {
+        $servers = $this->getServerList();
+        if (!$servers || !isset($servers['servers'])) {
+            return [];
+        }
+        
+        $performance = [];
+        foreach ($servers['servers'] as $server) {
+            $status = $this->getServerStatus($server['id']);
+            if ($status) {
+                $performance[] = [
+                    'server_id' => $server['id'],
+                    'server_name' => $server['name'],
+                    'cpu_usage' => $status['cpu_usage'] ?? 0,
+                    'memory_usage' => $status['memory_usage'] ?? 0,
+                    'disk_usage' => $status['disk_usage'] ?? 0,
+                    'uptime' => $status['uptime'] ?? 0,
+                    'status' => $status['status'] ?? 'unknown'
+                ];
+            }
+        }
+        
+        return $performance;
+    }
 }
 
 // OGP POST CLASS
@@ -2605,6 +2692,57 @@ class OGPPost extends OGPGet {
         $data = ['token' => $this->token, 'ip' => $ip, 'port' => $port, 'mods_list' => $modsList];
         $response = $this->makeRequest('POST', $url, $data);
         //$this->logRequest("steam_workshop/install/$ip/$port", 'POST', $response !== false);
+        return $response;
+    }
+    
+    /**
+     * Steuert einen OGP-Server (start, stop, restart, update)
+     */
+    public function controlOGPServer($serverId, $action) {
+        switch ($action) {
+            case 'start':
+                return $this->startGameManager($serverId, 'default_port', 'default_mod');
+            case 'stop':
+                return $this->stopGameManager($serverId, 'default_port', 'default_mod');
+            case 'restart':
+                return $this->restartGameManager($serverId, 'default_port', 'default_mod');
+            case 'update':
+                return $this->updateGameManager($serverId, 'default_port', 'default_mod', 'auto');
+            default:
+                throw new Exception("Unbekannte Aktion: $action");
+        }
+    }
+    
+    /**
+     * Erstellt einen neuen OGP-Server
+     */
+    public function createOGPServer($serverData) {
+        $url = $this->host . "/ogp_api.php?server/create";
+        $data = array_merge(['token' => $this->token], $serverData);
+        $response = $this->makeRequest('POST', $url, $data);
+        //$this->logRequest("server/create", 'POST', $response !== false);
+        return $response;
+    }
+    
+    /**
+     * Löscht einen OGP-Server
+     */
+    public function deleteOGPServer($serverId) {
+        $url = $this->host . "/ogp_api.php?server/delete";
+        $data = ['token' => $this->token, 'server_id' => $serverId];
+        $response = $this->makeRequest('POST', $url, $data);
+        //$this->logRequest("server/delete/$serverId", 'POST', $response !== false);
+        return $response;
+    }
+    
+    /**
+     * Aktualisiert OGP-Server-Einstellungen
+     */
+    public function updateOGPServer($serverId, $serverData) {
+        $url = $this->host . "/ogp_api.php?server/update";
+        $data = array_merge(['token' => $this->token, 'server_id' => $serverId], $serverData);
+        $response = $this->makeRequest('POST', $url, $data);
+        //$this->logRequest("server/update/$serverId", 'POST', $response !== false);
         return $response;
     }
 }
@@ -2875,6 +3013,10 @@ class ServiceManager {
                     $this->__log("checkAPIEnabled", $errorResponse, "error");
                     return $errorResponse;
                 }
+                break;
+                
+            case 'database':
+                // Datenbank ist immer verfügbar, da sie für das System benötigt wird
                 break;
                 
             default:
@@ -4513,6 +4655,299 @@ class ServiceManager {
         }
         
         return $this->safeAPICall('proxmox', $this->proxmoxPost, 'createProxmoxUser', [$userData]);
+    }
+    
+    /**
+     * OGP/Gameserver Funktionen
+     */
+    
+    /**
+     * Holt alle OGP-Server
+     */
+    public function getOGPServers() {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getOGPServers', []);
+    }
+    
+    /**
+     * Holt aktive OGP-Server
+     */
+    public function getActiveOGPServers() {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getActiveOGPServers', []);
+    }
+    
+    /**
+     * Holt Online-Spieler von OGP-Servern
+     */
+    public function getOGPOnlinePlayers() {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getOGPOnlinePlayers', []);
+    }
+    
+    /**
+     * Holt Performance-Daten von OGP-Servern
+     */
+    public function getOGPServerPerformance() {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ogp', $this->ogpGet, 'getOGPServerPerformance', []);
+    }
+    
+    /**
+     * Steuert einen OGP-Server (start, stop, restart, update)
+     */
+    public function controlOGPServer($serverId, $action) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'controlOGPServer', [$serverId, $action]);
+    }
+    
+    /**
+     * Löscht einen OGP-Server
+     */
+    public function deleteOGPServer($serverId) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'deleteOGPServer', [$serverId]);
+    }
+    
+    /**
+     * Aktualisiert OGP-Server-Einstellungen
+     */
+    public function updateOGPServer($serverId, $serverData) {
+        $apiCheck = $this->checkAPIEnabled('ogp');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ogp', $this->ogpPost, 'updateOGPServer', [$serverId, $serverData]);
+    }
+    
+    /**
+     * Testet eine einzelne API-Verbindung
+     * @param string $apiName Name der API (proxmox, ovh, ispconfig, ogp)
+     * @return bool true wenn Verbindung erfolgreich, false wenn nicht
+     */
+    private function testSingleAPI($apiName) {
+        $apiName = strtolower($apiName);
+        
+        // Prüfe ob API aktiviert ist
+        if ($this->checkAPIEnabled($apiName) !== true) {
+            return false;
+        }
+        
+        try {
+            switch ($apiName) {
+                case 'proxmox':
+                    $result = $this->getProxmoxNodes();
+                    break;
+                case 'ovh':
+                    $result = $this->getOVHDomains();
+                    break;
+                case 'ispconfig':
+                    $result = $this->getISPConfigWebsites();
+                    break;
+                case 'ogp':
+                    $result = $this->testOGPToken();
+                    break;
+                case 'database':
+                    // Teste Datenbankverbindung
+                    try {
+                        $db = Database::getInstance();
+                        $result = $db->query("SELECT 1");
+                        return $result !== false;
+                    } catch (Exception $e) {
+                        return false;
+                    }
+                default:
+                    return false;
+            }
+            
+            return isset($result['success']) && $result['success'] === true;
+            
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Testet API-Verbindungen und gibt den Status zurück
+     * @param string|null $apiName Spezifische API zum Testen (proxmox, ovh, ispconfig, ogp) oder null für alle
+     * @return array|bool Bei spezifischer API: true/false, bei allen APIs: detailliertes Array
+     */
+    public function testAllAPIConnections($apiName = null) {
+        // Wenn eine spezifische API angegeben wurde, teste nur diese
+        if ($apiName !== null) {
+            return $this->testSingleAPI($apiName);
+        }
+        
+        $results = [
+            'proxmox' => ['status' => 'disabled', 'message' => '', 'details' => []],
+            'ovh' => ['status' => 'disabled', 'message' => '', 'details' => []],
+            'ispconfig' => ['status' => 'disabled', 'message' => '', 'details' => []],
+            'ogp' => ['status' => 'disabled', 'message' => '', 'details' => []]
+        ];
+        
+        // Teste Proxmox API
+        if ($this->checkAPIEnabled('proxmox') === true) {
+            try {
+                $proxmoxTest = $this->getProxmoxNodes();
+                if (isset($proxmoxTest['success']) && $proxmoxTest['success']) {
+                    $results['proxmox'] = [
+                        'status' => 'connected',
+                        'message' => 'Verbindung erfolgreich',
+                        'details' => [
+                            'nodes_count' => count($proxmoxTest['data'] ?? []),
+                            'response_time' => $proxmoxTest['response_time'] ?? 'N/A'
+                        ]
+                    ];
+                } else {
+                    $results['proxmox'] = [
+                        'status' => 'error',
+                        'message' => $proxmoxTest['message'] ?? 'Unbekannter Fehler',
+                        'details' => []
+                    ];
+                }
+            } catch (Exception $e) {
+                $results['proxmox'] = [
+                    'status' => 'error',
+                    'message' => 'Verbindungsfehler: ' . $e->getMessage(),
+                    'details' => []
+                ];
+            }
+        } else {
+            $results['proxmox']['message'] = 'API ist deaktiviert';
+        }
+        
+        // Teste OVH API
+        if ($this->checkAPIEnabled('ovh') === true) {
+            try {
+                $ovhTest = $this->getOVHDomains();
+                if (isset($ovhTest['success']) && $ovhTest['success']) {
+                    $results['ovh'] = [
+                        'status' => 'connected',
+                        'message' => 'Verbindung erfolgreich',
+                        'details' => [
+                            'domains_count' => count($ovhTest['data'] ?? []),
+                            'response_time' => $ovhTest['response_time'] ?? 'N/A'
+                        ]
+                    ];
+                } else {
+                    $results['ovh'] = [
+                        'status' => 'error',
+                        'message' => $ovhTest['message'] ?? 'Unbekannter Fehler',
+                        'details' => []
+                    ];
+                }
+            } catch (Exception $e) {
+                $results['ovh'] = [
+                    'status' => 'error',
+                    'message' => 'Verbindungsfehler: ' . $e->getMessage(),
+                    'details' => []
+                ];
+            }
+        } else {
+            $results['ovh']['message'] = 'API ist deaktiviert';
+        }
+        
+        // Teste ISPConfig API
+        if ($this->checkAPIEnabled('ispconfig') === true) {
+            try {
+                $ispconfigTest = $this->getISPConfigWebsites();
+                if (isset($ispconfigTest['success']) && $ispconfigTest['success']) {
+                    $results['ispconfig'] = [
+                        'status' => 'connected',
+                        'message' => 'Verbindung erfolgreich',
+                        'details' => [
+                            'websites_count' => count($ispconfigTest['data'] ?? []),
+                            'response_time' => $ispconfigTest['response_time'] ?? 'N/A'
+                        ]
+                    ];
+                } else {
+                    $results['ispconfig'] = [
+                        'status' => 'error',
+                        'message' => $ispconfigTest['message'] ?? 'Unbekannter Fehler',
+                        'details' => []
+                    ];
+                }
+            } catch (Exception $e) {
+                $results['ispconfig'] = [
+                    'status' => 'error',
+                    'message' => 'Verbindungsfehler: ' . $e->getMessage(),
+                    'details' => []
+                ];
+            }
+        } else {
+            $results['ispconfig']['message'] = 'API ist deaktiviert';
+        }
+        
+        // Teste OGP API
+        if ($this->checkAPIEnabled('ogp') === true) {
+            try {
+                $ogpTest = $this->testOGPToken();
+                if (isset($ogpTest['success']) && $ogpTest['success']) {
+                    $results['ogp'] = [
+                        'status' => 'connected',
+                        'message' => 'Verbindung erfolgreich',
+                        'details' => [
+                            'token_valid' => true,
+                            'response_time' => $ogpTest['response_time'] ?? 'N/A'
+                        ]
+                    ];
+                } else {
+                    $results['ogp'] = [
+                        'status' => 'error',
+                        'message' => $ogpTest['message'] ?? 'Unbekannter Fehler',
+                        'details' => []
+                    ];
+                }
+            } catch (Exception $e) {
+                $results['ogp'] = [
+                    'status' => 'error',
+                    'message' => 'Verbindungsfehler: ' . $e->getMessage(),
+                    'details' => []
+                ];
+            }
+        } else {
+            $results['ogp']['message'] = 'API ist deaktiviert';
+        }
+        
+        // Logge den Test
+        $this->__log('api_connection_test', 'API-Verbindungstest durchgeführt', 'info');
+        
+        return [
+            'success' => true,
+            'data' => $results,
+            'timestamp' => date('Y-m-d H:i:s'),
+            'summary' => [
+                'total_apis' => 4,
+                'connected' => count(array_filter($results, function($api) { return $api['status'] === 'connected'; })),
+                'disabled' => count(array_filter($results, function($api) { return $api['status'] === 'disabled'; })),
+                'errors' => count(array_filter($results, function($api) { return $api['status'] === 'error'; }))
+            ]
+        ];
     }
 }
 

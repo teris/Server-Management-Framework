@@ -24,6 +24,69 @@ class IspconfigModule extends ModuleBase {
     }
     
     /**
+     * Alle Websites inkl. optionaler Benutzerzuordnung abrufen
+     */
+    private function getAllWebsites() {
+        try {
+            $serviceManager = new ServiceManager();
+            
+            // Websites abrufen (leerer Filter = alle)
+            $websites = $serviceManager->IspconfigSOAP('sites_web_domain_get', [[]]);
+            if (!is_array($websites)) {
+                return $this->success([]);
+            }
+            
+            // Clients laden und map aufbauen
+            $clients = $serviceManager->IspconfigSOAP('client_get_all', []);
+            $clientsMap = [];
+            if (is_array($clients)) {
+                foreach ($clients as $client) {
+                    if (is_array($client) && isset($client['client_id'])) {
+                        $clientsMap[$client['client_id']] = $client;
+                    }
+                }
+            }
+            
+            $result = [];
+            foreach ($websites as $website) {
+                if (!is_array($website)) {
+                    continue;
+                }
+                $info = [
+                    'domain_id' => $website['domain_id'] ?? '',
+                    'domain' => $website['domain'] ?? '',
+                    'ip_address' => $website['ip_address'] ?? '',
+                    'system_user' => $website['system_user'] ?? '',
+                    'system_group' => $website['system_group'] ?? '',
+                    'hd_quota' => $website['hd_quota'] ?? 0,
+                    'traffic_quota' => $website['traffic_quota'] ?? 0,
+                    'active' => $website['active'] ?? 'n',
+                    'ssl_enabled' => $website['ssl'] ?? 'n',
+                    'php_version' => $website['php'] ?? 'php-fpm',
+                    'created_at' => $website['created_at'] ?? '',
+                    'client_id' => $website['client_id'] ?? null,
+                    'assigned_user' => null
+                ];
+                if (isset($website['client_id']) && isset($clientsMap[$website['client_id']])) {
+                    $client = $clientsMap[$website['client_id']];
+                    $info['assigned_user'] = [
+                        'client_id' => $client['client_id'],
+                        'company_name' => $client['company_name'] ?? '',
+                        'contact_name' => $client['contact_name'] ?? '',
+                        'email' => $client['email'] ?? ''
+                    ];
+                }
+                $result[] = $info;
+            }
+            
+            return $this->success($result);
+        } catch (Exception $e) {
+            $this->log('Error getting websites: ' . $e->getMessage(), 'ERROR');
+            return $this->error($this->t('error_getting_websites') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Gibt den Modul-Inhalt für AJAX-Requests zurück
      */
     private function getContentResponse() {
@@ -50,6 +113,9 @@ class IspconfigModule extends ModuleBase {
         switch ($action) {
             case 'getContent':
                 return $this->getContentResponse();
+                
+            case 'get_websites':
+                return $this->getAllWebsites();
                 
             case 'create_website':
                 return $this->createWebsite($data);
@@ -218,7 +284,7 @@ class IspconfigModule extends ModuleBase {
     private function getISPConfigClients() {
         try {
             $serviceManager = new ServiceManager();
-            $clients = $serviceManager->IspconfigSOAP('client_get', []);
+            $clients = $serviceManager->IspconfigSOAP('client_get_all', []);
             
             return $this->success($clients);
             
@@ -252,7 +318,7 @@ class IspconfigModule extends ModuleBase {
         
         try {
             $serviceManager = new ServiceManager();
-            $details = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['domain_id']]);
+            $details = $serviceManager->IspconfigSOAP('sites_web_domain_get', [['domain_id' => $data['domain_id']]]);
             
             return $this->success($details);
             
@@ -276,13 +342,13 @@ class IspconfigModule extends ModuleBase {
             $serviceManager = new ServiceManager();
             
             // Aktuelle Konfiguration laden
-            $current = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['domain_id']]);
+            $current = $serviceManager->IspconfigSOAP('sites_web_domain_get', [['domain_id' => $data['domain_id']]]);
             
             // Nur übergebene Felder aktualisieren
             $update_data = array_merge($current, $data);
             unset($update_data['domain_id']);
             
-            $result = $serviceManager->IspconfigSOAP('sites_web_domain_update', [$data['domain_id'], $update_data]);
+            $result = $serviceManager->IspconfigSOAP('sites_web_domain_update', [1, $data['domain_id'], $update_data]);
             
             $this->log("Website {$data['domain_id']} updated");
             
@@ -353,7 +419,7 @@ class IspconfigModule extends ModuleBase {
             $serviceManager = new ServiceManager();
             
             // Parent Domain Details holen
-            $parent = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['parent_domain_id']]);
+            $parent = $serviceManager->IspconfigSOAP('sites_web_domain_get', [['domain_id' => $data['parent_domain_id']]]);
             
             $subdomain_config = [
                 'server_id' => $parent['server_id'],
@@ -382,7 +448,7 @@ class IspconfigModule extends ModuleBase {
     public function getStats() {
         try {
             $serviceManager = new ServiceManager();
-            $websites = $serviceManager->IspconfigSOAP('sites_web_domain_get', []);
+            $websites = $serviceManager->IspconfigSOAP('sites_web_domain_get', [[]]);
             
             $active = 0;
             $total_quota = 0;
@@ -428,11 +494,54 @@ class IspconfigModule extends ModuleBase {
             $serviceManager = new ServiceManager();
             
             // ISPConfig-Verbindung wird automatisch in IspconfigSOAP geprüft
-            $clients = $serviceManager->IspconfigSOAP('client_get', []);
+            $clients = $serviceManager->IspconfigSOAP('client_get_all', []);
             
             if (!is_array($clients) || empty($clients)) {
-                $this->log('Keine Clients gefunden oder ungültige Antwort', 'WARNING');
-                return $this->success([]);
+                // Fallback: Aus Domains System-Gruppen ableiten und versuchen, Clients zu ermitteln
+                $domains = $serviceManager->IspconfigSOAP('sites_web_domain_get', [[]]);
+                $groupIds = [];
+                if (is_array($domains)) {
+                    foreach ($domains as $d) {
+                        if (!empty($d['system_group']) && preg_match('/client(\d+)/', $d['system_group'], $m)) {
+                            $gid = intval($m[1]);
+                            // auch client0 (Admin) berücksichtigen
+                            $groupIds[$gid] = true;
+                        }
+                        if (isset($d['client_id']) && $d['client_id'] !== null) {
+                            $groupIds[intval($d['client_id'])] = true;
+                        }
+                    }
+                }
+                $clients = [];
+                foreach (array_keys($groupIds) as $gid) {
+                    try {
+                        $c = $serviceManager->IspconfigSOAP('client_get', [$gid]);
+                        if (is_array($c) && !empty($c)) {
+                            $clients[] = $c;
+                        } else {
+                            // Platzhalter erzeugen, damit UI zumindest Zähler zeigen kann
+                            $clients[] = [
+                                'client_id' => $gid,
+                                'company_name' => $gid === 0 ? 'Administrator' : '',
+                                'contact_name' => $gid === 0 ? 'Admin' : '',
+                                'email' => '',
+                                'active' => 'y'
+                            ];
+                        }
+                    } catch (Exception $e) {
+                        $clients[] = [
+                            'client_id' => $gid,
+                            'company_name' => $gid === 0 ? 'Administrator' : '',
+                            'contact_name' => $gid === 0 ? 'Admin' : '',
+                            'email' => '',
+                            'active' => 'y'
+                        ];
+                    }
+                }
+                if (empty($clients)) {
+                    $this->log('Keine Clients gefunden oder ungültige Antwort', 'WARNING');
+                    return $this->success([]);
+                }
             }
             
             // Zusätzliche Informationen für jeden Benutzer sammeln
@@ -462,7 +571,7 @@ class IspconfigModule extends ModuleBase {
                 
                 // Zähle Websites
                 try {
-                    $websites = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$client['client_id']]);
+                    $websites = $serviceManager->IspconfigSOAP('sites_web_domain_get', [['client_id' => $client['client_id']]]);
                     $clientDetails['websites_count'] = is_array($websites) ? count($websites) : 0;
                 } catch (Exception $e) {
                     $clientDetails['websites_count'] = 0;
@@ -470,7 +579,7 @@ class IspconfigModule extends ModuleBase {
                 
                 // Zähle E-Mail-Konten
                 try {
-                    $emailAccounts = $serviceManager->IspconfigSOAP('mail_user_get', [$client['client_id']]);
+                    $emailAccounts = $serviceManager->IspconfigSOAP('mail_user_get', [['client_id' => $client['client_id']]]);
                     $clientDetails['email_accounts_count'] = is_array($emailAccounts) ? count($emailAccounts) : 0;
                 } catch (Exception $e) {
                     $clientDetails['email_accounts_count'] = 0;
@@ -478,7 +587,7 @@ class IspconfigModule extends ModuleBase {
                 
                 // Zähle Datenbanken
                 try {
-                    $databases = $serviceManager->IspconfigSOAP('sites_database_get', [$client['client_id']]);
+                    $databases = $serviceManager->IspconfigSOAP('sites_database_get', [['client_id' => $client['client_id']]]);
                     $clientDetails['databases_count'] = is_array($databases) ? count($databases) : 0;
                 } catch (Exception $e) {
                     $clientDetails['databases_count'] = 0;
@@ -486,7 +595,7 @@ class IspconfigModule extends ModuleBase {
                 
                 // Zähle FTP-Benutzer
                 try {
-                    $ftpUsers = $serviceManager->IspconfigSOAP('sites_ftp_user_get', [$client['client_id']]);
+                    $ftpUsers = $serviceManager->IspconfigSOAP('sites_ftp_user_get', [['client_id' => $client['client_id']]]);
                     $clientDetails['ftp_users_count'] = is_array($ftpUsers) ? count($ftpUsers) : 0;
                 } catch (Exception $e) {
                     $clientDetails['ftp_users_count'] = 0;
@@ -545,7 +654,7 @@ class IspconfigModule extends ModuleBase {
         
         try {
             $serviceManager = new ServiceManager();
-            $websites = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['client_id']]);
+            $websites = $serviceManager->IspconfigSOAP('sites_web_domain_get', [['client_id' => $data['client_id']]]);
             
             if (!is_array($websites)) {
                 return $this->success([]);
@@ -572,7 +681,7 @@ class IspconfigModule extends ModuleBase {
                 
                 // Zähle Subdomains
                 try {
-                    $subdomains = $serviceManager->IspconfigSOAP('sites_web_subdomain_get', [$website['domain_id']]);
+                    $subdomains = $serviceManager->IspconfigSOAP('sites_web_subdomain_get', [['parent_domain_id' => $website['domain_id']]]);
                     $websiteDetails['subdomains_count'] = is_array($subdomains) ? count($subdomains) : 0;
                 } catch (Exception $e) {
                     $websiteDetails['subdomains_count'] = 0;
@@ -580,7 +689,7 @@ class IspconfigModule extends ModuleBase {
                 
                 // Zähle FTP-Benutzer für diese Website
                 try {
-                    $ftpUsers = $serviceManager->IspconfigSOAP('sites_ftp_user_get', [$data['client_id']]);
+                    $ftpUsers = $serviceManager->IspconfigSOAP('sites_ftp_user_get', [['client_id' => $data['client_id']]]);
                     $websiteFTPCount = 0;
                     if (is_array($ftpUsers)) {
                         foreach ($ftpUsers as $ftpUser) {
@@ -740,7 +849,7 @@ class IspconfigModule extends ModuleBase {
             
             // ISPConfig-Verbindung wird automatisch in IspconfigSOAP geprüft
             // Alle Domains abrufen
-            $domains = $serviceManager->IspconfigSOAP('sites_web_domain_get', []);
+            $domains = $serviceManager->IspconfigSOAP('sites_web_domain_get', [[]]);
             
             if (!is_array($domains) || empty($domains)) {
                 $this->log('Keine Domains gefunden oder ungültige Antwort', 'WARNING');
@@ -748,7 +857,7 @@ class IspconfigModule extends ModuleBase {
             }
             
             // Alle Benutzer abrufen für Zuordnung
-            $clients = $serviceManager->IspconfigSOAP('client_get', []);
+            $clients = $serviceManager->IspconfigSOAP('client_get_all', []);
             $clientsMap = [];
             if (is_array($clients)) {
                 foreach ($clients as $client) {
@@ -820,7 +929,7 @@ class IspconfigModule extends ModuleBase {
             $serviceManager = new ServiceManager();
             
             // Aktuelle Domain-Daten abrufen
-            $currentDomain = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['domain_id']]);
+            $currentDomain = $serviceManager->IspconfigSOAP('sites_web_domain_get', [['domain_id' => $data['domain_id']]]);
             
             if (!$currentDomain) {
                 return $this->error($this->t('domain_not_found'));
@@ -830,7 +939,7 @@ class IspconfigModule extends ModuleBase {
             $updateData = $currentDomain;
             $updateData['client_id'] = $data['client_id'];
             
-            $result = $serviceManager->IspconfigSOAP('sites_web_domain_update', [$data['domain_id'], $updateData]);
+            $result = $serviceManager->IspconfigSOAP('sites_web_domain_update', [1, $data['domain_id'], $updateData]);
             
             $this->log("Domain {$data['domain_id']} zu Benutzer {$data['client_id']} zugewiesen");
             
@@ -858,7 +967,7 @@ class IspconfigModule extends ModuleBase {
             $serviceManager = new ServiceManager();
             
             // Aktuelle Domain-Daten abrufen
-            $currentDomain = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['domain_id']]);
+            $currentDomain = $serviceManager->IspconfigSOAP('sites_web_domain_get', [['domain_id' => $data['domain_id']]]);
             
             if (!$currentDomain) {
                 return $this->error($this->t('domain_not_found'));
@@ -868,7 +977,7 @@ class IspconfigModule extends ModuleBase {
             $updateData = $currentDomain;
             $updateData['client_id'] = null;
             
-            $result = $serviceManager->IspconfigSOAP('sites_web_domain_update', [$data['domain_id'], $updateData]);
+            $result = $serviceManager->IspconfigSOAP('sites_web_domain_update', [1, $data['domain_id'], $updateData]);
             
             $this->log("Domain-Zuordnung {$data['domain_id']} entfernt");
             
@@ -897,7 +1006,7 @@ class IspconfigModule extends ModuleBase {
             $serviceManager = new ServiceManager();
             
             // Aktuelle Domain-Daten abrufen
-            $currentDomain = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$data['domain_id']]);
+            $currentDomain = $serviceManager->IspconfigSOAP('sites_web_domain_get', [['domain_id' => $data['domain_id']]]);
             
             if (!$currentDomain) {
                 return $this->error($this->t('domain_not_found'));
@@ -913,7 +1022,7 @@ class IspconfigModule extends ModuleBase {
                 }
             }
             
-            $result = $serviceManager->IspconfigSOAP('sites_web_domain_update', [$data['domain_id'], $updateData]);
+            $result = $serviceManager->IspconfigSOAP('sites_web_domain_update', [1, $data['domain_id'], $updateData]);
             
             $this->log("Domain-Einstellungen {$data['domain_id']} aktualisiert");
             
@@ -954,7 +1063,7 @@ class IspconfigModule extends ModuleBase {
                 ];
                 
                 // Aktuelle Domain-Daten abrufen
-                $currentDomain = $serviceManager->IspconfigSOAP('sites_web_domain_get', [$change['domain_id']]);
+                $currentDomain = $serviceManager->IspconfigSOAP('sites_web_domain_get', [['domain_id' => $change['domain_id']]]);
                 
                 if ($currentDomain) {
                     // Aktuelle Benutzer-Informationen
@@ -1140,7 +1249,7 @@ class IspconfigModule extends ModuleBase {
             $serviceManager = new ServiceManager();
             
             // DNS-Zone für Domain finden
-            $dnsZones = $serviceManager->IspconfigSOAP('dns_zone_get', []);
+            $dnsZones = $serviceManager->IspconfigSOAP('dns_zone_get', [[]]);
             if (!is_array($dnsZones)) {
                 return [];
             }
@@ -1409,7 +1518,7 @@ class IspconfigModule extends ModuleBase {
         $domain = $data['domain'];
         
         // DNS-Zone für Domain finden
-        $dnsZones = $serviceManager->IspconfigSOAP('dns_zone_get', []);
+        $dnsZones = $serviceManager->IspconfigSOAP('dns_zone_get', [[]]);
         $zone = null;
         
         foreach ($dnsZones as $dnsZone) {

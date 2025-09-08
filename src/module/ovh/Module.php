@@ -6,6 +6,74 @@
 
 require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 
+// Leichter Adapter, damit der in diesem Modul verwendete Typ OVHAPI existiert
+// und über den vorhandenen ServiceManager die OVH-Endpunkte anspricht.
+class OVHAPI {
+    private $serviceManager;
+
+    public function __construct() {
+        $this->serviceManager = new ServiceManager();
+    }
+
+    private function request($method, $path, $data = null) {
+        return $this->serviceManager->OvhAPI($method, $path, $data);
+    }
+
+    public function getVPSInfo($vpsName) {
+        return $this->request('GET', "/vps/{$vpsName}");
+    }
+
+    public function getVPSIPs($vpsName) {
+        return $this->request('GET', "/vps/{$vpsName}/ips");
+    }
+
+    public function getVPSIPDetails($vpsName, $ip) {
+        return $this->request('GET', "/vps/{$vpsName}/ips/{$ip}");
+    }
+
+    public function controlVPS($vpsName, $action) {
+        $map = [
+            'start' => 'start',
+            'stop' => 'stop',
+            'reboot' => 'reboot',
+            'reset' => 'reboot' // Fallback
+        ];
+        $endpoint = $map[$action] ?? 'reboot';
+        return $this->request('POST', "/vps/{$vpsName}/{$endpoint}", []);
+    }
+
+    public function getFailoverIPs() {
+        return $this->request('GET', '/ip');
+    }
+
+    public function getFailoverIPDetails($ip) {
+        $encoded = urlencode($ip);
+        return $this->request('GET', "/ip/{$encoded}");
+    }
+
+    public function createVirtualMacForIP($ip, $config) {
+        $encoded = urlencode($ip);
+        return $this->request('POST', "/ip/{$encoded}/virtualMac", $config);
+    }
+
+    public function getAllDomains() {
+        $domains = $this->request('GET', '/domain');
+        if (is_array($domains)) {
+            $result = [];
+            foreach ($domains as $domainName) {
+                $result[] = ['name' => $domainName, 'state' => 'ok'];
+            }
+            return $result;
+        }
+        return [];
+    }
+
+    public function getAllVPS() {
+        $vps = $this->request('GET', '/vps');
+        return is_array($vps) ? $vps : [];
+    }
+}
+
 class OvhModule extends ModuleBase {
     
     public function getContent() {

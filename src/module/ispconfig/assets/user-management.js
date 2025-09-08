@@ -131,7 +131,7 @@ function displayUsers() {
                     <i class="icon">👁️</i>
                 </button>
                 <button class="btn btn-sm btn-${user.active === 'y' ? 'warning' : 'success'}" 
-                        onclick="toggleUserStatus(${user.client_id}, '${user.active === 'y' ? 'n' : 'y'}')">
+                        onclick="updateUserStatus(${user.client_id}, '${user.active === 'y' ? 'n' : 'y'}')">
                     <i class="icon">${user.active === 'y' ? '⏸️' : '▶️'}</i>
                 </button>
             </td>
@@ -144,7 +144,7 @@ function displayUsers() {
  */
 function filterUsers() {
     const searchTerm = document.getElementById('user-search')?.value.toLowerCase() || '';
-    const statusFilter = document.getElementById('status-filter')?.value || '';
+    const statusFilter = document.getElementById('user-status-filter')?.value || '';
     
     window.ISPConfigModule.filteredUsers = window.ISPConfigModule.allUsers.filter(user => {
         const matchesSearch = !searchTerm || 
@@ -164,7 +164,7 @@ function filterUsers() {
  * Benutzer sortieren
  */
 function sortUsers() {
-    const sortBy = document.getElementById('sort-filter')?.value || 'company_name';
+    const sortBy = document.getElementById('user-sort-filter')?.value || 'company_name';
     
     window.ISPConfigModule.filteredUsers.sort((a, b) => {
         const aVal = a[sortBy] || '';
@@ -185,8 +185,8 @@ function sortUsers() {
  */
 function clearFilters() {
     const searchInput = document.getElementById('user-search');
-    const statusFilter = document.getElementById('status-filter');
-    const sortFilter = document.getElementById('sort-filter');
+    const statusFilter = document.getElementById('user-status-filter');
+    const sortFilter = document.getElementById('user-sort-filter');
     
     if (searchInput) searchInput.value = '';
     if (statusFilter) statusFilter.value = '';
@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Filter zurücksetzen
-    const clearFiltersBtn = document.getElementById('clear-filters');
+    const clearFiltersBtn = document.getElementById('clear-user-filters');
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', () => {
             clearFilters();

@@ -80,4 +80,68 @@
     <invalid_json>Invalid JSON in parameters</invalid_json>
     <total_endpoints>Total Endpoints</total_endpoints>
     <active_modules>Active Modules</active_modules>
+    <ogp_api_endpoints>OpenGamePanel API Endpoints</ogp_api_endpoints>
+    <ogp_list_servers>Server auflisten</ogp_list_servers>
+    <ogp_list_games>Spiele auflisten</ogp_list_games>
+    <ogp_list_user_servers>Benutzer-Server auflisten</ogp_list_user_servers>
+    <ogp_server_status>Server-Status</ogp_server_status>
+    <test_api_endpoints>Testen Sie einzelne API-Endpunkte der verschiedenen Services</test_api_endpoints>
+    <load_nodes>Nodes laden</load_nodes>
+    <load_storages>Storages laden</load_storages>
+    <vm_config>VM Config</vm_config>
+    <vm_status>VM Status</vm_status>
+    <clone_vm>VM Klonen</clone_vm>
+    <ispconfig_api_endpoints>ISPConfig API Endpoints</ispconfig_api_endpoints>
+    <load_clients>Clients laden</load_clients>
+    <server_config>Server Config</server_config>
+    <website_details>Website Details</website_details>
+    <ftp_user_test>FTP User Test</ftp_user_test>
+    <ovh_api_endpoints>OVH API Endpoints</ovh_api_endpoints>
+    <domain_zone>Domain Zone</domain_zone>
+    <dns_records>DNS Records</dns_records>
+    <vps_ips>VPS IPs</vps_ips>
+    <ip_details>IP Details</ip_details>
+    <vps_control>VPS Control</vps_control>
+    <create_dns_record>DNS Record</create_dns_record>
+    <refresh_dns_zone>DNS Refresh</refresh_dns_zone>
+    <failover_ips>Failover IPs</failover_ips>
+    <virtual_mac_api_endpoints>Virtual MAC API Endpoints</virtual_mac_api_endpoints>
+    <all_virtual_macs>Alle Virtual MACs</all_virtual_macs>
+    <dedicated_servers>Dedicated Servers</dedicated_servers>
+    <mac_details>MAC Details</mac_details>
+    <create_virtual_mac>Virtual MAC</create_virtual_mac>
+    <assign_ip>IP zuweisen</assign_ip>
+    <create_reverse_dns>Reverse DNS</create_reverse_dns>
+    <database_api_endpoints>Database API Endpoints</database_api_endpoints>
+    <all_databases>Alle Datenbanken</all_databases>
+    <create_database>DB erstellen</create_database>
+    <delete_database>DB löschen</delete_database>
+    <email_api_endpoints>Email API Endpoints</email_api_endpoints>
+    <all_emails>Alle E-Mails</all_emails>
+    <create_email>Email erstellen</create_email>
+    <delete_email>Email löschen</delete_email>
+    <system_endpoints>System Endpoints</system_endpoints>
+    <activity_log>Activity Log</activity_log>
+    <session_heartbeat>Session Heartbeat</session_heartbeat>
+    <custom_endpoint_test>Custom Endpoint Test</custom_endpoint_test>
+    <module>Module</module>
+    <select_module>Module wählen...</select_module>
+    <action>Action</action>
+    <parameters>Parameters (JSON)</parameters>
+    <test_endpoint>Test Endpoint</test_endpoint>
+    <endpoint_response>Endpoint Response</endpoint_response>
+    <success>Success</success>
+    <error>Error</error>
+    <copy>Kopieren</copy>
+    <response_copied>Response kopiert!</response_copied>
+    <copy_failed>Kopieren fehlgeschlagen</copy_failed>
+    <testing>Testing</testing>
+    <invalid_json>Invalid JSON in parameters</invalid_json>
+    <total_endpoints>Total Endpoints</total_endpoints>
+    <active_modules>Active Modules</active_modules>
+    <ogp_api_endpoints>OpenGamePanel API Endpoints</ogp_api_endpoints>
+    <ogp_list_servers>Server auflisten</ogp_list_servers>
+    <ogp_list_games>Spiele auflisten</ogp_list_games>
+    <ogp_list_user_servers>Benutzer-Server auflisten</ogp_list_user_servers>
+    <ogp_server_status>Server-Status</ogp_server_status>
 </translations> 

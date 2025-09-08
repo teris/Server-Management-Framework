@@ -197,7 +197,7 @@
     <assigned_user>Zugewiesener Benutzer</assigned_user>
     <ssl_enabled>SSL aktiviert</ssl_enabled>
     <enabled>Aktiviert</enabled>
-    <disabled>Deaktiviert</enabled>
+    <disabled>Deaktiviert</disabled>
     
     <!-- Domain-Zuordnung -->
     <assign_domain_to_user>Domain Benutzer zuweisen</assign_domain_to_user>
