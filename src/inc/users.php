@@ -3,7 +3,7 @@
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.1.3
+ * @version 3.1.4
  */
 if (!isset($db)) {
     require_once dirname(__DIR__) . '/core/DatabaseManager.php';

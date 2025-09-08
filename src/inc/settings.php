@@ -3,7 +3,7 @@
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.1.3
+ * @version 3.1.4
  */
 
 if (__FILE__ === $_SERVER['SCRIPT_FILENAME']) {

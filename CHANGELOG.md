@@ -2,6 +2,14 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.1.4]
+
+### Geändert
+- Linter Warnung in `src/inc/users.php` entfernt
+
+### Technischer Test
+- Versionprüfung mithilfe von GitHub und testSystem ausgeführt
+
 ## [3.1.3]
 
 ### Hinzugefügt
