@@ -63,6 +63,7 @@
     <center>Mitte</center>
     <right>Rechts</right>
     <options>Optionen</options>
+    <note>Hinweis</note>
         
     <!-- Navigation -->
     <home>Startseite</home>
@@ -442,7 +443,6 @@
     <cpu>CPU</cpu>
     <ram>RAM</ram>
     <storage>Speicher</storage>
-    <actions>Aktionen</actions>
     <running>Laufend</running>
     <stopped>Gestoppt</stopped>
     <start>Start</start>
@@ -474,7 +474,6 @@
     <group_description>Beschreibung</group_description>
     <modules_rights_loading>Lade Modulrechte...</modules_rights_loading>
     <no_modules_found>Keine Module gefunden.</no_modules_found>
-    <no_users_found>Keine Benutzer gefunden.</no_users_found>
     <no_groups_found>Keine Gruppen gefunden.</no_groups_found>
     <user_form_title>Benutzer</user_form_title>
     <group_form_title>Gruppe</group_form_title>
@@ -549,7 +548,6 @@
     <no_mapping_for_module_key>Kein Mapping für Modul-Key</no_mapping_for_module_key>
     <insert_permission>Berechtigung eingetragen</insert_permission>
     <settings_saved>Einstellungen gespeichert!</settings_saved>
-    <api_credentials_saved>API-Zugangsdaten gespeichert!</api_credentials_saved>
     <confirm_delete>Wirklich löschen?</confirm_delete>
     <system_config_save_success>System-Konfiguration erfolgreich gespeichert!</system_config_save_success>
     <system_config_save_error>Fehler beim Speichern der System-Konfiguration! Überprüfen Sie die Dateiberechtigungen.</system_config_save_error>
@@ -581,9 +579,6 @@
     <error_deleting>Fehler beim Löschen</error_deleting>
     <error_editing>Fehler beim Bearbeiten</error_editing>
     <error_adding>Fehler beim Hinzufügen</error_adding>
-    <error_loading_users>Fehler beim Laden der Benutzer</error_loading_users>
-    <error_loading_groups>Fehler beim Laden der Gruppen</error_loading_groups>
-    <error_loading_api_credentials>Fehler beim Laden der API-Zugangsdaten</error_loading_api_credentials>
     
     <!-- Virtual MAC Module -->
     <module_title>Modul-Titel</module_title>
@@ -604,7 +599,6 @@
     <service_name>Service Name</service_name>
     <type>Typ</type>
     <created_at>Erstellt am</created_at>
-    <actions>Aktionen</actions>
     <create_new_virtual_mac>Neue Virtual MAC erstellen</create_new_virtual_mac>
     <service_name_dedicated_server>Service Name (Dedicated Server)</service_name_dedicated_server>
     <select_server>Server auswählen</select_server>
@@ -741,7 +735,6 @@
     <zone_info>Zone Informationen</zone_info>
     <zone_content>Zone-Inhalt</zone_content>
     <paste_zone_content>Zone-Inhalt hier einfügen...</paste_zone_content>
-    <actions>Aktionen</actions>
     <status>Status</status>
     <loading>Laden...</loading>
     <operation_successful>Operation erfolgreich</operation_successful>
@@ -877,9 +870,6 @@
     <user_creation_success>Benutzer erfolgreich erstellt</user_creation_success>
     <user_list_refreshed>Benutzerliste aktualisiert</user_list_refreshed>
     <export_started>Export gestartet</export_started>
-    <no_users_found>Keine Benutzer gefunden</no_users_found>
-    <created>Erstellt</created>
-    <actions>Aktionen</actions>
     <create_new_user>Neuen Benutzer erstellen</create_new_user>
     <select_system>System auswählen</select_system>
     <proxmox_comment_help>Proxmox Kommentar</proxmox_comment_help>
@@ -956,15 +946,6 @@
     <ispconfig_required_fields_missing>Bitte füllen Sie alle erforderlichen ISPConfig-Felder aus</ispconfig_required_fields_missing>
     <proxmox_realm_required>Proxmox Realm ist erforderlich</proxmox_realm_required>
     <user_creation_success>Benutzer erfolgreich erstellt</user_creation_success>
-    <user_list_refreshed>Benutzerliste aktualisiert</user_list_refreshed>
-    <export_started>Export gestartet</export_started>
-    <no_users_found>Keine Benutzer gefunden</no_users_found>
-    <created>Erstellt</created>
-    <actions>Aktionen</actions>
-    <create_new_user>Neuen Benutzer erstellen</create_new_user>
-    <select_system>System auswählen</select_system>
-    <proxmox_comment_help>Proxmox Kommentar</proxmox_comment_help>
-                                                                                                                    
     <!-- Benutzerliste und Bearbeitung -->
     <api_connection_issues>API-Verbindungsprobleme</api_connection_issues>
     <error_loading_users>Fehler beim Laden der Benutzer</error_loading_users>
@@ -1110,7 +1091,6 @@
     <no_tickets_message>Sie haben noch keine Support-Tickets erstellt. Erstellen Sie Ihr erstes Ticket, um Hilfe zu erhalten.</no_tickets_message>
     <ticket_id>Ticket ID</ticket_id>
     <status>Status</status>
-    <actions>Aktionen</actions>
     <open>Offen</open>
     <closed>Geschlossen</closed>
     
@@ -1303,4 +1283,118 @@
     <files_only>Nur Dateien</files_only>
     <confirm_delete_backup>Backup wirklich löschen?</confirm_delete_backup>
     <delete_backup_not_implemented>Backup-Löschung noch nicht implementiert</delete_backup_not_implemented>
+
+    <!-- Users -->
+    <note>Hinweis</note>
+    <use_delete_customers>Sie sind dabei, den Kunden "<span id="deleteCustomerName"></span>" zu löschen.</use_delete_customers>
+    <link_status>Verknüpfungsstatus</link_status>
+    <ispconfig_api_error>ISPConfig API Fehler</ispconfig_api_error>
+    <local_user>Lokaler Benutzer</local_user>
+    <please_select_which_systems_the_customer_should_be_deleted_from>Bitte wählen Sie aus, aus welchen Systemen der Kunde gelöscht werden soll:</please_select_which_systems_the_customer_should_be_deleted_from>
+    <local_customer>Lokaler Kunde</local_customer>
+    <always_deleted>immer gelöscht</always_deleted>
+    <ogp_customer>OpenGamePanel Kunde</ogp_customer>
+    <proxmox_customer>Proxmox Kunde</proxmox_customer>
+    <ispconfig_customer>ISPConfig Kunde</ispconfig_customer>
+    
+    <!-- Users.php spezifische Übersetzungen -->
+    <user_list>Benutzerliste</user_list>
+    <create_user>Benutzer erstellen</create_user>
+    <merge_users>Benutzer zusammenführen</merge_users>
+    <link_users>Benutzer verknüpfen</link_users>
+    <customers_management>Kundenverwaltung</customers_management>
+    <api_warnings>API-Warnungen</api_warnings>
+    <api_status>API-Status</api_status>
+    <opengamepanel>OpenGamePanel</opengamepanel>
+    <proxmox>Proxmox</proxmox>
+    <ispconfig>ISPConfig</ispconfig>
+    <customers>Kunden</customers>
+    <admin_dashboard>Admin Dashboard</admin_dashboard>
+    <refresh>Aktualisieren</refresh>
+    <search_users>Benutzer suchen</search_users>
+    <all_statuses>Alle Status</all_statuses>
+    <active>Aktiv</active>
+    <inactive>Inaktiv</inactive>
+    <all_roles>Alle Rollen</all_roles>
+    <admin>Administrator</admin>
+    <user>Benutzer</user>
+    <all_user_types>Alle Benutzertypen</all_user_types>
+    <admin_users>Admin-Benutzer</admin_users>
+    <username>Benutzername</username>
+    <full_name>Vollständiger Name</full_name>
+    <email>E-Mail</email>
+    <role>Rolle</role>
+    <user_type>Benutzertyp</user_type>
+    <status>Status</status>
+    <created>Erstellt</created>
+    <no_users_found>Keine Benutzer gefunden</no_users_found>
+    <create_customer>Kunde erstellen</create_customer>
+    <first_name>Vorname</first_name>
+    <last_name>Nachname</last_name>
+    <expires>Ablauf</expires>
+    <unlimited>Unbegrenzt</unlimited>
+    <no_ogp_users_found>Keine OGP-Benutzer gefunden</no_ogp_users_found>
+    <userid>Benutzer-ID</userid>
+    <Realm>Realm</Realm>
+    <no_proxmox_users_found>Keine Proxmox-Benutzer gefunden</no_proxmox_users_found>
+    <no_ispconfig_users_found>Keine ISPConfig-Benutzer gefunden</no_ispconfig_users_found>
+    <new_system_user_note>Neue System-Benutzer werden automatisch in der lokalen Datenbank erstellt und können dann mit externen Systemen verknüpft werden.</new_system_user_note>
+    <new_system_user>Neuer System-Benutzer</new_system_user>
+    <password>Passwort</password>
+    <merge_users_note>Benutzer aus verschiedenen Systemen können zusammengeführt werden, wenn sie dieselbe E-Mail-Adresse haben.</merge_users_note>
+
+    <active_links>Aktive Verknüpfungen</active_links>
+    <email_groups>E-Mail-Gruppen</email_groups>
+    <merge_suggestions>Zusammenführungsvorschläge</merge_suggestions>
+    <already_linked>Bereits verknüpft</already_linked>
+    <not_linked>Nicht verknüpft</not_linked>
+    <no_user>Kein Benutzer</no_user>
+    <link_user>Benutzer verknüpfen</link_user>
+    <unlink_user>Verknüpfung aufheben</unlink_user>
+    <user_details>Benutzerdetails</user_details>
+    <edit_user>Benutzer bearbeiten</edit_user>
+    <delete_user>Benutzer löschen</delete_user>
+    <customer_details>Kundendetails</customer_details>
+    <edit_customer>Kunde bearbeiten</edit_customer>
+    <delete_customer>Kunde löschen</delete_customer>
+    <create_customer>Kunde erstellen</create_customer>
+    <create_system_user>System-Benutzer erstellen</create_system_user>
+    <confirm_password>Passwort bestätigen</confirm_password>
+    <company>Unternehmen</company>
+    <phone>Telefon</phone>
+    <address>Adresse</address>
+    <city>Stadt</city>
+    <postal_code>Postleitzahl</postal_code>
+    <country>Land</country>
+    <email_verified>E-Mail verifiziert</email_verified>
+    <immediately_activate>Sofort aktivieren</immediately_activate>
+    <delete_from_systems>Aus Systemen löschen</delete_from_systems>
+    <local_database>Lokale Datenbank</local_database>
+    <opengamepanel_system>OpenGamePanel System</opengamepanel_system>
+    <proxmox_system>Proxmox System</proxmox_system>
+    <ispconfig_system>ISPConfig System</ispconfig_system>
+    <save>Speichern</save>
+    <cancel>Abbrechen</cancel>
+    <close>Schließen</close>
+    <create>Erstellen</create>
+    <edit>Bearbeiten</edit>
+    <delete>Löschen</delete>
+    <view_details>Details anzeigen</view_details>
+    <pending>Ausstehend</pending>
+    <suspended>Gesperrt</suspended>
+    <deleted>Gelöscht</deleted>
+    <last_login>Letzter Login</last_login>
+    <created_at>Erstellt am</created_at>
+    <updated_at>Aktualisiert am</updated_at>
+    <email_verified_at>E-Mail verifiziert am</email_verified_at>
+    <failed_login_attempts>Fehlgeschlagene Anmeldeversuche</failed_login_attempts>
+    <locked_until>Gesperrt bis</locked_until>
+    <password_changed_at>Passwort geändert am</password_changed_at>
+    <system_links>System-Verknüpfungen</system_links>
+    <no_system_links>Keine System-Verknüpfungen</no_system_links>
+    <basic_information>Grundinformationen</basic_information>
+    <security_information>Sicherheitsinformationen</security_information>
+    <timestamps>Zeitstempel</timestamps>
+    <address_information>Adressinformationen</address_information>
+    <status_and_verification>Status und Verifizierung</status_and_verification>
 </translations> 

@@ -2,6 +2,36 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.2.0]
+
+### Hinzugefügt
+- **Erweiterte Benutzer-Dialogfelder**: Vollständige Anzeige aller Benutzerinformationen aus der Users-Tabelle
+- **Erweiterte Kunden-Dialogfelder**: Vollständige Anzeige aller Kundeninformationen aus der Customers-Tabelle
+- **Kundenbearbeitungs-Modal**: Neues Modal für die Bearbeitung von Kundendaten mit allen relevanten Feldern
+- **System-Verknüpfungen**: Dynamische Anzeige von OGP, Proxmox und ISPConfig-Verbindungen in Benutzerdetails
+- **AJAX-Integration**: Vollständige AJAX-Unterstützung für alle Dialogfelder mit Fehlerbehandlung
+
+### Geändert
+- **Benutzer-Bearbeitungs-Modal**: Erweitert um Sicherheitsinformationen, Zeitstempel und System-Verknüpfungen
+- **Benutzer-Details-Modal**: Strukturierte Darstellung mit Bereichen für Grunddaten, Sicherheit und Zeitstempel
+- **Kunden-Details-Modal**: Vollständige Integration aller Customer-Tabellenfelder
+- **JavaScript-Funktionen**: Erweiterte AJAX-Funktionen mit Debug-Logging und verbesserter Fehlerbehandlung
+- **AJAX-Routing**: Optimierte Request-Weiterleitung für bessere Performance
+
+### Technische Details
+- **Modal-Größen**: Alle Modals auf `modal-xl` erweitert für bessere Übersicht
+- **Responsive Design**: Optimierte Darstellung für verschiedene Bildschirmgrößen
+- **Zeitstempel-Formatierung**: Deutsche Lokalisierung für alle Datumsfelder
+- **Status-Badges**: Farbkodierte Status-Anzeige für bessere Benutzerfreundlichkeit
+- **Formular-Validierung**: Backend-Validierung für alle Eingaben mit detaillierten Fehlermeldungen
+
+### Verbesserungen
+- **Benutzerfreundlichkeit**: Vollständige Informationen in allen Dialogfeldern
+- **Datenintegrität**: Vollständige Integration aller MySQL-Tabellenfelder
+- **Debugging**: Console-Logging für bessere Fehlerdiagnose
+- **Performance**: Optimierte AJAX-Requests und Datenbankabfragen
+- **Wartbarkeit**: Strukturierte Code-Organisation und Dokumentation
+
 ## [3.1.9]
 
 ### Geändert

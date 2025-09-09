@@ -3,7 +3,7 @@
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.1.4
+ * @version 3.2.0
  */
 if (!isset($db)) {
     require_once dirname(__DIR__) . '/core/DatabaseManager.php';
@@ -13,6 +13,684 @@ if (!isset($db)) {
 // ServiceManager initialisieren
 $serviceManager = new ServiceManager();
 
+// AJAX-Request Behandlung (wird über index.php aufgerufen)
+if (isset($_POST['action']) && in_array($_POST['action'], ['get_user_data', 'get_user_details', 'get_user_system_links', 'get_customer_details', 'edit_system_user', 'delete_system_user', 'edit_customer', 'create_customer', 'get_customers', 'create_system_user', 'edit_user', 'delete_customer', 'delete_user'])) {
+    header('Content-Type: application/json');
+    
+    try {
+        $action = $_POST['action'] ?? '';
+        
+        // Debug-Logging
+        error_log("Users.php AJAX Action: " . $action);
+        
+        switch ($action) {
+            case 'get_user_data':
+                handleGetUserData($db);
+                break;
+            case 'get_user_details':
+                handleGetUserDetails($db);
+                break;
+            case 'get_user_system_links':
+                handleGetUserSystemLinks($db, $serviceManager);
+                break;
+            case 'get_customer_details':
+                handleGetCustomerDetails($db);
+                break;
+            case 'edit_system_user':
+                handleEditSystemUser($db, $serviceManager);
+                break;
+            case 'delete_system_user':
+                handleDeleteSystemUser($db, $serviceManager);
+                break;
+            case 'edit_customer':
+                handleEditCustomer($db);
+                break;
+            case 'create_customer':
+                handleCreateCustomer($db);
+                break;
+            case 'get_customers':
+                handleGetCustomers($db);
+                break;
+            case 'create_system_user':
+                handleCreateSystemUser($db, $serviceManager);
+                break;
+            case 'edit_user':
+                handleEditUser($db);
+                break;
+            case 'delete_customer':
+                handleDeleteCustomer($db);
+                break;
+            case 'delete_user':
+                handleDeleteUser($serviceManager, $db);
+                break;
+            default:
+                echo json_encode(['success' => false, 'message' => 'Unbekannte Aktion: ' . $action]);
+                break;
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
+// AJAX-Handler-Funktionen
+function handleGetUserData($db) {
+    $userId = (int)($_POST['user_id'] ?? 0);
+    
+    if ($userId <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Ungültige Benutzer-ID']);
+        return;
+    }
+    
+    try {
+        $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
+        $db->execute($stmt, [$userId]);
+        $user = $db->fetch($stmt);
+        
+        if ($user) {
+            echo json_encode(['success' => true, 'data' => $user]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Benutzer nicht gefunden']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der Benutzerdaten: ' . $e->getMessage()]);
+    }
+}
+
+function handleGetUserDetails($db) {
+    $userId = (int)($_POST['user_id'] ?? 0);
+    
+    if ($userId <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Ungültige Benutzer-ID']);
+        return;
+    }
+    
+    try {
+        $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
+        $db->execute($stmt, [$userId]);
+        $user = $db->fetch($stmt);
+        
+        if ($user) {
+            echo json_encode(['success' => true, 'data' => $user]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Benutzer nicht gefunden']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der Benutzerdetails: ' . $e->getMessage()]);
+    }
+}
+
+function handleGetUserSystemLinks($db, $serviceManager) {
+    $userId = (int)($_POST['user_id'] ?? 0);
+    
+    if ($userId <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Ungültige Benutzer-ID']);
+        return;
+    }
+    
+    try {
+        // Benutzerdaten abrufen
+        $stmt = $db->prepare("SELECT username, email FROM users WHERE id = ?");
+        $db->execute($stmt, [$userId]);
+        $user = $db->fetch($stmt);
+        
+        if (!$user) {
+            echo json_encode(['success' => false, 'message' => 'Benutzer nicht gefunden']);
+            return;
+        }
+        
+        $systemLinks = [];
+        
+        // OGP Benutzer suchen
+        try {
+            $ogpUsers = $serviceManager->getOGPUsers();
+            foreach ($ogpUsers as $ogpUser) {
+                if ($ogpUser['users_email'] === $user['email'] || $ogpUser['users_login'] === $user['username']) {
+                    $systemLinks['ogp'] = $ogpUser['users_login'];
+                    break;
+                }
+            }
+        } catch (Exception $e) {
+            // OGP nicht verfügbar
+        }
+        
+        // Proxmox Benutzer suchen
+        try {
+            $proxmoxUsers = $serviceManager->getProxmoxUsers();
+            foreach ($proxmoxUsers as $proxmoxUser) {
+                if ($proxmoxUser['userid'] === $user['username']) {
+                    $systemLinks['proxmox'] = $proxmoxUser['userid'];
+                    break;
+                }
+            }
+        } catch (Exception $e) {
+            // Proxmox nicht verfügbar
+        }
+        
+        // ISPConfig Benutzer suchen
+        try {
+            $ispconfigUsers = $serviceManager->getISPConfigUsers();
+            foreach ($ispconfigUsers as $ispconfigUser) {
+                if ($ispconfigUser['username'] === $user['username'] || $ispconfigUser['email'] === $user['email']) {
+                    $systemLinks['ispconfig'] = $ispconfigUser['username'];
+                    break;
+                }
+            }
+        } catch (Exception $e) {
+            // ISPConfig nicht verfügbar
+        }
+        
+        echo json_encode(['success' => true, 'data' => $systemLinks]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der System-Verknüpfungen: ' . $e->getMessage()]);
+    }
+}
+
+function handleGetCustomerDetails($db) {
+    $customerId = (int)($_POST['customer_id'] ?? 0);
+    
+    if ($customerId <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Ungültige Kunden-ID']);
+        return;
+    }
+    
+    try {
+        $stmt = $db->prepare("SELECT * FROM customers WHERE id = ?");
+        $db->execute($stmt, [$customerId]);
+        $customer = $db->fetch($stmt);
+        
+        if ($customer) {
+            echo json_encode(['success' => true, 'data' => $customer]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Kunde nicht gefunden']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der Kundendetails: ' . $e->getMessage()]);
+    }
+}
+
+function handleEditSystemUser($db, $serviceManager) {
+    $systemType = $_POST['system_type'] ?? '';
+    $systemUserId = $_POST['system_user_id'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $username = $_POST['username'] ?? '';
+    $expires = $_POST['expires'] ?? '';
+    
+    if (empty($systemType) || empty($systemUserId)) {
+        echo json_encode(['success' => false, 'message' => 'Fehlende Parameter']);
+        return;
+    }
+    
+    try {
+        $result = false;
+        
+        switch ($systemType) {
+            case 'ogp':
+                $result = $serviceManager->editOGPUser($systemUserId, $email, $username, $expires);
+                break;
+            case 'proxmox':
+                $result = $serviceManager->editProxmoxUser($systemUserId, $email, $username);
+                break;
+            case 'ispconfig':
+                $result = $serviceManager->editISPConfigUser($systemUserId, $email, $username);
+                break;
+            default:
+                echo json_encode(['success' => false, 'message' => 'Unbekanntes System: ' . $systemType]);
+                return;
+        }
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Benutzer erfolgreich aktualisiert']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Fehler beim Aktualisieren des Benutzers']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage()]);
+    }
+}
+
+function handleDeleteSystemUser($db, $serviceManager) {
+    $systemType = $_POST['system_type'] ?? '';
+    $systemUserId = $_POST['system_user_id'] ?? '';
+    
+    if (empty($systemType) || empty($systemUserId)) {
+        echo json_encode(['success' => false, 'message' => 'Fehlende Parameter']);
+        return;
+    }
+    
+    try {
+        $result = false;
+        
+        switch ($systemType) {
+            case 'ogp':
+                $result = $serviceManager->deleteOGPUser($systemUserId);
+                break;
+            case 'proxmox':
+                $result = $serviceManager->deleteProxmoxUser($systemUserId);
+                break;
+            case 'ispconfig':
+                $result = $serviceManager->deleteISPConfigUser($systemUserId);
+                break;
+            default:
+                echo json_encode(['success' => false, 'message' => 'Unbekanntes System: ' . $systemType]);
+                return;
+        }
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Benutzer erfolgreich gelöscht']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Fehler beim Löschen des Benutzers']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage()]);
+    }
+}
+
+function handleEditCustomer($db) {
+    $customerId = (int)($_POST['customer_id'] ?? 0);
+    
+    if ($customerId <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Ungültige Kunden-ID']);
+        return;
+    }
+    
+    try {
+        // Grundlegende Informationen
+        $firstName = $_POST['first_name'] ?? '';
+        $lastName = $_POST['last_name'] ?? '';
+        $fullName = $_POST['full_name'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $company = $_POST['company'] ?? '';
+        $phone = $_POST['phone'] ?? '';
+        
+        // Adressinformationen
+        $address = $_POST['address'] ?? '';
+        $city = $_POST['city'] ?? '';
+        $postalCode = $_POST['postal_code'] ?? '';
+        $country = $_POST['country'] ?? '';
+        
+        // Status
+        $status = $_POST['status'] ?? 'pending';
+        
+        // Validierung
+        if (empty($firstName) || empty($lastName) || empty($email)) {
+            echo json_encode(['success' => false, 'message' => 'Vorname, Nachname und E-Mail sind erforderlich']);
+            return;
+        }
+        
+        // SQL-Update vorbereiten
+        $updateFields = [];
+        $params = [];
+        
+        $updateFields[] = "first_name = ?";
+        $params[] = $firstName;
+        
+        $updateFields[] = "last_name = ?";
+        $params[] = $lastName;
+        
+        $updateFields[] = "full_name = ?";
+        $params[] = $fullName;
+        
+        $updateFields[] = "email = ?";
+        $params[] = $email;
+        
+        $updateFields[] = "company = ?";
+        $params[] = $company;
+        
+        $updateFields[] = "phone = ?";
+        $params[] = $phone;
+        
+        $updateFields[] = "address = ?";
+        $params[] = $address;
+        
+        $updateFields[] = "city = ?";
+        $params[] = $city;
+        
+        $updateFields[] = "postal_code = ?";
+        $params[] = $postalCode;
+        
+        $updateFields[] = "country = ?";
+        $params[] = $country;
+        
+        $updateFields[] = "status = ?";
+        $params[] = $status;
+        
+        // Passwort aktualisieren, falls angegeben
+        if (!empty($_POST['password'])) {
+            $passwordHash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $updateFields[] = "password_hash = ?";
+            $params[] = $passwordHash;
+        }
+        
+        $updateFields[] = "updated_at = NOW()";
+        
+        $params[] = $customerId;
+        
+        $sql = "UPDATE customers SET " . implode(", ", $updateFields) . " WHERE id = ?";
+        
+        $stmt = $db->prepare($sql);
+        $result = $db->execute($stmt, $params);
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Kunde erfolgreich aktualisiert']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Fehler beim Aktualisieren des Kunden']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Bearbeiten des Kunden: ' . $e->getMessage()]);
+    }
+}
+
+function handleCreateCustomer($db) {
+    try {
+        // Grundlegende Informationen
+        $firstName = $_POST['first_name'] ?? '';
+        $lastName = $_POST['last_name'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $company = $_POST['company'] ?? '';
+        $phone = $_POST['phone'] ?? '';
+        
+        // Adressinformationen
+        $address = $_POST['address'] ?? '';
+        $city = $_POST['city'] ?? '';
+        $postalCode = $_POST['postal_code'] ?? '';
+        $country = $_POST['country'] ?? '';
+        
+        // Sicherheit und Status
+        $password = $_POST['password'] ?? '';
+        $passwordConfirm = $_POST['password_confirm'] ?? '';
+        $status = $_POST['status'] ?? 'pending';
+        $emailVerified = isset($_POST['email_verified']) && $_POST['email_verified'] === '1';
+        
+        // Validierung
+        if (empty($firstName) || empty($lastName) || empty($email) || empty($password)) {
+            echo json_encode(['success' => false, 'message' => 'Vorname, Nachname, E-Mail und Passwort sind erforderlich']);
+            return;
+        }
+        
+        if ($password !== $passwordConfirm) {
+            echo json_encode(['success' => false, 'message' => 'Passwörter stimmen nicht überein']);
+            return;
+        }
+        
+        if (strlen($password) < 8) {
+            echo json_encode(['success' => false, 'message' => 'Passwort muss mindestens 8 Zeichen lang sein']);
+            return;
+        }
+        
+        // E-Mail-Existenz prüfen
+        $stmt = $db->prepare("SELECT id FROM customers WHERE email = ?");
+        $db->execute($stmt, [$email]);
+        if ($db->fetch($stmt)) {
+            echo json_encode(['success' => false, 'message' => 'E-Mail-Adresse bereits vorhanden']);
+            return;
+        }
+        
+        // Passwort hashen
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        
+        // SQL-Insert vorbereiten
+        $sql = "INSERT INTO customers (first_name, last_name, full_name, email, password_hash, company, phone, address, city, postal_code, country, status, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $emailVerifiedAt = $emailVerified ? date('Y-m-d H:i:s') : null;
+        $fullName = $firstName . ' ' . $lastName; // Vollständiger Name generieren
+        
+        $stmt = $db->prepare($sql);
+        $result = $db->execute($stmt, [
+            $firstName,
+            $lastName,
+            $fullName,
+            $email,
+            $passwordHash,
+            $company,
+            $phone,
+            $address,
+            $city,
+            $postalCode,
+            $country,
+            $status,
+            $emailVerifiedAt
+        ]);
+        
+        if ($result) {
+            $customerId = $db->lastInsertId();
+            
+            // E-Mail senden
+            if ($emailVerified) {
+                // Kunde ist sofort aktiviert - Willkommens-E-Mail senden
+                sendCustomerWelcomeEmail($email, $firstName, $password);
+            } else {
+                // Kunde muss E-Mail verifizieren - Verifikations-E-Mail senden
+                sendCustomerVerificationEmail($email, $firstName, $customerId, $password);
+            }
+            
+            // Aktivitätslog
+            $db->logAction(
+                'Customer Created',
+                "Neuer Kunde erstellt: {$firstName} {$lastName} ({$email})",
+                'success'
+            );
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Kunde erfolgreich erstellt' . ($emailVerified ? ' und E-Mail gesendet' : ' - Verifikations-E-Mail gesendet'),
+                'customer_id' => $customerId
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Fehler beim Erstellen des Kunden']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Erstellen des Kunden: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * Willkommens-E-Mail für sofort aktivierte Kunden senden
+ */
+function sendCustomerWelcomeEmail($email, $firstName, $password) {
+    try {
+        $to = $email;
+        $subject = "Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "!";
+        
+        $loginUrl = "https://" . $_SERVER['HTTP_HOST'] . "/public/login.php";
+        
+        $message = "
+        <html>
+        <head>
+            <title>Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "</title>
+        </head>
+        <body>
+            <h2>Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "!</h2>
+            <p>Hallo {$firstName},</p>
+            <p>Ihr Konto wurde erfolgreich erstellt und ist sofort aktiv. Sie können sich jetzt in unserem Kundenportal anmelden.</p>
+            
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                <h3>Ihre Anmeldedaten:</h3>
+                <p><strong>E-Mail:</strong> {$email}</p>
+                <p><strong>Passwort:</strong> {$password}</p>
+            </div>
+            
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{$loginUrl}' 
+                   style='background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block;'>
+                    Zum Kundenportal anmelden
+                </a>
+            </div>
+            
+            <p>Falls Sie Fragen haben, können Sie sich gerne an unseren Support wenden.</p>
+            
+            <p>Mit freundlichen Grüßen<br>
+            Ihr " . Config::FRONTPANEL_SITE_NAME . " Team</p>
+        </body>
+        </html>
+        ";
+        
+        $headers = [
+            'MIME-Version: 1.0',
+            'Content-type: text/html; charset=utf-8',
+            'From: ' . Config::FRONTPANEL_SYSTEM_EMAIL,
+            'Reply-To: ' . Config::FRONTPANEL_SUPPORT_EMAIL,
+            'X-Mailer: PHP/' . phpversion()
+        ];
+        
+        $mailResult = mail($to, $subject, $message, implode("\r\n", $headers));
+        
+        if ($mailResult) {
+            error_log("Customer welcome email sent successfully to: " . $email);
+        } else {
+            error_log("Failed to send customer welcome email to: " . $email);
+        }
+        
+    } catch (Exception $e) {
+        error_log("Failed to send customer welcome email: " . $e->getMessage());
+    }
+}
+
+/**
+ * Verifikations-E-Mail für Kunden senden
+ */
+function sendCustomerVerificationEmail($email, $firstName, $customerId, $password) {
+    try {
+        $verificationToken = bin2hex(random_bytes(32));
+        $expires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+        
+        // Token in Datenbank speichern
+        $db = Database::getInstance();
+        $stmt = $db->prepare("INSERT INTO customer_verification_tokens (customer_id, token, expires_at) VALUES (?, ?, ?)");
+        $stmt->execute([$customerId, $verificationToken, $expires]);
+        
+        $to = $email;
+        $subject = "E-Mail-Adresse bestätigen - " . Config::FRONTPANEL_SITE_NAME;
+        
+        $verificationLink = "https://" . $_SERVER['HTTP_HOST'] . "/public/verify.php?token=" . $verificationToken;
+        
+        $message = "
+        <html>
+        <head>
+            <title>E-Mail-Adresse bestätigen</title>
+        </head>
+        <body>
+            <h2>Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "!</h2>
+            <p>Hallo {$firstName},</p>
+            <p>vielen Dank für Ihre Registrierung. Um Ihr Konto zu aktivieren, bestätigen Sie bitte Ihre E-Mail-Adresse.</p>
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                <h3>Ihre Anmeldedaten:</h3>
+                <p><strong>E-Mail:</strong> {$email}</p>
+                <p><strong>Passwort:</strong> {$password}</p>
+            </div>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{$verificationLink}' 
+                   style='background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block;'>
+                    E-Mail-Adresse bestätigen
+                </a>
+            </div>
+            
+            <p>Falls der Button nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:</p>
+            <p style='word-break: break-all; color: #666;'>{$verificationLink}</p>
+            
+            <p>Dieser Link ist 24 Stunden gültig.</p>
+            
+            <p>Mit freundlichen Grüßen<br>
+            Ihr " . Config::FRONTPANEL_SITE_NAME . " Team</p>
+        </body>
+        </html>
+        ";
+        
+        $headers = [
+            'MIME-Version: 1.0',
+            'Content-type: text/html; charset=utf-8',
+            'From: ' . Config::FRONTPANEL_SYSTEM_EMAIL,
+            'Reply-To: ' . Config::FRONTPANEL_SUPPORT_EMAIL,
+            'X-Mailer: PHP/' . phpversion()
+        ];
+        
+        $mailResult = mail($to, $subject, $message, implode("\r\n", $headers));
+        
+        if ($mailResult) {
+            error_log("Customer verification email sent successfully to: " . $email);
+        } else {
+            error_log("Failed to send customer verification email to: " . $email);
+        }
+        
+    } catch (Exception $e) {
+        error_log("Failed to send customer verification email: " . $e->getMessage());
+    }
+}
+
+/**
+ * E-Mail für Backend-Benutzer senden
+ */
+function sendUserWelcomeEmail($email, $firstName, $username, $password) {
+    try {
+        $to = $email;
+        $subject = "Ihre Backend-Anmeldedaten - " . Config::FRONTPANEL_SITE_NAME;
+        
+        $loginUrl = "https://" . $_SERVER['HTTP_HOST'] . "/src/";
+        
+        $message = "
+        <html>
+        <head>
+            <title>Backend-Anmeldedaten</title>
+        </head>
+        <body>
+            <h2>Willkommen im Backend von " . Config::FRONTPANEL_SITE_NAME . "!</h2>
+            <p>Hallo {$firstName},</p>
+            <p>Ihr Backend-Benutzerkonto wurde erfolgreich erstellt. Sie können sich jetzt im Admin-Bereich anmelden.</p>
+            
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                <h3>Ihre Anmeldedaten:</h3>
+                <p><strong>Benutzername:</strong> {$username}</p>
+                <p><strong>E-Mail:</strong> {$email}</p>
+                <p><strong>Passwort:</strong> {$password}</p>
+            </div>
+            
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{$loginUrl}' 
+                   style='background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block;'>
+                    Zum Backend anmelden
+                </a>
+            </div>
+            
+            <p>Falls Sie Fragen haben, können Sie sich gerne an den Administrator wenden.</p>
+            
+            <p>Mit freundlichen Grüßen<br>
+            Ihr " . Config::FRONTPANEL_SITE_NAME . " Team</p>
+        </body>
+        </html>
+        ";
+        
+        $headers = [
+            'MIME-Version: 1.0',
+            'Content-type: text/html; charset=utf-8',
+            'From: ' . Config::FRONTPANEL_SYSTEM_EMAIL,
+            'Reply-To: ' . Config::FRONTPANEL_SUPPORT_EMAIL,
+            'X-Mailer: PHP/' . phpversion()
+        ];
+        
+        $mailResult = mail($to, $subject, $message, implode("\r\n", $headers));
+        
+        if ($mailResult) {
+            error_log("User welcome email sent successfully to: " . $email);
+        } else {
+            error_log("Failed to send user welcome email to: " . $email);
+        }
+        
+    } catch (Exception $e) {
+        error_log("Failed to send user welcome email: " . $e->getMessage());
+    }
+}
+
+function handleGetCustomers($db) {
+    try {
+        $stmt = $db->query("SELECT * FROM customers ORDER BY created_at DESC");
+        $customers = $db->fetchAll($stmt);
+        
+        echo json_encode(['success' => true, 'data' => $customers]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der Kunden: ' . $e->getMessage()]);
+    }
+}
+
 // Kunden abrufen
 try {
     $customers = [];
@@ -21,6 +699,11 @@ try {
 } catch (Exception $e) {
     $customers = [];
     error_log("Fehler beim Laden der Kunden: " . $e->getMessage());
+}
+
+// Aktionsverarbeitung für Backend-Benutzer-Erstellung
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_system_user') {
+    handleCreateSystemUser($serviceManager, $db);
 }
 
 // Aktionsverarbeitung für Kundenaktivierung
@@ -135,6 +818,15 @@ try {
 }
 
 try {
+    $customersUsers = [];
+    $stmt = $db->query("SELECT * FROM customers ORDER BY id");
+    $customersUsers = $db->fetchAll($stmt);
+} catch (Exception $e) {
+    $customersUsers = [];
+    error_log("Fehler beim Laden der Admin-Benutzer: " . $e->getMessage());
+}
+
+try {
     $ogpUsers = $serviceManager->getOGPUsers();
 } catch (Exception $e) {
     $ogpUsers = [];
@@ -238,6 +930,188 @@ function handleMergeUsers($serviceManager, $db) {
     }
 }
 
+function handleCreateSystemUser($db, $serviceManager) {
+    try {
+        $username = $_POST['username'];
+        $email = $_POST['email'];
+        $fullName = $_POST['full_name'];
+        $password = $_POST['password'];
+        
+        // Validierung
+        if (empty($username) || empty($email) || empty($fullName) || empty($password)) {
+            echo json_encode(['success' => false, 'message' => 'Alle Felder sind erforderlich']);
+            return;
+        }
+        
+        // E-Mail-Existenz prüfen
+        $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+        $db->execute($stmt, [$email]);
+        if ($db->fetch($stmt)) {
+            echo json_encode(['success' => false, 'message' => 'E-Mail-Adresse bereits vorhanden']);
+            return;
+        }
+        
+        // Benutzername-Existenz prüfen
+        $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
+        $db->execute($stmt, [$username]);
+        if ($db->fetch($stmt)) {
+            echo json_encode(['success' => false, 'message' => 'Benutzername bereits vorhanden']);
+            return;
+        }
+        
+        // Lokalen Benutzer anlegen
+        $stmt = $db->prepare("INSERT INTO users (username, email, password_hash, full_name, role, active, created_at) VALUES (?, ?, ?, ?, 'user', 'y', NOW())");
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        $db->execute($stmt, [$username, $email, $passwordHash, $fullName]);
+        $userId = $db->lastInsertId();
+        
+        // E-Mail mit Anmeldedaten senden
+        sendUserWelcomeEmail($email, $fullName, $username, $password);
+        
+        echo json_encode(['success' => true, 'message' => 'Backend-Benutzer erfolgreich erstellt und E-Mail gesendet!']);
+        
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Erstellen des Benutzers: ' . $e->getMessage()]);
+    }
+}
+
+function handleEditUser($db) {
+    try {
+        $userId = $_POST['user_id'] ?? '';
+        $username = $_POST['username'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $fullName = $_POST['full_name'] ?? '';
+        $role = $_POST['role'] ?? 'user';
+        $active = $_POST['active'] ?? 'y';
+        $password = $_POST['password'] ?? '';
+        
+        // Validierung
+        if (empty($userId) || empty($username) || empty($email) || empty($fullName)) {
+            echo json_encode(['success' => false, 'message' => 'Benutzer-ID, Benutzername, E-Mail und vollständiger Name sind erforderlich']);
+            return;
+        }
+        
+        // E-Mail-Existenz prüfen (außer für den aktuellen Benutzer)
+        $stmt = $db->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+        $db->execute($stmt, [$email, $userId]);
+        if ($db->fetch($stmt)) {
+            echo json_encode(['success' => false, 'message' => 'E-Mail-Adresse bereits von einem anderen Benutzer verwendet']);
+            return;
+        }
+        
+        // Benutzername-Existenz prüfen (außer für den aktuellen Benutzer)
+        $stmt = $db->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+        $db->execute($stmt, [$username, $userId]);
+        if ($db->fetch($stmt)) {
+            echo json_encode(['success' => false, 'message' => 'Benutzername bereits von einem anderen Benutzer verwendet']);
+            return;
+        }
+        
+        // SQL-Update vorbereiten
+        if (!empty($password)) {
+            // Passwort wird geändert
+            $stmt = $db->prepare("UPDATE users SET username = ?, email = ?, full_name = ?, role = ?, active = ?, password_hash = ?, updated_at = NOW() WHERE id = ?");
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+            $db->execute($stmt, [$username, $email, $fullName, $role, $active, $passwordHash, $userId]);
+            
+            // System-Verknüpfungen abrufen (für zukünftige Erweiterungen)
+            $stmt = $db->prepare("SELECT permission_type, resource_id FROM user_permissions WHERE user_id = ?");
+            $db->execute($stmt, [$userId]);
+            $permissions = $db->fetchAll($stmt);
+            
+            // TODO: System-spezifische Passwort-Updates implementieren
+            // Aktuell wird nur das lokale Passwort aktualisiert
+            if (!empty($permissions)) {
+                error_log("Benutzer {$userId} hat System-Verknüpfungen, aber System-Passwort-Updates sind noch nicht implementiert");
+            }
+        } else {
+            // Passwort bleibt unverändert
+            $stmt = $db->prepare("UPDATE users SET username = ?, email = ?, full_name = ?, role = ?, active = ?, updated_at = NOW() WHERE id = ?");
+            $db->execute($stmt, [$username, $email, $fullName, $role, $active, $userId]);
+        }
+        
+        echo json_encode(['success' => true, 'message' => 'Benutzer erfolgreich aktualisiert']);
+        
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Aktualisieren des Benutzers: ' . $e->getMessage()]);
+    }
+}
+
+function handleDeleteCustomer($db) {
+    try {
+        $customerId = $_POST['customer_id'] ?? '';
+        $deleteFromSystems = $_POST['delete_from_systems'] ?? [];
+        
+        // Validierung
+        if (empty($customerId)) {
+            echo json_encode(['success' => false, 'message' => 'Kunden-ID ist erforderlich']);
+            return;
+        }
+        
+        if (empty($deleteFromSystems)) {
+            echo json_encode(['success' => false, 'message' => 'Bitte wählen Sie mindestens ein System aus']);
+            return;
+        }
+        
+        $serviceManager = new ServiceManager();
+        $deletedSystems = [];
+        $errors = [];
+        
+        // Kunde aus den ausgewählten Systemen löschen
+        foreach ($deleteFromSystems as $system) {
+            try {
+                switch ($system) {
+                    case 'local':
+                        // Lokaler Kunde (hartes Löschen)
+                        $stmt = $db->prepare("DELETE FROM customers WHERE id = ?");
+                        $result = $db->execute($stmt, [$customerId]);
+                        if ($result) {
+                            $deletedSystems[] = 'Lokaler Kunde (hard delete)';
+                        } else {
+                            $errors[] = 'Fehler beim Löschen des lokalen Kunden';
+                        }
+                        break;
+                        
+                    case 'ogp':
+                        // TODO: OGP Kunde löschen implementieren
+                        $deletedSystems[] = 'OpenGamePanel (TODO: Implementierung fehlt)';
+                        break;
+                        
+                    case 'proxmox':
+                        // TODO: Proxmox Kunde löschen implementieren
+                        $deletedSystems[] = 'Proxmox (TODO: Implementierung fehlt)';
+                        break;
+                        
+                    case 'ispconfig':
+                        // TODO: ISPConfig Kunde löschen implementieren
+                        $deletedSystems[] = 'ISPConfig (TODO: Implementierung fehlt)';
+                        break;
+                        
+                    default:
+                        $errors[] = "Unbekanntes System: {$system}";
+                        break;
+                }
+            } catch (Exception $e) {
+                $errors[] = "Fehler beim Löschen aus System {$system}: " . $e->getMessage();
+            }
+        }
+        
+        // Ergebnis zusammenstellen
+        if (!empty($deletedSystems)) {
+            $message = 'Kunde erfolgreich gelöscht aus: ' . implode(', ', $deletedSystems);
+            if (!empty($errors)) {
+                $message .= '. Warnungen: ' . implode(', ', $errors);
+            }
+            echo json_encode(['success' => true, 'message' => $message]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Fehler beim Löschen des Kunden: ' . implode(', ', $errors)]);
+        }
+        
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Löschen des Kunden: ' . $e->getMessage()]);
+    }
+}
+
 function handleLinkExistingUser($serviceManager, $db) {
     try {
         $username = $_POST['username'];
@@ -251,6 +1125,9 @@ function handleLinkExistingUser($serviceManager, $db) {
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         $db->execute($stmt, [$username, $email, $passwordHash, $fullName]);
         $userId = $db->lastInsertId();
+        
+        // E-Mail mit Anmeldedaten senden
+        sendUserWelcomeEmail($email, $fullName, $username, $password);
         
         // Bestehende System-Benutzer verknüpfen (verwendet user_permissions Tabelle)
         foreach ($systems as $system => $systemUserId) {
@@ -354,64 +1231,16 @@ function handleRevokeAccess($serviceManager, $db) {
     }
 }
 
-function handleEditUser($serviceManager, $db) {
-    try {
-        $userId = $_POST['user_id'];
-        $username = $_POST['username'];
-        $email = $_POST['email'];
-        $fullName = $_POST['full_name'];
-        $role = $_POST['role'];
-        $active = $_POST['active'];
-        
-        // Lokalen Benutzer aktualisieren
-        $stmt = $db->prepare("UPDATE users SET username = ?, email = ?, full_name = ?, role = ?, active = ? WHERE id = ?");
-        $db->execute($stmt, [$username, $email, $fullName, $role, $active, $userId]);
-        
-        // System-Verknüpfungen abrufen
-        $stmt = $db->prepare("SELECT permission_type, resource_id FROM user_permissions WHERE user_id = ?");
-        $db->execute($stmt, [$userId]);
-        $permissions = $db->fetchAll($stmt);
-        
-        // Passwort-Update in verknüpften Systemen
-        if (!empty($_POST['password'])) {
-            $password = $_POST['password'];
-            
-            foreach ($permissions as $permission) {
-                $system = $permission['permission_type'];
-                $systemUserId = $permission['resource_id'];
-                
-                switch ($system) {
-                    case 'ogp':
-                        // OGP Passwort-Update
-                        $serviceManager->updateOGPUserPassword($systemUserId, $password);
-                        break;
-                    case 'proxmox':
-                        // Proxmox Passwort-Update
-                        $serviceManager->updateProxmoxUserPassword($systemUserId, $password);
-                        break;
-                    case 'ispconfig':
-                        // ISPConfig Passwort-Update
-                        $serviceManager->updateISPConfigUserPassword($systemUserId, $password);
-                        break;
-                }
-            }
-        }
-        
-        $_SESSION['success_message'] = "Benutzer erfolgreich aktualisiert!";
-        header("Location: " . $_SERVER['REQUEST_URI']);
-        exit;
-        
-    } catch (Exception $e) {
-        $_SESSION['error_message'] = "Fehler beim Bearbeiten des Benutzers: " . $e->getMessage();
-        header("Location: " . $_SERVER['REQUEST_URI']);
-        exit;
-    }
-}
 
 function handleDeleteUser($serviceManager, $db) {
     try {
-        $userId = $_POST['user_id'];
+        $userId = $_POST['user_id'] ?? '';
         $deleteFromSystems = $_POST['delete_from_systems'] ?? [];
+        
+        if (empty($userId)) {
+            echo json_encode(['success' => false, 'message' => 'Benutzer-ID ist erforderlich']);
+            return;
+        }
         
         // System-Verknüpfungen abrufen
         $stmt = $db->prepare("SELECT permission_type, resource_id FROM user_permissions WHERE user_id = ?");
@@ -425,16 +1254,20 @@ function handleDeleteUser($serviceManager, $db) {
             
             // Nur löschen wenn explizit gewünscht
             if (in_array($system, $deleteFromSystems)) {
-                switch ($system) {
-                    case 'ogp':
-                        $serviceManager->deleteOGPUser($systemUserId);
-                        break;
-                    case 'proxmox':
-                        $serviceManager->deleteProxmoxUser($systemUserId);
-                        break;
-                    case 'ispconfig':
-                        $serviceManager->deleteISPConfigClient($systemUserId);
-                        break;
+                try {
+                    switch ($system) {
+                        case 'ogp':
+                            $serviceManager->deleteOGPUser($systemUserId);
+                            break;
+                        case 'proxmox':
+                            $serviceManager->deleteProxmoxUser($systemUserId);
+                            break;
+                        case 'ispconfig':
+                            $serviceManager->deleteISPConfigClient($systemUserId);
+                            break;
+                    }
+                } catch (Exception $e) {
+                    error_log('Fehler beim Löschen im System ' . $system . ': ' . $e->getMessage());
                 }
             }
         }
@@ -447,14 +1280,10 @@ function handleDeleteUser($serviceManager, $db) {
         $stmt = $db->prepare("DELETE FROM users WHERE id = ?");
         $db->execute($stmt, [$userId]);
         
-        $_SESSION['success_message'] = "Benutzer erfolgreich gelöscht!";
-        header("Location: " . $_SERVER['REQUEST_URI']);
-        exit;
+        echo json_encode(['success' => true, 'message' => 'Benutzer erfolgreich gelöscht']);
         
     } catch (Exception $e) {
-        $_SESSION['error_message'] = "Fehler beim Löschen des Benutzers: " . $e->getMessage();
-        header("Location: " . $_SERVER['REQUEST_URI']);
-        exit;
+        echo json_encode(['success' => false, 'message' => 'Fehler beim Löschen des Benutzers: ' . $e->getMessage()]);
     }
 }
 
@@ -530,18 +1359,23 @@ function handleUpdatePassword($serviceManager, $db) {
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab">
+                                <i class="bi bi-person-plus"></i> <?= t('create_user') ?>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
                             <button class="nav-link" id="merge-tab" data-bs-toggle="tab" data-bs-target="#merge" type="button" role="tab">
-                                <i class="bi bi-arrow-left-right"></i> Benutzer zusammenführen
+                                <i class="bi bi-arrow-left-right"></i> <?= t('merge_users') ?>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="link-tab" data-bs-toggle="tab" data-bs-target="#link" type="button" role="tab">
-                                <i class="bi bi-arrow-left-right"></i> Bestehende Benutzer verknüpfen
+                                <i class="bi bi-arrow-left-right"></i> <?= t('link_users') ?>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">
-                                <i class="bi bi-people-fill"></i> Kundenverwaltung
+                                <i class="bi bi-people-fill"></i> <?= t('customers_management') ?>
                             </button>
                         </li>
                     </ul>
@@ -586,7 +1420,7 @@ function handleUpdatePassword($serviceManager, $db) {
                             <!-- API Fehler anzeigen -->
                             <?php if (!empty($apiErrors)): ?>
                                 <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                                    <h5><i class="bi bi-exclamation-triangle"></i> API-Warnungen</h5>
+                                    <h5><i class="bi bi-exclamation-triangle"></i> <?= t('api_warnings') ?></h5>
                                     <ul class="mb-0">
                                         <?php foreach ($apiErrors as $system => $error): ?>
                                             <li><strong><?= ucfirst($system) ?>:</strong> 
@@ -604,11 +1438,12 @@ function handleUpdatePassword($serviceManager, $db) {
                             
                             <!-- Debug-Informationen -->
                             <div class="alert alert-info alert-dismissible fade show" role="alert">
-                                <h6><i class="bi bi-info-circle"></i> API-Status</h6>
+                                <h6><i class="bi bi-info-circle"></i> <?= t('api_status') ?></h6>
                                 <ul class="mb-0">
-                                    <li><strong>OpenGamePanel:</strong> <?= is_array($ogpUsers) ? count($ogpUsers) . ' Benutzer' : 'Fehler: ' . gettype($ogpUsers) ?></li>
-                                    <li><strong>Proxmox:</strong> <?= is_array($proxmoxUsers) ? count($proxmoxUsers) . ' Benutzer' : 'Fehler: ' . gettype($proxmoxUsers) ?></li>
-                                    <li><strong>ISPConfig:</strong> <?= is_array($ispconfigClients) ? count($ispconfigClients) . ' Benutzer' : 'Fehler: ' . gettype($ispconfigClients) ?></li>
+                                    <li><strong><?= t('opengamepanel') ?>:</strong> <?= is_array($ogpUsers) ? count($ogpUsers) . ' ' . t('users') : 'Fehler: ' . gettype($ogpUsers) ?></li>
+                                    <li><strong><?= t('proxmox') ?>:</strong> <?= is_array($proxmoxUsers) ? count($proxmoxUsers) . ' ' . t('users') : 'Fehler: ' . gettype($proxmoxUsers) ?></li>
+                                    <li><strong><?= t('ispconfig') ?>:</strong> <?= is_array($ispconfigClients) ? count($ispconfigClients) . ' ' . t('users') : 'Fehler: ' . gettype($ispconfigClients) ?></li>
+                                    <li><strong><?= t('customers') ?>:</strong> <?= is_array($customersUsers) ? count($customersUsers) . ' ' . t('users') : 'Fehler: ' . gettype($customersUsers) ?></li>
                                 </ul>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
@@ -718,8 +1553,69 @@ function handleUpdatePassword($serviceManager, $db) {
                                     </div>
                                 </div>
                             </div>
+                            <!-- Kundenliste -->
+                            <div class="card mb-4">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0"><i class="bi bi-people-fill"></i> <?= t('customers') ?> <?= t('users') ?></h6>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="refreshUserList('customers')">
+                                            <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="showCreateCustomerModal()">
+                                            <i class="bi bi-plus-circle"></i> <?= t('create_customer') ?>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th><?= t('first_name') ?></th>
+                                                    <th><?= t('last_name') ?></th>
+                                                    <th><?= t('email') ?></th>
+                                                    <th><?= t('status') ?></th>
+                                                    <th><?= t('created') ?></th>
+                                                    <th><?= t('actions') ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($customersUsers as $user): ?>
+                                                    <tr>
+                                                        <td><?= htmlspecialchars($user['first_name']) ?></td>
+                                                        <td><?= htmlspecialchars($user['last_name']) ?></td>
+                                                        <td><?= htmlspecialchars($user['email']) ?></td>
+                                                        <td><?= htmlspecialchars($user['status']) ?></td>
+                                                        <td><?= htmlspecialchars($user['created_at']) ?></td>
+                                                        <td>
+                                                            <div class="btn-group" role="group">
+                                                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                                    onclick="editCustomer(<?= $user['id'] ?>)">
+                                                                    <i class="bi bi-pencil"></i>
+                                                                </button>
+                                                            </div>
+                                                            <div class="btn-group" role="group">
+                                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                                    onclick="deleteCustomer(<?= $user['id'] ?>, '<?= htmlspecialchars($user['email']) ?>')">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                                                            onclick="viewCustomerDetails(<?= $user['id'] ?>)">
+                                                                        <i class="bi bi-eye"></i>
+                                                                    </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                        </tbody>
+                                    </table>
+                                    </div>
+                                </div>
+                            </div>
 
-                                                         <!-- OGP Benutzer -->
+                             <!-- OGP Benutzer -->
                              <div class="card mb-4">
                                  <div class="card-header d-flex justify-content-between align-items-center">
                                      <h6 class="mb-0"><i class="bi bi-controller"></i> <?= t('opengamepanel') ?> <?= t('users') ?></h6>
@@ -794,10 +1690,12 @@ function handleUpdatePassword($serviceManager, $db) {
                             <!-- Proxmox Benutzer -->
                             <div class="card mb-4">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0"><i class="bi bi-server"></i> Proxmox <?= t('users') ?></h6>
+                                    <h6 class="mb-0"><i class="bi bi-server"></i> <?= t('proxmox') ?> <?= t('users') ?></h6>
+                                    <div class="btn-group">
                                     <button class="btn btn-sm btn-outline-primary" onclick="refreshUserList('proxmox')">
                                         <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
                                     </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <?php if (is_array($proxmoxUsers) && isset($proxmoxUsers['data']) && is_array($proxmoxUsers['data']) && count($proxmoxUsers['data']) > 0): ?>
@@ -841,7 +1739,7 @@ function handleUpdatePassword($serviceManager, $db) {
                             <!-- ISPConfig Benutzer -->
                             <div class="card mb-4">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0"><i class="bi bi-globe"></i> ISPConfig <?= t('users') ?></h6>
+                                    <h6 class="mb-0"><i class="bi bi-globe"></i> <?= t('ispconfig') ?> <?= t('users') ?></h6>
                                     <button class="btn btn-sm btn-outline-primary" onclick="refreshUserList('ispconfig')">
                                         <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
                                     </button>
@@ -872,9 +1770,9 @@ function handleUpdatePassword($serviceManager, $db) {
                                         <div class="alert alert-info">
                                             <i class="bi bi-info-circle"></i> 
                                             <?php if (is_array($ispconfigClients)): ?>
-                                                Keine ISPConfig Benutzer gefunden
+                                                <?= t('no_ispconfig_users_found') ?>
                                             <?php else: ?>
-                                                ISPConfig API Fehler: <?= htmlspecialchars(gettype($ispconfigClients)) ?>
+                                                <?= t('ispconfig_api_error') ?>: <?= htmlspecialchars(gettype($ispconfigClients)) ?>
                                             <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
@@ -882,11 +1780,58 @@ function handleUpdatePassword($serviceManager, $db) {
                             </div>
                         </div>
 
+                        <!-- Benutzer erstellen Tab -->
+                        <div class="tab-pane fade" id="create" role="tabpanel">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <strong><?= t('note') ?></strong> <?= t('new_system_user_note') ?>
+                            </div>
+                            
+                            <form id="createSystemUserForm">
+                                <input type="hidden" name="action" value="create_system_user">
+                                
+                                <!-- Grundlegende Benutzerdaten -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><?= t('new_system_user') ?></h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="createUsername" class="form-label"><?= t('username') ?> *</label>
+                                                <input type="text" class="form-control" id="createUsername" name="username" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="createEmail" class="form-label"><?= t('email') ?> *</label>
+                                                <input type="email" class="form-control" id="createEmail" name="email" required>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="createFullName" class="form-label"><?= t('full_name') ?> *</label>
+                                                <input type="text" class="form-control" id="createFullName" name="full_name" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="createPassword" class="form-label"><?= t('password') ?> *</label>
+                                                <input type="password" class="form-control" id="createPassword" name="password" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-person-plus"></i> <?= t('create_user') ?>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                         <!-- Benutzer zusammenführen Tab -->
                         <div class="tab-pane fade" id="merge" role="tabpanel">
                             <div class="alert alert-info">
                                 <i class="bi bi-info-circle"></i>
-                                <strong>Hinweis:</strong> Hier können Sie bestehende Benutzer aus verschiedenen Systemen zu einem Hauptbenutzer zusammenführen.
+                                <strong><?= t('note') ?></strong> <?= t('merge_users_note') ?>
                             </div>
                             
                             <?php
@@ -998,32 +1943,32 @@ function handleUpdatePassword($serviceManager, $db) {
                             <!-- Verknüpfungsstatus -->
                             <div class="card mb-4">
                                 <div class="card-header">
-                                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Verknüpfungsstatus</h6>
+                                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> <?= t('link_status') ?></h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="text-center">
                                                 <h4 class="text-primary"><?= count($adminUsers) ?></h4>
-                                                <small>Lokale Benutzer</small>
+                                                <small><?= t('local_users') ?></small>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="text-center">
                                                 <h4 class="text-success"><?= count($currentLinks) ?></h4>
-                                                <small>Aktive Verknüpfungen</small>
+                                                <small><?= t('active_links') ?></small>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="text-center">
                                                 <h4 class="text-warning"><?= count($emailGroups) ?></h4>
-                                                <small>E-Mail-Gruppen</small>
+                                                <small><?= t('email_groups') ?></small>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="text-center">
                                                 <h4 class="text-info"><?= count($mergeSuggestions) ?></h4>
-                                                <small>Verknüpfungsvorschläge</small>
+                                                <small><?= t('merge_suggestions') ?></small>
                                             </div>
                                         </div>
                                     </div>
@@ -1031,15 +1976,15 @@ function handleUpdatePassword($serviceManager, $db) {
                             </div>
                             
                             <?php if (!empty($mergeSuggestions)): ?>
-                                <h5>Verknüpfungsvorschläge:</h5>
+                                <h5><?= t('merge_suggestions') ?>:</h5>
                                 <?php foreach ($mergeSuggestions as $suggestion): ?>
                                     <div class="card mb-3">
                                         <div class="card-header d-flex justify-content-between align-items-center">
-                                            <strong>E-Mail: <?= htmlspecialchars($suggestion['email']) ?></strong>
+                                            <strong><?= t('email') ?>: <?= htmlspecialchars($suggestion['email']) ?></strong>
                                             <?php if (in_array(strtolower($suggestion['email']), $linkedEmails)): ?>
-                                                <span class="badge bg-success">Bereits verknüpft</span>
+                                                <span class="badge bg-success"><?= t('already_linked') ?></span>
                                             <?php else: ?>
-                                                <span class="badge bg-warning">Nicht verknüpft</span>
+                                                <span class="badge bg-warning"><?= t('not_linked') ?></span>
                                             <?php endif; ?>
                                         </div>
                                         <div class="card-body">
@@ -1047,40 +1992,40 @@ function handleUpdatePassword($serviceManager, $db) {
                                                 <input type="hidden" name="action" value="merge_users">
                                                 <div class="row">
                                                     <div class="col-md-2">
-                                                        <label>OpenGamePanel:</label>
+                                                        <label><?= t('opengamepanel') ?>:</label>
                                                         <?php if (isset($suggestion['systems']['ogp'])): ?>
                                                             <input type="text" class="form-control" value="<?= htmlspecialchars($suggestion['systems']['ogp']['users_login'] ?? $suggestion['systems']['ogp']['username'] ?? '') ?>" readonly>
                                                             <input type="hidden" name="system_users[ogp]" value="<?= htmlspecialchars($suggestion['systems']['ogp']['users_login'] ?? $suggestion['systems']['ogp']['username'] ?? '') ?>">
                                                         <?php else: ?>
-                                                            <span class="text-muted">Kein Benutzer</span>
+                                                            <span class="text-muted"><?= t('no_user') ?></span>
                                                         <?php endif; ?>
                                                     </div>
                                                     <div class="col-md-2">
-                                                        <label>Proxmox:</label>
+                                                        <label><?= t('proxmox') ?>:</label>
                                                         <?php if (isset($suggestion['systems']['proxmox'])): ?>
                                                             <input type="text" class="form-control" value="<?= htmlspecialchars($suggestion['systems']['proxmox']['userid'] ?? $suggestion['systems']['proxmox']['username'] ?? '') ?>" readonly>
                                                             <input type="hidden" name="system_users[proxmox]" value="<?= htmlspecialchars($suggestion['systems']['proxmox']['userid'] ?? $suggestion['systems']['proxmox']['username'] ?? '') ?>">
                                                         <?php else: ?>
-                                                            <span class="text-muted">Kein Benutzer</span>
+                                                            <span class="text-muted"><?= t('no_user') ?></span>
                                                         <?php endif; ?>
                                                     </div>
                                                     <div class="col-md-2">
-                                                        <label>ISPConfig:</label>
+                                                        <label><?= t('ispconfig') ?>:</label>
                                                         <?php if (isset($suggestion['systems']['ispconfig'])): ?>
                                                             <input type="text" class="form-control" value="<?= htmlspecialchars($suggestion['systems']['ispconfig']['username'] ?? $suggestion['systems']['ispconfig']['name'] ?? '') ?>" readonly>
                                                             <input type="hidden" name="system_users[ispconfig]" value="<?= htmlspecialchars($suggestion['systems']['ispconfig']['username'] ?? $suggestion['systems']['ispconfig']['name'] ?? '') ?>">
                                                         <?php else: ?>
-                                                            <span class="text-muted">Kein Benutzer</span>
+                                                            <span class="text-muted"><?= t('no_user') ?></span>
                                                         <?php endif; ?>
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <label>Lokaler Benutzer:</label>
+                                                        <label><?= t('local_user') ?>:</label>
                                                         <?php if (isset($suggestion['systems']['local'])): ?>
                                                             <input type="text" class="form-control" value="<?= htmlspecialchars($suggestion['systems']['local']['username']) ?>" readonly>
                                                             <input type="hidden" name="main_user_id" value="<?= htmlspecialchars($suggestion['systems']['local']['id']) ?>">
                                                         <?php else: ?>
                                                             <select name="main_user_id" class="form-select" required>
-                                                                <option value="">Benutzer auswählen</option>
+                                                                <option value=""><?= t('select_user') ?></option>
                                                                 <?php foreach ($adminUsers as $user): ?>
                                                                     <option value="<?= $user['id'] ?>"><?= htmlspecialchars($user['username']) ?></option>
                                                                 <?php endforeach; ?>
@@ -1088,15 +2033,15 @@ function handleUpdatePassword($serviceManager, $db) {
                                                         <?php endif; ?>
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <label>Aktionen:</label>
+                                                        <label><?= t('actions') ?>:</label>
                                                         <div class="d-grid">
                                                             <?php if (in_array(strtolower($suggestion['email']), $linkedEmails)): ?>
                                                                 <button type="button" class="btn btn-success btn-sm" disabled>
-                                                                    <i class="bi bi-check-circle"></i> Bereits verknüpft
+                                                                    <i class="bi bi-check-circle"></i> <?= t('already_linked') ?>
                                                                 </button>
                                                             <?php else: ?>
                                                                 <button type="submit" class="btn btn-primary btn-sm">
-                                                                    <i class="bi bi-link-45deg"></i> Verknüpfen
+                                                                    <i class="bi bi-link-45deg"></i> <?= t('link') ?>
                                                                 </button>
                                                             <?php endif; ?>
                                                         </div>
@@ -1109,19 +2054,19 @@ function handleUpdatePassword($serviceManager, $db) {
                             <?php else: ?>
                                 <div class="alert alert-success">
                                     <i class="bi bi-check-circle"></i>
-                                    Keine Zusammenführungsvorschläge gefunden. Alle Benutzer sind bereits korrekt verknüpft.
+                                    <?= t('no_merge_suggestions') ?>
                                 </div>
                             <?php endif; ?>
                             
                             <!-- Alle verfügbaren System-Benutzer anzeigen -->
                             <div class="card mt-4">
                                 <div class="card-header">
-                                    <h6 class="mb-0"><i class="bi bi-list-ul"></i> Alle verfügbaren System-Benutzer</h6>
+                                    <h6 class="mb-0"><i class="bi bi-list-ul"></i> <?= t('all_available_system_users') ?></h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-4">
-                                            <h6>OpenGamePanel Benutzer:</h6>
+                                            <h6><?= t('ogp_users') ?>:</h6>
                                             <?php if (is_array($ogpUsers) && isset($ogpUsers['message']) && count($ogpUsers['message']) > 0): ?>
                                                 <ul class="list-group">
                                                     <?php foreach (array_slice($ogpUsers['message'], 0, 10) as $user): ?>
@@ -1137,12 +2082,12 @@ function handleUpdatePassword($serviceManager, $db) {
                                                     <?php endforeach; ?>
                                                 </ul>
                                             <?php else: ?>
-                                                <p class="text-muted">Keine OGP Benutzer gefunden</p>
+                                                <p class="text-muted"><?= t('no_ogp_users') ?></p>
                                             <?php endif; ?>
                                         </div>
                                         
                                         <div class="col-md-4">
-                                            <h6>Proxmox Benutzer:</h6>
+                                            <h6><?= t('proxmox_users') ?>:</h6>
                                             <?php if (is_array($proxmoxUsers) && isset($proxmoxUsers['data']) && count($proxmoxUsers['data']) > 0): ?>
                                                 <ul class="list-group">
                                                     <?php foreach (array_slice($proxmoxUsers['data'], 0, 10) as $user): ?>
@@ -1158,12 +2103,12 @@ function handleUpdatePassword($serviceManager, $db) {
                                                     <?php endforeach; ?>
                                                 </ul>
                                             <?php else: ?>
-                                                <p class="text-muted">Keine Proxmox Benutzer gefunden</p>
+                                                <p class="text-muted"><?= t('no_proxmox_users') ?></p>
                                             <?php endif; ?>
                                         </div>
                                         
                                         <div class="col-md-4">
-                                            <h6>ISPConfig Benutzer:</h6>
+                                            <h6><?= t('ispconfig_users') ?>:</h6>
                                             <?php if (is_array($ispconfigClients) && count($ispconfigClients) > 0): ?>
                                                 <ul class="list-group">
                                                     <?php foreach (array_slice($ispconfigClients, 0, 10) as $user): ?>
@@ -1179,7 +2124,7 @@ function handleUpdatePassword($serviceManager, $db) {
                                                     <?php endforeach; ?>
                                                 </ul>
                                             <?php else: ?>
-                                                <p class="text-muted">Keine ISPConfig Benutzer gefunden</p>
+                                                <p class="text-muted"><?= t('no_ispconfig_users') ?></p>
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -1191,7 +2136,7 @@ function handleUpdatePassword($serviceManager, $db) {
                         <div class="tab-pane fade" id="link" role="tabpanel">
                             <div class="alert alert-info">
                                 <i class="bi bi-info-circle"></i>
-                                <strong>Hinweis:</strong> Hier können Sie einen neuen lokalen Benutzer anlegen und ihn mit bestehenden System-Benutzern verknüpfen.
+                                <strong><?= t('note') ?></strong> <?= t('link_users_note') ?>
                             </div>
                             
                             <form method="post">
@@ -1200,26 +2145,26 @@ function handleUpdatePassword($serviceManager, $db) {
                                 <!-- Grundlegende Benutzerdaten -->
                                 <div class="card mb-3">
                                     <div class="card-header">
-                                        <h6 class="mb-0">Neuer lokaler Benutzer</h6>
+                                        <h6 class="mb-0"><?= t('new_local_user') ?></h6>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label for="link_username" class="form-label">Benutzername *</label>
+                                                <label for="link_username" class="form-label"><?= t('username') ?> *</label>
                                                 <input type="text" class="form-control" id="link_username" name="username" required>
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label for="link_email" class="form-label">E-Mail *</label>
+                                                <label for="link_email" class="form-label"><?= t('email') ?> *</label>
                                                 <input type="email" class="form-control" id="link_email" name="email" required>
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label for="link_full_name" class="form-label">Vollständiger Name *</label>
+                                                <label for="link_full_name" class="form-label"><?= t('full_name') ?> *</label>
                                                 <input type="text" class="form-control" id="link_full_name" name="full_name" required>
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label for="link_password" class="form-label">Passwort *</label>
+                                                <label for="link_password" class="form-label"><?= t('password') ?> *</label>
                                                 <input type="password" class="form-control" id="link_password" name="password" required>
                                             </div>
                                         </div>
@@ -1229,14 +2174,14 @@ function handleUpdatePassword($serviceManager, $db) {
                                 <!-- Bestehende System-Benutzer verknüpfen -->
                                 <div class="card mb-3">
                                     <div class="card-header">
-                                        <h6 class="mb-0">Bestehende System-Benutzer verknüpfen</h6>
+                                        <h6 class="mb-0"><?= t('existing_system_users') ?></h6>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-4 mb-3">
-                                                <label for="link_ogp_user" class="form-label">OpenGamePanel Benutzer</label>
+                                                <label for="link_ogp_user" class="form-label"><?= t('ogp_users') ?></label>
                                                 <select class="form-select" id="link_ogp_user" name="systems[ogp]">
-                                                    <option value="">Keine Verknüpfung</option>
+                                                    <option value=""><?= t('no_link') ?></option>
                                                     <?php if (is_array($ogpUsers) && isset($ogpUsers['message'])): ?>
                                                         <?php foreach ($ogpUsers['message'] as $user): ?>
                                                             <option value="<?= htmlspecialchars($user['users_login'] ?? $user['username'] ?? '') ?>">
@@ -1248,9 +2193,9 @@ function handleUpdatePassword($serviceManager, $db) {
                                                 </select>
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label for="link_proxmox_user" class="form-label">Proxmox Benutzer</label>
+                                                <label for="link_proxmox_user" class="form-label"><?= t('proxmox_users') ?></label>
                                                 <select class="form-select" id="link_proxmox_user" name="systems[proxmox]">
-                                                    <option value="">Keine Verknüpfung</option>
+                                                    <option value=""><?= t('no_link') ?></option>
                                                     <?php if (is_array($proxmoxUsers) && isset($proxmoxUsers['data'])): ?>
                                                         <?php foreach ($proxmoxUsers['data'] as $user): ?>
                                                             <option value="<?= htmlspecialchars($user['userid'] ?? $user['username'] ?? '') ?>">
@@ -1262,9 +2207,9 @@ function handleUpdatePassword($serviceManager, $db) {
                                                 </select>
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label for="link_ispconfig_user" class="form-label">ISPConfig Benutzer</label>
+                                                <label for="link_ispconfig_user" class="form-label"><?= t('ispconfig_users') ?></label>
                                                 <select class="form-select" id="link_ispconfig_user" name="systems[ispconfig]">
-                                                    <option value="">Keine Verknüpfung</option>
+                                                    <option value=""><?= t('no_link') ?></option>
                                                     <?php foreach ($ispconfigClients as $user): ?>
                                                         <option value="<?= $user['client_id'] ?? $user['id'] ?? '' ?>">
                                                             <?= htmlspecialchars($user['username'] ?? 'Unbekannt') ?>
@@ -1277,7 +2222,7 @@ function handleUpdatePassword($serviceManager, $db) {
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-arrow-left-right"></i> Benutzer verknüpfen
+                                    <i class="bi bi-arrow-left-right"></i> <?= t('link_users') ?>
                                 </button>
                             </form>
                         </div>
@@ -1286,13 +2231,13 @@ function handleUpdatePassword($serviceManager, $db) {
                         <div class="tab-pane fade" id="customers" role="tabpanel">
                             <div class="alert alert-info">
                                 <i class="bi bi-info-circle"></i>
-                                Hier können Sie neue Kunden anlegen und bestehende verwalten.
+                                <strong><?= t('note') ?></strong> <?= t('customers_note') ?>
                             </div>
                             <div class="card mb-4">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0"><i class="bi bi-people-fill"></i> Kundenverwaltung</h6>
+                                    <h6 class="mb-0"><i class="bi bi-people-fill"></i> <?= t('customers_management') ?></h6>
                                     <button class="btn btn-sm btn-primary" onclick="showCreateCustomerModal()">
-                                        <i class="bi bi-plus-circle"></i> Neuen Kunden anlegen
+                                        <i class="bi bi-plus-circle"></i> <?= t('create_customer') ?>
                                     </button>
                                 </div>
                                 <div class="card-body">
@@ -1320,13 +2265,13 @@ function handleUpdatePassword($serviceManager, $db) {
                                             <thead>
                                                 <tr>
                                                     <th><?= t('customer_id') ?></th>
-                                                    <th>Name</th>
-                                                    <th>E-Mail</th>
-                                                    <th>Firma</th>
-                                                    <th>Telefon</th>
-                                                    <th>Status</th>
-                                                    <th>Registriert am</th>
-                                                    <th>Aktionen</th>
+                                                        <th><?= t('name') ?></th>
+                                                    <th><?= t('email') ?></th>
+                                                    <th><?= t('company') ?></th>
+                                                    <th><?= t('phone') ?></th>
+                                                    <th><?= t('status') ?></th>
+                                                    <th><?= t('registered_at') ?></th>
+                                                    <th><?= t('actions') ?></th>
                                                 </tr>
                                             </thead>
                                             <tbody id="customersTableBody">
@@ -1351,23 +2296,23 @@ function handleUpdatePassword($serviceManager, $db) {
                                                                 switch ($customer['status']) {
                                                                     case 'pending':
                                                                         $statusClass = 'warning';
-                                                                        $statusText = 'Ausstehend';
+                                                                        $statusText = t('pending');
                                                                         break;
                                                                     case 'active':
                                                                         $statusClass = 'success';
-                                                                        $statusText = 'Aktiv';
+                                                                        $statusText = t('active');
                                                                         break;
                                                                     case 'suspended':
                                                                         $statusClass = 'danger';
-                                                                        $statusText = 'Gesperrt';
+                                                                        $statusText = t('suspended');
                                                                         break;
                                                                     case 'deleted':
                                                                         $statusClass = 'secondary';
-                                                                        $statusText = 'Gelöscht';
+                                                                        $statusText = t('deleted');
                                                                         break;
                                                                     default:
                                                                         $statusClass = 'secondary';
-                                                                        $statusText = 'Unbekannt';
+                                                                        $statusText = t('unknown');
                                                                 }
                                                                 ?>
                                                                 <span class="badge bg-<?= $statusClass ?>"><?= $statusText ?></span>
@@ -1381,18 +2326,18 @@ function handleUpdatePassword($serviceManager, $db) {
                                                                         <input type="hidden" name="action" value="activate_customer">
                                                                         <input type="hidden" name="customer_id" value="<?= $customer['id'] ?>">
                                                                         <button type="submit" class="btn btn-success btn-sm" title="Kunde aktivieren">
-                                                                            <i class="bi bi-check"></i> Aktivieren
+                                                                            <i class="bi bi-check"></i> <?= t('activate') ?>
                                                                         </button>
                                                                     </form>
                                                                 <?php elseif ($customer['status'] === 'active'): ?>
                                                                     <span class="text-success">
-                                                                        <i class="bi bi-check-circle"></i> Aktiviert
+                                                                        <i class="bi bi-check-circle"></i> <?= t('activated') ?>
                                                                     </span>
                                                                 <?php endif; ?>
                                                                 
                                                                 <button type="button" class="btn btn-info btn-sm ms-1" 
                                                                         onclick="showCustomerDetails(<?= $customer['id'] ?>)" 
-                                                                        title="Details anzeigen">
+                                                                        title="<?= t('show_details') ?>">
                                                                     <i class="bi bi-eye"></i>
                                                                 </button>
                                                             </td>
@@ -1421,62 +2366,124 @@ function handleUpdatePassword($serviceManager, $db) {
 
 <!-- Modal für Benutzer bearbeiten -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editUserModalLabel">Benutzer bearbeiten</h5>
+                <h5 class="modal-title" id="editUserModalLabel"><?= t('edit_user') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post">
+            <form id="editUserForm">
                 <input type="hidden" name="action" value="edit_user">
                 <input type="hidden" id="editUserId" name="user_id">
                 <div class="modal-body">
+                    <!-- Grundlegende Informationen -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-person"></i> <?= t('basic_information') ?></h6>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="editUsername" class="form-label">Benutzername *</label>
+                            <label for="editUsername" class="form-label"><?= t('username') ?> *</label>
                             <input type="text" class="form-control" id="editUsername" name="username" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="editEmail" class="form-label">E-Mail *</label>
+                            <label for="editEmail" class="form-label"><?= t('email') ?> *</label>
                             <input type="email" class="form-control" id="editEmail" name="email" required>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="editFullName" class="form-label">Vollständiger Name</label>
+                            <label for="editFullName" class="form-label"><?= t('full_name') ?></label>
                             <input type="text" class="form-control" id="editFullName" name="full_name">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="editRole" class="form-label">Rolle</label>
+                            <label for="editRole" class="form-label"><?= t('role') ?></label>
                             <select class="form-select" id="editRole" name="role">
-                                <option value="user">Benutzer</option>
-                                <option value="admin">Administrator</option>
+                                <option value="user"><?= t('user') ?></option>
+                                <option value="admin"><?= t('admin') ?></option>
                             </select>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="editActive" class="form-label">Status</label>
+                            <label for="editActive" class="form-label"><?= t('status') ?></label>
                             <select class="form-select" id="editActive" name="active">
-                                <option value="y">Aktiv</option>
-                                <option value="n">Inaktiv</option>
+                                <option value="y"><?= t('active') ?></option>
+                                <option value="n"><?= t('inactive') ?></option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="editPassword" class="form-label">Neues Passwort (leer lassen für keine Änderung)</label>
+                            <label for="editGroupId" class="form-label"><?= t('group_id') ?></label>
+                            <input type="number" class="form-control" id="editGroupId" name="group_id">
+                        </div>
+                    </div>
+                    
+                    <!-- Sicherheitsinformationen -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-shield-lock"></i> <?= t('security_information') ?></h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editPassword" class="form-label"><?= t('new_password') ?> (<?= t('leave_empty_no_change') ?>)</label>
                             <input type="password" class="form-control" id="editPassword" name="password">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editFailedLoginAttempts" class="form-label"><?= t('failed_login_attempts') ?></label>
+                            <input type="number" class="form-control" id="editFailedLoginAttempts" name="failed_login_attempts" min="0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editLockedUntil" class="form-label"><?= t('locked_until') ?></label>
+                            <input type="datetime-local" class="form-control" id="editLockedUntil" name="locked_until">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editPasswordChangedAt" class="form-label"><?= t('password_changed_at') ?></label>
+                            <input type="datetime-local" class="form-control" id="editPasswordChangedAt" name="password_changed_at" readonly>
+                        </div>
+                    </div>
+                    
+                    <!-- Zeitstempel -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-clock"></i> <?= t('timestamps') ?></h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editLastLogin" class="form-label"><?= t('last_login') ?></label>
+                            <input type="datetime-local" class="form-control" id="editLastLogin" name="last_login" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCreatedAt" class="form-label"><?= t('created_at') ?></label>
+                            <input type="datetime-local" class="form-control" id="editCreatedAt" name="created_at" readonly>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editUpdatedAt" class="form-label"><?= t('updated_at') ?></label>
+                            <input type="datetime-local" class="form-control" id="editUpdatedAt" name="updated_at" readonly>
+                        </div>
+                    </div>
+                    
+                    <!-- System-Verknüpfungen -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-link-45deg"></i> <?= t('system_links') ?></h6>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">System-Verknüpfungen</label>
                         <div id="editSystemLinks" class="p-2 border rounded">
                             <!-- System-Verknüpfungen werden hier dynamisch eingefügt -->
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Speichern</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                    <button type="submit" class="btn btn-primary"><?= t('save') ?></button>
                 </div>
             </form>
         </div>
@@ -1485,18 +2492,292 @@ function handleUpdatePassword($serviceManager, $db) {
 
 <!-- Modal für Benutzerdetails -->
 <div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="userDetailsModalLabel">Benutzerdetails</h5>
+                <h5 class="modal-title" id="userDetailsModalLabel"><?= t('user_details') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Benutzerdetails werden hier dynamisch eingefügt -->
+                <div id="userDetailsContent">
+                    <!-- Benutzerdetails werden hier dynamisch eingefügt -->
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('close') ?></button>
+                <button type="button" class="btn btn-primary" id="editUserFromDetailsBtn" style="display: none;"><?= t('edit_user') ?></button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Kundendetails -->
+<div class="modal fade" id="customerDetailsModal" tabindex="-1" aria-labelledby="customerDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerDetailsModalLabel"><?= t('customer_details') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="customerDetailsContent">
+                    <!-- Kundendetails werden hier dynamisch eingefügt -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('close') ?></button>
+                <button type="button" class="btn btn-primary" id="editCustomerFromDetailsBtn" style="display: none;"><?= t('edit_customer') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Kunde erstellen -->
+<div class="modal fade" id="createCustomerModal" tabindex="-1" aria-labelledby="createCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createCustomerModalLabel"><?= t('create_customer') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                <input type="hidden" name="action" value="create_customer">
+                <div class="modal-body">
+                    <!-- Grundlegende Informationen -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-person"></i> <?= t('basic_information') ?></h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="createCustomerFirstName" class="form-label"><?= t('first_name') ?> *</label>
+                            <input type="text" class="form-control" id="createCustomerFirstName" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="createCustomerLastName" class="form-label"><?= t('last_name') ?> *</label>
+                            <input type="text" class="form-control" id="createCustomerLastName" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="createCustomerEmail" class="form-label"><?= t('email') ?> *</label>
+                            <input type="email" class="form-control" id="createCustomerEmail" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="createCustomerCompany" class="form-label"><?= t('company') ?></label>
+                            <input type="text" class="form-control" id="createCustomerCompany" name="company">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="createCustomerPhone" class="form-label"><?= t('phone') ?></label>
+                            <input type="tel" class="form-control" id="createCustomerPhone" name="phone">
+                        </div>
+                    </div>
+                    
+                    <!-- Adressinformationen -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-geo-alt"></i> <?= t('address_information') ?></h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="createCustomerAddress" class="form-label"><?= t('address') ?></label>
+                            <textarea class="form-control" id="createCustomerAddress" name="address" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="createCustomerCity" class="form-label"><?= t('city') ?></label>
+                            <input type="text" class="form-control" id="createCustomerCity" name="city">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="createCustomerPostalCode" class="form-label"><?= t('postal_code') ?></label>
+                            <input type="text" class="form-control" id="createCustomerPostalCode" name="postal_code">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="createCustomerCountry" class="form-label"><?= t('country') ?></label>
+                            <input type="text" class="form-control" id="createCustomerCountry" name="country">
+                        </div>
+                    </div>
+                    
+                    <!-- Sicherheit und Status -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-shield-check"></i> <?= t('security_and_status') ?></h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="createCustomerPassword" class="form-label"><?= t('password') ?> *</label>
+                            <input type="password" class="form-control" id="createCustomerPassword" name="password" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="createCustomerPasswordConfirm" class="form-label"><?= t('confirm_password') ?> *</label>
+                            <input type="password" class="form-control" id="createCustomerPasswordConfirm" name="password_confirm" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="createCustomerStatus" class="form-label"><?= t('status') ?></label>
+                            <select class="form-select" id="createCustomerStatus" name="status">
+                                <option value="pending"><?= t('pending') ?></option>
+                                <option value="active"><?= t('active') ?></option>
+                                <option value="suspended"><?= t('suspended') ?></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><?= t('email_verification') ?></label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="createCustomerEmailVerified" name="email_verified" value="1">
+                                <label class="form-check-label" for="createCustomerEmailVerified">
+                                    <?= t('email_verified') ?>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                    <button type="submit" class="btn btn-success"><?= t('create_customer') ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Kunde bearbeiten -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCustomerModalLabel"><?= t('edit_customer') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editCustomerForm">
+                <input type="hidden" name="action" value="edit_customer">
+                <input type="hidden" id="editCustomerId" name="customer_id">
+                <div class="modal-body">
+                    <!-- Grundlegende Informationen -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-person"></i> <?= t('basic_information') ?></h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerFirstName" class="form-label"><?= t('first_name') ?> *</label>
+                            <input type="text" class="form-control" id="editCustomerFirstName" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerLastName" class="form-label"><?= t('last_name') ?> *</label>
+                            <input type="text" class="form-control" id="editCustomerLastName" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerFullName" class="form-label"><?= t('full_name') ?></label>
+                            <input type="text" class="form-control" id="editCustomerFullName" name="full_name">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerEmail" class="form-label"><?= t('email') ?> *</label>
+                            <input type="email" class="form-control" id="editCustomerEmail" name="email" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerCompany" class="form-label"><?= t('company') ?></label>
+                            <input type="text" class="form-control" id="editCustomerCompany" name="company">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerPhone" class="form-label"><?= t('phone') ?></label>
+                            <input type="tel" class="form-control" id="editCustomerPhone" name="phone">
+                        </div>
+                    </div>
+                    
+                    <!-- Adressinformationen -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-geo-alt"></i> <?= t('address_information') ?></h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="editCustomerAddress" class="form-label"><?= t('address') ?></label>
+                            <textarea class="form-control" id="editCustomerAddress" name="address" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="editCustomerCity" class="form-label"><?= t('city') ?></label>
+                            <input type="text" class="form-control" id="editCustomerCity" name="city">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editCustomerPostalCode" class="form-label"><?= t('postal_code') ?></label>
+                            <input type="text" class="form-control" id="editCustomerPostalCode" name="postal_code">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editCustomerCountry" class="form-label"><?= t('country') ?></label>
+                            <input type="text" class="form-control" id="editCustomerCountry" name="country">
+                        </div>
+                    </div>
+                    
+                    <!-- Status und Sicherheit -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-shield-check"></i> <?= t('status_and_security') ?></h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerStatus" class="form-label"><?= t('status') ?></label>
+                            <select class="form-select" id="editCustomerStatus" name="status">
+                                <option value="pending"><?= t('pending') ?></option>
+                                <option value="active"><?= t('active') ?></option>
+                                <option value="suspended"><?= t('suspended') ?></option>
+                                <option value="deleted"><?= t('deleted') ?></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerPassword" class="form-label"><?= t('new_password') ?> (<?= t('leave_empty_no_change') ?>)</label>
+                            <input type="password" class="form-control" id="editCustomerPassword" name="password">
+                        </div>
+                    </div>
+                    
+                    <!-- Zeitstempel -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-clock"></i> <?= t('timestamps') ?></h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerEmailVerifiedAt" class="form-label"><?= t('email_verified_at') ?></label>
+                            <input type="datetime-local" class="form-control" id="editCustomerEmailVerifiedAt" name="email_verified_at" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerLastLogin" class="form-label"><?= t('last_login') ?></label>
+                            <input type="datetime-local" class="form-control" id="editCustomerLastLogin" name="last_login" readonly>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerCreatedAt" class="form-label"><?= t('created_at') ?></label>
+                            <input type="datetime-local" class="form-control" id="editCustomerCreatedAt" name="created_at" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCustomerUpdatedAt" class="form-label"><?= t('updated_at') ?></label>
+                            <input type="datetime-local" class="form-control" id="editCustomerUpdatedAt" name="updated_at" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                    <button type="submit" class="btn btn-primary"><?= t('save') ?></button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -1506,46 +2787,97 @@ function handleUpdatePassword($serviceManager, $db) {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteUserModalLabel">Benutzer löschen</h5>
+                <h5 class="modal-title" id="deleteUserModalLabel"><?= t('delete_user') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post">
+            <form id="deleteUserForm">
                 <input type="hidden" name="action" value="delete_user">
                 <input type="hidden" id="deleteUserId" name="user_id">
                 <div class="modal-body">
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle"></i>
-                        <strong>Achtung:</strong> Sie sind dabei, den Benutzer "<span id="deleteUsername"></span>" zu löschen.
+                        <strong><?= t('attention') ?>:</strong> <?= t('you_are_deleting_the_user') ?> "<span id="deleteUsername"></span>".
                     </div>
-                    <p>Bitte wählen Sie aus, aus welchen Systemen der Benutzer gelöscht werden soll:</p>
+                    <p><?= t('please_select_which_systems_the_user_should_be_deleted_from') ?>:</p>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="deleteFromLocal" name="delete_from_systems[]" value="local" checked>
                         <label class="form-check-label" for="deleteFromLocal">
-                            Lokaler Benutzer (immer gelöscht)
+                            <?= t('local_user') ?> (<?= t('always_deleted') ?>)
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="deleteFromOGP" name="delete_from_systems[]" value="ogp">
                         <label class="form-check-label" for="deleteFromOGP">
-                            OpenGamePanel Benutzer
+                            <?= t('ogp_user') ?>
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="deleteFromProxmox" name="delete_from_systems[]" value="proxmox">
                         <label class="form-check-label" for="deleteFromProxmox">
-                            Proxmox Benutzer
+                            <?= t('proxmox_user') ?>
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="deleteFromISPConfig" name="delete_from_systems[]" value="ispconfig">
                         <label class="form-check-label" for="deleteFromISPConfig">
-                            ISPConfig Benutzer
+                            <?= t('ispconfig_user') ?>
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-danger">Löschen</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                    <button type="submit" class="btn btn-danger"><?= t('delete') ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Kunde löschen -->
+<div class="modal fade" id="deleteCustomerModal" tabindex="-1" aria-labelledby="deleteCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCustomerModalLabel"><?= t('delete_customer') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="deleteCustomerForm">
+                <input type="hidden" name="action" value="delete_customer">
+                <input type="hidden" id="deleteCustomerId" name="customer_id">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong><?= t('attention') ?>:</strong> <?= t('use_delete_customers') ?>
+                    </div>
+                    <p><?= t('please_select_which_systems_the_customer_should_be_deleted_from') ?>:</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="deleteCustomerFromLocal" name="delete_from_systems[]" value="local" checked>
+                        <label class="form-check-label" for="deleteCustomerFromLocal">
+                            <?= t('local_customer') ?> (<?= t('always_deleted') ?>)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="deleteCustomerFromOGP" name="delete_from_systems[]" value="ogp">
+                        <label class="form-check-label" for="deleteCustomerFromOGP">
+                            <?= t('ogp_customer') ?>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="deleteCustomerFromProxmox" name="delete_from_systems[]" value="proxmox">
+                        <label class="form-check-label" for="deleteCustomerFromProxmox">
+                            <?= t('proxmox_customer') ?>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="deleteCustomerFromISPConfig" name="delete_from_systems[]" value="ispconfig">
+                        <label class="form-check-label" for="deleteCustomerFromISPConfig">
+                            <?= t('ispconfig_customer') ?>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('cancel') ?></button>
+                    <button type="submit" class="btn btn-danger"><?= t('delete') ?></button>
                 </div>
             </form>
         </div>
@@ -1557,14 +2889,14 @@ function handleUpdatePassword($serviceManager, $db) {
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="customerDetailsModalLabel">Kundendetails</h5>
+                <h5 class="modal-title" id="customerDetailsModalLabel"><?= t('customer_details') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="customerDetailsContent">
                 <!-- Wird dynamisch geladen -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= t('close') ?></button>
             </div>
         </div>
     </div>

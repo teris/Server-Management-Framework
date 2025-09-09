@@ -3,7 +3,7 @@
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.1.4
+ * @version 3.2.0
  */
 
 // LanguageManager einbinden (falls verfügbar)
@@ -137,7 +137,7 @@ $plugins = array (
   array (
     'enabled' => true,
     'name' => 'Migration',
-    'icon' => '',
+    'icon' => '💱',
     'path' => 'module/migration',
     'version' => '1.0.0',
     'description' => 'Migrien von Daten aus Systemen',
@@ -410,12 +410,23 @@ function getAvailableLanguages() {
 }
 
 // Enhanced Translation Helper Functions
-function t($key, $default = null, $module_key = null) {
+function t($key, $default = null, $module_key = null, $debug = null) {
+    static $allKeys = []; // hier merken wir uns alles
+    
     $lm = getLanguageManager();
     if (!$lm) {
         return $default !== null ? $default : $key;
     }
-    
+     // Key immer speichern (außer debug, weil das sonst auch in der Liste landet)
+     if ($key !== 'debug') {
+        $allKeys[] = $key;
+    }
+
+    // Wenn "debug" aufgerufen wird → alle Keys zurückgeben
+    if ($key === 'debug' && $debug) {
+        return array_unique($allKeys);
+    }
+
     // Wenn kein Modul angegeben wurde, versuche das aktuelle Modul zu erkennen
     if ($module_key === null) {
         $module_key = getCurrentModule();
@@ -425,6 +436,7 @@ function t($key, $default = null, $module_key = null) {
     if ($module_key && $module_key !== 'core') {
         return $lm->translate($module_key, $key, $default);
     }
+
     
     // Fallback auf Core-Übersetzungen
     return $lm->translateCore($key, $default);

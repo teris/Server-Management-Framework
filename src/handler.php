@@ -23,6 +23,21 @@ $legacy_actions = [
     'get_all_virtual_macs' => 'admin',
     'get_activity_log' => 'admin',
     
+    // Users Module Actions
+    'get_user_data' => 'users',
+    'get_user_details' => 'users',
+    'get_user_system_links' => 'users',
+    'get_customer_details' => 'users',
+    'edit_system_user' => 'users',
+    'delete_system_user' => 'users',
+    'edit_customer' => 'users',
+    'create_customer' => 'users',
+    'get_customers' => 'users',
+    'create_system_user' => 'users',
+    'edit_user' => 'users',
+    'delete_customer' => 'users',
+    'delete_user' => 'users',
+    
     // Proxmox Module Actions
     'create_vm' => 'proxmox',
     'get_proxmox_nodes' => 'proxmox',

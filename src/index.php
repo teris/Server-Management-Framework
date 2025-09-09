@@ -101,6 +101,24 @@ if (isset($_POST['action'])) {
         exit;
     }
     
+    // Users Module AJAX Actions (direkt verarbeiten)
+    if (isset($_GET['option']) && $_GET['option'] === 'users' && isset($_POST['action'])) {
+        $action = $_POST['action'];
+        
+        // Debug-Log
+        error_log("index.php: Users module request - action: $action");
+        
+        // Neue AJAX-Aktionen für erweiterte Dialogfelder
+        if (in_array($action, ['get_user_data', 'get_user_details', 'get_user_system_links', 'get_customer_details', 'edit_system_user', 'delete_system_user', 'edit_customer', 'create_customer', 'get_customers', 'create_system_user', 'edit_user', 'delete_customer', 'delete_user'])) {
+            // Diese Aktionen werden in users.php verarbeitet
+            error_log("index.php: Including users.php for action: $action");
+            include('inc/users.php');
+            exit;
+        } else {
+            error_log("index.php: Action $action not found in users module actions");
+        }
+    }
+    
     // Plugin Actions
     if (isset($_POST['plugin'])) {
         $plugin_key = $_POST['plugin'];
@@ -566,7 +584,7 @@ try {
                                             handleRevokeAccess($serviceManager, $db);
                                             break;
                                         case 'edit_user':
-                                            handleEditUser($serviceManager, $db);
+                                            handleEditUser($db);
                                             break;
                                         case 'delete_user':
                                             handleDeleteUser($serviceManager, $db);
@@ -658,7 +676,9 @@ try {
                                 <p>Links</p>
                             </div>
                             <div class="col-4">
-                                <p>center</p>
+                                <p><pre><?php
+                               // print_r(t('debug', null, null, true));
+                                ?></pre></p>
                             </div>
                             <div class="col-4">
                                 <p>right</p>
