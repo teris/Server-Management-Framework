@@ -1079,6 +1079,7 @@
     
     <!-- Manual Updater -->
     <manual_updater_title>Manual Updater</manual_updater_title>
+    <manual_updater>Manual Updater</manual_updater>
     <update_check>Update Check</update_check>
     <system_info>System Information</system_info>
     <current_version>Current Version</current_version>
@@ -1273,4 +1274,67 @@
     <ogp_customer>OpenGamePanel Customer</ogp_customer>
     <proxmox_customer>Proxmox Customer</proxmox_customer>
     <ispconfig_customer>ISPConfig Customer</ispconfig_customer>
+    
+    <!-- TODO: E-Mail-Template-System Translations -->
+    <email_templates>E-Mail Templates</email_templates>
+    <email_template_management>E-Mail Template Management</email_template_management>
+    <template_name>Template Name</template_name>
+    <template_subject>E-Mail Subject</template_subject>
+    <template_content>Template Content</template_content>
+    <template_variables>Template Variables</template_variables>
+    <available_variables>Available Variables</available_variables>
+    <template_preview>Template Preview</template_preview>
+    <test_email>Send Test Email</test_email>
+    <create_new_template>Create New Template</create_new_template>
+    <edit_template>Edit Template</edit_template>
+    <delete_template>Delete Template</delete_template>
+    <save_template>Save Template</save_template>
+    <template_saved>Template saved successfully</template_saved>
+    <template_deleted>Template deleted successfully</template_deleted>
+    <template_not_found>Template not found</template_not_found>
+    <template_name_required>Template name is required</template_name_required>
+    <template_subject_required>E-Mail subject is required</template_subject_required>
+    <template_content_required>Template content is required</template_content_required>
+    <html_template>HTML Template</html_template>
+    <raw_text_template>Raw Text Template</raw_text_template>
+    <style_editor>Style Editor</style_editor>
+    <background_color>Background Color</background_color>
+    <text_color>Text Color</text_color>
+    <primary_color>Primary Color</primary_color>
+    <font_family>Font Family</font_family>
+    <font_size>Font Size</font_size>
+    <line_height>Line Height</line_height>
+    <apply_styles>Apply Styles</apply_styles>
+    <reset_styles>Reset Styles</reset_styles>
+    <styles_applied>Styles applied successfully</styles_applied>
+    <styles_reset>Styles reset</styles_reset>
+    <template_type>Template Type</template_type>
+    <existing_templates>Existing Templates</existing_templates>
+    <no_templates_available>No templates available</no_templates_available>
+    <template_created>Template created on</template_created>
+    <template_updated>Template updated on</template_updated>
+    <preview_with_sample_data>Preview with sample data</preview_with_sample_data>
+    <close_preview>Close Preview</close_preview>
+    <close_editor>Close Editor</close_editor>
+    <unsaved_changes_warning>Unsaved changes will be lost. Continue?</unsaved_changes_warning>
+    <save_template_first>Please save the template first before creating a preview.</save_template_first>
+    <template_variables_info>Available variables for templates:</template_variables_info>
+    <variable_firstname>First Name</variable_firstname>
+    <variable_lastname>Last Name</variable_lastname>
+    <variable_email>E-Mail Address</variable_email>
+    <variable_username>Username</variable_username>
+    <variable_password>Password</variable_password>
+    <variable_login_url>Login URL</variable_login_url>
+    <variable_verification_link>Verification Link</variable_verification_link>
+    <variable_site_name>Website Name</variable_site_name>
+    <variable_system_credentials>System Credentials</variable_system_credentials>
+    <variable_support_email>Support E-Mail</variable_support_email>
+    <variable_system_email>System E-Mail</variable_system_email>
+    <default_templates_created>Default templates created</default_templates_created>
+    <email_template_system_available>E-Mail template system available</email_template_system_available>
+    <email_template_system_not_available>E-Mail template system not available</email_template_system_not_available>
+    <customer_welcome_email>Customer Welcome E-Mail</customer_welcome_email>
+    <customer_verification_email>Customer Verification E-Mail</customer_verification_email>
+    <backend_user_welcome_email>Backend User Welcome E-Mail</backend_user_welcome_email>
+    <system_credentials_email>System Credentials E-Mail</system_credentials_email>
 </translations> 

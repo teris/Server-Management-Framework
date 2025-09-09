@@ -12,6 +12,8 @@
 require_once '../src/sys.conf.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
+// TODO: E-Mail-Template-System ist jetzt über EmailTemplateManager verfügbar
+require_once '../src/core/EmailTemplateManager.php';
 
 // Sprache setzen
 $lang = LanguageManager::getInstance();
@@ -84,8 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($result) {
                     $customerId = $pdo->lastInsertId();
                     
-                    // Verifikations-E-Mail senden
-                    sendVerificationEmail($email, $firstName, $customerId);
+                    // TODO: Verifikations-E-Mail senden - ausschließlich über Template-System
+                    $emailTemplateManager = EmailTemplateManager::getInstance();
+                    $emailTemplateManager->sendCustomerVerificationEmail($email, $firstName, $customerId, $password);
                     
                     // Erfolgs-Nachricht
                     $success = t('registration_successful') . ' ' . t('please_verify_your_email_address');
@@ -298,64 +301,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 
 <?php
-/**
- * Verifikations-E-Mail senden
- */
-function sendVerificationEmail($email, $firstName, $customerId) {
-    try {
-        $verificationToken = bin2hex(random_bytes(32));
-        $expires = date('Y-m-d H:i:s', strtotime('+24 hours'));
-        
-        // Token in Datenbank speichern
-        $db = Database::getInstance();
-        $stmt = $db->prepare("INSERT INTO customer_verification_tokens (customer_id, token, expires_at) VALUES (?, ?, ?)");
-        $stmt->execute([$customerId, $verificationToken, $expires]);
-        
-        $to = $email;
-        $subject = "E-Mail-Adresse bestätigen - " . Config::FRONTPANEL_SITE_NAME;
-        
-        $verificationLink = "https://" . $_SERVER['HTTP_HOST'] . "/public/verify.php?token=" . $verificationToken;
-        
-        $message = "
-        <html>
-        <head>
-            <title>E-Mail-Adresse bestätigen</title>
-        </head>
-        <body>
-            <h2>Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "!</h2>
-            <p>Hallo {$firstName},</p>
-            <p>vielen Dank für Ihre Registrierung. Um Ihr Konto zu aktivieren, bestätigen Sie bitte Ihre E-Mail-Adresse.</p>
-            
-            <div style='text-align: center; margin: 30px 0;'>
-                <a href='{$verificationLink}' 
-                   style='background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block;'>
-                    E-Mail-Adresse bestätigen
-                </a>
-            </div>
-            
-            <p>Falls der Button nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:</p>
-            <p style='word-break: break-all; color: #666;'>{$verificationLink}</p>
-            
-            <p>Dieser Link ist 24 Stunden gültig.</p>
-            
-            <p>Mit freundlichen Grüßen<br>
-            Ihr " . Config::FRONTPANEL_SITE_NAME . " Team</p>
-        </body>
-        </html>
-        ";
-        
-        $headers = [
-            'MIME-Version: 1.0',
-            'Content-type: text/html; charset=utf-8',
-            'From: ' . Config::FRONTPANEL_SYSTEM_EMAIL,
-            'Reply-To: ' . Config::FRONTPANEL_SUPPORT_EMAIL,
-            'X-Mailer: PHP/' . phpversion()
-        ];
-        
-        mail($to, $subject, $message, implode("\r\n", $headers));
-        
-    } catch (Exception $e) {
-        error_log("Failed to send verification email: " . $e->getMessage());
-    }
-}
+// TODO: Alte E-Mail-Funktion entfernt - wird jetzt über EmailTemplateManager::sendCustomerVerificationEmail() verwendet
 ?>

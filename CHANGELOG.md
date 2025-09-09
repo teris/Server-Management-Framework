@@ -2,6 +2,74 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.2.2]
+
+### Hinzugefügt
+
+- Template erstellen:
+1. Navigieren Sie zu **E-Mail-Templates** im Backend
+2. Klicken Sie auf **"Neues Template"**
+3. Geben Sie einen Template-Namen und E-Mail-Betreff ein
+4. Wählen Sie zwischen **HTML** oder **Raw Text**
+5. Geben Sie den Template-Inhalt ein
+6. Verwenden Sie den **Style-Editor** für visuelle Anpassungen
+7. Speichern Sie das Template
+
+- Verfügbare Variablen:
+Folgende Variablen können in Templates verwendet werden:
+
+- `{firstName}` - Vorname des Empfängers
+- `{lastName}` - Nachname des Empfängers
+- `{email}` - E-Mail-Adresse des Empfängers
+- `{username}` - Benutzername
+- `{password}` - Passwort
+- `{loginUrl}` - Login-URL
+- `{verificationLink}` - Verifikations-Link
+- `{site_name}` - Website-Name
+- `{systemCredentials}` - System-Anmeldedaten (HTML)
+- `{support_email}` - Support-E-Mail
+- `{system_email}` - System-E-Mail
+
+Standard-Templates:
+Das System erstellt automatisch folgende Standard-Templates:
+
+1. **Kunden-Willkommens-E-Mail** - Für sofort aktivierte Kunden
+2. **Kunden-Verifikations-E-Mail** - Für E-Mail-Verifikation
+3. **Backend-Benutzer-Willkommens-E-Mail** - Für Backend-Benutzer
+4. **System-Anmeldedaten-E-Mail** - Mit System-Anmeldedaten
+
+### Template-Variablen erweitern
+
+Um neue Variablen zu verwenden:
+
+1. Fügen Sie sie in das `variables`-Feld des Templates ein
+2. Übergeben Sie sie beim Aufruf der Template-Funktion
+3. Verwenden Sie sie im Template-Inhalt mit `{variableName}`
+
+### Sicherheit
+
+- Alle Template-Inhalte werden vor der Ausgabe escaped
+- SQL-Injection-Schutz durch Prepared Statements
+- XSS-Schutz durch HTML-Escaping
+- CSRF-Schutz durch Session-Validierung
+
+### Technische Details
+
+- Datenbank-Schema
+```sql
+CREATE TABLE `email_templates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `template_name` varchar(255) NOT NULL,
+  `subject` text NOT NULL,
+  `html_content` longtext,
+  `raw_content` longtext,
+  `variables` text,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);
+```
+
 ## [3.2.1]
 
 ### Geändert

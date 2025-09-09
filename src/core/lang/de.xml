@@ -1165,6 +1165,7 @@
     
     <!-- Manual Updater -->
     <manual_updater_title>Manual Updater</manual_updater_title>
+    <manual_updater>Manual Updater</manual_updater>
     <update_check>Update-Prüfung</update_check>
     <system_info>System-Informationen</system_info>
     <current_version>Aktuelle Version</current_version>
@@ -1734,4 +1735,67 @@
     <user_notes>Benutzer-Notizen</user_notes>
     <vps_info>VPS-Informationen</vps_info>
     <you_are_deleting_the_user>Sie löschen den Benutzer</you_are_deleting_the_user>
+    
+    <!-- TODO: E-Mail-Template-System Übersetzungen -->
+    <email_templates>E-Mail-Templates</email_templates>
+    <email_template_management>E-Mail-Template-Verwaltung</email_template_management>
+    <template_name>Template-Name</template_name>
+    <template_subject>E-Mail-Betreff</template_subject>
+    <template_content>Template-Inhalt</template_content>
+    <template_variables>Template-Variablen</template_variables>
+    <available_variables>Verfügbare Variablen</available_variables>
+    <template_preview>Template-Vorschau</template_preview>
+    <test_email>Test-E-Mail senden</test_email>
+    <create_new_template>Neues Template erstellen</create_new_template>
+    <edit_template>Template bearbeiten</edit_template>
+    <delete_template>Template löschen</delete_template>
+    <save_template>Template speichern</save_template>
+    <template_saved>Template erfolgreich gespeichert</template_saved>
+    <template_deleted>Template erfolgreich gelöscht</template_deleted>
+    <template_not_found>Template nicht gefunden</template_not_found>
+    <template_name_required>Template-Name ist erforderlich</template_name_required>
+    <template_subject_required>E-Mail-Betreff ist erforderlich</template_subject_required>
+    <template_content_required>Template-Inhalt ist erforderlich</template_content_required>
+    <html_template>HTML-Template</html_template>
+    <raw_text_template>Raw-Text-Template</raw_text_template>
+    <style_editor>Style-Editor</style_editor>
+    <background_color>Hintergrundfarbe</background_color>
+    <text_color>Textfarbe</text_color>
+    <primary_color>Primärfarbe</primary_color>
+    <font_family>Schriftart</font_family>
+    <font_size>Schriftgröße</font_size>
+    <line_height>Zeilenabstand</line_height>
+    <apply_styles>Styles anwenden</apply_styles>
+    <reset_styles>Styles zurücksetzen</reset_styles>
+    <styles_applied>Styles erfolgreich angewendet</styles_applied>
+    <styles_reset>Styles zurückgesetzt</styles_reset>
+    <template_type>Template-Typ</template_type>
+    <existing_templates>Vorhandene Templates</existing_templates>
+    <no_templates_available>Keine Templates vorhanden</no_templates_available>
+    <template_created>Template erstellt am</template_created>
+    <template_updated>Template aktualisiert am</template_updated>
+    <preview_with_sample_data>Vorschau mit Beispieldaten</preview_with_sample_data>
+    <close_preview>Vorschau schließen</close_preview>
+    <close_editor>Editor schließen</close_editor>
+    <unsaved_changes_warning>Ungespeicherte Änderungen gehen verloren. Fortfahren?</unsaved_changes_warning>
+    <save_template_first>Bitte speichern Sie das Template zuerst, bevor Sie eine Vorschau erstellen.</save_template_first>
+    <template_variables_info>Verfügbare Variablen für Templates:</template_variables_info>
+    <variable_firstname>Vorname</variable_firstname>
+    <variable_lastname>Nachname</variable_lastname>
+    <variable_email>E-Mail-Adresse</variable_email>
+    <variable_username>Benutzername</variable_username>
+    <variable_password>Passwort</variable_password>
+    <variable_login_url>Login-URL</variable_login_url>
+    <variable_verification_link>Verifikations-Link</variable_verification_link>
+    <variable_site_name>Website-Name</variable_site_name>
+    <variable_system_credentials>System-Anmeldedaten</variable_system_credentials>
+    <variable_support_email>Support-E-Mail</variable_support_email>
+    <variable_system_email>System-E-Mail</variable_system_email>
+    <default_templates_created>Standard-Templates erstellt</default_templates_created>
+    <email_template_system_available>E-Mail-Template-System verfügbar</email_template_system_available>
+    <email_template_system_not_available>E-Mail-Template-System nicht verfügbar</email_template_system_not_available>
+    <customer_welcome_email>Kunden-Willkommens-E-Mail</customer_welcome_email>
+    <customer_verification_email>Kunden-Verifikations-E-Mail</customer_verification_email>
+    <backend_user_welcome_email>Backend-Benutzer-Willkommens-E-Mail</backend_user_welcome_email>
+    <system_credentials_email>System-Anmeldedaten-E-Mail</system_credentials_email>
 </translations> 

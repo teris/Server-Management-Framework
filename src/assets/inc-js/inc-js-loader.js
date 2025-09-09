@@ -48,6 +48,8 @@
             return 'domain-registrations';
         } else if (url.includes('option=logs') || url.includes('logs.php')) {
             return 'logs';
+        } else if (url.includes('option=email-templates') || url.includes('email-templates.php')) {
+            return 'email-templates';
         }
         
         return null;
@@ -68,6 +70,9 @@
         var scriptPath = 'assets/inc-js/' + currentPage + '.js';
         loadScript(scriptPath, function() {
             console.log('Script geladen:', scriptPath);
+            
+            // Zusätzliche Scripts für spezifische Seiten
+            // (Keine zusätzlichen Scripts für email-templates nötig)
         });
     }
     

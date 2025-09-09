@@ -488,11 +488,201 @@ function handleCreateCustomer($db) {
     }
 }
 
-// TODO: Alte E-Mail-Funktion entfernt - wird jetzt über EmailTemplateManager::sendCustomerWelcomeEmail() verwendet
+/**
+ * Willkommens-E-Mail für sofort aktivierte Kunden senden
+ */
+function sendCustomerWelcomeEmail($email, $firstName, $password) {
+    try {
+        $to = $email;
+        $subject = "Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "!";
+        
+        $loginUrl = "https://" . $_SERVER['HTTP_HOST'] . "/public/login.php";
+        
+        $message = "
+        <html>
+        <head>
+            <title>Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "</title>
+        </head>
+        <body>
+            <h2>Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "!</h2>
+            <p>Hallo {$firstName},</p>
+            <p>Ihr Konto wurde erfolgreich erstellt und ist sofort aktiv. Sie können sich jetzt in unserem Kundenportal anmelden.</p>
+            
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                <h3>Ihre Anmeldedaten:</h3>
+                <p><strong>E-Mail:</strong> {$email}</p>
+                <p><strong>Passwort:</strong> {$password}</p>
+            </div>
+            
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{$loginUrl}' 
+                   style='background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block;'>
+                    Zum Kundenportal anmelden
+                </a>
+            </div>
+            
+            <p>Falls Sie Fragen haben, können Sie sich gerne an unseren Support wenden.</p>
+            
+            <p>Mit freundlichen Grüßen<br>
+            Ihr " . Config::FRONTPANEL_SITE_NAME . " Team</p>
+        </body>
+        </html>
+        ";
+        
+        $headers = [
+            'MIME-Version: 1.0',
+            'Content-type: text/html; charset=utf-8',
+            'From: ' . Config::FRONTPANEL_SYSTEM_EMAIL,
+            'Reply-To: ' . Config::FRONTPANEL_SUPPORT_EMAIL,
+            'X-Mailer: PHP/' . phpversion()
+        ];
+        
+        $mailResult = mail($to, $subject, $message, implode("\r\n", $headers));
+        
+        if ($mailResult) {
+            error_log("Customer welcome email sent successfully to: " . $email);
+        } else {
+            error_log("Failed to send customer welcome email to: " . $email);
+        }
+        
+    } catch (Exception $e) {
+        error_log("Failed to send customer welcome email: " . $e->getMessage());
+    }
+}
 
-// TODO: Alte E-Mail-Funktion entfernt - wird jetzt über EmailTemplateManager::sendCustomerVerificationEmail() verwendet
+/**
+ * Verifikations-E-Mail für Kunden senden
+ */
+function sendCustomerVerificationEmail($email, $firstName, $customerId, $password) {
+    try {
+        $verificationToken = bin2hex(random_bytes(32));
+        $expires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+        
+        // Token in Datenbank speichern
+        $db = Database::getInstance();
+        $stmt = $db->prepare("INSERT INTO customer_verification_tokens (customer_id, token, expires_at) VALUES (?, ?, ?)");
+        $stmt->execute([$customerId, $verificationToken, $expires]);
+        
+        $to = $email;
+        $subject = "E-Mail-Adresse bestätigen - " . Config::FRONTPANEL_SITE_NAME;
+        
+        $verificationLink = "https://" . $_SERVER['HTTP_HOST'] . "/public/verify.php?token=" . $verificationToken;
+        
+        $message = "
+        <html>
+        <head>
+            <title>E-Mail-Adresse bestätigen</title>
+        </head>
+        <body>
+            <h2>Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "!</h2>
+            <p>Hallo {$firstName},</p>
+            <p>vielen Dank für Ihre Registrierung. Um Ihr Konto zu aktivieren, bestätigen Sie bitte Ihre E-Mail-Adresse.</p>
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                <h3>Ihre Anmeldedaten:</h3>
+                <p><strong>E-Mail:</strong> {$email}</p>
+                <p><strong>Passwort:</strong> {$password}</p>
+            </div>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{$verificationLink}' 
+                   style='background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block;'>
+                    E-Mail-Adresse bestätigen
+                </a>
+            </div>
+            
+            <p>Falls der Button nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:</p>
+            <p style='word-break: break-all; color: #666;'>{$verificationLink}</p>
+            
+            <p>Dieser Link ist 24 Stunden gültig.</p>
+            
+            <p>Mit freundlichen Grüßen<br>
+            Ihr " . Config::FRONTPANEL_SITE_NAME . " Team</p>
+        </body>
+        </html>
+        ";
+        
+        $headers = [
+            'MIME-Version: 1.0',
+            'Content-type: text/html; charset=utf-8',
+            'From: ' . Config::FRONTPANEL_SYSTEM_EMAIL,
+            'Reply-To: ' . Config::FRONTPANEL_SUPPORT_EMAIL,
+            'X-Mailer: PHP/' . phpversion()
+        ];
+        
+        $mailResult = mail($to, $subject, $message, implode("\r\n", $headers));
+        
+        if ($mailResult) {
+            error_log("Customer verification email sent successfully to: " . $email);
+        } else {
+            error_log("Failed to send customer verification email to: " . $email);
+        }
+        
+    } catch (Exception $e) {
+        error_log("Failed to send customer verification email: " . $e->getMessage());
+    }
+}
 
-// TODO: Alte E-Mail-Funktion entfernt - wird jetzt über EmailTemplateManager::sendUserWelcomeEmail() verwendet
+/**
+ * E-Mail für Backend-Benutzer senden
+ */
+function sendUserWelcomeEmail($email, $firstName, $username, $password) {
+    try {
+        $to = $email;
+        $subject = "Ihre Backend-Anmeldedaten - " . Config::FRONTPANEL_SITE_NAME;
+        
+        $loginUrl = "https://" . $_SERVER['HTTP_HOST'] . "/src/";
+        
+        $message = "
+        <html>
+        <head>
+            <title>Backend-Anmeldedaten</title>
+        </head>
+        <body>
+            <h2>Willkommen im Backend von " . Config::FRONTPANEL_SITE_NAME . "!</h2>
+            <p>Hallo {$firstName},</p>
+            <p>Ihr Backend-Benutzerkonto wurde erfolgreich erstellt. Sie können sich jetzt im Admin-Bereich anmelden.</p>
+            
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                <h3>Ihre Anmeldedaten:</h3>
+                <p><strong>Benutzername:</strong> {$username}</p>
+                <p><strong>E-Mail:</strong> {$email}</p>
+                <p><strong>Passwort:</strong> {$password}</p>
+            </div>
+            
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{$loginUrl}' 
+                   style='background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block;'>
+                    Zum Backend anmelden
+                </a>
+            </div>
+            
+            <p>Falls Sie Fragen haben, können Sie sich gerne an den Administrator wenden.</p>
+            
+            <p>Mit freundlichen Grüßen<br>
+            Ihr " . Config::FRONTPANEL_SITE_NAME . " Team</p>
+        </body>
+        </html>
+        ";
+        
+        $headers = [
+            'MIME-Version: 1.0',
+            'Content-type: text/html; charset=utf-8',
+            'From: ' . Config::FRONTPANEL_SYSTEM_EMAIL,
+            'Reply-To: ' . Config::FRONTPANEL_SUPPORT_EMAIL,
+            'X-Mailer: PHP/' . phpversion()
+        ];
+        
+        $mailResult = mail($to, $subject, $message, implode("\r\n", $headers));
+        
+        if ($mailResult) {
+            error_log("User welcome email sent successfully to: " . $email);
+        } else {
+            error_log("Failed to send user welcome email to: " . $email);
+        }
+        
+    } catch (Exception $e) {
+        error_log("Failed to send user welcome email: " . $e->getMessage());
+    }
+}
 
 function handleGetCustomers($db) {
     try {
@@ -576,9 +766,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 'success'
                             );
                             
-                            // TODO: E-Mail mit Anmeldedaten senden - ausschließlich über Template-System
-                            $emailTemplateManager = EmailTemplateManager::getInstance();
-                            $emailTemplateManager->sendSystemCredentialsEmail($customer['email'], $customer['first_name'], $customer['last_name'], $username, $newPassword, $creationResult['results']);
+                            // E-Mail mit Anmeldedaten senden
+                            sendSystemCredentialsEmail($customer['email'], $customer['first_name'], $username, $newPassword, $creationResult['results']);
                             
                             $_SESSION['success_message'] = "Kunde {$customer['email']} erfolgreich aktiviert und Systemkonten angelegt.";
                         } else {

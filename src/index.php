@@ -18,8 +18,15 @@ if ($modus_type['modus'] === 'mysql') {
 require_once $frameworkFile;
 require_once 'auth_handler.php';
 
+// TODO: E-Mail-Template-Manager laden
+require_once 'core/EmailTemplateManager.php';
+
 // Login-Überprüfung
 requireLogin();
+
+// TODO: E-Mail-Template-System initialisieren
+$emailTemplateManager = EmailTemplateManager::getInstance();
+$emailTemplateManager->createDefaultTemplates();
 
 // Plugin-System initialisieren
 try {
@@ -96,6 +103,19 @@ if (isset($_POST['action'])) {
             // und wird hier automatisch ausgeführt
         } catch (Exception $e) {
             error_log('ManualUpdater Exception: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+    
+    // Email Templates Actions
+    if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
+        try {
+            require_once 'inc/email-templates.php';
+            // Der AJAX-Handler ist bereits in der email-templates.php definiert
+            // und wird hier automatisch ausgeführt
+        } catch (Exception $e) {
+            error_log('EmailTemplates Exception: ' . $e->getMessage());
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit;
@@ -449,13 +469,18 @@ try {
                                 </a>
                             </li>
                             <li >
+                                <a href="?option=email-templates">
+                                    <i class="bi bi-envelope"></i> <?= t('email_templates') ?>
+                                </a>
+                            </li>
+                            <li >
                                 <a href="?option=settings">
                                     <i class="bi bi-gear"></i> <?= t('settings') ?>
                                 </a>
                             </li>
                             <li >
                                 <a href="?option=manualupdater">
-                                    <i class="bi bi-arrow-clockwise"></i> Manual Updater
+                                    <i class="bi bi-arrow-clockwise"></i> <?= t('manual_updater') ?>
                                 </a>
                             </li>
                         </ul>
@@ -637,6 +662,9 @@ try {
                             case 'system':
                                 include('inc/system.php');
                                 break;
+                            case 'email-templates':
+                                include('inc/email-templates.php');
+                                break;
                             case 'manualupdater':
                                 include('inc/manualupdater.php');
                                 break;
@@ -755,6 +783,143 @@ try {
         
         // Beim Laden aktive Links hervorheben
         highlightActiveNavLink();
+        
+        // Editor-Funktionen für E-Mail-Templates
+        window.toggleWordWrap = function(editorId) {
+            const textarea = document.getElementById(editorId + "_textarea");
+            if (textarea) {
+                textarea.style.whiteSpace = textarea.style.whiteSpace === 'nowrap' ? 'pre-wrap' : 'nowrap';
+            }
+        };
+        
+        window.toggleLineNumbers = function(editorId) {
+            // Einfache Implementierung für Textarea
+            console.log("Zeilennummern umschalten für Editor:", editorId);
+        };
+        
+        window.changeMode = function(editorId, mode) {
+            const textarea = document.getElementById(editorId + "_textarea");
+            if (textarea) {
+                textarea.setAttribute('data-mode', mode);
+                console.log("Editor-Modus geändert zu:", mode);
+            }
+        };
+        
+        
+        // Vollständige HTML-Struktur aus Body-Inhalt wiederherstellen
+        window.reconstructFullHtml = function(bodyContent) {
+            // Prüfen ob bereits vollständige HTML-Struktur vorhanden ist
+            if (bodyContent.includes('<html') && bodyContent.includes('</html>')) {
+                return bodyContent;
+            }
+            
+            // HTML-Struktur extrahieren aus dem ursprünglichen Textarea-Inhalt
+            const textarea = document.getElementById('ace-editor_textarea');
+            if (textarea && textarea.value) {
+                const originalContent = textarea.value;
+                
+                // Head-Teil extrahieren
+                const headMatch = originalContent.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+                const headContent = headMatch ? headMatch[0] : '<head><title>E-Mail Template</title></head>';
+                
+                // Body-Teil mit dem bearbeiteten Inhalt ersetzen
+                const bodyStart = originalContent.indexOf('<body');
+                const bodyEnd = originalContent.lastIndexOf('</body>');
+                
+                if (bodyStart !== -1 && bodyEnd !== -1) {
+                    const beforeBody = originalContent.substring(0, bodyStart);
+                    const afterBody = originalContent.substring(bodyEnd + 7);
+                    
+                    // Neuen Body mit bearbeitetem Inhalt erstellen
+                    const newBody = `<body>${bodyContent}</body>`;
+                    
+                    return beforeBody + newBody + afterBody;
+                }
+            }
+            
+            // Fallback: Standard HTML-Struktur
+            return `<!DOCTYPE html>
+<html>
+<head>
+    <title>E-Mail Template</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+${bodyContent}
+</body>
+</html>`;
+        };
+
+        window.saveEditor = function(editorId) {
+            const textarea = document.getElementById(editorId + "_textarea");
+            const preview = document.getElementById("ace-editor_preview");
+            
+            // Inhalt aus dem aktiven Modus holen
+            let content = '';
+            if (textarea && textarea.style.display !== 'none') {
+                content = textarea.value;
+            } else if (preview && preview.style.display !== 'none') {
+                // Vollständige HTML-Struktur wiederherstellen
+                content = reconstructFullHtml(preview.innerHTML);
+            } else if (textarea) {
+                content = textarea.value;
+            } else if (preview) {
+                content = reconstructFullHtml(preview.innerHTML);
+            }
+            
+            if (content) {
+                // Inhalt in das versteckte Input-Feld übertragen
+                const hiddenInput = document.getElementById('template-content');
+                if (hiddenInput) {
+                    hiddenInput.value = content;
+                }
+                
+                console.log("Speichere Inhalt:", content);
+                
+                // Template-ID und Content-Type ermitteln
+                const templateId = document.getElementById('template-id').value;
+                const contentType = document.querySelector('input[name="template_type"]:checked').value;
+                
+                if (templateId) {
+                    // Über AJAX speichern
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `action=email_templates&subaction=save_editor&template_id=${templateId}&content=${encodeURIComponent(content)}&content_type=${contentType}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("Template erfolgreich gespeichert!");
+                        } else {
+                            alert("Fehler beim Speichern: " + (data.message || "Unbekannter Fehler"));
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Fehler beim Speichern:", error);
+                        alert("Fehler beim Speichern des Templates");
+                    });
+                } else {
+                    alert("Bitte speichern Sie das Template über das Formular");
+                }
+            }
+        };
+        
+        window.formatCode = function(editorId) {
+            const textarea = document.getElementById(editorId + "_textarea");
+            if (textarea) {
+                const content = textarea.value;
+                // Einfache HTML-Formatierung
+                const formatted = content
+                    .replace(/></g, ">\\n<")
+                    .replace(/^\\s+|\\s+$/g, "");
+                
+                textarea.value = formatted;
+            }
+        };
     </script>
 </body>
 </html>
