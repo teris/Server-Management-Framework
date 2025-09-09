@@ -46,7 +46,7 @@ try {
     }
 } catch (Exception $e) {
     error_log("Dashboard Error: " . $e->getMessage());
-    $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+    $error = t('an_error_occurred') . ' ' . t('please_try_later');
 }
 
 // Anzahl der offenen Support-Tickets laden
@@ -154,7 +154,7 @@ if (isset($_GET['logout'])) {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">
-                <i class="bi bi-server"></i> Server Management
+                <i class="bi bi-server"></i> <?= Config::FRONTPANEL_SITE_NAME ?>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -215,8 +215,8 @@ if (isset($_GET['logout'])) {
                             <?= t('dashboard_welcome') ?>
                         </h2>
                         <p class="card-text">
-                            Willkommen zurück, <?= htmlspecialchars($customerName) ?>! 
-                            Hier finden Sie eine Übersicht über Ihre Services und können diese verwalten.
+                            <?= t('welcome_back') ?> <?= htmlspecialchars($customerName) ?>! 
+                            <?= t('dashboard_description') ?>
                         </p>
                         <div class="row">
                             <div class="col-md-6">
@@ -239,7 +239,7 @@ if (isset($_GET['logout'])) {
                     <div class="card-body">
                         <i class="bi bi-server display-4 text-primary"></i>
                         <h5 class="card-title mt-2"><?= t('virtual_machines') ?></h5>
-                        <p class="card-text display-6">0</p>
+                        <p class="card-text display-6"><?= $openTicketsCount ?></p>
                         <small class="text-muted"><?= t('active_servers') ?></small>
                     </div>
                 </div>
@@ -360,7 +360,7 @@ if (isset($_GET['logout'])) {
                             <button type="button" class="btn btn-outline-danger btn-sm" 
                                     onclick="clearAllActivities()" 
                                     title="Alle Aktivitäten löschen">
-                                <i class="bi bi-trash"></i> Alle löschen
+                                <i class="bi bi-trash"></i> <?= t('delete_all_activities') ?>
                             </button>
                         </div>
                     </div>
@@ -482,7 +482,7 @@ if (isset($_GET['logout'])) {
     <script>
         // Alle Aktivitäten löschen
         function clearAllActivities() {
-            if (confirm('Sind Sie sicher, dass Sie alle Ihre Aktivitäten löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+            if (confirm('<?= t('are_you_sure_you_want_to_delete_all_activities') ?>')) {
                 // AJAX-Request zum Löschen aller Aktivitäten
                 fetch('clear-activities.php', {
                     method: 'POST',
@@ -497,7 +497,7 @@ if (isset($_GET['logout'])) {
                 .then(data => {
                     if (data.success) {
                         // Erfolgsmeldung anzeigen
-                        showAlert('Alle Aktivitäten wurden erfolgreich gelöscht.', 'success');
+                        showAlert('<?= t('all_activities_were_successfully_deleted') ?>', 'success');
                         
                         // Aktivitätenliste leeren
                         const activityList = document.querySelector('.activity-list');
@@ -505,7 +505,7 @@ if (isset($_GET['logout'])) {
                             activityList.innerHTML = `
                                 <div class="text-center text-muted py-4">
                                     <i class="bi bi-inbox display-4"></i>
-                                    <p class="mt-2">Keine Aktivitäten vorhanden</p>
+                                    <p class="mt-2"><?= t('no_activities_found') ?></p>
                                 </div>
                             `;
                         }
@@ -514,17 +514,17 @@ if (isset($_GET['logout'])) {
                         const clearButton = document.querySelector('button[onclick="clearAllActivities()"]');
                         if (clearButton) {
                             clearButton.disabled = true;
-                            clearButton.innerHTML = '<i class="bi bi-check-circle"></i> Gelöscht';
+                            clearButton.innerHTML = '<i class="bi bi-check-circle"></i> <?= t('deleted') ?>';
                             clearButton.classList.remove('btn-outline-danger');
                             clearButton.classList.add('btn-success');
                         }
                     } else {
-                        showAlert('Fehler beim Löschen der Aktivitäten: ' + (data.error || 'Unbekannter Fehler'), 'danger');
+                        showAlert('<?= t('error_deleting_activities') ?>: ' + (data.error || '<?= t('unknown_error') ?>'), 'danger');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showAlert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.', 'danger');
+                    showAlert('<?= t('an_error_occurred') ?> ' . '<?= t('please_try_later') ?>', 'danger');
                 });
             }
         }

@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $remember = isset($_POST['remember']);
     
     if (empty($email) || empty($password)) {
-        $error = 'Bitte füllen Sie alle Felder aus.';
+        $error = t('please_fill_all_fields');
     } else {
         try {
             // Datenbankverbindung
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             } else {
                 // Login fehlgeschlagen
-                $error = 'E-Mail oder Passwort ist falsch.';
+                $error = t('email_or_password_is_incorrect');
                 
                 // Fehlgeschlagener Login-Log (falls Kunde existiert)
                 if ($customer) {
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } catch (Exception $e) {
             error_log("Login Error: " . $e->getMessage());
-            $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+            $error = t('an_error_occurred') . ' ' . t('please_try_again_later');
         }
     }
 }
@@ -158,11 +158,11 @@ if (empty($error) && empty($_POST) && isset($_COOKIE['remember_token'])) {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">
-                <i class="bi bi-server"></i> Server Management
+                <i class="bi bi-server"></i> <?= Config::FRONTPANEL_SITE_NAME ?>
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="index.php">
-                    <i class="bi bi-house"></i> Zurück zum Frontpanel
+                    <i class="bi bi-house"></i> <?= t('back_to_frontpanel') ?>
                 </a>
             </div>
         </div>

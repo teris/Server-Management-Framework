@@ -49,7 +49,7 @@ try {
     }
 } catch (Exception $e) {
     error_log("Profile Error: " . $e->getMessage());
-    $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+    $error = t('an_error_occurred') . ' ' . t('please_try_again_later');
 }
 
 // Formularverarbeitung
@@ -61,16 +61,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Validierung
     if (empty($fullName)) {
-        $error = 'Der vollständige Name ist erforderlich.';
+        $error = t('a_full_name_is_required');
     } elseif (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Eine gültige E-Mail-Adresse ist erforderlich.';
+        $error = t('a_valid_email_address_is_required');
     } else {
         // Prüfen ob E-Mail bereits von anderem Kunden verwendet wird
         try {
             $stmt = $db->prepare("SELECT id FROM customers WHERE email = ? AND id != ?");
             $stmt->execute([$email, $customerId]);
             if ($stmt->fetch()) {
-                $error = 'Diese E-Mail-Adresse wird bereits von einem anderen Kunden verwendet.';
+                $error = t('this_email_address_is_already_used_by_another_customer');
             } else {
                 // Profil aktualisieren
                 $stmt = $db->prepare("
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $lastName = $nameParts[1] ?? '';
                 
                 if ($stmt->execute([$firstName, $lastName, $email, $phone, $company, $customerId])) {
-                    $success = 'Ihr Profil wurde erfolgreich aktualisiert.';
+                    $success = t('your_profile_has_been_successfully_updated');
                     
                     // Session-Daten aktualisieren
                     $_SESSION['customer_name'] = $fullName;
@@ -115,12 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         error_log("Activity Logging Error: " . $e->getMessage());
                     }
                 } else {
-                    $error = 'Fehler beim Aktualisieren des Profils. Bitte versuchen Sie es erneut.';
+                    $error = t('error_updating_profile') . ' ' . t('please_try_again_later');
                 }
             }
         } catch (Exception $e) {
             error_log("Profile Update Error: " . $e->getMessage());
-            $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+            $error = t('an_error_occurred') . ' ' . t('please_try_again_later');
         }
     }
 }
@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">
-                <i class="bi bi-server"></i> Server Management
+                <i class="bi bi-server"></i> <?= Config::FRONTPANEL_SITE_NAME ?>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

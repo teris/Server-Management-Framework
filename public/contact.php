@@ -35,13 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Validierung
     if (empty($name)) {
-        $error = 'Bitte geben Sie Ihren Namen ein.';
+        $error = t('please_enter_your_name');
     } elseif (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+        $error = t('please_enter_a_valid_email_address');
     } elseif (empty($subject)) {
-        $error = 'Bitte geben Sie einen Betreff ein.';
+        $error = t('please_enter_a_subject');
     } elseif (empty($message)) {
-        $error = 'Bitte geben Sie eine Nachricht ein.';
+        $error = t('please_enter_a_message');
     } else {
         try {
             $db = Database::getInstance();
@@ -57,16 +57,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
             
             if ($stmt->execute([$name, $email, $subject, $message, $customerId, $ipAddress, $userAgent])) {
-                $success = 'Ihre Nachricht wurde erfolgreich gesendet. Wir werden uns schnellstmöglich bei Ihnen melden.';
+                $success = t('your_message_was_successfully_sent') . ' ' . t('we_will_contact_you_as_soon_as_possible');
                 
                 // Formular zurücksetzen
                 $name = $email = $subject = $message = '';
             } else {
-                $error = 'Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.';
+                $error = t('error_sending_message') . ' ' . t('please_try_again');
             }
         } catch (Exception $e) {
             error_log("Contact Form Error: " . $e->getMessage());
-            $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+            $error = t('an_error_occurred') . ' ' . t('please_try_later');
         }
     }
 }
@@ -239,17 +239,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="mb-4">
                             <h6><i class="bi bi-geo-alt text-primary"></i> <?= t('address') ?></h6>
                             <p class="mb-0">
-                                Server Management GmbH<br>
-                                Musterstraße 123<br>
-                                12345 Musterstadt<br>
-                                Deutschland
+                                <?= Config::FRONTPANEL_SITE_NAME ?><br>
+                                Adresse<br>
+                                Stadt<br>
+                                Land
                             </p>
                         </div>
                         
                         <div class="mb-4">
                             <h6><i class="bi bi-telephone text-success"></i> <?= t('phone') ?></h6>
                             <p class="mb-0">
-                                <a href="tel:+49123456789" class="text-decoration-none">+49 123 456789</a><br>
+                                <a href="tel:00000000000" class="text-decoration-none">Phone</a><br>
                                 <small class="text-muted"><?= t('business_hours') ?>: Mo-Fr 9:00-18:00</small>
                             </p>
                         </div>
@@ -257,8 +257,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="mb-4">
                             <h6><i class="bi bi-envelope text-warning"></i> <?= t('email') ?></h6>
                             <p class="mb-0">
-                                <a href="mailto:info@servermanagement.de" class="text-decoration-none">info@servermanagement.de</a><br>
-                                <a href="mailto:support@servermanagement.de" class="text-decoration-none">support@servermanagement.de</a>
+                                <a href="mailto:<?= Config::FRONTPANEL_SYSTEM_EMAIL ?>" class="text-decoration-none"><?= Config::FRONTPANEL_SYSTEM_EMAIL ?></a><br>
+                                <a href="mailto:<?= Config::FRONTPANEL_SUPPORT_EMAIL ?>" class="text-decoration-none"><?= Config::FRONTPANEL_SUPPORT_EMAIL ?></a>
                             </p>
                         </div>
                         

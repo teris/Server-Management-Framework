@@ -28,7 +28,7 @@ $systemCreationResults = '';
 $token = $_GET['token'] ?? '';
 
 if (empty($token)) {
-    $error = 'Ungültiger Bestätigungslink.';
+    $error = t('invalid_confirmation_link');
 } else {
     try {
         // Datenbankverbindung
@@ -45,9 +45,9 @@ if (empty($token)) {
         $verification = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$verification) {
-            $error = 'Ungültiger oder abgelaufener Bestätigungstoken.';
+            $error = t('invalid_or_expired_confirmation_token');
         } elseif ($verification['status'] === 'active') {
-            $error = 'Ihr Konto ist bereits aktiviert.';
+            $error = t('your_account_is_already_activated');
         } else {
             // Konto aktivieren
             $stmt = $db->prepare("
@@ -96,12 +96,12 @@ if (empty($token)) {
                     );
                     
                     if ($creationResult['success']) {
-                        $systemCreationResults = 'Ihre Systemkonten wurden erfolgreich angelegt.';
+                        $systemCreationResults = t('your_system_accounts_have_been_successfully_created');
                         
                         // Erfolgreiche Systemerstellung loggen
                         $db->logAction(
                             'System User Creation',
-                            "Benutzer $username erfolgreich in allen Systemen angelegt: " . implode(', ', array_keys($creationResult['results'])),
+                            t('user') . " $username " . t('successfully_created_in_all_systems') . ": " . implode(', ', array_keys($creationResult['results'])),
                             'success'
                         );
                         
@@ -116,13 +116,13 @@ if (empty($token)) {
                         );
                         
                         if ($emailSent) {
-                            $success .= ' Eine E-Mail mit Ihren System-Anmeldedaten wurde an Ihre E-Mail-Adresse gesendet.';
+                            $success .= t('an_email_with_your_system_login_details_has_been_sent_to_your_email_address');
                         } else {
                             $success .= ' WARNUNG: Die E-Mail mit Ihren System-Anmeldedaten konnte nicht gesendet werden. Bitte kontaktieren Sie den Support.';
                         }
                         
                     } else {
-                        $systemCreationResults = 'Warnung: Einige Systemkonten konnten nicht angelegt werden.';
+                        $systemCreationResults = t('warning') . ': ' . t('some_system_accounts_could_not_be_created');
                         
                         // Fehler loggen
                         $db->logAction(
@@ -158,19 +158,19 @@ if (empty($token)) {
                     );
                     
                     if ($emailSent) {
-                        $success .= ' Eine E-Mail mit Ihren System-Anmeldedaten wurde an Ihre E-Mail-Adresse gesendet.';
+                        $success .= t('an_email_with_your_system_login_details_has_been_sent_to_your_email_address');
                     } else {
-                        $success .= ' WARNUNG: Die E-Mail mit Ihren System-Anmeldedaten konnte nicht gesendet werden. Bitte kontaktieren Sie den Support.';
+                        $success .= t('warning') . ': ' . t('the_email_with_your_system_login_details_could_not_be_sent');
                     }
                 }
                 
             } else {
-                $error = 'Fehler bei der Kontoaktivierung. Bitte versuchen Sie es später erneut.';
+                $error = t('error_during_account_activation');
             }
         }
     } catch (Exception $e) {
         error_log("Email Verification Error: " . $e->getMessage());
-        $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+        $error = t('an_error_occurred');
     }
 }
 ?>
@@ -199,11 +199,11 @@ if (empty($token)) {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">
-                <i class="bi bi-server"></i> Server Management
+                <i class="bi bi-server"></i> <?= Config::FRONTPANEL_SITE_NAME ?>
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="index.php">
-                    <i class="bi bi-house"></i> Zurück zum Frontpanel
+                    <i class="bi bi-house"></i> <?= t('back_to_frontpanel') ?>
                 </a>
             </div>
         </div>
@@ -261,7 +261,7 @@ if (empty($token)) {
                             <small class="text-muted">
                                 <i class="bi bi-shield-check"></i> 
                                 <?= t('secure_connection') ?> | 
-                                <a href="contact.php" class="text-decoration-none"><?= t('need_help') ?></a>
+                                <a href="contact.php" class="text-decoration-none"><?= t('contact') ?></a>
                             </small>
                         </div>
                     </div>
@@ -279,14 +279,14 @@ if (empty($token)) {
 function sendActivationEmail($email, $firstName, $lastName) {
     try {
         $to = $email;
-        $subject = "Konto aktiviert - " . Config::FRONTPANEL_SITE_NAME;
+        $subject = t('account_activated') . " - " . Config::FRONTPANEL_SITE_NAME;
 
         $verificationLink = "https://" . $_SERVER['HTTP_HOST'] . "/public/login.php";
 
         $message = "
         <html>
         <head>
-            <title>Konto aktiviert</title>
+            <title><?= t('account_activated') ?></title>
         </head>
         <body>
             <h2>Willkommen bei " . Config::FRONTPANEL_SITE_NAME . "!</h2>

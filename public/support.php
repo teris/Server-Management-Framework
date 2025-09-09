@@ -50,7 +50,7 @@ try {
     }
 } catch (Exception $e) {
     error_log("Support Error: " . $e->getMessage());
-    $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+    $error = t('an_error_occurred') . ' ' . t('please_try_again_later');
 }
 
 // Formularverarbeitung für neues Ticket
@@ -61,9 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'new') {
     
     // Validierung
     if (empty($subject)) {
-        $error = 'Bitte geben Sie einen Betreff ein.';
+        $error = t('please_enter_a_subject');
     } elseif (empty($message)) {
-        $error = 'Bitte geben Sie eine Nachricht ein.';
+        $error = t('please_enter_a_message');
     } else {
         try {
             // Eindeutige Ticket-Nummer generieren
@@ -108,14 +108,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'new') {
                     error_log("Activity Logging Error: " . $e->getMessage());
                 }
                 
-                $success = 'Ihr Support-Ticket wurde erfolgreich eingereicht.';
+                $success = t('your_support_ticket_has_been_successfully_submitted');
                 $action = 'list'; // Zurück zur Ticket-Liste
             } else {
-                $error = 'Fehler beim Erstellen des Tickets. Bitte versuchen Sie es erneut.';
+                $error = t('error_creating_ticket') . ' ' . t('please_try_again_later');
             }
         } catch (Exception $e) {
             error_log("Ticket Creation Error: " . $e->getMessage());
-            $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+            $error = t('an_error_occurred') . ' ' . t('please_try_again_later');
         }
     }
 }
@@ -132,7 +132,7 @@ if ($action === 'list' || $action === 'view') {
         $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         error_log("Ticket Loading Error: " . $e->getMessage());
-        $error = 'Fehler beim Laden der Tickets.';
+        $error = t('error_loading_tickets') . ' ' . t('please_try_again_later');
     }
 }
 
@@ -150,7 +150,7 @@ if ($action === 'view' && isset($_GET['id'])) {
         $currentTicket = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$currentTicket) {
-            $error = 'Ticket nicht gefunden.';
+            $error = t('ticket_not_found');
             $action = 'list';
         } else {
             // Ticket-Replies laden (nur nicht-interne Antworten für Kunden)
@@ -210,7 +210,7 @@ if ($action === 'view' && isset($_GET['id'])) {
         }
     } catch (Exception $e) {
         error_log("Ticket View Error: " . $e->getMessage());
-        $error = 'Fehler beim Laden des Tickets.';
+        $error = t('error_loading_ticket') . ' ' . t('please_try_again_later');
         $action = 'list';
     }
 }
@@ -221,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
     $replyMessage = trim($_POST['message']);
     
     if (empty($replyMessage)) {
-        $error = 'Bitte geben Sie eine Nachricht ein.';
+        $error = t('please_enter_a_message');
     } else {
         try {
             // Prüfen ob das Ticket dem Kunden gehört
@@ -242,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                     $activityLogger->logCustomerActivity(
                         $customerId, 
                         'ticket_reply', 
-                        "Antwort auf Support-Ticket gesendet", 
+                        t('ticket_reply_sent'), 
                         $replyTicketId, 
                         'ticket_replies'
                     );
@@ -258,7 +258,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                 ");
                 $updateStmt->execute([$replyTicketId]);
                 
-                $success = 'Ihre Antwort wurde erfolgreich gesendet.';
+                $success = t('your_reply_has_been_successfully_sent');
                 
                 // Ticket und Replies neu laden
                 $stmt = $db->getConnection()->prepare("SELECT * FROM support_tickets WHERE id = ? AND customer_id = ?");
@@ -289,11 +289,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                 $repliesStmt->execute([$replyTicketId]);
                 $ticketReplies = $repliesStmt->fetchAll(PDO::FETCH_ASSOC);
             } else {
-                $error = 'Ticket nicht gefunden oder kein Zugriff.';
+                $error = t('ticket_not_found_or_no_access');
             }
         } catch (Exception $e) {
             error_log("Ticket Reply Error: " . $e->getMessage());
-            $error = 'Fehler beim Senden der Antwort.';
+            $error = t('error_sending_reply') . ' ' . t('please_try_again_later');
         }
     }
 }
@@ -323,7 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">
-                <i class="bi bi-server"></i> Server Management
+                <i class="bi bi-server"></i> <?= Config::FRONTPANEL_SITE_NAME ?>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -570,8 +570,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                     <p class="mb-0"><?= t('no_replies_yet') ?></p>
                                     <?php if (isset($_GET['debug']) && $_GET['debug'] === '1'): ?>
                                         <div class="mt-2 p-2 bg-info text-white small">
-                                            <strong>Debug:</strong> Keine Antworten gefunden. 
-                                            Ticket ID: <?= $currentTicket['id'] ?>
+                                            <strong><?= t('debug_info') ?>:</strong> <?= t('no_replies_found') ?> 
+                                            <?= t('ticket_id') ?>: <?= $currentTicket['id'] ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -709,22 +709,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
         <!-- Debug-Informationen (nur für Entwickler sichtbar) -->
         <?php if (isset($_GET['debug']) && $_GET['debug'] === '1'): ?>
             <div class="mt-3 p-3 bg-warning text-dark">
-                <h6><i class="bi bi-bug"></i> Debug-Informationen</h6>
-                <p><strong>Ticket ID:</strong> <?= $currentTicket['id'] ?? 'N/A' ?></p>
-                <p><strong>Gefundene Antworten:</strong> <?= count($ticketReplies) ?></p>
-                <p><strong>Ticket Status:</strong> <?= $currentTicket['status'] ?? 'N/A' ?></p>
-                <p><strong>Customer ID:</strong> <?= $customerId ?></p>
+                <h6><i class="bi bi-bug"></i> <?= t('debug_information') ?></h6>
+                <p><strong><?= t('ticket_id') ?>:</strong> <?= $currentTicket['id'] ?? 'N/A' ?></p>
+                <p><strong><?= t('found_replies') ?>:</strong> <?= count($ticketReplies) ?></p>
+                <p><strong><?= t('ticket_status') ?>:</strong> <?= $currentTicket['status'] ?? 'N/A' ?></p>
+                <p><strong><?= t('customer_id') ?>:</strong> <?= $customerId ?></p>
                 
                 <?php if (!empty($ticketReplies)): ?>
-                    <h6>Antworten Details:</h6>
+                    <h6><?= t('reply_details') ?>:</h6>
                     <ul>
                         <?php foreach ($ticketReplies as $reply): ?>
                             <li>
-                                ID: <?= $reply['id'] ?>, 
-                                Type: <?= $reply['author_type'] ?>, 
-                                Admin ID: <?= $reply['admin_id'] ?? 'NULL' ?>, 
-                                Customer ID: <?= $reply['customer_id'] ?? 'NULL' ?>,
-                                Internal: <?= $reply['is_internal'] ?? 'N/A' ?>
+                                <?= t('id') ?>: <?= $reply['id'] ?>, 
+                                <?= t('type') ?>: <?= $reply['author_type'] ?>, 
+                                <?= t('admin_id') ?>: <?= $reply['admin_id'] ?? 'NULL' ?>, 
+                                <?= t('customer_id') ?>: <?= $reply['customer_id'] ?? 'NULL' ?>,
+                                <?= t('internal') ?>: <?= $reply['is_internal'] ?? 'N/A' ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -750,11 +750,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                     $totalInternalReplies = 'Error';
                 }
                 ?>
-                <h6>Datenbank-Übersicht:</h6>
+                <h6><?= t('database_overview') ?>:</h6>
                 <ul>
-                    <li><strong>Gesamte Admin-Antworten:</strong> <?= $totalAdminReplies ?></li>
-                    <li><strong>Gesamte Kunden-Antworten:</strong> <?= $totalCustomerReplies ?></li>
-                    <li><strong>Interne Antworten:</strong> <?= $totalInternalReplies ?></li>
+                    <li><strong><?= t('total_admin_replies') ?>:</strong> <?= $totalAdminReplies ?></li>
+                    <li><strong><?= t('total_customer_replies') ?>:</strong> <?= $totalCustomerReplies ?></li>
+                    <li><strong><?= t('internal_replies') ?>:</strong> <?= $totalInternalReplies ?></li>
                 </ul>
                 
                 <!-- Überprüfung des aktuellen Tickets
@@ -777,11 +777,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                     $ticketInternalReplies = 'Error';
                 }
                 ?>
-                <h6>Ticket-spezifische Übersicht:</h6>
+                <h6><?= t('ticket_specific_overview') ?>:</h6>
                 <ul>
-                    <li><strong>Admin-Antworten für dieses Ticket:</strong> <?= $ticketAdminReplies ?></li>
-                    <li><strong>Kunden-Antworten für dieses Ticket:</strong> <?= $ticketCustomerReplies ?></li>
-                    <li><strong>Interne Antworten für dieses Ticket:</strong> <?= $ticketInternalReplies ?></li>
+                    <li><strong><?= t('admin_replies_for_this_ticket') ?>:</strong> <?= $ticketAdminReplies ?></li>
+                    <li><strong><?= t('customer_replies_for_this_ticket') ?>:</strong> <?= $ticketCustomerReplies ?></li>
+                    <li><strong><?= t('internal_replies_for_this_ticket') ?>:</strong> <?= $ticketInternalReplies ?></li>
                 </ul>
                 
                 <!-- Detaillierte Überprüfung der Admin-Antworten -->
@@ -800,20 +800,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                     $adminRepliesDetails = [];
                 }
                 ?>
-                <h6>Detaillierte Admin-Antworten:</h6>
+                <h6><?= t('detailed_admin_replies') ?>:</h6>
                 <?php if (!empty($adminRepliesDetails)): ?>
                     <ul>
                         <?php foreach ($adminRepliesDetails as $adminReply): ?>
                             <li>
-                                ID: <?= $adminReply['id'] ?>, 
-                                Admin: <?= htmlspecialchars($adminReply['full_name'] ?? $adminReply['username'] ?? 'Unbekannt') ?>, 
-                                Internal: <?= $adminReply['is_internal'] ? 'Ja' : 'Nein' ?>,
-                                Datum: <?= date('d.m.Y H:i:s', strtotime($adminReply['created_at'])) ?>
+                                <?= t('id') ?>: <?= $adminReply['id'] ?>, 
+                                <?= t('admin') ?>: <?= htmlspecialchars($adminReply['full_name'] ?? $adminReply['username'] ?? 'Unbekannt') ?>, 
+                                <?= t('internal') ?>: <?= $adminReply['is_internal'] ? 'Ja' : 'Nein' ?>,
+                                <?= t('date') ?>: <?= date('d.m.Y H:i:s', strtotime($adminReply['created_at'])) ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
                 <?php else: ?>
-                    <p class="text-muted">Keine Admin-Antworten für dieses Ticket gefunden.</p>
+                    <p class="text-muted"><?= t('no_admin_replies_found_for_this_ticket') ?></p>
                 <?php endif; ?>
             </div>
         <?php endif; ?>

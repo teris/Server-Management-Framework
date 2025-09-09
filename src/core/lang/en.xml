@@ -57,6 +57,13 @@
     <reject>Reject</reject>
     <passwort_nicht_angezeigt>Password not displayed</passwort_nicht_angezeigt>
     <altes_passwort_erforderlich>Old password required</altes_passwort_erforderlich>
+    <domains>Domains</domains>
+    <footer>Footer</footer>
+    <left>Left</left>
+    <center>Center</center>
+    <right>Right</right>
+    <options>Options</options>
+    <note>Note</note>
     <ispconfig_customer_no>Customer Number</ispconfig_customer_no>
     <ispconfig_vat_id>VAT ID</ispconfig_vat_id>
     <user_type>User Type</user_type>
@@ -242,6 +249,54 @@
     <bug_report>Report Bug</bug_report>
     <feature_request>Request Feature</feature_request>
     
+    <!-- JavaScript-specific translations -->
+    <js_network_error>Network error</js_network_error>
+    <js_server_error>Server error</js_server_error>
+    <js_ajax_error>AJAX error</js_ajax_error>
+    <js_session_expired>Session expired</js_session_expired>
+    <js_plugin_load_error>Error loading plugin</js_plugin_load_error>
+    <js_unknown_error>Unknown error</js_unknown_error>
+    <js_form_submit_error>Error submitting form</js_form_submit_error>
+    <js_form_success>Form submitted successfully</js_form_success>
+    <js_vm_load_error>Error loading VMs</js_vm_load_error>
+    <js_vm_control_success>VM operation successful</js_vm_control_success>
+    <js_vm_control_error>Error in VM operation</js_vm_control_error>
+    <js_no_vms_found>No VMs found</js_no_vms_found>
+    <js_website_load_error>Error loading websites</js_website_load_error>
+    <js_no_websites_found>No websites found</js_no_websites_found>
+    <js_domain_load_error>Error loading domains</js_domain_load_error>
+    <js_no_domains_found>No domains found</js_no_domains_found>
+    <js_no_logs_found>No logs found</js_no_logs_found>
+    <js_stats_updating>Updating statistics...</js_stats_updating>
+    <js_cache_clearing>Clearing cache...</js_cache_clearing>
+    <js_connections_testing>Testing connections...</js_connections_testing>
+    <js_settings_saved>Settings saved</js_settings_saved>
+    <js_loading>Loading...</js_loading>
+    <js_processing>Processing...</js_processing>
+    <js_confirm_delete>Confirm delete</js_confirm_delete>
+    <js_confirm_vm_delete>Confirm VM delete</js_confirm_vm_delete>
+    <js_confirm_website_delete>Confirm website delete</js_confirm_website_delete>
+    <js_confirm_database_delete>Confirm database delete</js_confirm_database_delete>
+    <js_confirm_email_delete>Confirm email delete</js_confirm_email_delete>
+    <js_operation_successful>Operation successful</js_operation_successful>
+    <js_operation_failed>Operation failed</js_operation_failed>
+    <js_validation_failed>Validation failed</js_validation_failed>
+    <js_access_denied>Access denied</js_access_denied>
+    <js_timeout_error>Timeout error</js_timeout_error>
+    <js_connection_lost>Connection lost</js_connection_lost>
+    <js_data_load_error>Error loading data</js_data_load_error>
+    <js_data_save_error>Error saving data</js_data_save_error>
+    <js_data_update_error>Error updating data</js_data_update_error>
+    <js_data_delete_error>Error deleting data</js_data_delete_error>
+    <js_please_wait>Please wait...</js_please_wait>
+    <js_retry_later>Try again later</js_retry_later>
+    <js_contact_admin>Contact administrator</js_contact_admin>
+    <js_debug_info>Debug information</js_debug_info>
+    <js_available_plugins>Available plugins</js_available_plugins>
+    <js_session_info>Session information</js_session_info>
+    <js_not_available>Not available</js_not_available>
+    <js_admin_dashboard_initialized>Admin Dashboard initialized</js_admin_dashboard_initialized>
+    
     <!-- Tables and Lists -->
     <no_records>No records found</no_records>
     <showing_records>Showing records</showing_records>
@@ -343,6 +398,7 @@
     <resources>Resources</resources>
     <plugins>Plugins</plugins>
     <logs>Logs</logs>
+    <settings>Settings</settings>
     <system_overview>System Overview</system_overview>
     <server>Server</server>
     <unknown>Unknown</unknown>
@@ -352,10 +408,50 @@
     <refresh_all_stats>Refresh All Stats</refresh_all_stats>
     <clear_cache>Clear Cache</clear_cache>
     <test_connections>Test Connections</test_connections>
+    <vms>VMs</vms>
+    <websites>Websites</websites>
+    <databases>Databases</databases>
+    <emails>Emails</emails>
+    <domains>Domains</domains>
     <virtual_machines>Virtual Machines</virtual_machines>
+    <website_management>Website Management</website_management>
+    <database_management>Database Management</database_management>
+    <email_management>Email Management</email_management>
     <email_accounts>Email Accounts</email_accounts>
+    <domain_management>Domain Management</domain_management>
+    <plugin_management>Plugin Management</plugin_management>
     <available_plugins>Available Plugins</available_plugins>
     <no_description_available>No description available</no_description_available>
+    <open>Open</open>
+    <system_logs>System Logs</system_logs>
+    <system_settings>System Settings</system_settings>
+    <general_settings>General Settings</general_settings>
+    <session_timeout>Session Timeout (Minutes)</session_timeout>
+    <auto_refresh_interval>Auto Refresh Interval (Seconds)</auto_refresh_interval>
+    <save>Save</save>
+    <system_status>System Status</system_status>
+    <cache_status>Cache Status</cache_status>
+    <active>Active</active>
+    <api_connections>API Connections</api_connections>
+    <all_ok>All OK</all_ok>
+    <last_update>Last Update</last_update>
+    <notification>Notification</notification>
+    <message_here>Message here...</message_here>
+    <name>Name</name>
+    <status>Status</status>
+    <cpu>CPU</cpu>
+    <ram>RAM</ram>
+    <storage>Storage</storage>
+    <running>Running</running>
+    <stopped>Stopped</stopped>
+    <start>Start</start>
+    <stop>Stop</stop>
+    <delete>Delete</delete>
+    <unknown>Unknown</unknown>
+    <cpu_usage>CPU Usage</cpu_usage>
+    <memory_usage>Memory Usage</memory_usage>
+    <cores>CPU Cores</cores>
+    <uptime>Uptime</uptime>
     <general>General</general>
     <api_credentials>API Credentials</api_credentials>
     <modules>Modules</modules>
@@ -436,6 +532,15 @@
     <error_deleting>Error deleting</error_deleting>
     <error_editing>Error editing</error_editing>
     <error_adding>Error adding</error_adding>
+    
+    <!-- Table Headers -->
+    <name>Name</name>
+    <domain>Domain</domain>
+    <status>Status</status>
+    <actions>Actions</actions>
+    <active>Active</active>
+    <inactive>Inactive</inactive>
+    <edit>Edit</edit>
     
     <!-- Virtual MAC Module -->
     <module_title>Module Title</module_title>
@@ -1156,4 +1261,16 @@
     <timestamps>Timestamps</timestamps>
     <address_information>Address Information</address_information>
     <status_and_verification>Status and Verification</status_and_verification>
+    
+    <!-- Additional missing translations -->
+    <use_delete_customers>You are about to delete the customer "<span id="deleteCustomerName"></span>".</use_delete_customers>
+    <link_status>Link Status</link_status>
+    <ispconfig_api_error>ISPConfig API Error</ispconfig_api_error>
+    <local_user>Local User</local_user>
+    <please_select_which_systems_the_customer_should_be_deleted_from>Please select which systems the customer should be deleted from:</please_select_which_systems_the_customer_should_be_deleted_from>
+    <local_customer>Local Customer</local_customer>
+    <always_deleted>always deleted</always_deleted>
+    <ogp_customer>OpenGamePanel Customer</ogp_customer>
+    <proxmox_customer>Proxmox Customer</proxmox_customer>
+    <ispconfig_customer>ISPConfig Customer</ispconfig_customer>
 </translations> 

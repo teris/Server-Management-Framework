@@ -55,7 +55,7 @@ try {
     }
 } catch (Exception $e) {
     error_log("Domain Registration Error: " . $e->getMessage());
-    $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+    $error = t('an_error_occurred') . ' ' . t('please_try_later');
 }
 
 // Domain-Verfügbarkeitsprüfung
@@ -112,7 +112,7 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'check_domain_ajax
          if (empty($domainName) || empty($domainExtension)) {
              echo json_encode([
                  'success' => false,
-                 'error' => 'Domain name and extension are required'
+                 'error' => t('domain_name_and_extension_are_required')
              ]);
              exit;
          }
@@ -156,7 +156,7 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'check_domain_ajax
         error_log("AJAX domain check error: " . $e->getMessage());
         echo json_encode([
             'success' => false,
-            'error' => 'Internal server error during domain check'
+            'error' => t('internal_server_error_during_domain_check')
         ]);
     }
     
@@ -186,8 +186,8 @@ function checkDomainAvailability($domain) {
     if (!preg_match('/^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/', $domain)) {
         return [
             'available' => false,
-            'error' => 'Invalid domain format',
-            'message' => 'Please enter a valid domain name'
+            'error' => t('invalid_domain_format'),
+            'message' => t('please_enter_a_valid_domain_name')
         ];
     }
 
@@ -197,7 +197,7 @@ function checkDomainAvailability($domain) {
         return [
             'available' => false,
             'error' => 'Rate limit exceeded',
-            'message' => 'Bitte warten Sie 2 Sekunden zwischen den Domain-Prüfungen'
+            'message' => t('please_wait_2_seconds_between_domain_checks')
         ];
     }
     file_put_contents($rateLimitFile, time());
@@ -210,7 +210,7 @@ function checkDomainAvailability($domain) {
         error_log("Domain availability check failed: " . $e->getMessage());
         return [
             'available' => true,
-            'message' => 'Domain availability unclear (check failed)',
+            'message' => t('domain_availability_unclear_check_failed'),
             'method' => 'Error fallback'
         ];
     }
@@ -270,7 +270,7 @@ function checkOVHDomainAvailability($domain) {
                     if (isset($response['http_code']) && $response['http_code'] === 404) {
                         return [
                             'available' => true,
-                            'message' => 'Domain is available (not found in OVH system)',
+                            'message' => t('domain_is_available_not_found_in_ovh_system'),
                             'method' => 'OVH API (Framework)'
                         ];
                     }
@@ -279,7 +279,7 @@ function checkOVHDomainAvailability($domain) {
                     if (isset($response['http_code']) && $response['http_code'] === 200) {
                         return [
                             'available' => false,
-                            'message' => 'Domain is not available (found in OVH system)',
+                            'message' => t('domain_is_not_available_found_in_ovh_system'),
                             'method' => 'OVH API (Framework)',
                             'details' => $response
                         ];
@@ -289,7 +289,7 @@ function checkOVHDomainAvailability($domain) {
                     if (is_array($response) && !empty($response)) {
                         return [
                             'available' => false,
-                            'message' => 'Domain is not available (found in OVH system)',
+                            'message' => t('domain_is_not_available_found_in_ovh_system'),
                             'method' => 'OVH API (Framework)',
                             'details' => $response
                         ];
@@ -326,14 +326,14 @@ function checkFallbackAvailability($domain) {
         if ($dnsRecords === false || empty($dnsRecords)) {
             return [
                 'available' => true,
-                'message' => 'Domain appears to be available (no DNS records found)',
+                'message' => t('domain_appears_to_be_available_no_dns_records_found'),
                 'method' => 'DNS fallback'
             ];
         }
         
         return [
             'available' => false,
-            'message' => 'Domain is not available (DNS records found)',
+            'message' => t('domain_is_not_available_dns_records_found'),
             'method' => 'DNS fallback'
         ];
         
@@ -341,7 +341,7 @@ function checkFallbackAvailability($domain) {
         error_reporting($oldErrorReporting);
         return [
             'available' => true,
-            'message' => 'Domain availability unclear (fallback check failed)',
+            'message' => t('domain_availability_unclear_fallback_check_failed'),
             'method' => 'Fallback error'
         ];
     }
@@ -416,7 +416,7 @@ function submitDomainRegistration($customerId, $domain, $purpose, $notes) {
         $stmt->execute([$domain]);
         
         if ($stmt->fetch()) {
-            return ['success' => false, 'error' => 'Diese Domain wurde bereits registriert.'];
+            return ['success' => false, 'error' => t('this_domain_has_already_been_registered')];
         }
         
         // Neue Registrierung einfügen
@@ -433,7 +433,7 @@ function submitDomainRegistration($customerId, $domain, $purpose, $notes) {
             $activityLogger->logCustomerActivity(
                 $customerId, 
                 'domain_register', 
-                "Domain-Registrierung eingereicht: $domain", 
+                t('domain_registration_submitted') . ': ' . $domain, 
                 $db->lastInsertId(), 
                 'domain_registrations'
             );
@@ -444,7 +444,7 @@ function submitDomainRegistration($customerId, $domain, $purpose, $notes) {
         return ['success' => true];
     } catch (Exception $e) {
         error_log("Domain Registration Error: " . $e->getMessage());
-        return ['success' => false, 'error' => 'Ein Datenbankfehler ist aufgetreten.'];
+        return ['success' => false, 'error' => t('a_database_error_occurred')];
     }
 }
 
@@ -488,7 +488,7 @@ try {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">
-                <i class="bi bi-server"></i> Server Management
+                <i class="bi bi-server"></i> <?= Config::FRONTPANEL_SITE_NAME ?>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -850,8 +850,8 @@ try {
             <div class="mt-3">
                 <div class="alert alert-info">
                     <i class="bi bi-hourglass-split"></i> 
-                    <strong>Verfügbarkeit wird geprüft...</strong><br>
-                    <small>Dies kann einige Sekunden dauern.</small>
+                    <strong><?= t('checking_availability') ?>...</strong><br>
+                    <small><?= t('this_can_take_a_few_seconds') ?></small>
                 </div>
             </div>
         `;
@@ -878,11 +878,11 @@ try {
             error: function(xhr, status, error) {
                 console.error('AJAX Error:', status, error);
                 if (xhr.status === 429) {
-                    showError('Zu viele Anfragen. Bitte warten Sie einen Moment.');
+                    showError('<?= t('too_many_requests') ?>. <?= t('please_wait_a_moment') ?>');
                 } else if (xhr.status === 0) {
-                    showError('Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.');
+                    showError('<?= t('network_error') ?>. <?= t('please_check_your_internet_connection') ?>');
                 } else {
-                    showError('Fehler bei der Verfügbarkeitsprüfung. Bitte versuchen Sie es später erneut.');
+                    showError('<?= t('error_checking_availability') ?>. <?= t('please_try_again_later') ?>');
                 }
             },
             complete: function() {
@@ -978,8 +978,8 @@ try {
          
          let html = `
              <div class="alert alert-info mt-3">
-                 <h6><i class="bi bi-globe"></i> ${data.domainName} - Alle TLDs geprüft</h6>
-                 <p class="mb-0">Hier sind die Ergebnisse für alle verfügbaren Domain-Endungen:</p>
+                 <h6><i class="bi bi-globe"></i> ${data.domainName} - <?= t('all_tlds_checked') ?></h6>
+                 <p class="mb-0"><?= t('here_are_the_results_for_all_available_domain_extensions') ?>:</p>
              </div>
          `;
          
@@ -990,7 +990,7 @@ try {
          if (available.length > 0) {
              html += `
                  <div class="mt-3">
-                     <h6 class="text-success"><i class="bi bi-check-circle"></i> Verfügbare Domains:</h6>
+                     <h6 class="text-success"><i class="bi bi-check-circle"></i> <?= t('available_domains') ?>:</h6>
                      <div class="row">
              `;
              
@@ -1004,7 +1004,7 @@ try {
                                  <div class="mt-2">
                                      <button class="btn btn-success btn-sm w-100" 
                                              onclick="showRegistrationForm('${result.domain}')">
-                                         <i class="bi bi-plus-circle"></i> Registrieren
+                                         <i class="bi bi-plus-circle"></i> <?= t('register') ?>
                                      </button>
                                  </div>
                              </div>
@@ -1022,7 +1022,7 @@ try {
          if (unavailable.length > 0) {
              html += `
                  <div class="mt-3">
-                     <h6 class="text-warning"><i class="bi bi-exclamation-triangle"></i> Nicht verfügbare Domains:</h6>
+                     <h6 class="text-warning"><i class="bi bi-exclamation-triangle"></i> <?= t('unavailable_domains') ?>:</h6>
                      <div class="row">
              `;
              

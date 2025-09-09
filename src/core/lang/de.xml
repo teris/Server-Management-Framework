@@ -230,7 +230,6 @@
     <summary>Zusammenfassung</summary>
     <help>Hilfe</help>
     <about>Über</about>
-    <contact>Kontakt</contact>
     <support>Support</support>
     <documentation>Dokumentation</documentation>
     
@@ -330,9 +329,6 @@
     <time_picker>Zeitauswahl</time_picker>
     <select_date>Datum auswählen</select_date>
     <select_time>Zeit auswählen</select_time>
-    <today>Heute</today>
-    <yesterday>Gestern</yesterday>
-    <tomorrow>Morgen</tomorrow>
     <this_week>Diese Woche</this_week>
     <last_week>Letzte Woche</last_week>
     <next_week>Nächste Woche</next_week>
@@ -343,53 +339,7 @@
     <last_year>Letztes Jahr</last_year>
     <next_year>Nächstes Jahr</next_year>
     
-    <!-- JavaScript Fehlermeldungen -->
-    <js_network_error>Netzwerkfehler - Server nicht erreichbar</js_network_error>
-    <js_server_error>Server-Fehler - Bitte versuchen Sie es später erneut</js_server_error>
-    <js_ajax_error>AJAX-Fehler</js_ajax_error>
-    <js_session_expired>Session abgelaufen - Sie werden weitergeleitet</js_session_expired>
-    <js_plugin_load_error>Fehler beim Laden des Plugins</js_plugin_load_error>
-    <js_unknown_error>Unbekannter Fehler</js_unknown_error>
-    <js_form_submit_error>Fehler beim Senden des Formulars</js_form_submit_error>
-    <js_form_success>Formular erfolgreich gesendet</js_form_success>
-    <js_vm_load_error>Fehler beim Laden der VMs</js_vm_load_error>
-    <js_vm_control_success>VM {action} erfolgreich ausgeführt</js_vm_control_success>
-    <js_vm_control_error>Fehler bei VM-Operation</js_vm_control_error>
-    <js_no_vms_found>Keine VMs gefunden</js_no_vms_found>
-    <js_no_websites_found>Keine Websites gefunden</js_no_websites_found>
-    <js_no_databases_found>Keine Datenbanken gefunden</js_no_databases_found>
-    <js_no_emails_found>Keine E-Mails gefunden</js_no_emails_found>
-    <js_no_domains_found>Keine Domains gefunden</js_no_domains_found>
-    <js_no_logs_found>Keine Log-Einträge gefunden</js_no_logs_found>
-    <js_stats_updating>Statistiken werden aktualisiert...</js_stats_updating>
-    <js_cache_clearing>Cache wird geleert...</js_cache_clearing>
-    <js_connections_testing>Verbindungen werden getestet...</js_connections_testing>
-    <js_settings_saved>Einstellungen gespeichert</js_settings_saved>
-    <js_loading>Laden...</js_loading>
-    <js_processing>Wird verarbeitet...</js_processing>
-    <js_confirm_delete>Löschen bestätigen</js_confirm_delete>
-    <js_confirm_vm_delete>Möchten Sie diese VM wirklich löschen?</js_confirm_vm_delete>
-    <js_confirm_website_delete>Möchten Sie diese Website wirklich löschen?</js_confirm_website_delete>
-    <js_confirm_database_delete>Möchten Sie diese Datenbank wirklich löschen?</js_confirm_database_delete>
-    <js_confirm_email_delete>Möchten Sie dieses E-Mail-Konto wirklich löschen?</js_confirm_email_delete>
-    <js_operation_successful>Operation erfolgreich</js_operation_successful>
-    <js_operation_failed>Operation fehlgeschlagen</js_operation_failed>
-    <js_validation_failed>Validierung fehlgeschlagen</js_validation_failed>
-    <js_access_denied>Zugriff verweigert</js_access_denied>
-    <js_timeout_error>Zeitüberschreitung bei der Anfrage</js_timeout_error>
-    <js_connection_lost>Verbindung verloren</js_connection_lost>
-    <js_data_load_error>Fehler beim Laden der Daten</js_data_load_error>
-    <js_data_save_error>Fehler beim Speichern der Daten</js_data_save_error>
-    <js_data_update_error>Fehler beim Aktualisieren der Daten</js_data_update_error>
-    <js_data_delete_error>Fehler beim Löschen der Daten</js_data_delete_error>
-    <js_please_wait>Bitte warten...</js_please_wait>
-    <js_retry_later>Bitte versuchen Sie es später erneut</js_retry_later>
-    <js_contact_admin>Bitte kontaktieren Sie den Administrator</js_contact_admin>
-    <js_debug_info>Debug-Informationen</js_debug_info>
-    <js_available_plugins>Verfügbare Plugins</js_available_plugins>
-    <js_session_info>Session-Info</js_session_info>
-    <js_not_available>Nicht verfügbar</js_not_available>
-    <js_admin_dashboard_initialized>Admin Dashboard initialisiert</js_admin_dashboard_initialized>
+   
     
     <!-- Admin Dashboard UI-Elemente -->
     <administration>Administration</administration>
@@ -411,10 +361,7 @@
     <websites>Websites</websites>
     <databases>Datenbanken</databases>
     <emails>E-Mails</emails>
-    <domains>Domains</domains>
     <virtual_machines>Virtuelle Maschinen</virtual_machines>
-    <refresh>Aktualisieren</refresh>
-    <loading>Laden...</loading>
     <website_management>Website Management</website_management>
     <database_management>Database Management</database_management>
     <email_management>E-Mail Management</email_management>
@@ -453,8 +400,7 @@
     <memory_usage>Arbeitsspeicher-Auslastung</memory_usage>
     <cores>CPU-Kerne</cores>
     <uptime>Laufzeit</uptime>
-    <refresh>Aktualisieren</refresh>
-
+    
     <settings>Einstellungen</settings>
     <general>Allgemein</general>
     <api_credentials>API-Zugangsdaten</api_credentials>
@@ -592,7 +538,6 @@
     <assigned_ips>Zugewiesene IPs</assigned_ips>
     <dedicated_servers>Dedicated Server</dedicated_servers>
     <search_virtual_macs>Virtual MACs durchsuchen</search_virtual_macs>
-    <refresh>Aktualisieren</refresh>
     <mac_address>MAC-Adresse</mac_address>
     <vm_name>VM-Name</vm_name>
     <ip_address>IP-Adresse</ip_address>
@@ -736,7 +681,6 @@
     <zone_content>Zone-Inhalt</zone_content>
     <paste_zone_content>Zone-Inhalt hier einfügen...</paste_zone_content>
     <status>Status</status>
-    <loading>Laden...</loading>
     <operation_successful>Operation erfolgreich</operation_successful>
     <operation_failed>Operation fehlgeschlagen</operation_failed>
     <confirm_delete>Löschen bestätigen</confirm_delete>
@@ -964,7 +908,7 @@
     <user_created_successfully>Benutzer erfolgreich erstellt</user_created_successfully>
     <refreshing>Aktualisiere...</refreshing>
     <user_list_updated>Benutzerliste aktualisiert</user_list_updated>
-    <loading>Lade...</loading>
+    
     <unlimited>Unbegrenzt</unlimited>
     <userid>Benutzer-ID</userid>
     <clients>Clients</clients>
@@ -1310,7 +1254,6 @@
     <ispconfig>ISPConfig</ispconfig>
     <customers>Kunden</customers>
     <admin_dashboard>Admin Dashboard</admin_dashboard>
-    <refresh>Aktualisieren</refresh>
     <search_users>Benutzer suchen</search_users>
     <all_statuses>Alle Status</all_statuses>
     <active>Aktiv</active>
@@ -1397,4 +1340,398 @@
     <timestamps>Zeitstempel</timestamps>
     <address_information>Adressinformationen</address_information>
     <status_and_verification>Status und Verifizierung</status_and_verification>
+    
+    <!-- Neue Übersetzungsschlüssel aus PHP-Dateien -->
+    <frontpanel_title>Frontend-Titel</frontpanel_title>
+    <server_status>Server-Status</server_status>
+    <game_servers>Game-Server</game_servers>
+    <customer_login>Kunden-Login</customer_login>
+    <welcome_message>Willkommensnachricht</welcome_message>
+    <hero_description>Hauptbeschreibung</hero_description>
+    <virtual_machines>Virtuelle Maschinen</virtual_machines>
+    <uptime>Betriebszeit</uptime>
+    <system_load>Systemlast</system_load>
+    <proxmox_server_status>Proxmox-Server-Status</proxmox_server_status>
+    <last_update>Letzte Aktualisierung</last_update>
+    <cpu_usage>CPU-Auslastung</cpu_usage>
+    <memory_usage>Speicher-Auslastung</memory_usage>
+    <cores>Kerne</cores>
+    <no_vms_available>Keine VMs verfügbar</no_vms_available>
+    <game_server_status>Game-Server-Status</game_server_status>
+    <game_type>Spieltyp</game_type>
+    <server>Server</server>
+    <ip_address>IP-Adresse</ip_address>
+    <port>Port</port>
+    <no_game_servers_available>Keine Game-Server verfügbar</no_game_servers_available>
+    <system_status>System-Status</system_status>
+    <ticket_submitted>Ticket eingereicht</ticket_submitted>
+    <ticket_submitted_message>Ihr Ticket wurde erfolgreich eingereicht</ticket_submitted_message>
+    
+    <!-- Fehler und Meldungen -->
+    <an_error_occurred>Ein Fehler ist aufgetreten</an_error_occurred>
+    <please_try_later>Bitte versuchen Sie es später erneut</please_try_later>
+    <please_try_again_later>Bitte versuchen Sie es später erneut</please_try_again_later>
+    <please_try_again>Bitte versuchen Sie es erneut</please_try_again>
+    <error_occurred>Fehler aufgetreten</error_occurred>
+    <unknown_error>Unbekannter Fehler</unknown_error>
+    
+    <!-- Domain-Registrierung -->
+    <domain_available>Domain verfügbar</domain_available>
+    <domain_not_available>Domain nicht verfügbar</domain_not_available>
+    <domain_name_and_extension_are_required>Domain-Name und -Erweiterung sind erforderlich</domain_name_and_extension_are_required>
+    <internal_server_error_during_domain_check>Interner Serverfehler bei Domain-Prüfung</internal_server_error_during_domain_check>
+    <registration_submitted>Registrierung eingereicht</registration_submitted>
+    <invalid_domain_format>Ungültiges Domain-Format</invalid_domain_format>
+    <please_enter_a_valid_domain_name>Bitte geben Sie einen gültigen Domain-Namen ein</please_enter_a_valid_domain_name>
+    <please_wait_2_seconds_between_domain_checks>Bitte warten Sie 2 Sekunden zwischen Domain-Prüfungen</please_wait_2_seconds_between_domain_checks>
+    <domain_availability_unclear_check_failed>Domain-Verfügbarkeit unklar - Prüfung fehlgeschlagen</domain_availability_unclear_check_failed>
+    <domain_is_available_not_found_in_ovh_system>Domain ist verfügbar - nicht im OVH-System gefunden</domain_is_available_not_found_in_ovh_system>
+    <domain_is_not_available_found_in_ovh_system>Domain ist nicht verfügbar - im OVH-System gefunden</domain_is_not_available_found_in_ovh_system>
+    <domain_appears_to_be_available_no_dns_records_found>Domain scheint verfügbar zu sein - keine DNS-Einträge gefunden</domain_appears_to_be_available_no_dns_records_found>
+    <domain_is_not_available_dns_records_found>Domain ist nicht verfügbar - DNS-Einträge gefunden</domain_is_not_available_dns_records_found>
+    <domain_availability_unclear_fallback_check_failed>Domain-Verfügbarkeit unklar - Fallback-Prüfung fehlgeschlagen</domain_availability_unclear_fallback_check_failed>
+    <this_domain_has_already_been_registered>Diese Domain wurde bereits registriert</this_domain_has_already_been_registered>
+    <domain_registration_submitted>Domain-Registrierung eingereicht</domain_registration_submitted>
+    <a_database_error_occurred>Ein Datenbankfehler ist aufgetreten</a_database_error_occurred>
+    <domain_registration>Domain-Registrierung</domain_registration>
+    <check_domain_availability>Domain-Verfügbarkeit prüfen</check_domain_availability>
+    <domain_name>Domain-Name</domain_name>
+    <enter_domain_name>Domain-Name eingeben</enter_domain_name>
+    <domain_extension>Domain-Erweiterung</domain_extension>
+    <select_extension>Erweiterung auswählen</select_extension>
+    <all_tlds>Alle TLDs</all_tlds>
+    <check_availability>Verfügbarkeit prüfen</check_availability>
+    <domain_check_info_rate_limit>Domain-Prüfungs-Info: Rate-Limit</domain_check_info_rate_limit>
+    <alternative_domains>Alternative Domains</alternative_domains>
+    <register_this_domain>Diese Domain registrieren</register_this_domain>
+    <register_domain>Domain registrieren</register_domain>
+    <purpose>Zweck</purpose>
+    <select_purpose>Zweck auswählen</select_purpose>
+    <business_website>Geschäftswebsite</business_website>
+    <personal_website>Persönliche Website</personal_website>
+    <blog>Blog</blog>
+    <ecommerce>E-Commerce</ecommerce>
+    <portfolio>Portfolio</portfolio>
+    <other>Andere</other>
+    <additional_notes>Zusätzliche Notizen</additional_notes>
+    <describe_your_project>Beschreiben Sie Ihr Projekt</describe_your_project>
+    <important>Wichtig</important>
+    <domain_registration_info>Domain-Registrierungs-Info</domain_registration_info>
+    <submit_registration>Registrierung einreichen</submit_registration>
+    <my_domain_registrations>Meine Domain-Registrierungen</my_domain_registrations>
+    <no_domain_registrations>Keine Domain-Registrierungen</no_domain_registrations>
+    <domain>Domain</domain>
+    <pending_approval>Wartet auf Genehmigung</pending_approval>
+    <checking_availability>Verfügbarkeit wird geprüft</checking_availability>
+    <this_can_take_a_few_seconds>Dies kann einige Sekunden dauern</this_can_take_a_few_seconds>
+    <too_many_requests>Zu viele Anfragen</too_many_requests>
+    <please_wait_a_moment>Bitte warten Sie einen Moment</please_wait_a_moment>
+    <please_check_your_internet_connection>Bitte überprüfen Sie Ihre Internetverbindung</please_check_your_internet_connection>
+    <error_checking_availability>Fehler bei Verfügbarkeitsprüfung</error_checking_availability>
+    <domain_available_message>Domain verfügbar - Nachricht</domain_available_message>
+    <domain_not_available_message>Domain nicht verfügbar - Nachricht</domain_not_available_message>
+    <all_tlds_checked>Alle TLDs geprüft</all_tlds_checked>
+    <here_are_the_results_for_all_available_domain_extensions>Hier sind die Ergebnisse für alle verfügbaren Domain-Erweiterungen</here_are_the_results_for_all_available_domain_extensions>
+    <available_domains>Verfügbare Domains</available_domains>
+    <register>Registrieren</register>
+    <unavailable_domains>Nicht verfügbare Domains</unavailable_domains>
+    
+    <!-- Dashboard -->
+    <dashboard_welcome>Dashboard-Willkommen</dashboard_welcome>
+    <welcome_back>Willkommen zurück</welcome_back>
+    <dashboard_description>Dashboard-Beschreibung</dashboard_description>
+    <unknown>Unbekannt</unknown>
+    <active_servers>Aktive Server</active_servers>
+    <websites>Websites</websites>
+    <domain_registrations>Domain-Registrierungen</domain_registrations>
+    <email_accounts>E-Mail-Accounts</email_accounts>
+    <active_accounts>Aktive Accounts</active_accounts>
+    <open_tickets>Offene Tickets</open_tickets>
+    <quick_actions>Schnellaktionen</quick_actions>
+    <edit_profile>Profil bearbeiten</edit_profile>
+    <recent_activity>Letzte Aktivität</recent_activity>
+    <delete_all_activities>Alle Aktivitäten löschen</delete_all_activities>
+    <no_recent_activity>Keine letzte Aktivität</no_recent_activity>
+    <notifications>Benachrichtigungen</notifications>
+    <no_notifications>Keine Benachrichtigungen</no_notifications>
+    <privacy_policy>Datenschutzrichtlinie</privacy_policy>
+    <terms_of_service>Nutzungsbedingungen</terms_of_service>
+    <session_expired>Sitzung abgelaufen</session_expired>
+    <are_you_sure_you_want_to_delete_all_activities>Sind Sie sicher, dass Sie alle Aktivitäten löschen möchten?</are_you_sure_you_want_to_delete_all_activities>
+    <all_activities_were_successfully_deleted>Alle Aktivitäten wurden erfolgreich gelöscht</all_activities_were_successfully_deleted>
+    <no_activities_found>Keine Aktivitäten gefunden</no_activities_found>
+    <deleted>Gelöscht</deleted>
+    <error_deleting_activities>Fehler beim Löschen der Aktivitäten</error_deleting_activities>
+    
+    <!-- Kontakt -->
+    <please_enter_your_name>Bitte geben Sie Ihren Namen ein</please_enter_your_name>
+    <please_enter_a_valid_email_address>Bitte geben Sie eine gültige E-Mail-Adresse ein</please_enter_a_valid_email_address>
+    <please_enter_a_subject>Bitte geben Sie einen Betreff ein</please_enter_a_subject>
+    <please_enter_a_message>Bitte geben Sie eine Nachricht ein</please_enter_a_message>
+    <your_message_was_successfully_sent>Ihre Nachricht wurde erfolgreich gesendet</your_message_was_successfully_sent>
+    <we_will_contact_you_as_soon_as_possible>Wir werden uns so schnell wie möglich bei Ihnen melden</we_will_contact_you_as_soon_as_possible>
+    <error_sending_message>Fehler beim Senden der Nachricht</error_sending_message>
+    <contact_us>Kontaktieren Sie uns</contact_us>
+    <contact_description>Kontakt-Beschreibung</contact_description>
+    <send_message>Nachricht senden</send_message>
+    <contact_information>Kontaktinformationen</contact_information>
+    <address>Adresse</address>
+    <phone>Telefon</phone>
+    <business_hours>Geschäftszeiten</business_hours>
+    <monday>Montag</monday>
+    <friday>Freitag</friday>
+    <saturday>Samstag</saturday>
+    <sunday>Sonntag</sunday>
+    <closed>Geschlossen</closed>
+    <support_description>Support-Beschreibung</support_description>
+    <frequently_asked_questions>Häufig gestellte Fragen</frequently_asked_questions>
+    <faq_description>FAQ-Beschreibung</faq_description>
+    <view_faq>FAQ anzeigen</view_faq>
+    <location>Standort</location>
+    
+    <!-- Aktivitäten -->
+    <not_logged_in>Nicht angemeldet</not_logged_in>
+    <customer_not_found>Kunde nicht gefunden</customer_not_found>
+    <invalid_action>Ungültige Aktion</invalid_action>
+    <no_activities_found_for_deletion>Keine Aktivitäten zum Löschen gefunden</no_activities_found_for_deletion>
+    
+    <!-- Passwort ändern -->
+    <please_enter_current_password>Bitte geben Sie Ihr aktuelles Passwort ein</please_enter_current_password>
+    <please_enter_new_password>Bitte geben Sie Ihr neues Passwort ein</please_enter_new_password>
+    <new_password_must_be_at_least_8_characters_long>Das neue Passwort muss mindestens 8 Zeichen lang sein</new_password_must_be_at_least_8_characters_long>
+    <new_passwords_do_not_match>Die neuen Passwörter stimmen nicht überein</new_passwords_do_not_match>
+    <customer_not_found_or_inactive>Kunde nicht gefunden oder inaktiv</customer_not_found_or_inactive>
+    <current_password_is_incorrect>Das aktuelle Passwort ist falsch</current_password_is_incorrect>
+    <password_changed_successfully>Passwort erfolgreich geändert</password_changed_successfully>
+    <error_changing_password>Fehler beim Ändern des Passworts</error_changing_password>
+    <password_must_be_at_least_8_characters_long>Das Passwort muss mindestens 8 Zeichen lang sein</password_must_be_at_least_8_characters_long>
+    <password_security_tips>Passwort-Sicherheitstipps</password_security_tips>
+    <use_at_least_8_characters>Verwenden Sie mindestens 8 Zeichen</use_at_least_8_characters>
+    <combine_uppercase_and_lowercase_letters>Kombinieren Sie Groß- und Kleinbuchstaben</combine_uppercase_and_lowercase_letters>
+    <add_numbers_and_special_characters>Fügen Sie Zahlen und Sonderzeichen hinzu</add_numbers_and_special_characters>
+    <avoid_easily_guessable_words>Vermeiden Sie leicht erratbare Wörter</avoid_easily_guessable_words>
+    <use_unique_password_for_each_account>Verwenden Sie für jeden Account ein einzigartiges Passwort</use_unique_password_for_each_account>
+    
+    <!-- Login -->
+    <please_fill_all_fields>Bitte füllen Sie alle Felder aus</please_fill_all_fields>
+    <email_or_password_is_incorrect>E-Mail oder Passwort ist falsch</email_or_password_is_incorrect>
+    <back_to_frontpanel>Zurück zum Frontend</back_to_frontpanel>
+    <login_description>Login-Beschreibung</login_description>
+    <enter_email>E-Mail eingeben</enter_email>
+    <enter_password>Passwort eingeben</enter_password>
+    <remember_me>Angemeldet bleiben</remember_me>
+    <forgot_password>Passwort vergessen</forgot_password>
+    <no_account>Kein Account</no_account>
+    <create_account>Account erstellen</create_account>
+    <secure_connection>Sichere Verbindung</secure_connection>
+    
+    
+    <!-- Profil -->
+    <a_full_name_is_required>Ein vollständiger Name ist erforderlich</a_full_name_is_required>
+    <a_valid_email_address_is_required>Eine gültige E-Mail-Adresse ist erforderlich</a_valid_email_address_is_required>
+    <this_email_address_is_already_used_by_another_customer>Diese E-Mail-Adresse wird bereits von einem anderen Kunden verwendet</this_email_address_is_already_used_by_another_customer>
+    <your_profile_has_been_successfully_updated>Ihr Profil wurde erfolgreich aktualisiert</your_profile_has_been_successfully_updated>
+    <error_updating_profile>Fehler beim Aktualisieren des Profils</error_updating_profile>
+    <company>Firma</company>
+    <account_information>Account-Informationen</account_information>
+    <customer_id>Kunden-ID</customer_id>
+    
+    <!-- Registrierung -->
+    <please_fill_all_required_fields>Bitte füllen Sie alle erforderlichen Felder aus</please_fill_all_required_fields>
+    <the_password_must_be_at_least_8_characters_long>Das Passwort muss mindestens 8 Zeichen lang sein</the_password_must_be_at_least_8_characters_long>
+    <the_passwords_do_not_match>Die Passwörter stimmen nicht überein</the_passwords_do_not_match>
+    <you_must_accept_the_terms_of_service>Sie müssen den Nutzungsbedingungen zustimmen</you_must_accept_the_terms_of_service>
+    <this_email_address_is_already_registered>Diese E-Mail-Adresse ist bereits registriert</this_email_address_is_already_registered>
+    <registration_successful>Registrierung erfolgreich</registration_successful>
+    <please_verify_your_email_address>Bitte verifizieren Sie Ihre E-Mail-Adresse</please_verify_your_email_address>
+    <registration_failed>Registrierung fehlgeschlagen</registration_failed>
+    <customer_registration>Kunden-Registrierung</customer_registration>
+    <already_registered>Bereits registriert</already_registered>
+    <registration_description>Registrierungs-Beschreibung</registration_description>
+    <first_name>Vorname</first_name>
+    <enter_first_name>Vorname eingeben</enter_first_name>
+    <last_name>Nachname</last_name>
+    <enter_last_name>Nachname eingeben</enter_last_name>
+    <password_requirements>Passwort-Anforderungen</password_requirements>
+    <enter_company>Firma eingeben</enter_company>
+    <enter_phone>Telefon eingeben</enter_phone>
+    <accept_terms_text>Ich akzeptiere die</accept_terms_text>
+    <and>und</and>
+    <newsletter_subscription>Newsletter-Anmeldung</newsletter_subscription>
+    <already_have_account>Haben Sie bereits einen Account</already_have_account>
+    <login_here>Hier anmelden</login_here>
+    <secure_registration>Sichere Registrierung</secure_registration>
+    <need_help>Hilfe benötigt</need_help>
+    
+    <!-- Support -->
+    <your_support_ticket_has_been_successfully_submitted>Ihr Support-Ticket wurde erfolgreich eingereicht</your_support_ticket_has_been_successfully_submitted>
+    <error_creating_ticket>Fehler beim Erstellen des Tickets</error_creating_ticket>
+    <error_loading_tickets>Fehler beim Laden der Tickets</error_loading_tickets>
+    <ticket_not_found>Ticket nicht gefunden</ticket_not_found>
+    <error_loading_ticket>Fehler beim Laden des Tickets</error_loading_ticket>
+    <ticket_reply_sent>Ticket-Antwort gesendet</ticket_reply_sent>
+    <your_reply_has_been_successfully_sent>Ihre Antwort wurde erfolgreich gesendet</your_reply_has_been_successfully_sent>
+    <ticket_not_found_or_no_access>Ticket nicht gefunden oder kein Zugriff</ticket_not_found_or_no_access>
+    <error_sending_reply>Fehler beim Senden der Antwort</error_sending_reply>
+    <last_updated>Zuletzt aktualisiert</last_updated>
+    <replies>Antworten</replies>
+    <no_replies_yet>Noch keine Antworten</no_replies_yet>
+    <debug_info>Debug-Info</debug_info>
+    <no_replies_found>Keine Antworten gefunden</no_replies_found>
+    <ticket_id>Ticket-ID</ticket_id>
+    <reply_message>Antwort-Nachricht</reply_message>
+    <enter_your_reply>Geben Sie Ihre Antwort ein</enter_your_reply>
+    <send_reply>Antwort senden</send_reply>
+    <ticket_closed_message>Ticket geschlossen - Nachricht</ticket_closed_message>
+    <no_tickets>Keine Tickets</no_tickets>
+    <no_tickets_message>Keine Tickets - Nachricht</no_tickets_message>
+    <actions>Aktionen</actions>
+    <debug_information>Debug-Informationen</debug_information>
+    <found_replies>Gefundene Antworten</found_replies>
+    <ticket_status>Ticket-Status</ticket_status>
+    <reply_details>Antwort-Details</reply_details>
+    <id>ID</id>
+    <type>Typ</type>
+    <admin_id>Admin-ID</admin_id>
+    <internal>Intern</internal>
+    <database_overview>Datenbank-Übersicht</database_overview>
+    <total_admin_replies>Gesamte Admin-Antworten</total_admin_replies>
+    <total_customer_replies>Gesamte Kunden-Antworten</total_customer_replies>
+    <internal_replies>Interne Antworten</internal_replies>
+    <ticket_specific_overview>Ticket-spezifische Übersicht</ticket_specific_overview>
+    <admin_replies_for_this_ticket>Admin-Antworten für dieses Ticket</admin_replies_for_this_ticket>
+    <customer_replies_for_this_ticket>Kunden-Antworten für dieses Ticket</customer_replies_for_this_ticket>
+    <internal_replies_for_this_ticket>Interne Antworten für dieses Ticket</internal_replies_for_this_ticket>
+    <detailed_admin_replies>Detaillierte Admin-Antworten</detailed_admin_replies>
+    <admin>Admin</admin>
+    <date>Datum</date>
+    <no_admin_replies_found_for_this_ticket>Keine Admin-Antworten für dieses Ticket gefunden</no_admin_replies_found_for_this_ticket>
+    
+    <!-- E-Mail-Verifizierung -->
+    <invalid_confirmation_link>Ungültiger Bestätigungslink</invalid_confirmation_link>
+    <invalid_or_expired_confirmation_token>Ungültiger oder abgelaufener Bestätigungstoken</invalid_or_expired_confirmation_token>
+    <your_account_is_already_activated>Ihr Account ist bereits aktiviert</your_account_is_already_activated>
+    <your_system_accounts_have_been_successfully_created>Ihre System-Accounts wurden erfolgreich erstellt</your_system_accounts_have_been_successfully_created>
+    <user>Benutzer</user>
+    <successfully_created_in_all_systems>Erfolgreich in allen Systemen erstellt</successfully_created_in_all_systems>
+    <an_email_with_your_system_login_details_has_been_sent_to_your_email_address>Eine E-Mail mit Ihren System-Login-Details wurde an Ihre E-Mail-Adresse gesendet</an_email_with_your_system_login_details_has_been_sent_to_your_email_address>
+    <some_system_accounts_could_not_be_created>Einige System-Accounts konnten nicht erstellt werden</some_system_accounts_could_not_be_created>
+    <the_email_with_your_system_login_details_could_not_be_sent>Die E-Mail mit Ihren System-Login-Details konnte nicht gesendet werden</the_email_with_your_system_login_details_could_not_be_sent>
+    <error_during_account_activation>Fehler bei der Account-Aktivierung</error_during_account_activation>
+    <email_verification>E-Mail-Verifizierung</email_verification>
+    <email_verification_required>E-Mail-Verifizierung erforderlich</email_verification_required>
+    <account_activated>Account aktiviert</account_activated>
+
+    <Y_m_d_His>Y-m-d H:i:s</Y_m_d_His>
+    <a>a</a>
+    <activate>Aktivieren</activate>
+    <activated>Aktiviert</activated>
+    <add_admin_notes>Admin-Notizen hinzufügen</add_admin_notes>
+    <all>Alle</all>
+    <all_available_system_users>Alle verfügbaren System-Benutzer</all_available_system_users>
+    <assetsinc_jsusers_js>assets/inc-js/users.js</assetsinc_jsusers_js>
+    <attention>Achtung</attention>
+    <change_status>Status ändern</change_status>
+    <client>Kunde</client>
+    <config>Konfiguration</config>
+    <customers_note>Kunden-Hinweis</customers_note>
+    <d_m_Y_His>d.m.Y H:i:s</d_m_Y_His>
+    <database_test>Datenbank-Test</database_test>
+    <deactivate>Deaktivieren</deactivate>
+    <dedicated_server>Dedicated Server</dedicated_server>
+    <dns_record>DNS-Eintrag</dns_record>
+    <dns_refresh>DNS aktualisieren</dns_refresh>
+    <email_accounts_Tabellen_Schema>email_accounts Tabellen-Schema:</email_accounts_Tabellen_Schema>
+    <error_controlling_ogp_server>Fehler beim Steuern des OGP-Servers</error_controlling_ogp_server>
+    <error_getting_active_servers>Fehler beim Abrufen aktiver Server</error_getting_active_servers>
+    <error_getting_ogp_servers>Fehler beim Abrufen der OGP-Server</error_getting_ogp_servers>
+    <error_getting_online_players>Fehler beim Abrufen der Online-Spieler</error_getting_online_players>
+    <error_getting_server_performance>Fehler beim Abrufen der Server-Performance</error_getting_server_performance>
+    <error_getting_server_stats>Fehler beim Abrufen der Server-Statistiken</error_getting_server_stats>
+    <error_getting_system_status>Fehler beim Abrufen des System-Status</error_getting_system_status>
+    <error_log>Fehlerprotokoll</error_log>
+    <error_saving_customer>Fehler beim Speichern des Kunden</error_saving_customer>
+    <error_toggling_customer_status>Fehler beim Umschalten des Kundenstatus</error_toggling_customer_status>
+    <existing_system_users>Vorhandene System-Benutzer</existing_system_users>
+    <getMigrationLog>Lade Migrations-Log</getMigrationLog>
+    <getMigrationProgress>Lade Migrations-Fortschritt</getMigrationProgress>
+    <getMigrationStats>Lade Migrations-Statistiken</getMigrationStats>
+    <getSystemStatus>Lade System-Status</getSystemStatus>
+    <get_active_servers>Aktive Server abrufen</get_active_servers>
+    <get_activity_log>Aktivitätsprotokoll abrufen</get_activity_log>
+    <get_all_databases>Alle Datenbanken abrufen</get_all_databases>
+    <get_all_domains>Alle Domains abrufen</get_all_domains>
+    <get_all_emails>Alle E-Mails abrufen</get_all_emails>
+    <get_all_virtual_macs>Alle Virtual MACs abrufen</get_all_virtual_macs>
+    <get_all_vms>Alle VMs abrufen</get_all_vms>
+    <get_all_vps>Alle VPS abrufen</get_all_vps>
+    <get_all_websites>Alle Websites abrufen</get_all_websites>
+    <get_dedicated_servers>Dedicated Server abrufen</get_dedicated_servers>
+    <get_ogp_servers>OGP-Server abrufen</get_ogp_servers>
+    <get_online_players>Online-Spieler abrufen</get_online_players>
+    <get_proxmox_nodes>Proxmox-Nodes abrufen</get_proxmox_nodes>
+    <get_server_performance>Server-Performance abrufen</get_server_performance>
+    <get_statistics>Statistiken abrufen</get_statistics>
+    <get_system_status>System-Status abrufen</get_system_status>
+    <group_id>Gruppen-ID</group_id>
+    <input>Eingabe</input>
+    <ispconfig_sites>ISPConfig-Sites</ispconfig_sites>
+    <ispconfig_test>ISPConfig-Test</ispconfig_test>
+    <ispconfig_user>ISPConfig-Benutzer</ispconfig_user>
+    <label>Beschriftung</label>
+    <leave_empty_no_change>Leer lassen für keine Änderung</leave_empty_no_change>
+    <link>Verknüpfung</link>
+    <link_users_note>Benutzer-Verknüpfungshinweis</link_users_note>
+    <loading_databases>Lade Datenbanken</loading_databases>
+    <loading_email_accounts>Lade E-Mail-Accounts</loading_email_accounts>
+    <loading_ftp_users>Lade FTP-Benutzer</loading_ftp_users>
+    <loading_websites>Lade Websites</loading_websites>
+    <local_users>Lokale Benutzer</local_users>
+    <max_execution_time>Maximale Ausführungszeit</max_execution_time>
+    <memory_limit>Speicherlimit</memory_limit>
+    <module_does_not_handle_requests>Modul verarbeitet keine Anfragen</module_does_not_handle_requests>
+    <new_endpoint>Neuer Endpoint</new_endpoint>
+    <new_key>Neuer Schlüssel</new_key>
+    <new_local_user>Neuer lokaler Benutzer</new_local_user>
+    <new_message>Neue Nachricht</new_message>
+    <no_domain_registrations_found>Keine Domain-Registrierungen gefunden</no_domain_registrations_found>
+    <no_ispconfig_users>Keine ISPConfig-Benutzer</no_ispconfig_users>
+    <no_link>Keine Verknüpfung</no_link>
+    <no_merge_suggestions>Keine Zusammenführungsvorschläge</no_merge_suggestions>
+    <no_ogp_users>Keine OGP-Benutzer</no_ogp_users>
+    <no_proxmox_users>Keine Proxmox-Benutzer</no_proxmox_users>
+    <no_websites_found>Keine Websites gefunden</no_websites_found>
+    <ogp>OGP</ogp>
+    <ogp_server_control_successful>OGP-Server-Steuerung erfolgreich</ogp_server_control_successful>
+    <ogp_user>OGP-Benutzer</ogp_user>
+    <option>Option</option>
+    <ovh>OVH</ovh>
+    <ovh_servers>OVH-Server</ovh_servers>
+    <please_select_which_systems_the_user_should_be_deleted_from>Bitte wählen Sie aus, aus welchen Systemen der Benutzer gelöscht werden soll</please_select_which_systems_the_user_should_be_deleted_from>
+    <preview>Vorschau</preview>
+    <proxmox_nodes>Proxmox-Nodes</proxmox_nodes>
+    <proxmox_user>Proxmox-Benutzer</proxmox_user>
+    <proxmox_vms>Proxmox-VMs</proxmox_vms>
+    <quick_fix>Schnellkorrektur</quick_fix>
+    <redirect>Weiterleitung</redirect>
+    <registered_at>Registriert am</registered_at>
+    <script>Skript</script>
+    <search_websites>Websites durchsuchen</search_websites>
+    <security_and_status>Sicherheit und Status</security_and_status>
+    <select_module_from_tabs_above>Wählen Sie ein Modul aus den Tabs oben aus</select_module_from_tabs_above>
+    <select_service>Service auswählen</select_service>
+    <session_use_cookies>Session verwendet Cookies</session_use_cookies>
+    <show_details>Details anzeigen</show_details>
+    <soap_test>SOAP-Test</soap_test>
+    <sort_by_client>Nach Client sortieren</sort_by_client>
+    <sort_by_email>Nach E-Mail sortieren</sort_by_email>
+    <standard>Standard</standard>
+    <status_and_security>Status und Sicherheit</status_and_security>
+    <stopMigration>Migration stoppen</stopMigration>
+    <test_email_mock>E-Mail-Test (Mock)</test_email_mock>
+    <total_assigned_ips>Gesamt zugewiesene IPs</total_assigned_ips>
+    <total_dedicated_servers>Gesamt Dedicated Server</total_dedicated_servers>
+    <user_notes>Benutzer-Notizen</user_notes>
+    <vps_info>VPS-Informationen</vps_info>
+    <you_are_deleting_the_user>Sie löschen den Benutzer</you_are_deleting_the_user>
 </translations> 

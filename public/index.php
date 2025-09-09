@@ -75,7 +75,7 @@ try {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="bi bi-server"></i> Server Management
+                <i class="bi bi-server"></i> <?= Config::FRONTPANEL_SITE_NAME ?>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -111,7 +111,7 @@ try {
     <!-- Hero Section -->
     <div class="hero-section bg-gradient-primary text-white py-5">
         <div class="container text-center">
-            <h1 class="display-4 mb-3"><?= t('welcome_message') ?></h1>
+            <h1 class="display-4 mb-3"><?= t('welcome_message') ?> <?= Config::FRONTPANEL_SITE_NAME ?></h1>
             <p class="lead mb-4"><?= t('hero_description') ?></p>
             <div class="row justify-content-center">
                 <div class="col-md-3 col-6 mb-3">
@@ -345,7 +345,7 @@ try {
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
         <div class="container text-center">
-            <p>&copy; <?= date('Y') ?> Server Management. <?= t('all_rights_reserved') ?></p>
+            <p>&copy; <?= date('Y') ?> <?= Config::FRONTPANEL_SITE_NAME ?>. <?= t('all_rights_reserved') ?></p>
             <div class="mt-2">
                 <a href="../src/index.php" class="text-white-50 me-3">
                     <i class="bi bi-shield-lock"></i> <?= t('admin_panel') ?>

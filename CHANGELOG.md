@@ -2,6 +2,15 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.2.1]
+
+### Geändert
+- Sprachdatein aktuallsiert und fehlerhafte `t()` abfragen aktuallisiert
+
+### Hinzugefügt
+- Debugabfrage für `t()` erstellt.
+-- Nutzung über `print_r(t('debug', null, null, true));` für fehlende Sprachübersetzungen
+
 ## [3.2.0]
 
 ### Hinzugefügt

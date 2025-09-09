@@ -20,7 +20,7 @@ session_start();
 // Prüfen ob Kunde eingeloggt ist
 if (!isset($_SESSION['customer_logged_in']) || $_SESSION['customer_logged_in'] !== true) {
     http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Nicht eingeloggt']);
+    echo json_encode(['success' => false, 'error' => t('not_logged_in')]);
     exit;
 }
 
@@ -28,7 +28,7 @@ $customerId = $_SESSION['customer_id'] ?? 0;
 
 if (!$customerId) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Kunde nicht gefunden']);
+    echo json_encode(['success' => false, 'error' => t('customer_not_found')]);
     exit;
 }
 
@@ -38,7 +38,7 @@ $action = $input['action'] ?? '';
 
 if ($action !== 'clear_all_activities') {
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Ungültige Aktion']);
+    echo json_encode(['success' => false, 'error' => t('invalid_action')]);
     exit;
 }
 
@@ -59,7 +59,7 @@ try {
             $activityLogger->logCustomerActivity(
                 $customerId,
                 'activities_cleared',
-                'Alle Aktivitäten wurden gelöscht',
+                t('all_activities_were_successfully_deleted'),
                 null,
                 null
             );
@@ -69,7 +69,7 @@ try {
             
             echo json_encode([
                 'success' => true, 
-                'message' => 'Alle Aktivitäten wurden erfolgreich gelöscht',
+                'message' => t('all_activities_were_successfully_deleted'),
                 'deleted_count' => $stmt->rowCount()
             ]);
         } else {
@@ -77,7 +77,7 @@ try {
             $db->rollback();
             echo json_encode([
                 'success' => false, 
-                'error' => 'Keine Aktivitäten zum Löschen gefunden'
+                'error' => t('no_activities_found_for_deletion')
             ]);
         }
         
@@ -92,7 +92,7 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false, 
-        'error' => 'Fehler beim Löschen der Aktivitäten: ' . $e->getMessage()
+        'error' => t('error_deleting_activities') . ': ' . $e->getMessage()
     ]);
 }
 ?>

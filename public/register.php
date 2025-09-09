@@ -44,15 +44,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Validierung
     if (empty($firstName) || empty($lastName) || empty($email) || empty($password)) {
-        $error = 'Bitte füllen Sie alle Pflichtfelder aus.';
+        $error = t('please_fill_all_required_fields');
     } elseif (strlen($password) < 8) {
-        $error = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+        $error = t('the_password_must_be_at_least_8_characters_long');
     } elseif ($password !== $confirmPassword) {
-        $error = 'Die Passwörter stimmen nicht überein.';
+        $error = t('the_passwords_do_not_match');
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+        $error = t('please_enter_a_valid_email_address');
     } elseif (!$acceptTerms) {
-        $error = 'Sie müssen die Nutzungsbedingungen akzeptieren.';
+        $error = t('you_must_accept_the_terms_of_service');
     } else {
         try {
             // Datenbankverbindung
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$email]);
             
             if ($stmt->fetch()) {
-                $error = 'Diese E-Mail-Adresse ist bereits registriert.';
+                $error = t('this_email_address_is_already_registered');
             } else {
                 // Passwort hashen
                 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
@@ -88,17 +88,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     sendVerificationEmail($email, $firstName, $customerId);
                     
                     // Erfolgs-Nachricht
-                    $success = 'Registrierung erfolgreich! Bitte bestätigen Sie Ihre E-Mail-Adresse.';
+                    $success = t('registration_successful') . ' ' . t('please_verify_your_email_address');
                     
                     // Formular zurücksetzen
                     $_POST = [];
                 } else {
-                    $error = 'Registrierung fehlgeschlagen. Bitte versuchen Sie es später erneut.';
+                    $error = t('registration_failed') . ' ' . t('please_try_again_later');
                 }
             }
         } catch (Exception $e) {
             error_log("Registration Error: " . $e->getMessage());
-            $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+            $error = t('an_error_occurred') . ' ' . t('please_try_again_later');
         }
     }
 }
@@ -128,14 +128,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">
-                <i class="bi bi-server"></i> Server Management
+                <i class="bi bi-server"></i> <?= Config::FRONTPANEL_SITE_NAME ?>
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="index.php">
-                    <i class="bi bi-house"></i> Zurück zum Frontpanel
+                    <i class="bi bi-house"></i> <?= t('back_to_frontpanel') ?>
                 </a>
                 <a class="nav-link" href="login.php">
-                    <i class="bi bi-person-circle"></i> Bereits registriert?
+                    <i class="bi bi-person-circle"></i> <?= t('already_registered') ?>
                 </a>
             </div>
         </div>

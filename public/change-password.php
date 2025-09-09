@@ -41,13 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Validierung
     if (empty($currentPassword)) {
-        $error = 'Bitte geben Sie Ihr aktuelles Passwort ein.';
+        $error = t('please_enter_current_password');
     } elseif (empty($newPassword)) {
-        $error = 'Bitte geben Sie ein neues Passwort ein.';
+        $error = t('please_enter_new_password');
     } elseif (strlen($newPassword) < 8) {
-        $error = 'Das neue Passwort muss mindestens 8 Zeichen lang sein.';
+        $error = t('new_password_must_be_at_least_8_characters_long');
     } elseif ($newPassword !== $confirmPassword) {
-        $error = 'Die neuen Passwörter stimmen nicht überein.';
+        $error = t('new_passwords_do_not_match');
     } else {
         try {
             $db = Database::getInstance();
@@ -58,16 +58,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $customer = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$customer) {
-                $error = 'Kunde nicht gefunden oder inaktiv.';
+                $error = t('customer_not_found_or_inactive');
             } elseif (!password_verify($currentPassword, $customer['password_hash'])) {
-                $error = 'Das aktuelle Passwort ist falsch.';
+                $error = t('current_password_is_incorrect');
             } else {
                 // Neues Passwort hashen und speichern
                 $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
                 
                 $stmt = $db->prepare("UPDATE customers SET password_hash = ?, updated_at = NOW() WHERE id = ?");
                 if ($stmt->execute([$hashedPassword, $customerId])) {
-                    $success = 'Ihr Passwort wurde erfolgreich geändert.';
+                    $success = t('password_changed_successfully');
                     
                     // Aktivität loggen
                     try {
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $activityLogger->logCustomerActivity(
                             $customerId, 
                             'password_change', 
-                            'Passwort erfolgreich geändert', 
+                            t('password_changed_successfully'), 
                             $customerId, 
                             'customers'
                         );
@@ -90,12 +90,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         setcookie('remember_token', '', time() - 3600, '/', '', true, true);
                     }
                 } else {
-                    $error = 'Fehler beim Ändern des Passworts. Bitte versuchen Sie es erneut.';
+                    $error = t('error_changing_password') . ' ' . t('please_try_again');
                 }
             }
         } catch (Exception $e) {
             error_log("Password Change Error: " . $e->getMessage());
-            $error = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+            $error = t('error_occurred') . ' ' . t('please_try_later');
         }
     }
 }
@@ -223,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="form-text">
                                     <small class="text-muted">
                                         <i class="bi bi-info-circle"></i> 
-                                        Das Passwort muss mindestens 8 Zeichen lang sein.
+                                        <?= t('password_must_be_at_least_8_characters_long') ?>
                                     </small>
                                 </div>
                             </div>
@@ -263,23 +263,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <ul class="list-unstyled mb-0">
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                Verwenden Sie mindestens 8 Zeichen
+                                <?= t('use_at_least_8_characters') ?>
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                Kombinieren Sie Groß- und Kleinbuchstaben
+                                <?= t('combine_uppercase_and_lowercase_letters') ?>
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                Fügen Sie Zahlen und Sonderzeichen hinzu
+                                <?= t('add_numbers_and_special_characters') ?>
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                Vermeiden Sie leicht zu erratende Wörter
+                                <?= t('avoid_easily_guessable_words') ?>
                             </li>
                             <li>
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                Verwenden Sie für jedes Konto ein einzigartiges Passwort
+                                <?= t('use_unique_password_for_each_account') ?>
                             </li>
                         </ul>
                     </div>
@@ -328,7 +328,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (newPassword !== confirmPassword) {
                 e.preventDefault();
-                alert('Die neuen Passwörter stimmen nicht überein.');
+                alert(<?= t('new_passwords_do_not_match') ?>);
                 return false;
             }
         });
