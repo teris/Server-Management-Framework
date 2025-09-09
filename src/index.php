@@ -121,6 +121,7 @@ if (isset($_POST['action'])) {
         exit;
     }
     
+    
     // Users Module AJAX Actions (direkt verarbeiten)
     if (isset($_GET['option']) && $_GET['option'] === 'users' && isset($_POST['action'])) {
         $action = $_POST['action'];
@@ -144,18 +145,19 @@ if (isset($_POST['action'])) {
         $plugin_key = $_POST['plugin'];
         $action = $_POST['action'] ?? '';
         
-        // Debug-Log
-        error_log("index.php: Plugin request - plugin: $plugin_key, action: $action");
         
         // Daten sammeln
         $data = $_POST;
         unset($data['plugin']);
         unset($data['action']);
         
-        $result = $pluginManager->handlePluginRequest($plugin_key, $action, $data);
+        try {
+            $result = $pluginManager->handlePluginRequest($plugin_key, $action, $data);
+        } catch (Exception $e) {
+            error_log("index.php: Plugin error - " . $e->getMessage());
+            $result = ['success' => false, 'error' => $e->getMessage()];
+        }
         
-        // Debug-Log
-        error_log("index.php: Plugin response - " . json_encode($result));
         
         echo json_encode($result);
         exit;
@@ -348,6 +350,8 @@ try {
      <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ACE Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ace.min.js"></script>
 
     <script src="assets/main.js"></script>
     <script src="assets/admin-core.js"></script>

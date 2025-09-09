@@ -2,6 +2,31 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.2.3]
+
+### File-Editor Modul - Verbesserungen
+
+#### Behoben
+- **Code-Ausführung verhindert**: PHP/HTML/JavaScript-Code wird nicht mehr im Hintergrund ausgeführt beim Öffnen von Dateien
+- **Sichere Content-Übertragung**: Dateiinhalt wird nur als reiner Text angezeigt, keine Interpretation oder Ausführung
+- **ACE Editor Fehler behoben**: `ace.edit can't find div #file-editor-ace` Fehler behoben
+- **Robuste Fallback-Lösung**: Automatischer Wechsel zur Textarea bei ACE Editor Problemen
+
+#### Geändert
+- **Backup-Formatierung**: Backup-Dateien verwenden jetzt das Format `<dateiname>.<dateiendung>.bnk` anstatt Zeitstempel
+- **Automatisches Überschreiben**: Backup-Dateien werden ohne Aufforderung überschrieben
+- **Verbesserte Sicherheit**: Getrennte Datenebenen für HTML und JavaScript
+
+#### Technische Verbesserungen
+- **Sichere JavaScript-Initialisierung**: Inhalt wird aus Textarea geladen, nicht direkt eingebettet
+- **Debug-Logs**: Erweiterte Logging-Funktionen für bessere Fehlerdiagnose
+- **Element-Prüfung**: Robuste Prüfung auf DOM-Element-Existenz vor ACE Editor Initialisierung
+
+### Sicherheit
+- **Keine Code-Ausführung**: Alle Dateitypen werden nur als reiner Text behandelt
+- **HTML-Escaping**: Alle Inhalte werden sicher escaped
+- **Sichere Übertragung**: Keine direkte Einbettung von potentiell gefährlichem Code in JavaScript
+
 ## [3.2.2]
 
 ### Hinzugefügt

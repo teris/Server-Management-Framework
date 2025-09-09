@@ -63,6 +63,16 @@ $plugins = array (
     'description' => 'DNS-Records und DNSSEC für OVH-Domains verwalten',
     'require_admin' => false,
   ),
+  'file-editor' => 
+  array (
+    'enabled' => true,
+    'name' => 'Datei Editor',
+    'icon' => '📝',
+    'path' => 'module/file-editor',
+    'version' => '1.0.0',
+    'description' => 'Erweiterter Datei-Editor mit automatischer Dateityp-Erkennung und strukturierter Datenansicht',
+    'require_admin' => true,
+  ),
   'virtual-mac' => 
   array (
     'enabled' => false,
@@ -148,7 +158,7 @@ $plugins = array (
 
 // --- SYSTEM_CONFIG START ---
 $system_config = array (
-  'version' => '3.2.1',
+  'version' => '3.2.3',
   'theme' => 'default',
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',

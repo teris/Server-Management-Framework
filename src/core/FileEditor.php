@@ -434,6 +434,13 @@ class FileEditor {
     }
     
     /**
+     * ACE-Theme ermitteln
+     */
+    private function getAceTheme() {
+        return 'monokai';
+    }
+    
+    /**
      * Fehlermeldung generieren
      */
     private function errorMessage($message) {
@@ -475,5 +482,334 @@ class FileEditor {
             'theme' => 'chrome',
             'fontSize' => 14
         ]);
+    }
+    
+    /**
+     * Strukturierte Daten-Editor (XML/JSON) rendern
+     */
+    public function renderStructuredDataEditor($filePath, $content, $fileType, $isWritable) {
+        $fileName = basename($filePath);
+        $aceMode = $this->getAceMode($fileType);
+        
+        // Tabellenansicht für strukturierte Daten
+        $tableView = $this->generateStructuredDataTable($content, $fileType);
+        
+        $editorHtml = '
+        <div class="file-editor-container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-table"></i> Tabellarische Ansicht
+                            </h6>
+                        </div>
+                        <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                            ' . $tableView . '
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-code-slash"></i> Raw-Editor
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="file-editor-ace" style="height: 500px; width: 100%;"></div>
+                            <textarea id="file-editor-textarea" style="display: none;">' . htmlspecialchars($content) . '</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // ACE Editor initialisieren
+            if (typeof ace !== "undefined") {
+                var editor = ace.edit("file-editor-ace");
+                editor.setTheme("ace/theme/' . $this->getAceTheme() . '");
+                editor.session.setMode("ace/mode/' . $aceMode . '");
+                editor.setOptions({
+                    fontSize: 14,
+                    showLineNumbers: true,
+                    showGutter: true,
+                    highlightActiveLine: true,
+                    enableBasicAutocompletion: true,
+                    enableSnippets: true,
+                    enableLiveAutocompletion: true
+                });
+                
+                // Inhalt setzen
+                editor.setValue(`' . addslashes($content) . '`);
+                editor.clearSelection();
+                
+                // Änderungen überwachen
+                editor.on("change", function() {
+                    document.getElementById("file-editor-textarea").value = editor.getValue();
+                });
+            } else {
+                // Fallback: Textarea anzeigen
+                document.getElementById("file-editor-textarea").style.display = "block";
+                document.getElementById("file-editor-textarea").style.height = "500px";
+            }
+        });
+        </script>';
+        
+        return $editorHtml;
+    }
+    
+    /**
+     * Tabellarische Ansicht für strukturierte Daten generieren
+     */
+    private function generateStructuredDataTable($content, $fileType) {
+        try {
+            if ($fileType === 'JSON') {
+                return $this->generateJsonTable($content);
+            } elseif ($fileType === 'XML') {
+                return $this->generateXmlTable($content);
+            }
+        } catch (Exception $e) {
+            return '<div class="alert alert-danger">Fehler beim Parsen der ' . $fileType . '-Datei: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+        
+        return '<div class="alert alert-info">Tabellarische Ansicht nicht verfügbar für diesen Dateityp</div>';
+    }
+    
+    /**
+     * JSON-Tabelle generieren
+     */
+    private function generateJsonTable($jsonContent) {
+        $data = json_decode($jsonContent, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return '<div class="alert alert-danger">Ungültiges JSON: ' . htmlspecialchars(json_last_error_msg()) . '</div>';
+        }
+        
+        $html = '<table class="table table-striped table-hover table-sm">';
+        $html .= '<thead class="table-dark">';
+        $html .= '<tr><th>Key</th><th>Value</th><th>Type</th></tr>';
+        $html .= '</thead><tbody>';
+        
+        $this->renderJsonRow($data, '', $html);
+        
+        $html .= '</tbody></table>';
+        return $html;
+    }
+    
+    /**
+     * JSON-Zeile rendern (rekursiv)
+     */
+    private function renderJsonRow($data, $prefix, &$html) {
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                $currentKey = $prefix ? $prefix . '.' . $key : $key;
+                
+                if (is_array($value) || is_object($value)) {
+                    $html .= '<tr>';
+                    $html .= '<td><code>' . htmlspecialchars($currentKey) . '</code></td>';
+                    $html .= '<td>' . (is_array($value) ? 'Array (' . count($value) . ' items)' : 'Object') . '</td>';
+                    $html .= '<td><span class="badge bg-info">' . gettype($value) . '</span></td>';
+                    $html .= '</tr>';
+                    
+                    $this->renderJsonRow($value, $currentKey, $html);
+                } else {
+                    $html .= '<tr>';
+                    $html .= '<td><code>' . htmlspecialchars($currentKey) . '</code></td>';
+                    $html .= '<td><code>' . htmlspecialchars($value) . '</code></td>';
+                    $html .= '<td><span class="badge bg-secondary">' . gettype($value) . '</span></td>';
+                    $html .= '</tr>';
+                }
+            }
+        } elseif (is_object($data)) {
+            $this->renderJsonRow((array)$data, $prefix, $html);
+        } else {
+            $html .= '<tr>';
+            $html .= '<td><code>root</code></td>';
+            $html .= '<td><code>' . htmlspecialchars($data) . '</code></td>';
+            $html .= '<td><span class="badge bg-secondary">' . gettype($data) . '</span></td>';
+            $html .= '</tr>';
+        }
+    }
+    
+    /**
+     * XML-Tabelle generieren
+     */
+    private function generateXmlTable($xmlContent) {
+        $dom = new DOMDocument();
+        $dom->loadXML($xmlContent);
+        
+        $html = '<table class="table table-striped table-hover table-sm">';
+        $html .= '<thead class="table-dark">';
+        $html .= '<tr><th>Element</th><th>Value</th><th>Attributes</th></tr>';
+        $html .= '</thead><tbody>';
+        
+        $this->renderXmlNode($dom->documentElement, '', $html);
+        
+        $html .= '</tbody></table>';
+        return $html;
+    }
+    
+    /**
+     * XML-Knoten rendern (rekursiv)
+     */
+    private function renderXmlNode($node, $path, &$html) {
+        if ($node->nodeType === XML_ELEMENT_NODE) {
+            $currentPath = $path ? $path . '.' . $node->nodeName : $node->nodeName;
+            $attributes = '';
+            
+            if ($node->hasAttributes()) {
+                $attrArray = [];
+                foreach ($node->attributes as $attr) {
+                    $attrArray[] = $attr->name . '="' . $attr->value . '"';
+                }
+                $attributes = implode(', ', $attrArray);
+            }
+            
+            $textContent = trim($node->textContent);
+            
+            $html .= '<tr>';
+            $html .= '<td><code>' . htmlspecialchars($currentPath) . '</code></td>';
+            $html .= '<td><code>' . htmlspecialchars($textContent) . '</code></td>';
+            $html .= '<td><code>' . htmlspecialchars($attributes) . '</code></td>';
+            $html .= '</tr>';
+            
+            // Kinder verarbeiten
+            foreach ($node->childNodes as $child) {
+                $this->renderXmlNode($child, $currentPath, $html);
+            }
+        }
+    }
+    
+    /**
+     * Farbcode-Erkennung für RAW-Modus
+     */
+    public function detectColorCodes($content) {
+        $colorPatterns = [
+            'hex' => '/#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/',
+            'rgb' => '/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/',
+            'rgba' => '/rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/',
+            'hsl' => '/hsl\s*\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)/',
+            'hsla' => '/hsla\s*\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*,\s*([\d.]+)\s*\)/',
+            'named' => '/\b(red|green|blue|yellow|orange|purple|pink|brown|black|white|gray|grey)\b/i'
+        ];
+        
+        $foundColors = [];
+        
+        foreach ($colorPatterns as $type => $pattern) {
+            preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
+            foreach ($matches[0] as $match) {
+                $foundColors[] = [
+                    'type' => $type,
+                    'value' => $match[0],
+                    'position' => $match[1],
+                    'preview' => $this->generateColorPreview($match[0])
+                ];
+            }
+        }
+        
+        return $foundColors;
+    }
+    
+    /**
+     * Farbvorschau generieren
+     */
+    private function generateColorPreview($colorValue) {
+        return '<span class="color-preview" style="display: inline-block; width: 20px; height: 20px; background-color: ' . htmlspecialchars($colorValue) . '; border: 1px solid #ccc; margin-right: 5px; vertical-align: middle;"></span>';
+    }
+    
+    /**
+     * Erweiterte Editor-HTML mit Farbcode-Unterstützung
+     */
+    public function renderAdvancedEditor($filePath, $content, $fileType, $isWritable) {
+        $fileName = basename($filePath);
+        $aceMode = $this->getAceMode($fileType);
+        
+        // Farbcodes erkennen
+        $colorCodes = $this->detectColorCodes($content);
+        
+        $editorHtml = '
+        <div class="file-editor-container">
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-palette"></i> Gefundene Farbcodes
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="color-codes-list">';
+        
+        if (!empty($colorCodes)) {
+            foreach ($colorCodes as $color) {
+                $editorHtml .= '<span class="badge bg-light text-dark me-2 mb-2">';
+                $editorHtml .= $color['preview'];
+                $editorHtml .= '<code>' . htmlspecialchars($color['value']) . '</code>';
+                $editorHtml .= '</span>';
+            }
+        } else {
+            $editorHtml .= '<span class="text-muted">Keine Farbcodes gefunden</span>';
+        }
+        
+        $editorHtml .= '
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-code-slash"></i> ' . htmlspecialchars($fileName) . '
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="file-editor-ace" style="height: 600px; width: 100%;"></div>
+                            <textarea id="file-editor-textarea" style="display: none;">' . htmlspecialchars($content) . '</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // ACE Editor initialisieren
+            if (typeof ace !== "undefined") {
+                var editor = ace.edit("file-editor-ace");
+                editor.setTheme("ace/theme/' . $this->getAceTheme() . '");
+                editor.session.setMode("ace/mode/' . $aceMode . '");
+                editor.setOptions({
+                    fontSize: 14,
+                    showLineNumbers: true,
+                    showGutter: true,
+                    highlightActiveLine: true,
+                    enableBasicAutocompletion: true,
+                    enableSnippets: true,
+                    enableLiveAutocompletion: true
+                });
+                
+                // Inhalt setzen
+                editor.setValue(`' . addslashes($content) . '`);
+                editor.clearSelection();
+                
+                // Änderungen überwachen
+                editor.on("change", function() {
+                    document.getElementById("file-editor-textarea").value = editor.getValue();
+                });
+            } else {
+                // Fallback: Textarea anzeigen
+                document.getElementById("file-editor-textarea").style.display = "block";
+                document.getElementById("file-editor-textarea").style.height = "600px";
+            }
+        });
+        </script>';
+        
+        return $editorHtml;
     }
 }

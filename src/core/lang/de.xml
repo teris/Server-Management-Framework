@@ -1747,6 +1747,29 @@
     <template_preview>Template-Vorschau</template_preview>
     <test_email>Test-E-Mail senden</test_email>
     <create_new_template>Neues Template erstellen</create_new_template>
+    <file_editor>Datei Editor</file_editor>
+    <file_list>Dateiliste</file_list>
+    <file_type>Dateityp</file_type>
+    <file_size>Dateigröße</file_size>
+    <last_modified>Zuletzt geändert</last_modified>
+    <write_permission>Schreibrecht</write_permission>
+    <actions>Aktionen</actions>
+    <edit_file>Datei bearbeiten</edit_file>
+    <delete_file>Datei löschen</delete_file>
+    <open_folder>Ordner öffnen</open_folder>
+    <save_file>Datei speichern</save_file>
+    <back_to_list>Zurück zur Liste</back_to_list>
+    <file_not_found>Datei nicht gefunden</file_not_found>
+    <no_write_permission>Keine Schreibberechtigung</no_write_permission>
+    <file_saved>Datei erfolgreich gespeichert</file_saved>
+    <file_deleted>Datei erfolgreich gelöscht</file_deleted>
+    <confirm_delete>Möchten Sie die Datei wirklich löschen?</confirm_delete>
+    <confirm_save>Möchten Sie die Datei wirklich speichern?</confirm_save>
+    <changes_immediate>Die Änderungen werden sofort wirksam!</changes_immediate>
+    <structured_data_view>Tabellarische Ansicht</structured_data_view>
+    <raw_editor>Raw-Editor</raw_editor>
+    <color_codes>Gefundene Farbcodes</color_codes>
+    <no_color_codes>Keine Farbcodes gefunden</no_color_codes>
     <edit_template>Template bearbeiten</edit_template>
     <delete_template>Template löschen</delete_template>
     <save_template>Template speichern</save_template>

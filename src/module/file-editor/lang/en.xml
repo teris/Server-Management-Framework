@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <file_editor>File Editor</file_editor>
+    <file_editor_description>Advanced file editor with automatic file type detection and structured data view</file_editor_description>
+    <file_list>File List</file_list>
+    <file_type>File Type</file_type>
+    <file_size>File Size</file_size>
+    <last_modified>Last Modified</last_modified>
+    <write_permission>Write Permission</write_permission>
+    <actions>Actions</actions>
+    <edit_file>Edit File</edit_file>
+    <delete_file>Delete File</delete_file>
+    <open_folder>Open Folder</open_folder>
+    <save_file>Save File</save_file>
+    <back_to_list>Back to List</back_to_list>
+    <file_not_found>File not found</file_not_found>
+    <file_path_missing>File path missing</file_path_missing>
+    <no_write_permission>No write permission</no_write_permission>
+    <file_saved>File saved successfully</file_saved>
+    <file_deleted>File deleted successfully</file_deleted>
+    <save_error>Error saving file</save_error>
+    <delete_error>Error deleting file</delete_error>
+    <confirm_delete>Do you really want to delete the file?</confirm_delete>
+    <confirm_delete_message>This action cannot be undone!</confirm_delete_message>
+    <confirm_save>Do you really want to save the file?</confirm_save>
+    <changes_immediate>Changes will take effect immediately!</changes_immediate>
+    <no_undo>WARNING: This action cannot be undone!</no_undo>
+    <no_undo_message>The file will be deleted immediately.</no_undo_message>
+    <structured_data_view>Tabular View</structured_data_view>
+    <raw_editor>Raw Editor</raw_editor>
+    <color_codes>Found Color Codes</color_codes>
+    <no_color_codes>No color codes found</no_color_codes>
+    <refresh>Refresh</refresh>
+    <close>Close</close>
+    <cancel>Cancel</cancel>
+    <name>Name</name>
+    <unknown_action>Unknown action</unknown_action>
+</translations>

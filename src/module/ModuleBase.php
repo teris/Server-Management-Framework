@@ -305,7 +305,8 @@ class ModuleLoader {
             'virtual-mac' => 'VirtualMacModule',
             'custom-module' => 'CustomModuleModule',
             'support-tickets' => 'SupportTicketsModule',
-            'migration' => 'MigrationModule'
+            'migration' => 'MigrationModule',
+            'file-editor' => 'FileEditorModule'
         ];
         
         if (isset($special_mappings[$key])) {
