@@ -2,6 +2,71 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+## [3.2.5] - 2024-12-19
+
+### Proxmox-Modul - Erweiterte VM/Container-Verwaltung
+
+#### Hinzugefügt
+- **LXC-Container-Unterstützung**: Vollständige Unterstützung für LXC-Container neben QEMU VMs
+- **Node-Management**: Detaillierte Node-Übersicht mit Status-Informationen und VM/Container-Zählung
+- **Storage-Details**: Umfassende Storage-Informationen mit Inhalt und Verfügbarkeit
+- **Bestätigungs-Modals**: Sichere Bestätigung für kritische Aktionen (Start/Stop/Delete)
+- **Erweiterte VM-Aktionen**: Reset, Resume und intelligente Button-Zustände
+- **RAM-Formatierung**: Anzeige von RAM-Größen in GB mit Dezimalstellen
+- **Uptime-Berechnung**: Automatische Berechnung und Anzeige der Laufzeit
+- **Framework-Erweiterungen**: ServiceManager-Unterstützung für QEMU und LXC
+
+#### Geändert
+- **Tab-basierte Navigation**: Ersetzt Modal-Overlays durch intuitive Tab-Navigation
+- **VM/Container-Liste**: Verbesserte Darstellung mit Typ-Unterscheidung
+- **Button-Logik**: Intelligente Aktivierung/Deaktivierung basierend auf Status und Typ
+- **API-Integration**: Optimierte Nutzung der Proxmox VE REST API
+- **Fehlerbehandlung**: Verbesserte Fehlermeldungen und Benutzer-Feedback
+
+#### Technische Verbesserungen
+- **Framework-Integration**: Erweiterte ServiceManager-Klasse für LXC-Unterstützung
+- **API-Endpunkte**: Vollständige Abdeckung aller Proxmox-API-Funktionen
+- **Code-Struktur**: Modularisierte JavaScript-Architektur
+- **Performance**: Optimierte Datenladung und Caching
+
+#### Bekannte Einschränkungen
+- **VM/Container-Erstellung**: Noch nicht implementiert (geplant für v1.2.0)
+- **VM/Container-Bearbeitung**: Konfigurationsänderungen noch nicht verfügbar
+- **Bulk-Operationen**: Mehrere VMs/Container gleichzeitig verwalten noch nicht möglich
+
+## [3.2.4]
+
+### Proxmox-Modul - Vollständige Überarbeitung
+
+#### Hinzugefügt
+- **Server-Management-Hauptseite**: Übersichtliche Liste aller Proxmox-Server mit Status-Anzeige
+- **Server-Management-Modal**: Detaillierte Server-Verwaltung mit Start/Stop/Restart/Edit/Delete-Funktionen
+- **Server-Bearbeitungs-Interface**: Umfassende Konfigurationsmöglichkeiten für Server-Einstellungen
+- **Lösch-Bestätigung mit Status-Prüfung**: Server müssen gestoppt sein, bevor sie gelöscht werden können
+- **VM-Erstellen-Modal**: Benutzerfreundliche Oberfläche zum Erstellen neuer virtueller Maschinen
+- **Echtzeit-Status-Updates**: Automatische Aktualisierung der Server-Liste nach Aktionen
+- **Responsive Design**: Optimiert für verschiedene Bildschirmgrößen
+
+#### Geändert
+- **Proxmox-Modul Übersetzungen**: Vollständige Umstellung auf die neue globale `t()`-Funktion
+- **Proxmox-Modul Template**: Komplett überarbeitete Benutzeroberfläche mit modernem Design
+- **Proxmox-Modul JavaScript**: Vereinfachte Übersetzungslogik und verbesserte Funktionalität
+- **Modul-System**: Konsistente Verwendung der globalen `t()`-Funktion in allen Modulen
+
+#### Technische Details
+- **Entfernte Funktionen**: Manuelle Übersetzungs-Arrays und get_translations-Ajax-Aktion
+- **Vereinfachte Templates**: Keine manuellen Übersetzungs-Arrays mehr erforderlich
+- **Automatische Modul-Erkennung**: Proxmox-Modul nutzt jetzt die automatische Modul-Erkennung der globalen `t()`-Funktion
+- **Konsistente Übersetzungen**: Alle Template-Strings verwenden jetzt die globale `t()`-Funktion
+- **Neue Ajax-Aktionen**: get_vms, start_vm, stop_vm, restart_vm, delete_vm, update_vm
+
+#### Verbesserungen
+- **Wartbarkeit**: Einfachere Wartung durch zentrale Übersetzungslogik
+- **Performance**: Reduzierte Server-Last durch Entfernung redundanter Übersetzungsabfragen
+- **Konsistenz**: Einheitliche Übersetzungsbehandlung in allen Modulen
+- **Benutzerfreundlichkeit**: Intuitive Bedienung mit klaren visuellen Hinweisen
+- **Sicherheit**: Status-Prüfung vor kritischen Aktionen wie dem Löschen von Servern
+
 ## [3.2.3]
 
 ### File-Editor Modul - Verbesserungen

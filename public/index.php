@@ -40,10 +40,12 @@ function safeDisplay($value, $default = 'N/A') {
 // Server-Status abrufen
 try {
     $proxmoxVMs = $serviceManager->getProxmoxVMs();
+    $proxmoxLXCs = $serviceManager->getProxmoxLXCs();
     $gameServers = $serviceManager->getOGPGameServers();
     $systemInfo = $serviceManager->getSystemInfo();
 } catch (Exception $e) {
     $proxmoxVMs = [];
+    $proxmoxLXCs = [];
     $gameServers = [];
     $systemInfo = [];
     error_log("Frontpanel Error: " . $e->getMessage());
@@ -217,6 +219,84 @@ try {
                     <div class="col-12 text-center">
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle"></i> <?= t('no_vms_available') ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Proxmox LXCs Section -->
+    <section id="server-status" class="py-5 status-section">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="bi bi-server"></i> <?= t('proxmox_lxc_status') ?>
+                </h2>
+                <div class="d-flex align-items-center">
+                    <small class="text-muted me-3">
+                        <i class="bi bi-clock"></i> <?= t('last_update') ?>: <span id="last-refresh-time"><?= date('H:i:s') ?></span>
+                    </small>
+                    <button id="manual-refresh-btn" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
+                    </button>
+                </div>
+            </div>
+            <div class="row" id="proxmox-lxcs-container">
+                <?php if (!empty($proxmoxLXCs)): ?>
+                    <?php foreach ($proxmoxLXCs as $lxc): ?>
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card server-card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-cpu"></i> 
+                                        <?= htmlspecialchars($lxc->name ?? 'Unbekannte LXC') ?>
+                                    </h5>
+                                    <span class="badge bg-<?= ($lxc->status ?? '') === 'running' ? 'success' : 'secondary' ?>">
+                                        <?= htmlspecialchars($lxc->status ?? 'unbekannt') ?>
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted"><?= t('cpu_usage') ?></small>
+                                            <div class="progress mb-2" style="height: 8px;">
+                                                <div class="progress-bar" style="width: <?= ($lxc->cpu_usage ?? 0) * 100 ?>%"></div>
+                                            </div>
+                                            <small class="text-muted"><?= number_format(($lxc->cpu_usage ?? 0) * 100, 1) ?>%</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted"><?= t('memory_usage') ?></small>
+                                            <div class="progress mb-2" style="height: 8px;">
+                                                <div class="progress-bar bg-info" style="width: <?= ($lxc->memory_usage ?? 0) / ($lxc->memory ?? 1) * 100 ?>%"></div>
+                                            </div>
+                                            <small class="text-muted"><?= number_format(($lxc->memory_usage ?? 0) / 1024 / 1024 / 1024, 1) ?> GB / <?= number_format(($lxc->memory ?? 0) / 1024 / 1024 / 1024, 1) ?> GB</small>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted"><?= t('cores') ?></small>
+                                            <h6><?= htmlspecialchars($lxc->cores ?? 'N/A') ?></h6>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted"><?= t('uptime') ?></small>
+                                            <h6><?= $lxc->uptime ? gmdate('H:i:s', $lxc->uptime) : 'N/A' ?></h6>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock"></i> 
+                                            <?= t('last_update') ?>: <?= date('H:i:s') ?>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> <?= t('no_lxcs_available') ?>
                         </div>
                     </div>
                 <?php endif; ?>

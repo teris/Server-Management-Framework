@@ -967,6 +967,8 @@
     <no_vms_available>No VMs available</no_vms_available>
     <game_server_status>Game Server Status</game_server_status>
     <no_game_servers_available>No game servers available</no_game_servers_available>
+    <no_lxcs_available>No Proxmox containers available</no_lxcs_available>
+    <proxmox_lxc_status>Proxmox Container Status</proxmox_lxc_status>
     
     <!-- Support Ticket Replies -->
     <replies>Replies</replies>

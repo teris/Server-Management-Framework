@@ -29,7 +29,7 @@ $plugins = array (
     'name' => 'Proxmox VM Management',
     'icon' => '🖥️',
     'path' => 'module/proxmox',
-    'version' => '1.0.0',
+    'version' => '1.1.0',
     'description' => 'Virtuelle Maschinen mit Proxmox verwalten',
     'require_admin' => false,
   ),
@@ -158,7 +158,7 @@ $plugins = array (
 
 // --- SYSTEM_CONFIG START ---
 $system_config = array (
-  'version' => '3.2.3',
+  'version' => '3.2.5',
   'theme' => 'default',
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',

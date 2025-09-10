@@ -156,4 +156,38 @@
     <validation_failed>Validierung fehlgeschlagen</validation_failed>
     <confirm_delete>Möchten Sie wirklich löschen?</confirm_delete>
     <loading>Laden...</loading>
+    
+    <!-- Neue Übersetzungen für Server-Management -->
+    <vm_updated_successfully>VM erfolgreich aktualisiert</vm_updated_successfully>
+    <error_updating_vm>Fehler beim Aktualisieren der VM</error_updating_vm>
+    <vm_must_be_stopped_before_delete>VM muss gestoppt sein, bevor sie gelöscht werden kann</vm_must_be_stopped_before_delete>
+    <server_management>Server-Verwaltung</server_management>
+    <server_list>Server-Liste</server_list>
+    <no_servers_found>Keine Server gefunden</no_servers_found>
+    <server_details>Server-Details</server_details>
+    <server_actions>Server-Aktionen</server_actions>
+    <edit_server>Server bearbeiten</edit_server>
+    <server_name>Server-Name</server_name>
+    <server_description>Server-Beschreibung</server_description>
+    <confirm_delete_server>Möchten Sie diesen Server wirklich löschen?</confirm_delete_server>
+    <server_must_be_stopped>Server muss gestoppt sein, bevor er gelöscht werden kann</server_must_be_stopped>
+    <server_management_modal>Server-Verwaltung</server_management_modal>
+    <close>Schließen</close>
+    <server_status_running>Läuft</server_status_running>
+    <server_status_stopped>Gestoppt</server_status_stopped>
+    <server_status_paused>Pausiert</server_status_paused>
+    <server_status_suspended>Suspendiert</server_status_suspended>
+    <server_status_unknown>Unbekannt</server_status_unknown>
+    <cpu_cores_count>CPU Kerne</cpu_cores_count>
+    <memory_mb>Arbeitsspeicher (MB)</memory_mb>
+    <disk_gb_size>Festplatte (GB)</disk_gb_size>
+    <uptime_days>Tage</uptime_days>
+    <uptime_hours>Stunden</uptime_hours>
+    <uptime_minutes>Minuten</uptime_minutes>
+    <last_backup>Letztes Backup</last_backup>
+    <never>Nie</never>
+    <edit_server_config>Server-Konfiguration bearbeiten</edit_server_config>
+    <update_server>Server aktualisieren</update_server>
+    <server_updated_successfully>Server erfolgreich aktualisiert</server_updated_successfully>
+    <error_updating_server>Fehler beim Aktualisieren des Servers</error_updating_server>
 </translations> 

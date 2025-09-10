@@ -1023,6 +1023,8 @@
     <no_vms_available>Keine VMs verfügbar</no_vms_available>
     <game_server_status>Game Server Status</game_server_status>
     <no_game_servers_available>Keine Game Server verfügbar</no_game_servers_available>
+    <no_lxcs_available>Keine Proxmox Container verfügbar</no_lxcs_available>
+    <proxmox_lxc_status>Proxmox Container Status</proxmox_lxc_status>
     
     <!-- Support Ticket Antworten -->
     <replies>Antworten</replies>

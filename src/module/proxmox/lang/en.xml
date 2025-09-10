@@ -156,4 +156,38 @@
     <validation_failed>Validation failed</validation_failed>
     <confirm_delete>Do you really want to delete?</confirm_delete>
     <loading>Loading...</loading>
+    
+    <!-- New translations for server management -->
+    <vm_updated_successfully>VM updated successfully</vm_updated_successfully>
+    <error_updating_vm>Error updating VM</error_updating_vm>
+    <vm_must_be_stopped_before_delete>VM must be stopped before it can be deleted</vm_must_be_stopped_before_delete>
+    <server_management>Server Management</server_management>
+    <server_list>Server List</server_list>
+    <no_servers_found>No servers found</no_servers_found>
+    <server_details>Server Details</server_details>
+    <server_actions>Server Actions</server_actions>
+    <edit_server>Edit Server</edit_server>
+    <server_name>Server Name</server_name>
+    <server_description>Server Description</server_description>
+    <confirm_delete_server>Do you really want to delete this server?</confirm_delete_server>
+    <server_must_be_stopped>Server must be stopped before it can be deleted</server_must_be_stopped>
+    <server_management_modal>Server Management</server_management_modal>
+    <close>Close</close>
+    <server_status_running>Running</server_status_running>
+    <server_status_stopped>Stopped</server_status_stopped>
+    <server_status_paused>Paused</server_status_paused>
+    <server_status_suspended>Suspended</server_status_suspended>
+    <server_status_unknown>Unknown</server_status_unknown>
+    <cpu_cores_count>CPU Cores</cpu_cores_count>
+    <memory_mb>Memory (MB)</memory_mb>
+    <disk_gb_size>Disk (GB)</disk_gb_size>
+    <uptime_days>Days</uptime_days>
+    <uptime_hours>Hours</uptime_hours>
+    <uptime_minutes>Minutes</uptime_minutes>
+    <last_backup>Last Backup</last_backup>
+    <never>Never</never>
+    <edit_server_config>Edit Server Configuration</edit_server_config>
+    <update_server>Update Server</update_server>
+    <server_updated_successfully>Server updated successfully</server_updated_successfully>
+    <error_updating_server>Error updating server</error_updating_server>
 </translations> 

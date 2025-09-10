@@ -123,6 +123,32 @@ class VM {
     }
 }
 
+class LXC {
+    public $vmid;
+    public $name;
+    public $node;
+    public $status;
+    public $cores;
+    public $memory;
+    public $disk;
+    public $uptime;
+    public $cpu_usage;
+    public $memory_usage;
+
+    public function __construct($data = []) {
+        foreach ($data as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
+    }
+
+    public function toArray() {
+        return get_object_vars($this);
+    }
+}
+
+
 // VIRTUAL MAC DATA MODEL
 class VirtualMac {
     public $macAddress;
@@ -332,6 +358,21 @@ class DataMapper {
         ]);
     }
 
+    public static function mapToLXC($data) {
+        return new LXC([
+            'vmid' => $data['vmid'] ?? null,
+            'name' => $data['name'] ?? null,
+            'node' => $data['node'] ?? null,
+            'status' => $data['status'] ?? null,
+            'cores' => $data['cores'] ?? $data['cpus'] ?? null,
+            'memory' => $data['memory'] ?? $data['maxmem'] ?? null,
+            'disk' => $data['disk'] ?? $data['maxdisk'] ?? null,
+            'uptime' => $data['uptime'] ?? null,
+            'cpu_usage' => $data['cpu'] ?? null,
+            'memory_usage' => $data['mem'] ?? null
+        ]);
+    }
+
 	public static function mapToVirtualMac($data, $serviceName = null, $macAddress = null) {
         return new VirtualMac([
             'macAddress' => $macAddress ?? $data['macAddress'] ?? null,
@@ -499,6 +540,26 @@ class ProxmoxGet extends BaseAPI {
         ////$this->logRequest('/nodes/*/qemu', 'GET', !empty($vms));
         return $vms;
     }
+    public function getLXCs($node = null) {
+        $lxcs = [];
+        $nodes = $node ? [$node] : $this->getNodes();
+
+        foreach ($nodes as $nodeData) {
+            $nodeName = is_array($nodeData) ? $nodeData['node'] : $nodeData;
+            $url = $this->host . "/api2/json/nodes/$nodeName/lxc";
+            $response = $this->makeRequest('GET', $url);
+
+            if ($response && isset($response['data'])) {
+                foreach ($response['data'] as $lxcData) {
+                    $lxcData['node'] = $nodeName;
+                    $lxcs[] = DataMapper::mapToLXC($lxcData);
+                }
+            }
+        }
+
+        ////$this->logRequest('/nodes/*/qemu', 'GET', !empty($vms));
+        return $lxcs;
+    }
 
     public function getVM($node, $vmid) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/config";
@@ -664,6 +725,13 @@ class ProxmoxPost extends ProxmoxGet {
         return $response;
     }
 
+    public function rebootVM($node, $vmid) {
+        $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/status/reboot";
+        $response = $this->makeRequest('POST', $url);
+        //$this->logRequest("/nodes/$node/qemu/$vmid/status/reboot", 'POST', $response !== false);
+        return $response;
+    }
+
     public function cloneVM($node, $vmid, $newVmid, $name = null) {
         $url = $this->host . "/api2/json/nodes/$node/qemu/$vmid/clone";
         $data = [
@@ -673,6 +741,63 @@ class ProxmoxPost extends ProxmoxGet {
 
         $response = $this->makeRequest('POST', $url, $data);
         //$this->logRequest("/nodes/$node/qemu/$vmid/clone", 'POST', $response !== false);
+        return $response;
+    }
+
+    //Proxmox LXC
+    public function createLXC($node, $lxcData) {
+        $url = $this->host . "/api2/json/nodes/$node/lxc";
+        $response = $this->makeRequest('POST', $url, $lxcData);
+        //$this->logRequest("/nodes/$node/lxc", 'POST', $response !== false);
+        return $response;
+    }
+    public function editLXC($node, $vmid, $lxcData) {
+        $url = $this->host . "/api2/json/nodes/$node/lxc/$vmid/config";
+        $response = $this->makeRequest('PUT', $url, $lxcData);
+        //$this->logRequest("/nodes/$node/lxc/$vmid/config", 'PUT', $response !== false);
+        return $response;
+    }
+    public function deleteLXC($node, $vmid) {
+        $url = $this->host . "/api2/json/nodes/$node/lxc/$vmid";
+        $response = $this->makeRequest('DELETE', $url);
+        //$this->logRequest("/nodes/$node/lxc/$vmid", 'DELETE', $response !== false);
+        return $response;
+    }
+    public function startLXC($node, $vmid) {
+        $url = $this->host . "/api2/json/nodes/$node/lxc/$vmid/status/start";
+        $response = $this->makeRequest('POST', $url);
+        //$this->logRequest("/nodes/$node/lxc/$vmid/status/start", 'POST', $response !== false);
+        return $response;
+    }
+    public function stopLXC($node, $vmid) {
+        $url = $this->host . "/api2/json/nodes/$node/lxc/$vmid/status/stop";
+        $response = $this->makeRequest('POST', $url);
+        //$this->logRequest("/nodes/$node/lxc/$vmid/status/stop", 'POST', $response !== false);
+        return $response;
+    }
+    public function resetLXC($node, $vmid) {
+        $url = $this->host . "/api2/json/nodes/$node/lxc/$vmid/status/reset";
+        $response = $this->makeRequest('POST', $url);
+        //$this->logRequest("/nodes/$node/lxc/$vmid/status/reset", 'POST', $response !== false);
+        return $response;
+    }
+    public function suspendLXC($node, $vmid) {
+        $url = $this->host . "/api2/json/nodes/$node/lxc/$vmid/status/suspend";
+        $response = $this->makeRequest('POST', $url);
+        //$this->logRequest("/nodes/$node/lxc/$vmid/status/suspend", 'POST', $response !== false);
+        return $response;
+    }
+    public function resumeLXC($node, $vmid) {
+        $url = $this->host . "/api2/json/nodes/$node/lxc/$vmid/status/resume";
+        $response = $this->makeRequest('POST', $url);
+        //$this->logRequest("/nodes/$node/lxc/$vmid/status/resume", 'POST', $response !== false);
+        return $response;
+    }
+
+    public function rebootLXC($node, $vmid) {
+        $url = $this->host . "/api2/json/nodes/$node/lxc/$vmid/status/reboot";
+        $response = $this->makeRequest('POST', $url);
+        //$this->logRequest("/nodes/$node/lxc/$vmid/status/reboot", 'POST', $response !== false);
         return $response;
     }
 
@@ -3390,6 +3515,25 @@ class ServiceManager {
         
         return $this->proxmoxGet->getVMs();
     }
+
+    public function getProxmoxLXCs() {
+        $apiCheck = $this->checkAPIEnabled('proxmox');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        // Expliziter Null-Check für zusätzliche Sicherheit
+        if (!$this->proxmoxGet) {
+            return [
+                'success' => false,
+                'error' => 'API_NOT_INITIALIZED',
+                'message' => 'Proxmox API nicht initialisiert',
+                'api' => 'proxmox'
+            ];
+        }
+        
+        return $this->proxmoxGet->getLXCs();
+    }
     public function getProxmoxNodes() {
         $apiCheck = $this->checkAPIEnabled('proxmox');
         if ($apiCheck !== true) {
@@ -3732,41 +3876,57 @@ class ServiceManager {
         return $this->proxmoxPost->createVM($vmData);
     }
 
-    public function controlProxmoxVM($node, $vmid, $action) {
+    public function controlProxmoxVM($node, $vmid, $action, $type = 'qemu') {
         $apiCheck = $this->checkAPIEnabled('proxmox');
         if ($apiCheck !== true) {
             return $apiCheck;
         }
         
+        // Wähle die richtige Funktion basierend auf dem Typ
+        $functionPrefix = $type === 'lxc' ? 'LXC' : 'VM';
+        
         switch ($action) {
             case 'start':
-                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'startVM', [$node, $vmid]);
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'start' . $functionPrefix, [$node, $vmid]);
             case 'stop':
-                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'stopVM', [$node, $vmid]);
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'stop' . $functionPrefix, [$node, $vmid]);
+            case 'reboot':
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'reboot' . $functionPrefix, [$node, $vmid]);
             case 'reset':
+                // Reset funktioniert nur für QEMU, nicht für LXC
+                if ($type === 'lxc') {
+                    return [
+                        'success' => false,
+                        'error' => 'UNSUPPORTED_ACTION',
+                        'message' => 'Reset wird für LXC-Container nicht unterstützt'
+                    ];
+                }
                 return $this->safeAPICall('proxmox', $this->proxmoxPost, 'resetVM', [$node, $vmid]);
             case 'suspend':
-                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'suspendVM', [$node, $vmid]);
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'suspend' . $functionPrefix, [$node, $vmid]);
             case 'resume':
-                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'resumeVM', [$node, $vmid]);
+                return $this->safeAPICall('proxmox', $this->proxmoxPost, 'resume' . $functionPrefix, [$node, $vmid]);
             default:
                 return [
                     'success' => false,
                     'error' => 'INVALID_ACTION',
-                    'message' => 'UngÃ¼ltige Aktion: ' . $action,
+                    'message' => 'Ungültige Aktion: ' . $action,
                     'api' => 'proxmox',
-                    'valid_actions' => ['start', 'stop', 'reset', 'suspend', 'resume']
+                    'valid_actions' => ['start', 'stop', 'reboot', 'reset', 'suspend', 'resume']
                 ];
         }
     }
 
-    public function deleteProxmoxVM($node, $vmid) {
+    public function deleteProxmoxVM($node, $vmid, $type = 'qemu') {
         $apiCheck = $this->checkAPIEnabled('proxmox');
         if ($apiCheck !== true) {
             return $apiCheck;
         }
         
-        return $this->safeAPICall('proxmox', $this->proxmoxPost, 'deleteVM', [$node, $vmid]);
+        // Wähle die richtige Funktion basierend auf dem Typ
+        $functionName = $type === 'lxc' ? 'deleteLXC' : 'deleteVM';
+        
+        return $this->safeAPICall('proxmox', $this->proxmoxPost, $functionName, [$node, $vmid]);
     }
 
     // ISPConfig Methods
