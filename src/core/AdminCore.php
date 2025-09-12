@@ -851,15 +851,34 @@ class AdminCore {
             '/'
         ];
         
+        // Windows-spezifische Pfade hinzufügen
+        if (PHP_OS_FAMILY === 'Windows') {
+            $paths_to_try = array_merge([
+                'C:\\',
+                'C:\\xampp\\htdocs',
+                'C:\\wamp\\www',
+                'C:\\laragon\\www',
+                'C:\\Users\\' . get_current_user() . '\\Desktop',
+                'C:\\Users\\' . get_current_user() . '\\Documents',
+                'C:\\temp',
+                'C:\\tmp'
+            ], $paths_to_try);
+        }
+        
         $total = 0;
         $free = 0;
         
         foreach ($paths_to_try as $path) {
             try {
-                $test_total = disk_total_space($path);
-                $test_free = disk_free_space($path);
+                // Prüfe ob der Pfad existiert und lesbar ist
+                if (!is_dir($path) || !is_readable($path)) {
+                    continue;
+                }
                 
-                if ($test_total > 0 && $test_free > 0) {
+                $test_total = @disk_total_space($path);
+                $test_free = @disk_free_space($path);
+                
+                if ($test_total !== false && $test_free !== false && $test_total > 0 && $test_free > 0) {
                     $total = $test_total;
                     $free = $test_free;
                     break;

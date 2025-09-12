@@ -8,6 +8,9 @@
             </div>
             <div class="modal-body">
                 <form id="create-vm-modal-form" onsubmit="proxmoxModule.createVM(event)">
+                    <!-- Verstecktes Node-Feld -->
+                    <input type="hidden" name="node" id="vm_node_modal">
+                    
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group mb-3">

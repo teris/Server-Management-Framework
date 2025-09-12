@@ -1,5 +1,5 @@
 <!-- Node-Auswahl Tab -->
-<div class="tab-content" id="node-selection-tab" style="display: none;">
+<div class="tab-content" id="node-selection-tab" style="display: block;">
     <div class="card">
         <div class="card-header">
             <h3 class="mb-0"><i class="fas fa-server"></i> Node-Auswahl</h3>

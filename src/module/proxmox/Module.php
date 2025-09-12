@@ -5,7 +5,6 @@
  */
 
 require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
-
 class ProxmoxModule extends ModuleBase {
     
     public function getContent() {
@@ -17,122 +16,151 @@ class ProxmoxModule extends ModuleBase {
             'error_creating_vm', 'error_updating_vm', 'error_deleting_vm'
         ]);
         
-        return $this->render('main', [
-            'translations' => $translations
-        ]);
+        $template_path = __DIR__ . '/templates/main.php';
+        
+        if (file_exists($template_path)) {
+            $template_data = ['translations' => $translations];
+            extract($template_data);
+            include $template_path;
+        } else {
+            echo "Template not found: main.php";
+        }
     }
     
     public function handleAjaxRequest($action, $data) {
         switch ($action) {
             case 'create_vm':
                 return $this->createVM($data);
-                
             case 'get_proxmox_nodes':
                 return $this->getProxmoxNodes();
-                
-            case 'get_node_status':
-                return $this->getNodeStatus($data);
-                
-            case 'get_proxmox_storages':
-                return $this->getProxmoxStorages($data);
-                
-            case 'get_storage_list':
-                return $this->getStorageList($data);
-                
-            case 'get_storage_status':
-                return $this->getStorageStatus($data);
-                
-            case 'get_storage_content':
-                return $this->getStorageContent($data);
-                
-            case 'get_vm_config':
-                return $this->getVMConfig($data);
-                
-            case 'get_vm_status':
-                return $this->getVMStatus($data);
-                
-            case 'clone_vm':
-                return $this->cloneVM($data);
-                
             case 'get_vms':
-                return $this->getVMs($data);
-                
+                return $this->getVMs();
+            case 'get_vm_details':
+                return $this->getVMDetails($data);
             case 'start_vm':
                 return $this->startVM($data);
-                
             case 'stop_vm':
                 return $this->stopVM($data);
-                
             case 'restart_vm':
                 return $this->restartVM($data);
-                
             case 'delete_vm':
                 return $this->deleteVM($data);
-                
-            case 'reset_vm':
-                return $this->resetVM($data);
-                
-            case 'resume_vm':
-                return $this->resumeVM($data);
-                
+            case 'get_node_status':
+                return $this->getNodeStatus($data);
+            case 'get_node_tasks':
+                return $this->getNodeTasks($data);
+            case 'get_node_networks':
+                return $this->getNodeNetworks($data);
+            case 'get_iso_files':
+                return $this->getIsoFiles($data);
+            case 'get_storage_list':
+                return $this->getStorageList($data);
+            case 'get_storage_content':
+                return $this->getStorageContent($data);
+            case 'get_proxmox_storages':
+                return $this->getProxmoxStorages($data);
+            case 'get_vm_status':
+                return $this->getVMStatus($data);
+            case 'get_vm_config':
+                return $this->getVMConfig($data);
             case 'update_vm':
                 return $this->updateVM($data);
-                
+            case 'create_lxc':
+                return $this->createLXC($data);
+            case 'test':
+                return ['success' => true, 'message' => 'Proxmox module is working', 'timestamp' => time()];
             default:
-                return $this->error($this->t('unknown_action') . ': ' . $action);
+                return ['success' => false, 'error' => 'Unknown action: ' . $action];
         }
     }
     
     private function createVM($data) {
-        // Validierung
-        $errors = $this->validate($data, [
-            'name' => 'required|min:3|max:50',
-            'vmid' => 'required|numeric|min:100|max:999999',
-            'memory' => 'required|numeric|min:512',
-            'cores' => 'required|numeric|min:1|max:32',
-            'disk' => 'required|numeric|min:1',
-            'node' => 'required',
-            'storage' => 'required',
-            'bridge' => 'required',
-            'iso' => 'required'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
-        }
-        
         try {
-            $serviceManager = new ServiceManager();
-            
-            $vm_config = [
-                'vmid' => $data['vmid'],
-                'name' => $data['name'],
-                'memory' => $data['memory'],
-                'cores' => $data['cores'],
-                'sockets' => 1,
-                'cpu' => 'host',
-                'net0' => "virtio,bridge={$data['bridge']}",
-                'ide2' => "{$data['iso']},media=cdrom",
-                'scsi0' => "{$data['storage']}:{$data['disk']},format=qcow2",
-                'scsihw' => 'virtio-scsi-pci',
-                'ostype' => 'l26',
-                'boot' => 'order=scsi0;ide2;net0'
+            // Debug: Zeige alle übergebenen Daten
+            $debugInfo = [
+                'raw_data' => $data,
+                'required_fields_check' => [],
+                'vm_params' => [],
+                'api_call_info' => []
             ];
             
-            // MAC-Adresse hinzufügen wenn angegeben
-            if (!empty($data['mac'])) {
-                $vm_config['net0'] .= ",macaddr={$data['mac']}";
+            // Validierung der erforderlichen Felder
+            $requiredFields = ['vmid', 'node', 'name', 'memory', 'cores', 'sockets'];
+            foreach ($requiredFields as $field) {
+                $debugInfo['required_fields_check'][$field] = [
+                    'exists' => isset($data[$field]),
+                    'not_empty' => !empty($data[$field]),
+                    'value' => $data[$field] ?? 'NOT_SET'
+                ];
+                
+                if (!isset($data[$field]) || empty($data[$field])) {
+                    $debugInfo['error'] = "Field $field is required";
+                    return [
+                        'success' => false, 
+                        'error' => "Field $field is required",
+                        'debug_info' => $debugInfo
+                    ];
+                }
             }
             
-            $result = $serviceManager->createProxmoxVM($vm_config);
+            // VM-Parameter zusammenstellen
+            $vmParams = [
+                'vmid' => intval($data['vmid']),
+                'name' => $data['name'],
+                'memory' => intval($data['memory']),
+                'cores' => intval($data['cores']),
+                'sockets' => intval($data['sockets']),
+                'ostype' => $data['ostype'] ?? 'l26',
+                'bios' => $data['bios'] ?? 'seabios',
+                'machine' => $data['machine'] ?? 'pc',
+                'cpu' => $data['cpu'] ?? 'host',
+                // 'arch' entfernt - nur root kann diesen Parameter setzen
+                'scsihw' => $data['scsihw'] ?? 'lsi',
+                'vga' => $data['vga'] ?? 'std',
+                'keyboard' => $data['keyboard'] ?? 'de',
+                'citype' => $data['citype'] ?? 'nocloud',
+                'startdate' => $data['startdate'] ?? 'now'
+            ];
             
-            $this->log("VM {$data['vmid']} ({$data['name']}) created successfully");
+            // Alle anderen Parameter hinzufügen (auch leere)
+            $allFields = [
+                'pool', 'description', 'shares', 'cpulimit', 'cpuunits', 'storage',
+                'onboot', 'agent', 'kvm', 'acpi', 'localtime', 'tablet', 'autostart', 
+                'protection', 'template', 'start', 'reboot', 'unique', 'ciupgrade',
+                'net0', 'scsi0', 'ide2', 'bootdisk', 'boot', 'bootorder', 'bridge',
+                'mac', 'cdrom', 'tags', 'hookscript', 'ciuser', 'cipassword',
+                'sshkeys', 'nameserver', 'searchdomain', 'cicustom', 'ipconfig0',
+                'ipconfig1', 'serial0', 'parallel0', 'usb0', 'usb1', 'watchdog',
+                'rng0', 'migrate_downtime', 'migrate_speed', 'startup', 'args',
+                'affinity', 'smbios1', 'vmgenid'
+            ];
             
-            return $this->success($result, $this->t('vm_created_successfully'));
+            foreach ($allFields as $field) {
+                if (isset($data[$field])) {
+                    $vmParams[$field] = $data[$field];
+                }
+            }
+            
+            $debugInfo['vm_params'] = $vmParams;
+            $debugInfo['api_call_info'] = [
+                'method' => 'POST',
+                'url' => '/nodes/' . $data['node'] . '/qemu',
+                'node' => $data['node']
+            ];
+            
+            // VM erstellen
+            $serviceManager = new ServiceManager();
+            $result = $serviceManager->ProxmoxAPI('post', '/nodes/' . $data['node'] . '/qemu', $vmParams);
+            
+            if ($result && isset($result['data'])) {
+                return ['success' => true, 'data' => $result['data'], 'message' => 'VM erfolgreich erstellt'];
+            } else {
+                return ['success' => false, 'error' => 'Fehler beim Erstellen der VM'];
+            }
             
         } catch (Exception $e) {
-            $this->log('Error creating VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_creating_vm') . ': ' . $e->getMessage());
+            error_log('Error creating VM: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Erstellen der VM: ' . $e->getMessage()];
         }
     }
     
@@ -162,175 +190,140 @@ class ProxmoxModule extends ModuleBase {
                 }
             }
             
-            return $this->success($nodes);
+            return ['success' => true, 'data' => $nodes];
             
         } catch (Exception $e) {
-            $this->log('Error getting nodes: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_getting_nodes') . ': ' . $e->getMessage());
+            error_log('Error getting nodes: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden der Nodes: ' . $e->getMessage()];
         }
     }
     
     private function getNodeStatus($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+        if (!isset($data['node'])) {
+            return ['success' => false, 'error' => 'Node parameter is required'];
         }
         
         try {
             $serviceManager = new ServiceManager();
-            $status = $serviceManager->ProxmoxAPI('get', "/nodes/{$data['node']}/status");
-            
-            return $this->success($status);
-            
+            $status = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/status');
+            return ['success' => true, 'data' => $status];
         } catch (Exception $e) {
-            $this->log('Error getting node status: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_getting_node_status') . ': ' . $e->getMessage());
+            error_log('Error getting node status: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden des Node-Status: ' . $e->getMessage()];
         }
     }
     
-    private function getProxmoxStorages($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+    private function getNodeTasks($data) {
+        if (!isset($data['node'])) {
+            return ['success' => false, 'error' => 'Node parameter is required'];
         }
         
         try {
             $serviceManager = new ServiceManager();
-            $storages = $serviceManager->ProxmoxAPI('get', "/nodes/{$data['node']}/storage");
-            
-            return $this->success($storages);
-            
+            $tasks = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/tasks');
+            return ['success' => true, 'data' => $tasks];
         } catch (Exception $e) {
-            $this->log('Error getting storages: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
+            error_log('Error getting node tasks: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden der Tasks: ' . $e->getMessage()];
         }
     }
     
-    private function getVMConfig($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'type' => 'required|in:qemu,lxc'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+    private function getNodeNetworks($data) {
+        if (!isset($data['node'])) {
+            return ['success' => false, 'error' => 'Node parameter is required'];
         }
         
         try {
             $serviceManager = new ServiceManager();
-            $endpoint = $data['type'] === 'lxc' 
-                ? "/nodes/{$data['node']}/lxc/{$data['vmid']}/config"
-                : "/nodes/{$data['node']}/qemu/{$data['vmid']}/config";
+            $networks = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/network');
             
-            $config = $serviceManager->ProxmoxAPI('get', $endpoint);
-            
-            return $this->success($config);
-            
-        } catch (Exception $e) {
-            $this->log('Error getting VM config: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
-        }
-    }
-    
-    private function getVMStatus($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'type' => 'required|in:qemu,lxc'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
-        }
-        
-        try {
-            $serviceManager = new ServiceManager();
-            $endpoint = $data['type'] === 'lxc' 
-                ? "/nodes/{$data['node']}/lxc/{$data['vmid']}/status/current"
-                : "/nodes/{$data['node']}/qemu/{$data['vmid']}/status/current";
-            
-            $status = $serviceManager->ProxmoxAPI('get', $endpoint);
-            
-            return $this->success($status);
-            
-        } catch (Exception $e) {
-            $this->log('Error getting VM status: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
-        }
-    }
-    
-    private function cloneVM($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'newid' => 'required|numeric',
-            'name' => 'required|min:3|max:50'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
-        }
-        
-        try {
-            $serviceManager = new ServiceManager();
-            
-            $clone_config = [
-                'newid' => $data['newid'],
-                'name' => $data['name'],
-                'full' => true,
-                'target' => $data['node']
-            ];
-            
-            $result = $serviceManager->ProxmoxAPI('post', "/nodes/{$data['node']}/qemu/{$data['vmid']}/clone", $clone_config);
-            
-            $this->log("VM {$data['vmid']} cloned to {$data['newid']} ({$data['name']})");
-            
-            return $this->success($result, 'VM erfolgreich geklont');
-            
-        } catch (Exception $e) {
-            $this->log('Error cloning VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($e->getMessage());
-        }
-    }
-    
-    public function getStats() {
-        try {
-            $serviceManager = new ServiceManager();
-            $vms = $serviceManager->getProxmoxVMs();
-            
-            $running = 0;
-            $stopped = 0;
-            $total_memory = 0;
-            $total_cores = 0;
-            
-            foreach ($vms as $vm) {
-                if ($vm['status'] === 'running') {
-                    $running++;
-                } else {
-                    $stopped++;
-                }
-                
-                $total_memory += $vm['memory'] ?? 0;
-                $total_cores += $vm['cores'] ?? $vm['cpus'] ?? 0;
+            // Filtere nur aktive Bridge-Netzwerke
+            if (isset($networks['data']) && is_array($networks['data'])) {
+                $bridges = array_filter($networks['data'], function($network) {
+                    return isset($network['active']) && $network['active'] == 1 && 
+                           isset($network['type']) && $network['type'] == 'bridge';
+                });
+                $networks['data'] = array_values($bridges);
             }
             
-            return [
-                'total' => count($vms),
-                'running' => $running,
-                'stopped' => $stopped,
-                'memory_gb' => round($total_memory / 1024 / 1024 / 1024, 2),
-                'cores' => $total_cores
-            ];
-            
+            return ['success' => true, 'data' => $networks];
         } catch (Exception $e) {
-            return [];
+            error_log('Error getting node networks: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden der Netzwerke: ' . $e->getMessage()];
+        }
+    }
+    
+    private function getIsoFiles($data) {
+        if (!isset($data['node'])) {
+            return ['success' => false, 'error' => 'Node parameter is required'];
+        }
+        
+        try {
+            $serviceManager = new ServiceManager();
+            $isoFiles = [];
+            
+            // Wenn ein spezifischer Storage angegeben ist, lade nur von diesem
+            if (isset($data['storage'])) {
+                $volumes = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/storage/' . $data['storage'] . '/content');
+                
+                // Prüfe auf API-Fehler
+                if (isset($volumes['success']) && $volumes['success'] === false) {
+                    error_log('ISO files API error: ' . json_encode($volumes));
+                    return ['success' => false, 'error' => 'API-Fehler beim Laden der ISO-Dateien: ' . ($volumes['error'] ?? 'Unbekannter Fehler')];
+                }
+                
+                if (isset($volumes['data']) && is_array($volumes['data'])) {
+                    foreach ($volumes['data'] as $volume) {
+                        if (isset($volume['volid']) && strpos($volume['volid'], '.iso') !== false) {
+                            $isoFiles[] = [
+                                'volid' => $volume['volid'],
+                                'size' => $volume['size'] ?? 0,
+                                'storage' => $data['storage']
+                            ];
+                        }
+                    }
+                }
+            } else {
+                // Lade von allen Storages
+                $storages = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/storage');
+                
+                // Prüfe auf API-Fehler
+                if (isset($storages['success']) && $storages['success'] === false) {
+                    error_log('Storages API error: ' . json_encode($storages));
+                    return ['success' => false, 'error' => 'API-Fehler beim Laden der Storages: ' . ($storages['error'] ?? 'Unbekannter Fehler')];
+                }
+                
+                if (isset($storages['data']) && is_array($storages['data'])) {
+                    foreach ($storages['data'] as $storage) {
+                        if (isset($storage['content']) && in_array('iso', $storage['content'])) {
+                            $volumes = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/storage/' . $storage['storage'] . '/content');
+                            
+                            // Prüfe auf API-Fehler für jeden Storage
+                            if (isset($volumes['success']) && $volumes['success'] === false) {
+                                error_log('Storage content API error for ' . $storage['storage'] . ': ' . json_encode($volumes));
+                                continue; // Überspringe diesen Storage
+                            }
+                            
+                            if (isset($volumes['data']) && is_array($volumes['data'])) {
+                                foreach ($volumes['data'] as $volume) {
+                                    if (isset($volume['volid']) && strpos($volume['volid'], '.iso') !== false) {
+                                        $isoFiles[] = [
+                                            'volid' => $volume['volid'],
+                                            'size' => $volume['size'] ?? 0,
+                                            'storage' => $storage['storage']
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return ['success' => true, 'data' => $isoFiles];
+        } catch (Exception $e) {
+            error_log('Error getting ISO files: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden der ISO-Dateien: ' . $e->getMessage()];
         }
     }
     
@@ -338,313 +331,237 @@ class ProxmoxModule extends ModuleBase {
         try {
             $serviceManager = new ServiceManager();
             
-            // Versuche zuerst, VMs und Container von der Proxmox-API zu laden
-            try {
-                $formattedVMs = [];
+            // Wenn ein Node spezifiziert ist, lade VMs von diesem Node
+            if (isset($data['node'])) {
+                $node = $data['node'];
                 
-                // Lade alle Ressourcen (VMs und Container) in einem API-Aufruf
-                $allResources = $serviceManager->ProxmoxAPI('get', '/cluster/resources');
-                if ($allResources && isset($allResources['data'])) {
-                    foreach ($allResources['data'] as $resource) {
-                        if ($resource['type'] === 'qemu' || $resource['type'] === 'lxc') {
-                            // Filter nach Node, wenn angegeben
-                            if (!empty($data['node']) && $resource['node'] !== $data['node']) {
-                                continue;
-                            }
-                            
-                            $formattedVMs[] = [
-                                'vmid' => $resource['vmid'],
-                                'name' => $resource['name'] ?? ($resource['type'] === 'lxc' ? 'Container ' : 'VM ') . $resource['vmid'],
-                                'node' => $resource['node'],
-                                'type' => $resource['type'],
-                                'status' => $resource['status'] ?? 'stopped',
-                                'memory' => $resource['maxmem'] ?? 0,
-                                'cores' => $resource['maxcpu'] ?? 0,
-                                'uptime' => $resource['uptime'] ?? 0,
-                                'disk' => $resource['maxdisk'] ?? 0
-                            ];
-                        }
+                // Lade sowohl QEMU VMs als auch LXC Container
+                $qemuVMs = $serviceManager->ProxmoxAPI('get', '/nodes/' . $node . '/qemu');
+                $lxcContainers = $serviceManager->ProxmoxAPI('get', '/nodes/' . $node . '/lxc');
+                
+                $allVMs = [];
+                
+                // Verarbeite QEMU VMs
+                if (isset($qemuVMs['data']) && is_array($qemuVMs['data'])) {
+                    foreach ($qemuVMs['data'] as $vm) {
+                        $vm['type'] = 'qemu';
+                        $vm['node'] = $node;
+                        $allVMs[] = $vm;
                     }
                 }
                 
-                if (!empty($formattedVMs)) {
-                    return $this->success($formattedVMs);
+                // Verarbeite LXC Container
+                if (isset($lxcContainers['data']) && is_array($lxcContainers['data'])) {
+                    foreach ($lxcContainers['data'] as $container) {
+                        $container['type'] = 'lxc';
+                        $container['node'] = $node;
+                        $allVMs[] = $container;
+                    }
                 }
-            } catch (Exception $apiError) {
-                $this->log('Proxmox API error, falling back to database: ' . $apiError->getMessage(), 'WARNING');
+                
+                return ['success' => true, 'data' => $allVMs];
+            } else {
+                // Lade alle VMs vom Cluster
+                $vms = $serviceManager->ProxmoxAPI('get', '/cluster/resources?type=vm');
+                return ['success' => true, 'data' => $vms];
             }
-            
-            // Fallback: VMs aus der lokalen Datenbank laden
-            $vms = $serviceManager->getProxmoxVMs();
-            $formattedVMs = [];
-            
-            foreach ($vms as $vm) {
-                $formattedVMs[] = [
-                    'vmid' => $vm->vm_id ?? $vm->vmid ?? 0,
-                    'name' => $vm->name ?? 'VM ' . ($vm->vm_id ?? $vm->vmid ?? 0),
-                    'node' => $vm->node ?? 'unknown',
-                    'status' => $vm->status ?? 'stopped',
-                    'memory' => $vm->memory ?? 0,
-                    'cores' => $vm->cores ?? 0,
-                    'uptime' => 0,
-                    'disk' => $vm->disk_size ?? 0
-                ];
-            }
-            
-            return $this->success($formattedVMs);
-            
         } catch (Exception $e) {
-            $this->log('Error getting VMs: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_getting_vms') . ': ' . $e->getMessage());
+            error_log('Error getting VMs: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden der VMs: ' . $e->getMessage()];
         }
     }
     
-    
-    private function startVM($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'type' => 'required|in:qemu,lxc'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+    private function getVMDetails($data) {
+        if (!isset($data['node']) || !isset($data['vmid'])) {
+            return ['success' => false, 'error' => 'Node and VMID parameters are required'];
         }
         
         try {
             $serviceManager = new ServiceManager();
-            $result = $serviceManager->controlProxmoxVM($data['node'], $data['vmid'], 'start', $data['type']);
-            
-            $this->log("VM {$data['vmid']} ({$data['type']}) started successfully");
-            
-            return $this->success($result, $this->t('vm_started_successfully'));
-            
+            $vmDetails = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/qemu/' . $data['vmid'] . '/config');
+            return ['success' => true, 'data' => $vmDetails];
         } catch (Exception $e) {
-            $this->log('Error starting VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_starting_vm') . ': ' . $e->getMessage());
+            error_log('Error getting VM details: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden der VM-Details: ' . $e->getMessage()];
+        }
+    }
+    
+    private function startVM($data) {
+        if (!isset($data['node']) || !isset($data['vmid'])) {
+            return ['success' => false, 'error' => 'Node and VMID parameters are required'];
+        }
+        
+        try {
+            $serviceManager = new ServiceManager();
+            $result = $serviceManager->ProxmoxAPI('post', '/nodes/' . $data['node'] . '/qemu/' . $data['vmid'] . '/status/start');
+            return ['success' => true, 'data' => $result];
+        } catch (Exception $e) {
+            error_log('Error starting VM: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Starten der VM: ' . $e->getMessage()];
         }
     }
     
     private function stopVM($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'type' => 'required|in:qemu,lxc'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+        if (!isset($data['node']) || !isset($data['vmid'])) {
+            return ['success' => false, 'error' => 'Node and VMID parameters are required'];
         }
         
         try {
             $serviceManager = new ServiceManager();
-            $result = $serviceManager->controlProxmoxVM($data['node'], $data['vmid'], 'stop', $data['type']);
-            
-            $this->log("VM {$data['vmid']} ({$data['type']}) stopped successfully");
-            
-            return $this->success($result, $this->t('vm_stopped_successfully'));
-            
+            $result = $serviceManager->ProxmoxAPI('post', '/nodes/' . $data['node'] . '/qemu/' . $data['vmid'] . '/status/stop');
+            return ['success' => true, 'data' => $result];
         } catch (Exception $e) {
-            $this->log('Error stopping VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_stopping_vm') . ': ' . $e->getMessage());
+            error_log('Error stopping VM: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Stoppen der VM: ' . $e->getMessage()];
         }
     }
     
     private function restartVM($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'type' => 'required|in:qemu,lxc'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+        if (!isset($data['node']) || !isset($data['vmid'])) {
+            return ['success' => false, 'error' => 'Node and VMID parameters are required'];
         }
         
         try {
             $serviceManager = new ServiceManager();
-            $result = $serviceManager->controlProxmoxVM($data['node'], $data['vmid'], 'reboot', $data['type']);
-            
-            $this->log("VM {$data['vmid']} ({$data['type']}) restarted successfully");
-            
-            return $this->success($result, $this->t('vm_restarted_successfully'));
-            
+            $result = $serviceManager->ProxmoxAPI('post', '/nodes/' . $data['node'] . '/qemu/' . $data['vmid'] . '/status/reboot');
+            return ['success' => true, 'data' => $result];
         } catch (Exception $e) {
-            $this->log('Error restarting VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_restarting_vm') . ': ' . $e->getMessage());
+            error_log('Error restarting VM: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Neustarten der VM: ' . $e->getMessage()];
         }
     }
     
     private function deleteVM($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'type' => 'required|in:qemu,lxc'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+        if (!isset($data['node']) || !isset($data['vmid'])) {
+            return ['success' => false, 'error' => 'Node and VMID parameters are required'];
         }
         
         try {
             $serviceManager = new ServiceManager();
-            $result = $serviceManager->deleteProxmoxVM($data['node'], $data['vmid'], $data['type']);
-            
-            $this->log("VM {$data['vmid']} ({$data['type']}) deleted successfully");
-            
-            return $this->success($result, $this->t('vm_deleted_successfully'));
-            
+            $result = $serviceManager->ProxmoxAPI('delete', '/nodes/' . $data['node'] . '/qemu/' . $data['vmid']);
+            return ['success' => true, 'data' => $result];
         } catch (Exception $e) {
-            $this->log('Error deleting VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_deleting_vm') . ': ' . $e->getMessage());
-        }
-    }
-    
-    private function resetVM($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'type' => 'required|in:qemu,lxc'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
-        }
-        
-        try {
-            $serviceManager = new ServiceManager();
-            $result = $serviceManager->controlProxmoxVM($data['node'], $data['vmid'], 'reset', $data['type']);
-            
-            $this->log("VM {$data['vmid']} ({$data['type']}) reset successfully");
-            
-            return $this->success($result, $this->t('vm_reset_successfully'));
-            
-        } catch (Exception $e) {
-            $this->log('Error resetting VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_resetting_vm') . ': ' . $e->getMessage());
-        }
-    }
-    
-    private function resumeVM($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'type' => 'required|in:qemu,lxc'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
-        }
-        
-        try {
-            $serviceManager = new ServiceManager();
-            $result = $serviceManager->controlProxmoxVM($data['node'], $data['vmid'], 'resume', $data['type']);
-            
-            $this->log("VM {$data['vmid']} ({$data['type']}) resumed successfully");
-            
-            return $this->success($result, $this->t('vm_resumed_successfully'));
-            
-        } catch (Exception $e) {
-            $this->log('Error resuming VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_resuming_vm') . ': ' . $e->getMessage());
-        }
-    }
-    
-    private function updateVM($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'vmid' => 'required|numeric',
-            'name' => 'required|min:3|max:50'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
-        }
-        
-        try {
-            $serviceManager = new ServiceManager();
-            
-            $update_config = [];
-            
-            // Nur geänderte Werte aktualisieren
-            if (isset($data['name'])) {
-                $update_config['name'] = $data['name'];
-            }
-            if (isset($data['memory'])) {
-                $update_config['memory'] = $data['memory'];
-            }
-            if (isset($data['cores'])) {
-                $update_config['cores'] = $data['cores'];
-            }
-            if (isset($data['description'])) {
-                $update_config['description'] = $data['description'];
-            }
-            
-            $result = $serviceManager->ProxmoxAPI('put', "/nodes/{$data['node']}/qemu/{$data['vmid']}/config", $update_config);
-            
-            $this->log("VM {$data['vmid']} updated successfully");
-            
-            return $this->success($result, $this->t('vm_updated_successfully'));
-            
-        } catch (Exception $e) {
-            $this->log('Error updating VM: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_updating_vm') . ': ' . $e->getMessage());
+            error_log('Error deleting VM: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Löschen der VM: ' . $e->getMessage()];
         }
     }
     
     private function getStorageList($data) {
-        $errors = $this->validate($data, ['node' => 'required']);
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+        if (!isset($data['node'])) {
+            return ['success' => false, 'error' => 'Node parameter is required'];
         }
         
         try {
             $serviceManager = new ServiceManager();
-            $storages = $serviceManager->ProxmoxAPI('get', "/nodes/{$data['node']}/storage");
-            return $this->success($storages);
+            $result = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/storage');
+            return ['success' => true, 'data' => $result];
         } catch (Exception $e) {
-            $this->log('Error getting storage list: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_getting_storage_list') . ': ' . $e->getMessage());
-        }
-    }
-    
-    private function getStorageStatus($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'storage' => 'required'
-        ]);
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
-        }
-        
-        try {
-            $serviceManager = new ServiceManager();
-            $status = $serviceManager->ProxmoxAPI('get', "/nodes/{$data['node']}/storage/{$data['storage']}/status");
-            return $this->success($status);
-        } catch (Exception $e) {
-            $this->log('Error getting storage status: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_getting_storage_status') . ': ' . $e->getMessage());
+            error_log('Error getting storage list: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden der Storage-Liste: ' . $e->getMessage()];
         }
     }
     
     private function getStorageContent($data) {
-        $errors = $this->validate($data, [
-            'node' => 'required',
-            'storage' => 'required'
-        ]);
-        if (!empty($errors)) {
-            return $this->error('Validation failed', $errors);
+        if (!isset($data['node']) || !isset($data['storage'])) {
+            return ['success' => false, 'error' => 'Node and storage parameters are required'];
         }
         
         try {
             $serviceManager = new ServiceManager();
-            $content = $serviceManager->ProxmoxAPI('get', "/nodes/{$data['node']}/storage/{$data['storage']}/content");
-            return $this->success($content);
+            $result = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/storage/' . $data['storage'] . '/content');
+            return ['success' => true, 'data' => $result];
         } catch (Exception $e) {
-            $this->log('Error getting storage content: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_getting_storage_content') . ': ' . $e->getMessage());
+            error_log('Error getting storage content: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden des Storage-Inhalts: ' . $e->getMessage()];
         }
     }
     
+    private function getProxmoxStorages($data) {
+        if (!isset($data['node'])) {
+            return ['success' => false, 'error' => 'Node parameter is required'];
+        }
+        
+        try {
+            $serviceManager = new ServiceManager();
+            $result = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/storage');
+            return ['success' => true, 'data' => $result];
+        } catch (Exception $e) {
+            error_log('Error getting proxmox storages: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden der Proxmox-Storages: ' . $e->getMessage()];
+        }
+    }
+    
+    private function getVMStatus($data) {
+        if (!isset($data['node']) || !isset($data['vmid'])) {
+            return ['success' => false, 'error' => 'Node and VMID parameters are required'];
+        }
+        
+        try {
+            $serviceManager = new ServiceManager();
+            $type = isset($data['type']) ? $data['type'] : 'qemu';
+            $result = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/' . $type . '/' . $data['vmid'] . '/status/current');
+            return ['success' => true, 'data' => $result];
+        } catch (Exception $e) {
+            error_log('Error getting VM status: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden des VM-Status: ' . $e->getMessage()];
+        }
+    }
+    
+    private function getVMConfig($data) {
+        if (!isset($data['node']) || !isset($data['vmid'])) {
+            return ['success' => false, 'error' => 'Node and VMID parameters are required'];
+        }
+        
+        try {
+            $serviceManager = new ServiceManager();
+            $type = isset($data['type']) ? $data['type'] : 'qemu';
+            $result = $serviceManager->ProxmoxAPI('get', '/nodes/' . $data['node'] . '/' . $type . '/' . $data['vmid'] . '/config');
+            return ['success' => true, 'data' => $result];
+        } catch (Exception $e) {
+            error_log('Error getting VM config: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Laden der VM-Konfiguration: ' . $e->getMessage()];
+        }
+    }
+    
+    private function updateVM($data) {
+        if (!isset($data['node']) || !isset($data['vmid'])) {
+            return ['success' => false, 'error' => 'Node and VMID parameters are required'];
+        }
+        
+        try {
+            $serviceManager = new ServiceManager();
+            $type = isset($data['type']) ? $data['type'] : 'qemu';
+            
+            // Entferne node, vmid und type aus den Daten
+            $configData = $data;
+            unset($configData['node'], $configData['vmid'], $configData['type']);
+            
+            $result = $serviceManager->ProxmoxAPI('put', '/nodes/' . $data['node'] . '/' . $type . '/' . $data['vmid'] . '/config', $configData);
+            return ['success' => true, 'data' => $result];
+        } catch (Exception $e) {
+            error_log('Error updating VM: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Aktualisieren der VM: ' . $e->getMessage()];
+        }
+    }
+    
+    private function createLXC($data) {
+        if (!isset($data['node']) || !isset($data['vmid'])) {
+            return ['success' => false, 'error' => 'Node and VMID parameters are required'];
+        }
+        
+        try {
+            $serviceManager = new ServiceManager();
+            
+            // Entferne node und vmid aus den Daten
+            $configData = $data;
+            unset($configData['node'], $configData['vmid']);
+            
+            $result = $serviceManager->ProxmoxAPI('post', '/nodes/' . $data['node'] . '/lxc', $configData);
+            return ['success' => true, 'data' => $result];
+        } catch (Exception $e) {
+            error_log('Error creating LXC: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Fehler beim Erstellen des LXC-Containers: ' . $e->getMessage()];
+        }
+    }
 }
 ?>

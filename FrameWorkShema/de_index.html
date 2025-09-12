@@ -614,6 +614,273 @@ $result = $proxmox->createProxmoxUser($userData);</pre>
                 <div class="description">Testet verschiedene Parameter-Kombinationen für mail_user_get.</div>
             </div>
 
+            <div class="subsection">
+                <h3>DNS-Funktionen (Neu in Version 3.2.7)</h3>
+                <p>Vollständige DNS-Record-Verwaltung für ISPConfig.</p>
+            </div>
+
+            <div class="method">
+                <h4>getDNSZones()</h4>
+                <div class="signature">public function getDNSZones($filter = [])</div>
+                <div class="description">Holt alle DNS-Zonen.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSZone()</h4>
+                <div class="signature">public function getDNSZone($zoneId)</div>
+                <div class="description">Holt eine spezifische DNS-Zone.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSARecords()</h4>
+                <div class="signature">public function getDNSARecords($filter = [])</div>
+                <div class="description">Holt alle A-Records.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSAAAARecords()</h4>
+                <div class="signature">public function getDNSAAAARecords($filter = [])</div>
+                <div class="description">Holt alle AAAA-Records (IPv6).</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSCNAMERecords()</h4>
+                <div class="signature">public function getDNSCNAMERecords($filter = [])</div>
+                <div class="description">Holt alle CNAME-Records.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSMXRecords()</h4>
+                <div class="signature">public function getDNSMXRecords($filter = [])</div>
+                <div class="description">Holt alle MX-Records (Mail-Exchange).</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSTXTRecords()</h4>
+                <div class="signature">public function getDNSTXTRecords($filter = [])</div>
+                <div class="description">Holt alle TXT-Records.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSNSRecords()</h4>
+                <div class="signature">public function getDNSNSRecords($filter = [])</div>
+                <div class="description">Holt alle NS-Records (Name-Server).</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSPTRRecords()</h4>
+                <div class="signature">public function getDNSPTRRecords($filter = [])</div>
+                <div class="description">Holt alle PTR-Records (Reverse-DNS).</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSSRVRecords()</h4>
+                <div class="signature">public function getDNSSRVRecords($filter = [])</div>
+                <div class="description">Holt alle SRV-Records (Service-Location).</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSAliasRecords()</h4>
+                <div class="signature">public function getDNSAliasRecords($filter = [])</div>
+                <div class="description">Holt alle Alias-Records.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSHINFORecords()</h4>
+                <div class="signature">public function getDNSHINFORecords($filter = [])</div>
+                <div class="description">Holt alle HINFO-Records (Host-Information).</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSNAPTRRecords()</h4>
+                <div class="signature">public function getDNSNAPTRRecords($filter = [])</div>
+                <div class="description">Holt alle NAPTR-Records (Name-Authority-Pointer).</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSRPRecords()</h4>
+                <div class="signature">public function getDNSRPRecords($filter = [])</div>
+                <div class="description">Holt alle RP-Records (Responsible-Person).</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSDSRecords()</h4>
+                <div class="signature">public function getDNSDSRecords($filter = [])</div>
+                <div class="description">Holt alle DS-Records (Delegation-Signer).</div>
+            </div>
+
+            <div class="method">
+                <h4>getDNSSlaveRecords()</h4>
+                <div class="signature">public function getDNSSlaveRecords($filter = [])</div>
+                <div class="description">Holt alle Slave-DNS-Records.</div>
+            </div>
+
+            <div class="subsection">
+                <h3>Mail-Funktionen (Neu in Version 3.2.7)</h3>
+                <p>Erweiterte E-Mail-Verwaltung für ISPConfig.</p>
+            </div>
+
+            <div class="method">
+                <h4>getMailDomains()</h4>
+                <div class="signature">public function getMailDomains($filter = [])</div>
+                <div class="description">Holt alle Mail-Domains.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailAliases()</h4>
+                <div class="signature">public function getMailAliases($filter = [])</div>
+                <div class="description">Holt alle Mail-Aliases.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailForwards()</h4>
+                <div class="signature">public function getMailForwards($filter = [])</div>
+                <div class="description">Holt alle Mail-Forwards.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailCatchalls()</h4>
+                <div class="signature">public function getMailCatchalls($filter = [])</div>
+                <div class="description">Holt alle Mail-Catchalls.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailMailinglists()</h4>
+                <div class="signature">public function getMailMailinglists($filter = [])</div>
+                <div class="description">Holt alle Mailinglisten.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailPolicies()</h4>
+                <div class="signature">public function getMailPolicies($filter = [])</div>
+                <div class="description">Holt alle Mail-Policies.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailTransports()</h4>
+                <div class="signature">public function getMailTransports($filter = [])</div>
+                <div class="description">Holt alle Mail-Transports.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailRelayDomains()</h4>
+                <div class="signature">public function getMailRelayDomains($filter = [])</div>
+                <div class="description">Holt alle Relay-Domains.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailRelayRecipients()</h4>
+                <div class="signature">public function getMailRelayRecipients($filter = [])</div>
+                <div class="description">Holt alle Relay-Recipients.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailFetchmails()</h4>
+                <div class="signature">public function getMailFetchmails($filter = [])</div>
+                <div class="description">Holt alle Fetchmail-Konfigurationen.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailUserFilters()</h4>
+                <div class="signature">public function getMailUserFilters($filter = [])</div>
+                <div class="description">Holt alle Benutzer-Filter.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailBlacklists()</h4>
+                <div class="signature">public function getMailBlacklists($filter = [])</div>
+                <div class="description">Holt alle Mail-Blacklists.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailWhitelists()</h4>
+                <div class="signature">public function getMailWhitelists($filter = [])</div>
+                <div class="description">Holt alle Mail-Whitelists.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailSpamfilterBlacklists()</h4>
+                <div class="signature">public function getMailSpamfilterBlacklists($filter = [])</div>
+                <div class="description">Holt alle Spamfilter-Blacklists.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailSpamfilterWhitelists()</h4>
+                <div class="signature">public function getMailSpamfilterWhitelists($filter = [])</div>
+                <div class="description">Holt alle Spamfilter-Whitelists.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailSpamfilterUsers()</h4>
+                <div class="signature">public function getMailSpamfilterUsers($filter = [])</div>
+                <div class="description">Holt alle Spamfilter-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getMailUserBackupList()</h4>
+                <div class="signature">public function getMailUserBackupList($userId)</div>
+                <div class="description">Holt die Backup-Liste für einen Mail-Benutzer.</div>
+            </div>
+
+            <div class="subsection">
+                <h3>Sites-Funktionen (Neu in Version 3.2.7)</h3>
+                <p>Erweiterte Sites-Verwaltung für ISPConfig.</p>
+            </div>
+
+            <div class="method">
+                <h4>getFTPUsers()</h4>
+                <div class="signature">public function getFTPUsers($filter = [])</div>
+                <div class="description">Holt alle FTP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getShellUsers()</h4>
+                <div class="signature">public function getShellUsers($filter = [])</div>
+                <div class="description">Holt alle Shell-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getCronJobs()</h4>
+                <div class="signature">public function getCronJobs($filter = [])</div>
+                <div class="description">Holt alle Cron-Jobs.</div>
+            </div>
+
+            <div class="method">
+                <h4>getDatabaseUsers()</h4>
+                <div class="signature">public function getDatabaseUsers($filter = [])</div>
+                <div class="description">Holt alle Datenbank-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getWebSubdomains()</h4>
+                <div class="signature">public function getWebSubdomains($filter = [])</div>
+                <div class="description">Holt alle Web-Subdomains.</div>
+            </div>
+
+            <div class="method">
+                <h4>getWebAliasdomains()</h4>
+                <div class="signature">public function getWebAliasdomains($filter = [])</div>
+                <div class="description">Holt alle Web-Aliasdomains.</div>
+            </div>
+
+            <div class="method">
+                <h4>setWebDomainStatus()</h4>
+                <div class="signature">public function setWebDomainStatus($domainId, $status)</div>
+                <div class="description">Setzt den Status einer Web-Domain.</div>
+            </div>
+
+            <div class="method">
+                <h4>getWebDomainBackupList()</h4>
+                <div class="signature">public function getWebDomainBackupList($domainId)</div>
+                <div class="description">Holt die Backup-Liste für eine Web-Domain.</div>
+            </div>
+
+            <div class="method">
+                <h4>getWebDomainBackup()</h4>
+                <div class="signature">public function getWebDomainBackup($domainId, $backupId)</div>
+                <div class="description">Holt ein spezifisches Web-Domain-Backup.</div>
+            </div>
+
             <div class="class-info">
                 <h3>ISPConfigPost Klasse</h3>
                 <p>Schreib-Operationen für ISPConfig.</p>
@@ -711,6 +978,381 @@ $result = $ispconfig->createWebsite($websiteData);</pre>
                 <h4>deleteClient()</h4>
                 <div class="signature">public function deleteClient($clientId)</div>
                 <div class="description">Löscht einen ISPConfig-Client.</div>
+            </div>
+
+            <div class="subsection">
+                <h3>DNS POST-Funktionen (Neu in Version 3.2.7)</h3>
+                <p>DNS-Record-Erstellung und -Verwaltung.</p>
+            </div>
+
+            <div class="method">
+                <h4>createDNSZone()</h4>
+                <div class="signature">public function createDNSZone($zoneData)</div>
+                <div class="description">Erstellt eine neue DNS-Zone.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateDNSZone()</h4>
+                <div class="signature">public function updateDNSZone($zoneId, $zoneData)</div>
+                <div class="description">Aktualisiert eine DNS-Zone.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteDNSZone()</h4>
+                <div class="signature">public function deleteDNSZone($zoneId)</div>
+                <div class="description">Löscht eine DNS-Zone.</div>
+            </div>
+
+            <div class="method">
+                <h4>setDNSZoneStatus()</h4>
+                <div class="signature">public function setDNSZoneStatus($zoneId, $status)</div>
+                <div class="description">Setzt den Status einer DNS-Zone.</div>
+            </div>
+
+            <div class="method">
+                <h4>setDNSZoneDNSSEC()</h4>
+                <div class="signature">public function setDNSZoneDNSSEC($zoneId, $dnssecData)</div>
+                <div class="description">Konfiguriert DNSSEC für eine DNS-Zone.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSARecord()</h4>
+                <div class="signature">public function createDNSARecord($recordData)</div>
+                <div class="description">Erstellt einen A-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateDNSARecord()</h4>
+                <div class="signature">public function updateDNSARecord($recordId, $recordData)</div>
+                <div class="description">Aktualisiert einen A-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteDNSARecord()</h4>
+                <div class="signature">public function deleteDNSARecord($recordId)</div>
+                <div class="description">Löscht einen A-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSAAAARecord()</h4>
+                <div class="signature">public function createDNSAAAARecord($recordData)</div>
+                <div class="description">Erstellt einen AAAA-Record (IPv6).</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSCNAMERecord()</h4>
+                <div class="signature">public function createDNSCNAMERecord($recordData)</div>
+                <div class="description">Erstellt einen CNAME-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSMXRecord()</h4>
+                <div class="signature">public function createDNSMXRecord($recordData)</div>
+                <div class="description">Erstellt einen MX-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSNSRecord()</h4>
+                <div class="signature">public function createDNSNSRecord($recordData)</div>
+                <div class="description">Erstellt einen NS-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSPTRRecord()</h4>
+                <div class="signature">public function createDNSPTRRecord($recordData)</div>
+                <div class="description">Erstellt einen PTR-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSSRVRecord()</h4>
+                <div class="signature">public function createDNSSRVRecord($recordData)</div>
+                <div class="description">Erstellt einen SRV-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSTXTRecord()</h4>
+                <div class="signature">public function createDNSTXTRecord($recordData)</div>
+                <div class="description">Erstellt einen TXT-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSAliasRecord()</h4>
+                <div class="signature">public function createDNSAliasRecord($recordData)</div>
+                <div class="description">Erstellt einen Alias-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSHINFORecord()</h4>
+                <div class="signature">public function createDNSHINFORecord($recordData)</div>
+                <div class="description">Erstellt einen HINFO-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSNAPTRRecord()</h4>
+                <div class="signature">public function createDNSNAPTRRecord($recordData)</div>
+                <div class="description">Erstellt einen NAPTR-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSRPRecord()</h4>
+                <div class="signature">public function createDNSRPRecord($recordData)</div>
+                <div class="description">Erstellt einen RP-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDNSDSRecord()</h4>
+                <div class="signature">public function createDNSDSRecord($recordData)</div>
+                <div class="description">Erstellt einen DS-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteDNSSlaveRecord()</h4>
+                <div class="signature">public function deleteDNSSlaveRecord($recordId)</div>
+                <div class="description">Löscht einen Slave-DNS-Record.</div>
+            </div>
+
+            <div class="subsection">
+                <h3>Mail POST-Funktionen (Neu in Version 3.2.7)</h3>
+                <p>E-Mail-Verwaltung und -Konfiguration.</p>
+            </div>
+
+            <div class="method">
+                <h4>createMailDomain()</h4>
+                <div class="signature">public function createMailDomain($domainData)</div>
+                <div class="description">Erstellt eine Mail-Domain.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateMailDomain()</h4>
+                <div class="signature">public function updateMailDomain($domainId, $domainData)</div>
+                <div class="description">Aktualisiert eine Mail-Domain.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteMailDomain()</h4>
+                <div class="signature">public function deleteMailDomain($domainId)</div>
+                <div class="description">Löscht eine Mail-Domain.</div>
+            </div>
+
+            <div class="method">
+                <h4>setMailDomainStatus()</h4>
+                <div class="signature">public function setMailDomainStatus($domainId, $status)</div>
+                <div class="description">Setzt den Status einer Mail-Domain.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailAlias()</h4>
+                <div class="signature">public function createMailAlias($aliasData)</div>
+                <div class="description">Erstellt einen Mail-Alias.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateMailAlias()</h4>
+                <div class="signature">public function updateMailAlias($aliasId, $aliasData)</div>
+                <div class="description">Aktualisiert einen Mail-Alias.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteMailAlias()</h4>
+                <div class="signature">public function deleteMailAlias($aliasId)</div>
+                <div class="description">Löscht einen Mail-Alias.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailForward()</h4>
+                <div class="signature">public function createMailForward($forwardData)</div>
+                <div class="description">Erstellt einen Mail-Forward.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailCatchall()</h4>
+                <div class="signature">public function createMailCatchall($catchallData)</div>
+                <div class="description">Erstellt einen Mail-Catchall.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailMailinglist()</h4>
+                <div class="signature">public function createMailMailinglist($mailinglistData)</div>
+                <div class="description">Erstellt eine Mailingliste.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailPolicy()</h4>
+                <div class="signature">public function createMailPolicy($policyData)</div>
+                <div class="description">Erstellt eine Mail-Policy.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailTransport()</h4>
+                <div class="signature">public function createMailTransport($transportData)</div>
+                <div class="description">Erstellt einen Mail-Transport.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailRelayDomain()</h4>
+                <div class="signature">public function createMailRelayDomain($relayDomainData)</div>
+                <div class="description">Erstellt eine Relay-Domain.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailRelayRecipient()</h4>
+                <div class="signature">public function createMailRelayRecipient($relayRecipientData)</div>
+                <div class="description">Erstellt einen Relay-Recipient.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailFetchmail()</h4>
+                <div class="signature">public function createMailFetchmail($fetchmailData)</div>
+                <div class="description">Erstellt eine Fetchmail-Konfiguration.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailUserFilter()</h4>
+                <div class="signature">public function createMailUserFilter($filterData)</div>
+                <div class="description">Erstellt einen Benutzer-Filter.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailBlacklist()</h4>
+                <div class="signature">public function createMailBlacklist($blacklistData)</div>
+                <div class="description">Erstellt eine Mail-Blacklist.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailWhitelist()</h4>
+                <div class="signature">public function createMailWhitelist($whitelistData)</div>
+                <div class="description">Erstellt eine Mail-Whitelist.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailSpamfilterBlacklist()</h4>
+                <div class="signature">public function createMailSpamfilterBlacklist($spamfilterBlacklistData)</div>
+                <div class="description">Erstellt eine Spamfilter-Blacklist.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailSpamfilterWhitelist()</h4>
+                <div class="signature">public function createMailSpamfilterWhitelist($spamfilterWhitelistData)</div>
+                <div class="description">Erstellt eine Spamfilter-Whitelist.</div>
+            </div>
+
+            <div class="method">
+                <h4>createMailSpamfilterUser()</h4>
+                <div class="signature">public function createMailSpamfilterUser($spamfilterUserData)</div>
+                <div class="description">Erstellt einen Spamfilter-Benutzer.</div>
+            </div>
+
+            <div class="subsection">
+                <h3>Sites POST-Funktionen (Neu in Version 3.2.7)</h3>
+                <p>Sites-Verwaltung und Benutzer-Management.</p>
+            </div>
+
+            <div class="method">
+                <h4>createFTPUser()</h4>
+                <div class="signature">public function createFTPUser($userData)</div>
+                <div class="description">Erstellt einen FTP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateFTPUser()</h4>
+                <div class="signature">public function updateFTPUser($userId, $userData)</div>
+                <div class="description">Aktualisiert einen FTP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteFTPUser()</h4>
+                <div class="signature">public function deleteFTPUser($userId)</div>
+                <div class="description">Löscht einen FTP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>createShellUser()</h4>
+                <div class="signature">public function createShellUser($userData)</div>
+                <div class="description">Erstellt einen Shell-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateShellUser()</h4>
+                <div class="signature">public function updateShellUser($userId, $userData)</div>
+                <div class="description">Aktualisiert einen Shell-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteShellUser()</h4>
+                <div class="signature">public function deleteShellUser($userId)</div>
+                <div class="description">Löscht einen Shell-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>createCronJob()</h4>
+                <div class="signature">public function createCronJob($jobData)</div>
+                <div class="description">Erstellt einen Cron-Job.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateCronJob()</h4>
+                <div class="signature">public function updateCronJob($jobId, $jobData)</div>
+                <div class="description">Aktualisiert einen Cron-Job.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteCronJob()</h4>
+                <div class="signature">public function deleteCronJob($jobId)</div>
+                <div class="description">Löscht einen Cron-Job.</div>
+            </div>
+
+            <div class="method">
+                <h4>createDatabaseUser()</h4>
+                <div class="signature">public function createDatabaseUser($userData)</div>
+                <div class="description">Erstellt einen Datenbank-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateDatabaseUser()</h4>
+                <div class="signature">public function updateDatabaseUser($userId, $userData)</div>
+                <div class="description">Aktualisiert einen Datenbank-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteDatabaseUser()</h4>
+                <div class="signature">public function deleteDatabaseUser($userId)</div>
+                <div class="description">Löscht einen Datenbank-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>createWebSubdomain()</h4>
+                <div class="signature">public function createWebSubdomain($subdomainData)</div>
+                <div class="description">Erstellt eine Web-Subdomain.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateWebSubdomain()</h4>
+                <div class="signature">public function updateWebSubdomain($subdomainId, $subdomainData)</div>
+                <div class="description">Aktualisiert eine Web-Subdomain.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteWebSubdomain()</h4>
+                <div class="signature">public function deleteWebSubdomain($subdomainId)</div>
+                <div class="description">Löscht eine Web-Subdomain.</div>
+            </div>
+
+            <div class="method">
+                <h4>createWebAliasdomain()</h4>
+                <div class="signature">public function createWebAliasdomain($aliasdomainData)</div>
+                <div class="description">Erstellt eine Web-Aliasdomain.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateWebAliasdomain()</h4>
+                <div class="signature">public function updateWebAliasdomain($aliasdomainId, $aliasdomainData)</div>
+                <div class="description">Aktualisiert eine Web-Aliasdomain.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteWebAliasdomain()</h4>
+                <div class="signature">public function deleteWebAliasdomain($aliasdomainId)</div>
+                <div class="description">Löscht eine Web-Aliasdomain.</div>
             </div>
         </div>
 
@@ -2007,6 +2649,273 @@ $result = $serviceManager->ProxmoxAPI('post', '/nodes/pve/qemu/100/status/start'
                 <h4>deleteISPConfigClient()</h4>
                 <div class="signature">public function deleteISPConfigClient($clientId)</div>
                 <div class="description">Löscht einen ISPConfig-Client.</div>
+            </div>
+
+            <div class="subsection">
+                <h3>ISPConfig DNS-Funktionen (Neu in Version 3.2.7)</h3>
+                <p>DNS-Verwaltung über den ServiceManager.</p>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigDNSZones()</h4>
+                <div class="signature">public function getISPConfigDNSZones($filter = [])</div>
+                <div class="description">Holt alle DNS-Zonen.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigDNSZone()</h4>
+                <div class="signature">public function getISPConfigDNSZone($zoneId)</div>
+                <div class="description">Holt eine spezifische DNS-Zone.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigDNSARecords()</h4>
+                <div class="signature">public function getISPConfigDNSARecords($filter = [])</div>
+                <div class="description">Holt alle A-Records.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigDNSAAAARecords()</h4>
+                <div class="signature">public function getISPConfigDNSAAAARecords($filter = [])</div>
+                <div class="description">Holt alle AAAA-Records (IPv6).</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigDNSCNAMERecords()</h4>
+                <div class="signature">public function getISPConfigDNSCNAMERecords($filter = [])</div>
+                <div class="description">Holt alle CNAME-Records.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigDNSMXRecords()</h4>
+                <div class="signature">public function getISPConfigDNSMXRecords($filter = [])</div>
+                <div class="description">Holt alle MX-Records (Mail-Exchange).</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigDNSTXTRecords()</h4>
+                <div class="signature">public function getISPConfigDNSTXTRecords($filter = [])</div>
+                <div class="description">Holt alle TXT-Records.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigDNSZone()</h4>
+                <div class="signature">public function createISPConfigDNSZone($zoneData)</div>
+                <div class="description">Erstellt eine neue DNS-Zone.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigDNSARecord()</h4>
+                <div class="signature">public function createISPConfigDNSARecord($recordData)</div>
+                <div class="description">Erstellt einen A-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigDNSCNAMERecord()</h4>
+                <div class="signature">public function createISPConfigDNSCNAMERecord($recordData)</div>
+                <div class="description">Erstellt einen CNAME-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigDNSMXRecord()</h4>
+                <div class="signature">public function createISPConfigDNSMXRecord($recordData)</div>
+                <div class="description">Erstellt einen MX-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigDNSTXTRecord()</h4>
+                <div class="signature">public function createISPConfigDNSTXTRecord($recordData)</div>
+                <div class="description">Erstellt einen TXT-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateISPConfigDNSARecord()</h4>
+                <div class="signature">public function updateISPConfigDNSARecord($recordId, $recordData)</div>
+                <div class="description">Aktualisiert einen A-Record.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteISPConfigDNSARecord()</h4>
+                <div class="signature">public function deleteISPConfigDNSARecord($recordId)</div>
+                <div class="description">Löscht einen A-Record.</div>
+            </div>
+
+            <div class="subsection">
+                <h3>ISPConfig Mail-Funktionen (Neu in Version 3.2.7)</h3>
+                <p>E-Mail-Verwaltung über den ServiceManager.</p>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigMailDomains()</h4>
+                <div class="signature">public function getISPConfigMailDomains($filter = [])</div>
+                <div class="description">Holt alle Mail-Domains.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigMailAliases()</h4>
+                <div class="signature">public function getISPConfigMailAliases($filter = [])</div>
+                <div class="description">Holt alle Mail-Aliases.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigMailForwards()</h4>
+                <div class="signature">public function getISPConfigMailForwards($filter = [])</div>
+                <div class="description">Holt alle Mail-Forwards.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigMailCatchalls()</h4>
+                <div class="signature">public function getISPConfigMailCatchalls($filter = [])</div>
+                <div class="description">Holt alle Mail-Catchalls.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigMailBlacklists()</h4>
+                <div class="signature">public function getISPConfigMailBlacklists($filter = [])</div>
+                <div class="description">Holt alle Mail-Blacklists.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigMailWhitelists()</h4>
+                <div class="signature">public function getISPConfigMailWhitelists($filter = [])</div>
+                <div class="description">Holt alle Mail-Whitelists.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigMailDomain()</h4>
+                <div class="signature">public function createISPConfigMailDomain($domainData)</div>
+                <div class="description">Erstellt eine Mail-Domain.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigMailAlias()</h4>
+                <div class="signature">public function createISPConfigMailAlias($aliasData)</div>
+                <div class="description">Erstellt einen Mail-Alias.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigMailForward()</h4>
+                <div class="signature">public function createISPConfigMailForward($forwardData)</div>
+                <div class="description">Erstellt einen Mail-Forward.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigMailCatchall()</h4>
+                <div class="signature">public function createISPConfigMailCatchall($catchallData)</div>
+                <div class="description">Erstellt einen Mail-Catchall.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateISPConfigMailAlias()</h4>
+                <div class="signature">public function updateISPConfigMailAlias($aliasId, $aliasData)</div>
+                <div class="description">Aktualisiert einen Mail-Alias.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteISPConfigMailAlias()</h4>
+                <div class="signature">public function deleteISPConfigMailAlias($aliasId)</div>
+                <div class="description">Löscht einen Mail-Alias.</div>
+            </div>
+
+            <div class="subsection">
+                <h3>ISPConfig Sites-Funktionen (Neu in Version 3.2.7)</h3>
+                <p>Sites-Verwaltung über den ServiceManager.</p>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigFTPUsers()</h4>
+                <div class="signature">public function getISPConfigFTPUsers($filter = [])</div>
+                <div class="description">Holt alle FTP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigShellUsers()</h4>
+                <div class="signature">public function getISPConfigShellUsers($filter = [])</div>
+                <div class="description">Holt alle Shell-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigCronJobs()</h4>
+                <div class="signature">public function getISPConfigCronJobs($filter = [])</div>
+                <div class="description">Holt alle Cron-Jobs.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigDatabaseUsers()</h4>
+                <div class="signature">public function getISPConfigDatabaseUsers($filter = [])</div>
+                <div class="description">Holt alle Datenbank-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigWebSubdomains()</h4>
+                <div class="signature">public function getISPConfigWebSubdomains($filter = [])</div>
+                <div class="description">Holt alle Web-Subdomains.</div>
+            </div>
+
+            <div class="method">
+                <h4>getISPConfigWebAliasdomains()</h4>
+                <div class="signature">public function getISPConfigWebAliasdomains($filter = [])</div>
+                <div class="description">Holt alle Web-Aliasdomains.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigFTPUser()</h4>
+                <div class="signature">public function createISPConfigFTPUser($userData)</div>
+                <div class="description">Erstellt einen FTP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigShellUser()</h4>
+                <div class="signature">public function createISPConfigShellUser($userData)</div>
+                <div class="description">Erstellt einen Shell-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigCronJob()</h4>
+                <div class="signature">public function createISPConfigCronJob($jobData)</div>
+                <div class="description">Erstellt einen Cron-Job.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigDatabaseUser()</h4>
+                <div class="signature">public function createISPConfigDatabaseUser($userData)</div>
+                <div class="description">Erstellt einen Datenbank-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigWebSubdomain()</h4>
+                <div class="signature">public function createISPConfigWebSubdomain($subdomainData)</div>
+                <div class="description">Erstellt eine Web-Subdomain.</div>
+            </div>
+
+            <div class="method">
+                <h4>createISPConfigWebAliasdomain()</h4>
+                <div class="signature">public function createISPConfigWebAliasdomain($aliasdomainData)</div>
+                <div class="description">Erstellt eine Web-Aliasdomain.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateISPConfigFTPUser()</h4>
+                <div class="signature">public function updateISPConfigFTPUser($userId, $userData)</div>
+                <div class="description">Aktualisiert einen FTP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>updateISPConfigCronJob()</h4>
+                <div class="signature">public function updateISPConfigCronJob($jobId, $jobData)</div>
+                <div class="description">Aktualisiert einen Cron-Job.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteISPConfigFTPUser()</h4>
+                <div class="signature">public function deleteISPConfigFTPUser($userId)</div>
+                <div class="description">Löscht einen FTP-Benutzer.</div>
+            </div>
+
+            <div class="method">
+                <h4>deleteISPConfigCronJob()</h4>
+                <div class="signature">public function deleteISPConfigCronJob($jobId)</div>
+                <div class="description">Löscht einen Cron-Job.</div>
             </div>
 
             <div class="method">

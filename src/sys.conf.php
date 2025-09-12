@@ -11,6 +11,7 @@ if (file_exists(__DIR__ . '/core/LanguageManager.php')) {
     require_once __DIR__ . '/core/LanguageManager.php';
 }
 
+
 // --- PLUGINS START ---
 $plugins = array (
   'admin' => 
@@ -25,7 +26,7 @@ $plugins = array (
   ),
   'proxmox' => 
   array (
-    'enabled' => false,
+    'enabled' => true,
     'name' => 'Proxmox VM Management',
     'icon' => '🖥️',
     'path' => 'module/proxmox',
@@ -35,7 +36,7 @@ $plugins = array (
   ),
   'ispconfig' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'ISPConfig Website Management',
     'icon' => '🌐',
     'path' => 'module/ispconfig',
@@ -45,7 +46,7 @@ $plugins = array (
   ),
   'ovh' => 
   array (
-    'enabled' => false,
+    'enabled' => true,
     'name' => 'OVH Services',
     'icon' => '🔗',
     'path' => 'module/ovh',
@@ -156,9 +157,10 @@ $plugins = array (
 );
 // --- PLUGINS END ---
 
+
 // --- SYSTEM_CONFIG START ---
 $system_config = array (
-  'version' => '3.2.5',
+  'version' => '3.2.7',
   'theme' => 'default',
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',

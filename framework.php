@@ -507,9 +507,21 @@ class ProxmoxGet extends BaseAPI {
         ];
 
         $response = $this->makeRequest('POST', $url, $data);
+        
+        // Prüfe auf Fehler in der Antwort
+        if (isset($response['success']) && $response['success'] === false) {
+            error_log("ProxmoxGet::authenticate: Authentication failed: " . json_encode($response));
+            return false;
+        }
+        
         if ($response && isset($response['data'])) {
             $this->ticket = $response['data']['ticket'];
             $this->csrf_token = $response['data']['CSRFPreventionToken'];
+            error_log("ProxmoxGet::authenticate: Authentication successful");
+            return true;
+        } else {
+            error_log("ProxmoxGet::authenticate: No authentication data received: " . json_encode($response));
+            return false;
         }
     }
 
@@ -517,7 +529,19 @@ class ProxmoxGet extends BaseAPI {
         $url = $this->host . "/api2/json/nodes";
         $response = $this->makeRequest('GET', $url);
         //$this->logRequest('/nodes', 'GET', $response !== false);
-        return $response && isset($response['data']) ? $response['data'] : [];
+        
+        // Prüfe auf Fehler in der Antwort
+        if (isset($response['success']) && $response['success'] === false) {
+            error_log("ProxmoxGet::getNodes: API error: " . json_encode($response));
+            return []; // Gib leeres Array zurück bei Fehlern
+        }
+        
+        if ($response && isset($response['data'])) {
+            return $response['data']; // Gib nur das data Array zurück
+        } else {
+            error_log("ProxmoxGet::getNodes: No data in response: " . json_encode($response));
+            return []; // Gib leeres Array zurück wenn keine Daten
+        }
     }
 
     public function getVMs($node = null) {
@@ -525,7 +549,7 @@ class ProxmoxGet extends BaseAPI {
         $nodes = $node ? [$node] : $this->getNodes();
 
         foreach ($nodes as $nodeData) {
-            $nodeName = is_array($nodeData) ? $nodeData['node'] : $nodeData;
+            $nodeName = is_array($nodeData) && isset($nodeData['node']) ? $nodeData['node'] : $nodeData;
             $url = $this->host . "/api2/json/nodes/$nodeName/qemu";
             $response = $this->makeRequest('GET', $url);
 
@@ -545,7 +569,7 @@ class ProxmoxGet extends BaseAPI {
         $nodes = $node ? [$node] : $this->getNodes();
 
         foreach ($nodes as $nodeData) {
-            $nodeName = is_array($nodeData) ? $nodeData['node'] : $nodeData;
+            $nodeName = is_array($nodeData) && isset($nodeData['node']) ? $nodeData['node'] : $nodeData;
             $url = $this->host . "/api2/json/nodes/$nodeName/lxc";
             $response = $this->makeRequest('GET', $url);
 
@@ -610,6 +634,7 @@ class ProxmoxGet extends BaseAPI {
         $ch = curl_init();
         
         if ($ch === false) {
+            error_log("ProxmoxGet::makeRequest: cURL initialization failed");
             return false;
         }
 
@@ -627,7 +652,10 @@ class ProxmoxGet extends BaseAPI {
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_TIMEOUT => 30
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 3
         ]);
 
         if ($data && in_array($method, ['POST', 'PUT', 'PATCH'])) {
@@ -636,20 +664,47 @@ class ProxmoxGet extends BaseAPI {
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
         // Prüfe auf cURL Fehler
         if ($response === false) {
-            return false;
+            error_log("ProxmoxGet::makeRequest: cURL error: " . $curlError);
+            return [
+                'success' => false,
+                'error' => 'CURL_ERROR',
+                'message' => 'cURL Fehler: ' . $curlError,
+                'http_code' => $httpCode
+            ];
         }
+
+        // Log HTTP Status Code für Debugging
+        error_log("ProxmoxGet::makeRequest: HTTP Code: " . $httpCode . " for URL: " . $url);
 
         if ($httpCode >= 200 && $httpCode < 300) {
             $decoded = json_decode($response, true);
             // Stelle sicher, dass json_decode erfolgreich war
-            return $decoded !== null ? $decoded : false;
+            if ($decoded !== null) {
+                return $decoded;
+            } else {
+                error_log("ProxmoxGet::makeRequest: JSON decode failed for response: " . substr($response, 0, 500));
+                return [
+                    'success' => false,
+                    'error' => 'JSON_DECODE_ERROR',
+                    'message' => 'JSON Dekodierung fehlgeschlagen',
+                    'raw_response' => substr($response, 0, 500)
+                ];
+            }
+        } else {
+            error_log("ProxmoxGet::makeRequest: HTTP error " . $httpCode . " for URL: " . $url . " Response: " . substr($response, 0, 500));
+            return [
+                'success' => false,
+                'error' => 'HTTP_ERROR',
+                'message' => 'HTTP Fehler: ' . $httpCode,
+                'http_code' => $httpCode,
+                'raw_response' => substr($response, 0, 500)
+            ];
         }
-
-        return false;
     }
 }
 
@@ -1578,6 +1633,868 @@ class ISPConfigGet extends BaseAPI {
         }
     }
 
+    // EXTENDED MAIL FUNCTIONS
+    // Mail Domain functions
+    public function getMailDomains($filter = []) {
+        try {
+            $domains = $this->client->mail_domain_get($this->session_id, -1);
+            return $domains ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail domains: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailDomain($domainId) {
+        try {
+            $domain = $this->client->mail_domain_get($this->session_id, $domainId);
+            return $domain ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail domain: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getMailDomainByDomain($domain) {
+        try {
+            $domainData = $this->client->mail_domain_get_by_domain($this->session_id, $domain);
+            return $domainData ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail domain by domain: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Alias functions
+    public function getMailAliases($filter = []) {
+        try {
+            $aliases = $this->client->mail_alias_get($this->session_id, -1);
+            return $aliases ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail aliases: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailAlias($aliasId) {
+        try {
+            $alias = $this->client->mail_alias_get($this->session_id, $aliasId);
+            return $alias ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail alias: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Forward functions
+    public function getMailForwards($filter = []) {
+        try {
+            $forwards = $this->client->mail_forward_get($this->session_id, -1);
+            return $forwards ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail forwards: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailForward($forwardId) {
+        try {
+            $forward = $this->client->mail_forward_get($this->session_id, $forwardId);
+            return $forward ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail forward: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Catchall functions
+    public function getMailCatchalls($filter = []) {
+        try {
+            $catchalls = $this->client->mail_catchall_get($this->session_id, -1);
+            return $catchalls ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail catchalls: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailCatchall($catchallId) {
+        try {
+            $catchall = $this->client->mail_catchall_get($this->session_id, $catchallId);
+            return $catchall ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail catchall: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Mailinglist functions
+    public function getMailMailinglists($filter = []) {
+        try {
+            $mailinglists = $this->client->mail_mailinglist_get($this->session_id, -1);
+            return $mailinglists ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail mailinglists: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailMailinglist($mailinglistId) {
+        try {
+            $mailinglist = $this->client->mail_mailinglist_get($this->session_id, $mailinglistId);
+            return $mailinglist ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail mailinglist: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Policy functions
+    public function getMailPolicies($filter = []) {
+        try {
+            $policies = $this->client->mail_policy_get($this->session_id, -1);
+            return $policies ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail policies: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailPolicy($policyId) {
+        try {
+            $policy = $this->client->mail_policy_get($this->session_id, $policyId);
+            return $policy ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail policy: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Transport functions
+    public function getMailTransports($filter = []) {
+        try {
+            $transports = $this->client->mail_transport_get($this->session_id, -1);
+            return $transports ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail transports: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailTransport($transportId) {
+        try {
+            $transport = $this->client->mail_transport_get($this->session_id, $transportId);
+            return $transport ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail transport: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Relay Domain functions
+    public function getMailRelayDomains($filter = []) {
+        try {
+            $relayDomains = $this->client->mail_relay_domain_get($this->session_id, -1);
+            return $relayDomains ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail relay domains: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailRelayDomain($relayDomainId) {
+        try {
+            $relayDomain = $this->client->mail_relay_domain_get($this->session_id, $relayDomainId);
+            return $relayDomain ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail relay domain: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Relay Recipient functions
+    public function getMailRelayRecipients($filter = []) {
+        try {
+            $relayRecipients = $this->client->mail_relay_recipient_get($this->session_id, -1);
+            return $relayRecipients ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail relay recipients: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailRelayRecipient($relayRecipientId) {
+        try {
+            $relayRecipient = $this->client->mail_relay_recipient_get($this->session_id, $relayRecipientId);
+            return $relayRecipient ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail relay recipient: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Fetchmail functions
+    public function getMailFetchmails($filter = []) {
+        try {
+            $fetchmails = $this->client->mail_fetchmail_get($this->session_id, -1);
+            return $fetchmails ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail fetchmails: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailFetchmail($fetchmailId) {
+        try {
+            $fetchmail = $this->client->mail_fetchmail_get($this->session_id, $fetchmailId);
+            return $fetchmail ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail fetchmail: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail User Filter functions
+    public function getMailUserFilters($filter = []) {
+        try {
+            $filters = $this->client->mail_user_filter_get($this->session_id, -1);
+            return $filters ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail user filters: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailUserFilter($filterId) {
+        try {
+            $filter = $this->client->mail_user_filter_get($this->session_id, $filterId);
+            return $filter ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail user filter: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Blacklist functions
+    public function getMailBlacklists($filter = []) {
+        try {
+            $blacklists = $this->client->mail_blacklist_get($this->session_id, -1);
+            return $blacklists ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail blacklists: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailBlacklist($blacklistId) {
+        try {
+            $blacklist = $this->client->mail_blacklist_get($this->session_id, $blacklistId);
+            return $blacklist ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail blacklist: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Whitelist functions
+    public function getMailWhitelists($filter = []) {
+        try {
+            $whitelists = $this->client->mail_whitelist_get($this->session_id, -1);
+            return $whitelists ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail whitelists: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailWhitelist($whitelistId) {
+        try {
+            $whitelist = $this->client->mail_whitelist_get($this->session_id, $whitelistId);
+            return $whitelist ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail whitelist: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Spamfilter Blacklist functions
+    public function getMailSpamfilterBlacklists($filter = []) {
+        try {
+            $spamfilterBlacklists = $this->client->mail_spamfilter_blacklist_get($this->session_id, -1);
+            return $spamfilterBlacklists ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail spamfilter blacklists: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailSpamfilterBlacklist($spamfilterBlacklistId) {
+        try {
+            $spamfilterBlacklist = $this->client->mail_spamfilter_blacklist_get($this->session_id, $spamfilterBlacklistId);
+            return $spamfilterBlacklist ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail spamfilter blacklist: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Spamfilter Whitelist functions
+    public function getMailSpamfilterWhitelists($filter = []) {
+        try {
+            $spamfilterWhitelists = $this->client->mail_spamfilter_whitelist_get($this->session_id, -1);
+            return $spamfilterWhitelists ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail spamfilter whitelists: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailSpamfilterWhitelist($spamfilterWhitelistId) {
+        try {
+            $spamfilterWhitelist = $this->client->mail_spamfilter_whitelist_get($this->session_id, $spamfilterWhitelistId);
+            return $spamfilterWhitelist ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail spamfilter whitelist: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail Spamfilter User functions
+    public function getMailSpamfilterUsers($filter = []) {
+        try {
+            $spamfilterUsers = $this->client->mail_spamfilter_user_get($this->session_id, -1);
+            return $spamfilterUsers ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail spamfilter users: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailSpamfilterUser($spamfilterUserId) {
+        try {
+            $spamfilterUser = $this->client->mail_spamfilter_user_get($this->session_id, $spamfilterUserId);
+            return $spamfilterUser ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail spamfilter user: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Mail User Backup functions
+    public function getMailUserBackupList($userId) {
+        try {
+            $backupList = $this->client->mail_user_backup_list($this->session_id, $userId);
+            return $backupList ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting mail user backup list: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMailUserBackup($userId, $backupId) {
+        try {
+            $backup = $this->client->mail_user_backup($this->session_id, $userId, $backupId);
+            return $backup ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting mail user backup: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // SITES FUNCTIONS
+    // FTP User functions
+    public function getFTPUsers($filter = []) {
+        try {
+            $users = $this->client->sites_ftp_user_get($this->session_id, -1);
+            return $users ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting FTP users: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getFTPUser($userId) {
+        try {
+            $user = $this->client->sites_ftp_user_get($this->session_id, $userId);
+            return $user ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting FTP user: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Shell User functions
+    public function getShellUsers($filter = []) {
+        try {
+            $users = $this->client->sites_shell_user_get($this->session_id, -1);
+            return $users ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting shell users: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getShellUser($userId) {
+        try {
+            $user = $this->client->sites_shell_user_get($this->session_id, $userId);
+            return $user ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting shell user: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Cron functions
+    public function getCronJobs($filter = []) {
+        try {
+            $jobs = $this->client->sites_cron_get($this->session_id, -1);
+            return $jobs ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting cron jobs: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getCronJob($jobId) {
+        try {
+            $job = $this->client->sites_cron_get($this->session_id, $jobId);
+            return $job ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting cron job: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Database User functions
+    public function getDatabaseUsers($filter = []) {
+        try {
+            $users = $this->client->sites_database_user_get($this->session_id, -1);
+            return $users ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting database users: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDatabaseUser($userId) {
+        try {
+            $user = $this->client->sites_database_user_get($this->session_id, $userId);
+            return $user ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting database user: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Web Subdomain functions
+    public function getWebSubdomains($filter = []) {
+        try {
+            $subdomains = $this->client->sites_web_subdomain_get($this->session_id, -1);
+            return $subdomains ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting web subdomains: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getWebSubdomain($subdomainId) {
+        try {
+            $subdomain = $this->client->sites_web_subdomain_get($this->session_id, $subdomainId);
+            return $subdomain ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting web subdomain: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Web Aliasdomain functions
+    public function getWebAliasdomains($filter = []) {
+        try {
+            $aliasdomains = $this->client->sites_web_aliasdomain_get($this->session_id, -1);
+            return $aliasdomains ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting web aliasdomains: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getWebAliasdomain($aliasdomainId) {
+        try {
+            $aliasdomain = $this->client->sites_web_aliasdomain_get($this->session_id, $aliasdomainId);
+            return $aliasdomain ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting web aliasdomain: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Web Domain functions (extended)
+    public function setWebDomainStatus($domainId, $status) {
+        try {
+            $result = $this->client->sites_web_domain_set_status($this->session_id, $domainId, $status);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Error setting web domain status: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getWebDomainBackupList($domainId) {
+        try {
+            $backups = $this->client->sites_web_domain_backup_list($this->session_id, $domainId);
+            return $backups ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting web domain backup list: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getWebDomainBackup($domainId, $backupId) {
+        try {
+            $backup = $this->client->sites_web_domain_backup($this->session_id, $domainId, $backupId);
+            return $backup ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting web domain backup: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS FUNCTIONS
+    public function getDNSZones($filter = []) {
+        try {
+            $zones = $this->client->dns_zone_get($this->session_id, -1);
+            return $zones ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS zones: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSZone($zoneId) {
+        try {
+            $zone = $this->client->dns_zone_get($this->session_id, $zoneId);
+            return $zone ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS zone: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getDNSZoneByUser($userId) {
+        try {
+            $zones = $this->client->dns_zone_get_by_user($this->session_id, $userId);
+            return $zones ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS zones by user: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    // DNS A Records
+    public function getDNSARecords($filter = []) {
+        try {
+            $records = $this->client->dns_a_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS A records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSARecord($recordId) {
+        try {
+            $record = $this->client->dns_a_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS A record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS AAAA Records
+    public function getDNSAAAARecords($filter = []) {
+        try {
+            $records = $this->client->dns_aaaa_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS AAAA records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSAAAARecord($recordId) {
+        try {
+            $record = $this->client->dns_aaaa_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS AAAA record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS CNAME Records
+    public function getDNSCNAMERecords($filter = []) {
+        try {
+            $records = $this->client->dns_cname_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS CNAME records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSCNAMERecord($recordId) {
+        try {
+            $record = $this->client->dns_cname_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS CNAME record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS MX Records
+    public function getDNSMXRecords($filter = []) {
+        try {
+            $records = $this->client->dns_mx_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS MX records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSMXRecord($recordId) {
+        try {
+            $record = $this->client->dns_mx_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS MX record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS NS Records
+    public function getDNSNSRecords($filter = []) {
+        try {
+            $records = $this->client->dns_ns_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS NS records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSNSRecord($recordId) {
+        try {
+            $record = $this->client->dns_ns_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS NS record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS PTR Records
+    public function getDNSPTRRecords($filter = []) {
+        try {
+            $records = $this->client->dns_ptr_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS PTR records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSPTRRecord($recordId) {
+        try {
+            $record = $this->client->dns_ptr_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS PTR record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS SRV Records
+    public function getDNSSRVRecords($filter = []) {
+        try {
+            $records = $this->client->dns_srv_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS SRV records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSSRVRecord($recordId) {
+        try {
+            $record = $this->client->dns_srv_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS SRV record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS TXT Records
+    public function getDNSTXTRecords($filter = []) {
+        try {
+            $records = $this->client->dns_txt_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS TXT records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSTXTRecord($recordId) {
+        try {
+            $record = $this->client->dns_txt_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS TXT record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS Alias Records
+    public function getDNSAliasRecords($filter = []) {
+        try {
+            $records = $this->client->dns_alias_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS Alias records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSAliasRecord($recordId) {
+        try {
+            $record = $this->client->dns_alias_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS Alias record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS HINFO Records
+    public function getDNSHINFORecords($filter = []) {
+        try {
+            $records = $this->client->dns_hinfo_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS HINFO records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSHINFORecord($recordId) {
+        try {
+            $record = $this->client->dns_hinfo_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS HINFO record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS NAPTR Records
+    public function getDNSNAPTRRecords($filter = []) {
+        try {
+            $records = $this->client->dns_naptr_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS NAPTR records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSNAPTRRecord($recordId) {
+        try {
+            $record = $this->client->dns_naptr_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS NAPTR record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS RP Records
+    public function getDNSRPRecords($filter = []) {
+        try {
+            $records = $this->client->dns_rp_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS RP records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSRPRecord($recordId) {
+        try {
+            $record = $this->client->dns_rp_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS RP record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // DNS DS Records
+    public function getDNSDSRecords($filter = []) {
+        try {
+            $records = $this->client->dns_ds_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS DS records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSDSRecord($recordId) {
+        try {
+            $record = $this->client->dns_ds_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS DS record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Get all DNS records by zone
+    public function getDNSRecordsByZone($zoneId) {
+        try {
+            $records = $this->client->dns_rr_get_all_by_zone($this->session_id, $zoneId);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS records by zone: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    // DNS Slave functions
+    public function getDNSSlaveRecords($filter = []) {
+        try {
+            $records = $this->client->dns_slave_get($this->session_id, -1);
+            return $records ?: [];
+        } catch (Exception $e) {
+            error_log('Error getting DNS slave records: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDNSSlaveRecord($recordId) {
+        try {
+            $record = $this->client->dns_slave_get($this->session_id, $recordId);
+            return $record ?: null;
+        } catch (Exception $e) {
+            error_log('Error getting DNS slave record: ' . $e->getMessage());
+            return null;
+        }
+    }
+
     public function makeRequest($method, $url, $data = null) {
         // ISPConfig uses SOAP, so this is handled in the specific methods above
         return true;
@@ -1784,6 +2701,1166 @@ class ISPConfigPost extends ISPConfigGet {
             return $result;
         } catch (Exception $e) {
             error_log('Client deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS POST FUNCTIONS
+    // DNS Zone functions
+    public function createDNSZone($zoneData) {
+        try {
+            $result = $this->client->dns_zone_add($this->session_id, 1, $zoneData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS zone creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSZone($zoneId, $zoneData) {
+        try {
+            $result = $this->client->dns_zone_update($this->session_id, 1, $zoneId, $zoneData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS zone update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSZone($zoneId) {
+        try {
+            $result = $this->client->dns_zone_delete($this->session_id, $zoneId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS zone deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function setDNSZoneStatus($zoneId, $status) {
+        try {
+            $result = $this->client->dns_zone_set_status($this->session_id, $zoneId, $status);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS zone status update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function setDNSZoneDNSSEC($zoneId, $dnssecData) {
+        try {
+            $result = $this->client->dns_zone_set_dnssec($this->session_id, $zoneId, $dnssecData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS zone DNSSEC update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS A Records
+    public function createDNSARecord($recordData) {
+        try {
+            $result = $this->client->dns_a_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS A record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSARecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_a_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS A record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSARecord($recordId) {
+        try {
+            $result = $this->client->dns_a_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS A record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS AAAA Records
+    public function createDNSAAAARecord($recordData) {
+        try {
+            $result = $this->client->dns_aaaa_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS AAAA record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSAAAARecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_aaaa_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS AAAA record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSAAAARecord($recordId) {
+        try {
+            $result = $this->client->dns_aaaa_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS AAAA record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS CNAME Records
+    public function createDNSCNAMERecord($recordData) {
+        try {
+            $result = $this->client->dns_cname_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS CNAME record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSCNAMERecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_cname_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS CNAME record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSCNAMERecord($recordId) {
+        try {
+            $result = $this->client->dns_cname_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS CNAME record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS MX Records
+    public function createDNSMXRecord($recordData) {
+        try {
+            $result = $this->client->dns_mx_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS MX record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSMXRecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_mx_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS MX record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSMXRecord($recordId) {
+        try {
+            $result = $this->client->dns_mx_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS MX record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS NS Records
+    public function createDNSNSRecord($recordData) {
+        try {
+            $result = $this->client->dns_ns_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS NS record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSNSRecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_ns_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS NS record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSNSRecord($recordId) {
+        try {
+            $result = $this->client->dns_ns_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS NS record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS PTR Records
+    public function createDNSPTRRecord($recordData) {
+        try {
+            $result = $this->client->dns_ptr_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS PTR record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSPTRRecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_ptr_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS PTR record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSPTRRecord($recordId) {
+        try {
+            $result = $this->client->dns_ptr_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS PTR record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS SRV Records
+    public function createDNSSRVRecord($recordData) {
+        try {
+            $result = $this->client->dns_srv_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS SRV record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSSRVRecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_srv_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS SRV record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSSRVRecord($recordId) {
+        try {
+            $result = $this->client->dns_srv_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS SRV record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS TXT Records
+    public function createDNSTXTRecord($recordData) {
+        try {
+            $result = $this->client->dns_txt_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS TXT record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSTXTRecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_txt_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS TXT record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSTXTRecord($recordId) {
+        try {
+            $result = $this->client->dns_txt_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS TXT record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS Alias Records
+    public function createDNSAliasRecord($recordData) {
+        try {
+            $result = $this->client->dns_alias_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS Alias record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSAliasRecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_alias_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS Alias record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSAliasRecord($recordId) {
+        try {
+            $result = $this->client->dns_alias_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS Alias record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS HINFO Records
+    public function createDNSHINFORecord($recordData) {
+        try {
+            $result = $this->client->dns_hinfo_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS HINFO record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSHINFORecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_hinfo_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS HINFO record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSHINFORecord($recordId) {
+        try {
+            $result = $this->client->dns_hinfo_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS HINFO record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS NAPTR Records
+    public function createDNSNAPTRRecord($recordData) {
+        try {
+            $result = $this->client->dns_naptr_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS NAPTR record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSNAPTRRecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_naptr_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS NAPTR record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSNAPTRRecord($recordId) {
+        try {
+            $result = $this->client->dns_naptr_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS NAPTR record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS RP Records
+    public function createDNSRPRecord($recordData) {
+        try {
+            $result = $this->client->dns_rp_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS RP record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSRPRecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_rp_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS RP record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSRPRecord($recordId) {
+        try {
+            $result = $this->client->dns_rp_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS RP record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS DS Records
+    public function createDNSDSRecord($recordData) {
+        try {
+            $result = $this->client->dns_ds_add($this->session_id, 1, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS DS record creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDNSDSRecord($recordId, $recordData) {
+        try {
+            $result = $this->client->dns_ds_update($this->session_id, 1, $recordId, $recordData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS DS record update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDNSDSRecord($recordId) {
+        try {
+            $result = $this->client->dns_ds_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS DS record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // DNS Slave functions
+    public function deleteDNSSlaveRecord($recordId) {
+        try {
+            $result = $this->client->dns_slave_delete($this->session_id, $recordId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('DNS slave record deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // EXTENDED MAIL POST FUNCTIONS
+    // Mail Domain functions
+    public function createMailDomain($domainData) {
+        try {
+            $result = $this->client->mail_domain_add($this->session_id, 1, $domainData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail domain creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailDomain($domainId, $domainData) {
+        try {
+            $result = $this->client->mail_domain_update($this->session_id, 1, $domainId, $domainData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail domain update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailDomain($domainId) {
+        try {
+            $result = $this->client->mail_domain_delete($this->session_id, $domainId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail domain deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function setMailDomainStatus($domainId, $status) {
+        try {
+            $result = $this->client->mail_domain_set_status($this->session_id, $domainId, $status);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail domain status update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Alias functions
+    public function createMailAlias($aliasData) {
+        try {
+            $result = $this->client->mail_alias_add($this->session_id, 1, $aliasData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail alias creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailAlias($aliasId, $aliasData) {
+        try {
+            $result = $this->client->mail_alias_update($this->session_id, 1, $aliasId, $aliasData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail alias update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailAlias($aliasId) {
+        try {
+            $result = $this->client->mail_alias_delete($this->session_id, $aliasId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail alias deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Forward functions
+    public function createMailForward($forwardData) {
+        try {
+            $result = $this->client->mail_forward_add($this->session_id, 1, $forwardData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail forward creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailForward($forwardId, $forwardData) {
+        try {
+            $result = $this->client->mail_forward_update($this->session_id, 1, $forwardId, $forwardData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail forward update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailForward($forwardId) {
+        try {
+            $result = $this->client->mail_forward_delete($this->session_id, $forwardId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail forward deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Catchall functions
+    public function createMailCatchall($catchallData) {
+        try {
+            $result = $this->client->mail_catchall_add($this->session_id, 1, $catchallData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail catchall creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailCatchall($catchallId, $catchallData) {
+        try {
+            $result = $this->client->mail_catchall_update($this->session_id, 1, $catchallId, $catchallData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail catchall update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailCatchall($catchallId) {
+        try {
+            $result = $this->client->mail_catchall_delete($this->session_id, $catchallId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail catchall deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Mailinglist functions
+    public function createMailMailinglist($mailinglistData) {
+        try {
+            $result = $this->client->mail_mailinglist_add($this->session_id, 1, $mailinglistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail mailinglist creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailMailinglist($mailinglistId, $mailinglistData) {
+        try {
+            $result = $this->client->mail_mailinglist_update($this->session_id, 1, $mailinglistId, $mailinglistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail mailinglist update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailMailinglist($mailinglistId) {
+        try {
+            $result = $this->client->mail_mailinglist_delete($this->session_id, $mailinglistId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail mailinglist deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Policy functions
+    public function createMailPolicy($policyData) {
+        try {
+            $result = $this->client->mail_policy_add($this->session_id, 1, $policyData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail policy creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailPolicy($policyId, $policyData) {
+        try {
+            $result = $this->client->mail_policy_update($this->session_id, 1, $policyId, $policyData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail policy update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailPolicy($policyId) {
+        try {
+            $result = $this->client->mail_policy_delete($this->session_id, $policyId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail policy deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Transport functions
+    public function createMailTransport($transportData) {
+        try {
+            $result = $this->client->mail_transport_add($this->session_id, 1, $transportData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail transport creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailTransport($transportId, $transportData) {
+        try {
+            $result = $this->client->mail_transport_update($this->session_id, 1, $transportId, $transportData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail transport update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailTransport($transportId) {
+        try {
+            $result = $this->client->mail_transport_delete($this->session_id, $transportId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail transport deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Relay Domain functions
+    public function createMailRelayDomain($relayDomainData) {
+        try {
+            $result = $this->client->mail_relay_domain_add($this->session_id, 1, $relayDomainData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail relay domain creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailRelayDomain($relayDomainId, $relayDomainData) {
+        try {
+            $result = $this->client->mail_relay_domain_update($this->session_id, 1, $relayDomainId, $relayDomainData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail relay domain update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailRelayDomain($relayDomainId) {
+        try {
+            $result = $this->client->mail_relay_domain_delete($this->session_id, $relayDomainId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail relay domain deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Relay Recipient functions
+    public function createMailRelayRecipient($relayRecipientData) {
+        try {
+            $result = $this->client->mail_relay_recipient_add($this->session_id, 1, $relayRecipientData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail relay recipient creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailRelayRecipient($relayRecipientId, $relayRecipientData) {
+        try {
+            $result = $this->client->mail_relay_recipient_update($this->session_id, 1, $relayRecipientId, $relayRecipientData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail relay recipient update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailRelayRecipient($relayRecipientId) {
+        try {
+            $result = $this->client->mail_relay_recipient_delete($this->session_id, $relayRecipientId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail relay recipient deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Fetchmail functions
+    public function createMailFetchmail($fetchmailData) {
+        try {
+            $result = $this->client->mail_fetchmail_add($this->session_id, 1, $fetchmailData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail fetchmail creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailFetchmail($fetchmailId, $fetchmailData) {
+        try {
+            $result = $this->client->mail_fetchmail_update($this->session_id, 1, $fetchmailId, $fetchmailData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail fetchmail update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailFetchmail($fetchmailId) {
+        try {
+            $result = $this->client->mail_fetchmail_delete($this->session_id, $fetchmailId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail fetchmail deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail User Filter functions
+    public function createMailUserFilter($filterData) {
+        try {
+            $result = $this->client->mail_user_filter_add($this->session_id, 1, $filterData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail user filter creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailUserFilter($filterId, $filterData) {
+        try {
+            $result = $this->client->mail_user_filter_update($this->session_id, 1, $filterId, $filterData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail user filter update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailUserFilter($filterId) {
+        try {
+            $result = $this->client->mail_user_filter_delete($this->session_id, $filterId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail user filter deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Blacklist functions
+    public function createMailBlacklist($blacklistData) {
+        try {
+            $result = $this->client->mail_blacklist_add($this->session_id, 1, $blacklistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail blacklist creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailBlacklist($blacklistId, $blacklistData) {
+        try {
+            $result = $this->client->mail_blacklist_update($this->session_id, 1, $blacklistId, $blacklistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail blacklist update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailBlacklist($blacklistId) {
+        try {
+            $result = $this->client->mail_blacklist_delete($this->session_id, $blacklistId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail blacklist deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Whitelist functions
+    public function createMailWhitelist($whitelistData) {
+        try {
+            $result = $this->client->mail_whitelist_add($this->session_id, 1, $whitelistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail whitelist creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailWhitelist($whitelistId, $whitelistData) {
+        try {
+            $result = $this->client->mail_whitelist_update($this->session_id, 1, $whitelistId, $whitelistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail whitelist update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailWhitelist($whitelistId) {
+        try {
+            $result = $this->client->mail_whitelist_delete($this->session_id, $whitelistId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail whitelist deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Spamfilter Blacklist functions
+    public function createMailSpamfilterBlacklist($spamfilterBlacklistData) {
+        try {
+            $result = $this->client->mail_spamfilter_blacklist_add($this->session_id, 1, $spamfilterBlacklistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail spamfilter blacklist creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailSpamfilterBlacklist($spamfilterBlacklistId, $spamfilterBlacklistData) {
+        try {
+            $result = $this->client->mail_spamfilter_blacklist_update($this->session_id, 1, $spamfilterBlacklistId, $spamfilterBlacklistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail spamfilter blacklist update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailSpamfilterBlacklist($spamfilterBlacklistId) {
+        try {
+            $result = $this->client->mail_spamfilter_blacklist_delete($this->session_id, $spamfilterBlacklistId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail spamfilter blacklist deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Spamfilter Whitelist functions
+    public function createMailSpamfilterWhitelist($spamfilterWhitelistData) {
+        try {
+            $result = $this->client->mail_spamfilter_whitelist_add($this->session_id, 1, $spamfilterWhitelistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail spamfilter whitelist creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailSpamfilterWhitelist($spamfilterWhitelistId, $spamfilterWhitelistData) {
+        try {
+            $result = $this->client->mail_spamfilter_whitelist_update($this->session_id, 1, $spamfilterWhitelistId, $spamfilterWhitelistData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail spamfilter whitelist update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailSpamfilterWhitelist($spamfilterWhitelistId) {
+        try {
+            $result = $this->client->mail_spamfilter_whitelist_delete($this->session_id, $spamfilterWhitelistId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail spamfilter whitelist deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Mail Spamfilter User functions
+    public function createMailSpamfilterUser($spamfilterUserData) {
+        try {
+            $result = $this->client->mail_spamfilter_user_add($this->session_id, 1, $spamfilterUserData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail spamfilter user creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMailSpamfilterUser($spamfilterUserId, $spamfilterUserData) {
+        try {
+            $result = $this->client->mail_spamfilter_user_update($this->session_id, 1, $spamfilterUserId, $spamfilterUserData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail spamfilter user update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteMailSpamfilterUser($spamfilterUserId) {
+        try {
+            $result = $this->client->mail_spamfilter_user_delete($this->session_id, $spamfilterUserId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Mail spamfilter user deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // SITES POST FUNCTIONS
+    // FTP User functions
+    public function createFTPUser($userData) {
+        try {
+            $result = $this->client->sites_ftp_user_add($this->session_id, 1, $userData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('FTP user creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateFTPUser($userId, $userData) {
+        try {
+            $result = $this->client->sites_ftp_user_update($this->session_id, 1, $userId, $userData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('FTP user update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteFTPUser($userId) {
+        try {
+            $result = $this->client->sites_ftp_user_delete($this->session_id, $userId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('FTP user deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Shell User functions
+    public function createShellUser($userData) {
+        try {
+            $result = $this->client->sites_shell_user_add($this->session_id, 1, $userData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Shell user creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateShellUser($userId, $userData) {
+        try {
+            $result = $this->client->sites_shell_user_update($this->session_id, 1, $userId, $userData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Shell user update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteShellUser($userId) {
+        try {
+            $result = $this->client->sites_shell_user_delete($this->session_id, $userId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Shell user deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Cron functions
+    public function createCronJob($jobData) {
+        try {
+            $result = $this->client->sites_cron_add($this->session_id, 1, $jobData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Cron job creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateCronJob($jobId, $jobData) {
+        try {
+            $result = $this->client->sites_cron_update($this->session_id, 1, $jobId, $jobData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Cron job update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteCronJob($jobId) {
+        try {
+            $result = $this->client->sites_cron_delete($this->session_id, $jobId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Cron job deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Database User functions
+    public function createDatabaseUser($userData) {
+        try {
+            $result = $this->client->sites_database_user_add($this->session_id, 1, $userData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Database user creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateDatabaseUser($userId, $userData) {
+        try {
+            $result = $this->client->sites_database_user_update($this->session_id, 1, $userId, $userData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Database user update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteDatabaseUser($userId) {
+        try {
+            $result = $this->client->sites_database_user_delete($this->session_id, $userId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Database user deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Web Subdomain functions
+    public function createWebSubdomain($subdomainData) {
+        try {
+            $result = $this->client->sites_web_subdomain_add($this->session_id, 1, $subdomainData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Web subdomain creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateWebSubdomain($subdomainId, $subdomainData) {
+        try {
+            $result = $this->client->sites_web_subdomain_update($this->session_id, 1, $subdomainId, $subdomainData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Web subdomain update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteWebSubdomain($subdomainId) {
+        try {
+            $result = $this->client->sites_web_subdomain_delete($this->session_id, $subdomainId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Web subdomain deletion failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Web Aliasdomain functions
+    public function createWebAliasdomain($aliasdomainData) {
+        try {
+            $result = $this->client->sites_web_aliasdomain_add($this->session_id, 1, $aliasdomainData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Web aliasdomain creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateWebAliasdomain($aliasdomainId, $aliasdomainData) {
+        try {
+            $result = $this->client->sites_web_aliasdomain_update($this->session_id, 1, $aliasdomainId, $aliasdomainData);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Web aliasdomain update failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteWebAliasdomain($aliasdomainId) {
+        try {
+            $result = $this->client->sites_web_aliasdomain_delete($this->session_id, $aliasdomainId);
+            return $result;
+        } catch (Exception $e) {
+            error_log('Web aliasdomain deletion failed: ' . $e->getMessage());
             return false;
         }
     }
@@ -3245,9 +5322,21 @@ class ServiceManager {
             $type = strtoupper($type);
             $fullUrl = $this->proxmoxGet->host . "/api2/json" . $url;
             
+            error_log("ProxmoxAPI: Making request to " . $fullUrl . " with method " . $type);
+            
             // Verwende die makeRequest Methode der Proxmox Klasse
             $response = $this->proxmoxGet->makeRequest($type, $fullUrl, $code);
             
+            // Prüfe auf Fehler in der Antwort
+            if (isset($response['success']) && $response['success'] === false) {
+                error_log("ProxmoxAPI: API returned error: " . json_encode($response));
+                return $response;
+            }
+            
+            // Wenn die Antwort erfolgreich ist, markiere sie als success
+            if ($response && !isset($response['success'])) {
+                $response['success'] = true;
+            }
             
             return $response;
         } catch (Exception $e) {
@@ -3835,7 +5924,7 @@ class ServiceManager {
         }
         
         foreach ($nodes as $nodeData) {
-            $nodeName = is_array($nodeData) ? $nodeData['node'] : $nodeData;
+            $nodeName = is_array($nodeData) && isset($nodeData['node']) ? $nodeData['node'] : $nodeData;
             // Expliziter Null-Check für zusätzliche Sicherheit
             if (!$this->proxmoxGet) {
                 return [
@@ -5108,6 +7197,396 @@ class ServiceManager {
                 'errors' => count(array_filter($results, function($api) { return $api['status'] === 'error'; }))
             ]
         ];
+    }
+
+    // ========================================
+    // NEUE ISPCONFIG FUNKTIONEN - DNS
+    // ========================================
+    
+    public function getISPConfigDNSZones($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getDNSZones', [$filter]);
+    }
+
+    public function getISPConfigDNSZone($zoneId) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getDNSZone', [$zoneId]);
+    }
+
+    public function getISPConfigDNSARecords($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getDNSARecords', [$filter]);
+    }
+
+    public function getISPConfigDNSAAAARecords($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getDNSAAAARecords', [$filter]);
+    }
+
+    public function getISPConfigDNSCNAMERecords($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getDNSCNAMERecords', [$filter]);
+    }
+
+    public function getISPConfigDNSMXRecords($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getDNSMXRecords', [$filter]);
+    }
+
+    public function getISPConfigDNSTXTRecords($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getDNSTXTRecords', [$filter]);
+    }
+
+    public function createISPConfigDNSZone($zoneData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createDNSZone', [$zoneData]);
+    }
+
+    public function createISPConfigDNSARecord($recordData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createDNSARecord', [$recordData]);
+    }
+
+    public function createISPConfigDNSCNAMERecord($recordData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createDNSCNAMERecord', [$recordData]);
+    }
+
+    public function createISPConfigDNSMXRecord($recordData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createDNSMXRecord', [$recordData]);
+    }
+
+    public function createISPConfigDNSTXTRecord($recordData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createDNSTXTRecord', [$recordData]);
+    }
+
+    public function updateISPConfigDNSARecord($recordId, $recordData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'updateDNSARecord', [$recordId, $recordData]);
+    }
+
+    public function deleteISPConfigDNSARecord($recordId) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'deleteDNSARecord', [$recordId]);
+    }
+
+    // ========================================
+    // NEUE ISPCONFIG FUNKTIONEN - MAIL
+    // ========================================
+    
+    public function getISPConfigMailDomains($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getMailDomains', [$filter]);
+    }
+
+    public function getISPConfigMailAliases($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getMailAliases', [$filter]);
+    }
+
+    public function getISPConfigMailForwards($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getMailForwards', [$filter]);
+    }
+
+    public function getISPConfigMailCatchalls($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getMailCatchalls', [$filter]);
+    }
+
+    public function getISPConfigMailBlacklists($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getMailBlacklists', [$filter]);
+    }
+
+    public function getISPConfigMailWhitelists($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getMailWhitelists', [$filter]);
+    }
+
+    public function createISPConfigMailDomain($domainData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createMailDomain', [$domainData]);
+    }
+
+    public function createISPConfigMailAlias($aliasData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createMailAlias', [$aliasData]);
+    }
+
+    public function createISPConfigMailForward($forwardData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createMailForward', [$forwardData]);
+    }
+
+    public function createISPConfigMailCatchall($catchallData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createMailCatchall', [$catchallData]);
+    }
+
+    public function updateISPConfigMailAlias($aliasId, $aliasData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'updateMailAlias', [$aliasId, $aliasData]);
+    }
+
+    public function deleteISPConfigMailAlias($aliasId) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'deleteMailAlias', [$aliasId]);
+    }
+
+    // ========================================
+    // NEUE ISPCONFIG FUNKTIONEN - SITES
+    // ========================================
+    
+    public function getISPConfigFTPUsers($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getFTPUsers', [$filter]);
+    }
+
+    public function getISPConfigShellUsers($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getShellUsers', [$filter]);
+    }
+
+    public function getISPConfigCronJobs($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getCronJobs', [$filter]);
+    }
+
+    public function getISPConfigDatabaseUsers($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getDatabaseUsers', [$filter]);
+    }
+
+    public function getISPConfigWebSubdomains($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getWebSubdomains', [$filter]);
+    }
+
+    public function getISPConfigWebAliasdomains($filter = []) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigGet, 'getWebAliasdomains', [$filter]);
+    }
+
+    public function createISPConfigFTPUser($userData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createFTPUser', [$userData]);
+    }
+
+    public function createISPConfigShellUser($userData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createShellUser', [$userData]);
+    }
+
+    public function createISPConfigCronJob($jobData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createCronJob', [$jobData]);
+    }
+
+    public function createISPConfigDatabaseUser($userData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createDatabaseUser', [$userData]);
+    }
+
+    public function createISPConfigWebSubdomain($subdomainData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createWebSubdomain', [$subdomainData]);
+    }
+
+    public function createISPConfigWebAliasdomain($aliasdomainData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'createWebAliasdomain', [$aliasdomainData]);
+    }
+
+    public function updateISPConfigFTPUser($userId, $userData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'updateFTPUser', [$userId, $userData]);
+    }
+
+    public function updateISPConfigCronJob($jobId, $jobData) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'updateCronJob', [$jobId, $jobData]);
+    }
+
+    public function deleteISPConfigFTPUser($userId) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'deleteFTPUser', [$userId]);
+    }
+
+    public function deleteISPConfigCronJob($jobId) {
+        $apiCheck = $this->checkAPIEnabled('ispconfig');
+        if ($apiCheck !== true) {
+            return $apiCheck;
+        }
+        
+        return $this->safeAPICall('ispconfig', $this->ispconfigPost, 'deleteCronJob', [$jobId]);
     }
 }
 

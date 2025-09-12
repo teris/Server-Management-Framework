@@ -3,6 +3,25 @@
  * Erweiterte Funktionen wie Klonen, Storage-Management, etc.
  */
 
+// Module Request Funktion
+proxmoxModule.makeModuleRequest = async function(action, data = {}) {
+    // Prüfe ob ModuleManager verfügbar ist
+    if (typeof ModuleManager === 'undefined' || !ModuleManager.makeRequest) {
+        console.error('ModuleManager not available!');
+        return { success: false, error: 'ModuleManager not available' };
+    }
+    
+    try {
+        console.log('Making request to proxmox module:', action, data);
+        const result = await ModuleManager.makeRequest('proxmox', action, data);
+        console.log('ModuleManager response:', result);
+        return result;
+    } catch (error) {
+        console.error('ModuleManager.makeRequest error:', error);
+        return { success: false, error: error.message || 'Unknown error' };
+    }
+};
+
 // Clone Dialog Funktionen
 proxmoxModule.showCloneDialog = function() {
     document.getElementById('clone-dialog').classList.remove('hidden');

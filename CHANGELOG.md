@@ -2,6 +2,127 @@
 
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
+
+
+## [3.2.7]
+
+### Hinzugefügt
+
+#### Erweiterte ISPConfig-API-Funktionen
+- **37 neue ISPConfig-Funktionen** über den ServiceManager hinzugefügt
+- **DNS-Funktionen (13 Funktionen)**:
+  - `getISPConfigDNSZones()` - DNS-Zonen abrufen
+  - `getISPConfigDNSZone($zoneId)` - Einzelne DNS-Zone abrufen
+  - `getISPConfigDNSARecords()` - A-Records abrufen
+  - `getISPConfigDNSAAAARecords()` - AAAA-Records abrufen
+  - `getISPConfigDNSCNAMERecords()` - CNAME-Records abrufen
+  - `getISPConfigDNSMXRecords()` - MX-Records abrufen
+  - `getISPConfigDNSTXTRecords()` - TXT-Records abrufen
+  - `createISPConfigDNSZone($zoneData)` - DNS-Zone erstellen
+  - `createISPConfigDNSARecord($recordData)` - A-Record erstellen
+  - `createISPConfigDNSCNAMERecord($recordData)` - CNAME-Record erstellen
+  - `createISPConfigDNSMXRecord($recordData)` - MX-Record erstellen
+  - `createISPConfigDNSTXTRecord($recordData)` - TXT-Record erstellen
+  - `updateISPConfigDNSARecord($recordId, $recordData)` - A-Record bearbeiten
+  - `deleteISPConfigDNSARecord($recordId)` - A-Record löschen
+
+- **Mail-Funktionen (12 Funktionen)**:
+  - `getISPConfigMailDomains()` - Mail-Domains abrufen
+  - `getISPConfigMailAliases()` - Mail-Aliases abrufen
+  - `getISPConfigMailForwards()` - Mail-Forwards abrufen
+  - `getISPConfigMailCatchalls()` - Mail-Catchalls abrufen
+  - `getISPConfigMailBlacklists()` - Mail-Blacklists abrufen
+  - `getISPConfigMailWhitelists()` - Mail-Whitelists abrufen
+  - `createISPConfigMailDomain($domainData)` - Mail-Domain erstellen
+  - `createISPConfigMailAlias($aliasData)` - Mail-Alias erstellen
+  - `createISPConfigMailForward($forwardData)` - Mail-Forward erstellen
+  - `createISPConfigMailCatchall($catchallData)` - Mail-Catchall erstellen
+  - `updateISPConfigMailAlias($aliasId, $aliasData)` - Mail-Alias bearbeiten
+  - `deleteISPConfigMailAlias($aliasId)` - Mail-Alias löschen
+
+- **Sites-Funktionen (12 Funktionen)**:
+  - `getISPConfigFTPUsers()` - FTP-Users abrufen
+  - `getISPConfigShellUsers()` - Shell-Users abrufen
+  - `getISPConfigCronJobs()` - Cron-Jobs abrufen
+  - `getISPConfigDatabaseUsers()` - Database-Users abrufen
+  - `getISPConfigWebSubdomains()` - Web-Subdomains abrufen
+  - `getISPConfigWebAliasdomains()` - Web-Aliasdomains abrufen
+  - `createISPConfigFTPUser($userData)` - FTP-User erstellen
+  - `createISPConfigShellUser($userData)` - Shell-User erstellen
+  - `createISPConfigCronJob($jobData)` - Cron-Job erstellen
+  - `createISPConfigDatabaseUser($userData)` - Database-User erstellen
+  - `createISPConfigWebSubdomain($subdomainData)` - Web-Subdomain erstellen
+  - `createISPConfigWebAliasdomain($aliasdomainData)` - Web-Aliasdomain erstellen
+  - `updateISPConfigFTPUser($userId, $userData)` - FTP-User bearbeiten
+  - `updateISPConfigCronJob($jobId, $jobData)` - Cron-Job bearbeiten
+  - `deleteISPConfigFTPUser($userId)` - FTP-User löschen
+  - `deleteISPConfigCronJob($jobId)` - Cron-Job löschen
+
+#### ISPConfig-API-Erweiterungen
+- **ISPConfigGet-Klasse erweitert**: 37 neue GET-Methoden für DNS, Mail und Sites
+- **ISPConfigPost-Klasse erweitert**: 37 neue POST/PUT/DELETE-Methoden für DNS, Mail und Sites
+- **Vollständige DNS-Record-Unterstützung**: A, AAAA, CNAME, MX, TXT, NS, PTR, SRV, HINFO, NAPTR, RP, DS, Alias
+- **Erweiterte Mail-Funktionalität**: Domains, Aliases, Forwards, Catchalls, Blacklists, Whitelists, Spamfilter
+- **Sites-Management**: FTP-Users, Shell-Users, Cron-Jobs, Database-Users, Web-Subdomains, Aliasdomains
+
+#### Dokumentation und Beispiele
+- **ISPConfig_Funktionen_Übersicht.md**: Vollständige Dokumentation aller neuen Funktionen
+- **Beispiel-Verwendung**: Detaillierte Code-Beispiele für alle Funktionskategorien
+- **API-Referenz**: Strukturierte Übersicht mit GET/POST-Funktionen
+
+#### Technische Verbesserungen
+- **Konsistente API-Struktur**: Alle Funktionen folgen dem gleichen Muster
+- **Erweiterte Fehlerbehandlung**: Strukturierte Antworten mit Erfolg/Fehler-Status
+- **API-Validierung**: Automatische Prüfung ob ISPConfig aktiviert ist
+- **Sichere Aufrufe**: Verwendung der `safeAPICall`-Methode für alle neuen Funktionen
+- **Filter-Unterstützung**: Alle GET-Funktionen unterstützen optionale Filter-Parameter
+
+### Behoben
+
+#### ServiceManager-Integration
+- **safeAPICall-Parameter korrigiert**: Alle neuen Funktionen verwenden korrekte Parameter-Reihenfolge
+- **API-Name-Validierung**: Konsistente Verwendung von 'ispconfig' als API-Name
+- **Linter-Fehler behoben**: Alle Type-Hint-Warnungen für safeAPICall-Aufrufe behoben
+
+### Technische Details
+- **Framework-Erweiterung**: 37 neue Methoden in der ServiceManager-Klasse
+- **ISPConfig-API-Abdeckung**: Vollständige Abdeckung der ISPConfig 3.x Remote-API
+- **Rückwärtskompatibilität**: Alle bestehenden Funktionen bleiben unverändert
+- **Code-Qualität**: Keine neuen Linter-Fehler, konsistente Code-Struktur
+
+## [3.2.6]
+
+### Behoben
+
+#### Windows-spezifische Fehler
+- **"Undefined array key 'node'" Fehler behoben**: Kritischer Fehler in `framework.php` Zeilen 557 und 577 behoben
+- **getNodes() Methode korrigiert**: Gibt jetzt nur das `data` Array zurück statt der gesamten API-Antwort
+- **Array-Key-Prüfung hinzugefügt**: `isset($nodeData['node'])` Prüfung verhindert "Undefined array key" Warnungen
+- **Konsistente Datenstruktur**: Einheitliche Behandlung von Node-Daten zwischen `getVMs()` und `getLXCs()` Methoden
+- **Disk-Space-Funktionen Windows-kompatibel**: `disk_free_space()` und `disk_total_space()` Fehler in `AdminCore.php` behoben
+- **Windows-Pfade hinzugefügt**: XAMPP, WAMP, Laragon und Benutzer-Pfade für Windows-Umgebungen
+- **Robuste Pfad-Prüfung**: `is_dir()` und `is_readable()` Prüfungen vor Disk-Space-Abfragen
+- **Array to String Conversion behoben**: "Array to string conversion" Fehler in `DatabaseManager.php` Zeile 170 behoben
+- **Robuste Parameter-Verarbeitung**: Arrays werden automatisch zu JSON-Strings konvertiert in execute-Methoden
+
+#### Technische Verbesserungen
+- **Robuste Fehlerbehandlung**: Verbesserte Behandlung von API-Fehlern in der Proxmox-Integration
+- **Windows-Kompatibilität**: Spezifische Behebung für Windows-Umgebungen (XAMPP, etc.)
+- **Code-Stabilität**: Verhindert PHP-Warnungen bei fehlenden Array-Keys
+
+### Geändert
+- **getNodes() Rückgabewert**: Gibt jetzt `$response['data']` statt `$response` zurück
+- **Node-Datenverarbeitung**: `isset()` Prüfung für 'node' Key in allen Node-Iterationen
+- **Fehlerbehandlung**: Leere Arrays statt Fehler-Objekte bei API-Problemen
+
+### Technische Details
+- **Betroffene Methoden**: `getNodes()`, `getVMs()`, `getLXCs()`, `getDiskUsage()`, `execute()`
+- **Betroffene Dateien**: `framework.php` (Zeilen 528-545, 552, 572), `src/core/AdminCore.php` (Zeilen 844-890), `src/core/DatabaseManager.php` (alle execute-Methoden)
+- **Windows-Pfade**: C:\, XAMPP, WAMP, Laragon, Benutzer-Desktop und -Dokumente
+- **Fehlerbehandlung**: @ Operator für disk-Space-Funktionen, Pfad-Existenz-Prüfung, Array-zu-JSON-Konvertierung
+- **Datenbanktreiber**: MySQL, PostgreSQL, SQLite - alle mit robuster Parameter-Verarbeitung
+- **Kompatibilität**: Rückwärtskompatibel, keine Breaking Changes
+
 ## [3.2.5] - 2024-12-19
 
 ### Proxmox-Modul - Erweiterte VM/Container-Verwaltung

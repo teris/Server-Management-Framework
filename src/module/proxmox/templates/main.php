@@ -3,6 +3,10 @@
  * Proxmox Module Main Template
  * Haupttemplate mit modularen Includes für bessere Wartbarkeit
  */
+
+// Modul initialisieren
+require_once __DIR__ . '/../Module.php';
+$proxmoxModule = new ProxmoxModule('proxmox');
 ?>
 
 <div id="proxmox-content">

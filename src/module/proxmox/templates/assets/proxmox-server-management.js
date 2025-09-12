@@ -3,6 +3,25 @@
  * Verwaltung von Server-Aktionen (Start, Stop, Restart, Delete, Edit)
  */
 
+// Module Request Funktion
+proxmoxModule.makeModuleRequest = async function(action, data = {}) {
+    // Prüfe ob ModuleManager verfügbar ist
+    if (typeof ModuleManager === 'undefined' || !ModuleManager.makeRequest) {
+        console.error('ModuleManager not available!');
+        return { success: false, error: 'ModuleManager not available' };
+    }
+    
+    try {
+        console.log('Making request to proxmox module:', action, data);
+        const result = await ModuleManager.makeRequest('proxmox', action, data);
+        console.log('ModuleManager response:', result);
+        return result;
+    } catch (error) {
+        console.error('ModuleManager.makeRequest error:', error);
+        return { success: false, error: error.message || 'Unknown error' };
+    }
+};
+
 // Server-Management-Tab anzeigen
 proxmoxModule.showServerManagement = async function(vmid, node, type = 'qemu') {
     this.currentServer = { vmid, node, type };

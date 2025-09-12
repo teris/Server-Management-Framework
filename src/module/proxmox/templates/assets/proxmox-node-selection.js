@@ -15,32 +15,20 @@ proxmoxModule.showNodeSelection = function() {
 
 // Module Request Funktion
 proxmoxModule.makeModuleRequest = async function(action, data = {}) {
-    const formData = new FormData();
-    formData.append('plugin', 'proxmox');
-    formData.append('action', action);
-    
-    // Daten hinzufügen
-    for (const key in data) {
-        if (data[key] !== null && data[key] !== undefined) {
-            formData.append(key, data[key]);
-        }
+    // Prüfe ob ModuleManager verfügbar ist
+    if (typeof ModuleManager === 'undefined' || !ModuleManager.makeRequest) {
+        console.error('ModuleManager not available!');
+        return { success: false, error: 'ModuleManager not available' };
     }
     
     try {
-        const response = await fetch(window.location.href, {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
+        console.log('Making request to proxmox module:', action, data);
+        const result = await ModuleManager.makeRequest('proxmox', action, data);
+        console.log('ModuleManager response:', result);
         return result;
     } catch (error) {
-        console.error('Module request error:', error);
-        return { success: false, error: error.message };
+        console.error('ModuleManager.makeRequest error:', error);
+        return { success: false, error: error.message || 'Unknown error' };
     }
 };
 
@@ -94,8 +82,8 @@ proxmoxModule.resetNodesOverview = function() {
         serverListCard.style.display = 'none';
     }
     
-    // Lade die Nodes direkt ohne Spinner
-    this.loadNodes();
+    // Lade die Nodes-Übersicht mit Task-Schaltflächen
+    this.loadNodesOverview();
 };
 
 // Nodes anzeigen
@@ -161,6 +149,9 @@ proxmoxModule.displayNodes = function(nodes) {
 // Node auswählen und VMs laden
 proxmoxModule.selectNode = async function(nodeName) {
     try {
+        this.currentNode = nodeName;
+        console.log('Node selected:', nodeName);
+        
         // Zeige die Server-Liste Card
         const serverListCard = document.getElementById('server-list-card');
         if (serverListCard) {

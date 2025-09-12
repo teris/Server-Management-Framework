@@ -167,6 +167,19 @@ class MySQLDriver extends DatabaseDriver {
     }
     
     public function execute($stmt, $params = []) {
+        // Stelle sicher, dass alle Parameter korrekt verarbeitet werden
+        if (is_array($params)) {
+            // Prüfe ob Parameter Arrays enthalten und konvertiere sie zu Strings
+            $processedParams = [];
+            foreach ($params as $param) {
+                if (is_array($param)) {
+                    $processedParams[] = json_encode($param);
+                } else {
+                    $processedParams[] = $param;
+                }
+            }
+            return $stmt->execute($processedParams);
+        }
         return $stmt->execute($params);
     }
     
@@ -232,6 +245,19 @@ class PostgreSQLDriver extends DatabaseDriver {
     }
     
     public function execute($stmt, $params = []) {
+        // Stelle sicher, dass alle Parameter korrekt verarbeitet werden
+        if (is_array($params)) {
+            // Prüfe ob Parameter Arrays enthalten und konvertiere sie zu Strings
+            $processedParams = [];
+            foreach ($params as $param) {
+                if (is_array($param)) {
+                    $processedParams[] = json_encode($param);
+                } else {
+                    $processedParams[] = $param;
+                }
+            }
+            return $stmt->execute($processedParams);
+        }
         return $stmt->execute($params);
     }
     
@@ -304,6 +330,19 @@ class SQLiteDriver extends DatabaseDriver {
     }
     
     public function execute($stmt, $params = []) {
+        // Stelle sicher, dass alle Parameter korrekt verarbeitet werden
+        if (is_array($params)) {
+            // Prüfe ob Parameter Arrays enthalten und konvertiere sie zu Strings
+            $processedParams = [];
+            foreach ($params as $param) {
+                if (is_array($param)) {
+                    $processedParams[] = json_encode($param);
+                } else {
+                    $processedParams[] = $param;
+                }
+            }
+            return $stmt->execute($processedParams);
+        }
         return $stmt->execute($params);
     }
     

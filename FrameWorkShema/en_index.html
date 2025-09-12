@@ -514,6 +514,10 @@ $result = $proxmox->createProxmoxUser($userData);</pre>
         <div class="section" id="ispconfig">
             <h2>ISPConfig API</h2>
             <p>Integration with ISPConfig web hosting panel.</p>
+            
+            <div class="info">
+                <strong>Version 3.2.7 Update:</strong> Added 37 new ISPConfig functions including DNS management (A, AAAA, CNAME, MX, TXT records), advanced Mail functions (domains, aliases, forwards, blacklists), and Sites management (FTP users, shell users, cron jobs, web subdomains). All functions are available through the ServiceManager class.
+            </div>
 
             <div class="warning">
                 <strong>Note:</strong> ISPConfig requires SOAP extension for PHP.
