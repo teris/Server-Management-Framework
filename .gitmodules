@@ -1,0 +1,6 @@
+[submodule "module"]
+	path = module
+	url = https://github.com/teris/SMF-Module.git
+[submodule "src/module/link"]
+	path = src/module/link
+	url = https://github.com/teris/SMF-Module.git
