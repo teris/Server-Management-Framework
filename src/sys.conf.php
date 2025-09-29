@@ -154,6 +154,36 @@ $plugins = array (
     'description' => 'Migrien von Daten aus Systemen',
     'require_admin' => true,
   ),
+  'terminal' => 
+  array (
+    'enabled' => false,
+    'name' => 'Terminal',
+    'icon' => '🔳',
+    'path' => 'module/terminal',
+    'version' => '1.0.0',
+    'description' => 'Verwalten von Servern',
+    'require_admin' => false,
+  ),
+    'content' => 
+  array (
+    'enabled' => false,
+    'name' => 'Content Management',
+    'icon' => '📄',
+    'path' => 'module/content',
+    'version' => '1.0.0',
+    'description' => 'Dynamische Seiten verwalten',
+    'require_admin' => true,
+  ),
+  'shop' => 
+  array (
+    'enabled' => true,
+    'name' => 'Shop Management',
+    'icon' => '🛒',
+    'path' => 'module/shop',
+    'version' => '1.0.0',
+    'description' => 'Shop-Produkte verwalten',
+    'require_admin' => true,
+  ),
 );
 // --- PLUGINS END ---
 

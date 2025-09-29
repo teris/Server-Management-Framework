@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <!-- Modul-Titel -->
+    <module_title>Terminal-Modul</module_title>
+    <terminal_access>Terminal-Zugang</terminal_access>
+    
+    <!-- VNC Terminal -->
+    <vnc_terminal>VNC Terminal</vnc_terminal>
+    <vnc_servers>VNC Server</vnc_servers>
+    <vnc_connection>VNC Verbindung</vnc_connection>
+    <connect_vnc>VNC verbinden</connect_vnc>
+    <disconnect_vnc>VNC trennen</disconnect_vnc>
+    <vnc_connected>VNC verbunden</vnc_connected>
+    <vnc_disconnected>VNC getrennt</vnc_disconnected>
+    <vnc_connecting>VNC verbindet...</vnc_connecting>
+    
+    <!-- SSH Terminal -->
+    <ssh_terminal>SSH Terminal</ssh_terminal>
+    <ssh_servers>SSH Server</ssh_servers>
+    <ssh_connection>SSH Verbindung</ssh_connection>
+    <connect_ssh>SSH verbinden</connect_ssh>
+    <disconnect_ssh>SSH trennen</disconnect_ssh>
+    <ssh_connected>SSH verbunden</ssh_connected>
+    <ssh_disconnected>SSH getrennt</ssh_disconnected>
+    <ssh_connecting>SSH verbindet...</ssh_connecting>
+    
+    <!-- Server Management -->
+    <add_server>Server hinzufügen</add_server>
+    <edit_server>Server bearbeiten</edit_server>
+    <delete_server>Server löschen</delete_server>
+    <test_connection>Verbindung testen</test_connection>
+    <server_name>Server Name</server_name>
+    <host_address>Host-Adresse</host_address>
+    <port>Port</port>
+    <username>Benutzername</username>
+    <password>Passwort</password>
+    <vnc_password>VNC Passwort</vnc_password>
+    
+    <!-- Status -->
+    <status>Status</status>
+    <connected>Verbunden</connected>
+    <disconnected>Getrennt</disconnected>
+    <connecting>Verbinde...</connecting>
+    <error>Fehler</error>
+    <success>Erfolgreich</success>
+    
+    <!-- Actions -->
+    <connect>Verbinden</connect>
+    <disconnect>Trennen</disconnect>
+    <save>Speichern</save>
+    <cancel>Abbrechen</cancel>
+    <edit>Bearbeiten</edit>
+    <delete>Löschen</delete>
+    <test>Testen</test>
+    <refresh>Aktualisieren</refresh>
+    
+    <!-- Messages -->
+    <loading>Laden...</loading>
+    <saving>Speichern...</saving>
+    <testing>Testen...</testing>
+    <connecting>Verbinden...</connecting>
+    <disconnecting>Trennen...</disconnecting>
+    
+    <!-- Success Messages -->
+    <vnc_connection_established>VNC Verbindung hergestellt</vnc_connection_established>
+    <ssh_connection_established>SSH Verbindung hergestellt</ssh_connection_established>
+    <vnc_server_saved>VNC Server gespeichert</vnc_server_saved>
+    <ssh_server_saved>SSH Server gespeichert</ssh_server_saved>
+    <vnc_server_deleted>VNC Server gelöscht</vnc_server_deleted>
+    <ssh_server_deleted>SSH Server gelöscht</ssh_server_deleted>
+    <vnc_connection_test_successful>VNC Verbindungstest erfolgreich</vnc_connection_test_successful>
+    <ssh_connection_test_successful>SSH Verbindungstest erfolgreich</ssh_connection_test_successful>
+    
+    <!-- Error Messages -->
+    <access_denied>Zugriff verweigert</access_denied>
+    <error_loading_module>Fehler beim Laden des Moduls</error_loading_module>
+    <validation_failed>Validierung fehlgeschlagen</validation_failed>
+    <vnc_server_not_found>VNC Server nicht gefunden</vnc_server_not_found>
+    <ssh_server_not_found>SSH Server nicht gefunden</ssh_server_not_found>
+    <error_connecting_vnc>Fehler beim Verbinden mit VNC</error_connecting_vnc>
+    <error_connecting_ssh>Fehler beim Verbinden mit SSH</error_connecting_ssh>
+    <error_disconnecting_vnc>Fehler beim Trennen der VNC Verbindung</error_disconnecting_vnc>
+    <error_disconnecting_ssh>Fehler beim Trennen der SSH Verbindung</error_disconnecting_ssh>
+    <error_saving_vnc_server>Fehler beim Speichern des VNC Servers</error_saving_vnc_server>
+    <error_saving_ssh_server>Fehler beim Speichern des SSH Servers</error_saving_ssh_server>
+    <error_deleting_vnc_server>Fehler beim Löschen des VNC Servers</error_deleting_vnc_server>
+    <error_deleting_ssh_server>Fehler beim Löschen des SSH Servers</error_deleting_ssh_server>
+    <error_testing_vnc_connection>Fehler beim Testen der VNC Verbindung</error_testing_vnc_connection>
+    <error_testing_ssh_connection>Fehler beim Testen der SSH Verbindung</error_testing_ssh_connection>
+    <error_getting_vnc_servers>Fehler beim Abrufen der VNC Server</error_getting_vnc_servers>
+    <error_getting_ssh_servers>Fehler beim Abrufen der SSH Server</error_getting_ssh_servers>
+    <vnc_connection_test_failed>VNC Verbindungstest fehlgeschlagen</vnc_connection_test_failed>
+    <ssh_connection_test_failed>SSH Verbindungstest fehlgeschlagen</ssh_connection_test_failed>
+    
+    <!-- Form Labels -->
+    <server_configuration>Server-Konfiguration</server_configuration>
+    <connection_settings>Verbindungseinstellungen</connection_settings>
+    <security_settings>Sicherheitseinstellungen</security_settings>
+    <server_details>Server-Details</server_details>
+    
+    <!-- Placeholders -->
+    <enter_server_name>Server-Name eingeben</enter_server_name>
+    <enter_host_address>Host-Adresse eingeben</enter_host_address>
+    <enter_port>Port eingeben</enter_port>
+    <enter_username>Benutzername eingeben</enter_username>
+    <enter_password>Passwort eingeben</enter_password>
+    <enter_vnc_password>VNC Passwort eingeben (optional)</enter_vnc_password>
+    
+    <!-- Tooltips -->
+    <tooltip_vnc_port>Standard VNC Port ist 5900</tooltip_vnc_port>
+    <tooltip_ssh_port>Standard SSH Port ist 22</tooltip_ssh_port>
+    <tooltip_vnc_password>VNC Passwort ist optional</tooltip_vnc_password>
+    <tooltip_ssh_password>SSH Passwort ist optional (Key-basierte Authentifizierung bevorzugt)</tooltip_ssh_password>
+    
+    <!-- Confirmations -->
+    <confirm_delete_vnc_server>Möchten Sie diesen VNC Server wirklich löschen?</confirm_delete_vnc_server>
+    <confirm_delete_ssh_server>Möchten Sie diesen SSH Server wirklich löschen?</confirm_delete_ssh_server>
+    <confirm_disconnect_vnc>Möchten Sie die VNC Verbindung wirklich trennen?</confirm_disconnect_vnc>
+    <confirm_disconnect_ssh>Möchten Sie die SSH Verbindung wirklich trennen?</confirm_disconnect_ssh>
+    
+    <!-- Connection Info -->
+    <connection_info>Verbindungsinformationen</connection_info>
+    <last_connected>Zuletzt verbunden</last_connected>
+    <connection_duration>Verbindungsdauer</connection_duration>
+    <bytes_sent>Gesendete Bytes</bytes_sent>
+    <bytes_received>Empfangene Bytes</bytes_received>
+    
+    <!-- Terminal Features -->
+    <fullscreen>Vollbild</fullscreen>
+    <resize_terminal>Terminal-Größe ändern</resize_terminal>
+    <copy_paste>Kopieren/Einfügen</copy_paste>
+    <keyboard_shortcuts>Tastenkürzel</keyboard_shortcuts>
+    <settings>Einstellungen</settings>
+    
+    <!-- No Servers -->
+    <no_vnc_servers>Keine VNC Server konfiguriert</no_vnc_servers>
+    <no_ssh_servers>Keine SSH Server konfiguriert</no_ssh_servers>
+    <add_first_server>Fügen Sie Ihren ersten Server hinzu</add_first_server>
+    
+    <!-- Quick Actions -->
+    <quick_connect>Schnellverbindung</quick_connect>
+    <recent_servers>Letzte Server</recent_servers>
+    <favorite_servers>Favoriten</favorite_servers>
+</translations>

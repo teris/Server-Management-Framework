@@ -1,10 +1,4 @@
 <?php 
-/**
- * Server Management Framework
- * 
- * @author Teris
- * @version 3.1.2
- */
 require_once 'framework.php';
 
 session_start();

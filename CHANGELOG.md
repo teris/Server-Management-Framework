@@ -1,6 +1,58 @@
 # 📋 Changelog
-
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
+
+
+## [3.2.8]
+
+### Hinzugefügt
+
+- Shop-Modul – Frontend/Backend Bestell-Flow
+  - Frontend `public/shop.php`: UI für Warenkorb und Kasse (Bootstrap-Modal), Mengenänderung, Login-/Registrierungsabfrage, lokalisierte Summen
+  - Backend-Endpunkte im Modul: `src/module/shop/ordering/cart.php` (add/remove/set/clear/list) und `src/module/shop/ordering/order.php` (summary/create/select_payment/confirm/auth)
+  - Include-Bridge im Frontend: `shop.php?include=cart|order&action=...` lädt JSON-Endpunkte aus dem Modul
+
+- Shop-Installer
+  - Erstellt `public/shop.php` beim Installieren des Moduls
+  - Legt Bestelltabellen an: `shop_orders`, `shop_order_items`
+  - Schreibt `shop_settings` in `src/sys.conf.php` (maintenance, categories, addons)
+  - Optionales Anlegen von E-Mail-Templates (nur wenn `email_templates` Tabelle existiert und Templates fehlen):
+    - „Bestellbestätigung“ (Variablen: `{order_number}`, `{order_total}`, `{order_items}`, `{site_name}`)
+    - „Bestellung bestätigt“ (Variablen: `{order_number}`, `{site_name}`)
+    - „Bestellung abgelehnt“ (Variablen: `{order_number}`, `{site_name}`)
+
+- Shop-Admin-UI
+  - Tabs: Produkte, Einstellungen, Addons, Bestellungen
+  - Produkte: Preis-Eingabe im Normalformat (z. B. „1,99 €“), Parsing zu cents+currency; Datumsausgabe de-DE
+  - Kategorien: Slug als Hauptkategorie, mehrere Subkategorien pro Slug
+  - Addons: Scan von `addons/*/Addon.php`, Toggle aktiviert/disabled (PayPal-Stubs)
+  - Bestellungen: Liste, Detailmodal mit Positionen, Aktionen Bestätigen/Ablehnen/Löschen
+  - Einstellungen: Info-Box „E-Mail Template-Variablen“ für Bestellbestätigung
+
+### Geändert
+
+- Frontend-`shop.php`
+  - Wartungsmodus aus `shop_settings` (sys.conf.php)
+  - Robuste Fetch-/JSON-Fehlerbehandlung (zeigt Alerts statt roher JSON-Ausgabe)
+  - Login-Erkennung vereinheitlicht: `$_SESSION['customer_logged_in']` und serverseitige Verifikation via `action=auth`
+
+- Backend / Robustheit
+  - Verhindert doppelte `session_start()` Notices in Endpunkten
+  - E-Mail-Versand bei Checkout (Bestellbestätigung) und bei Statuswechsel (Bestellung bestätigt/abgelehnt), Nutzung des vorhandenen Templatesystems, Fallback auf Plain-Text
+
+### Ausstehend (TODO – wird in kommenden Versionen ergänzt)
+
+- Bestätigte Bestellungen automatisch in Kundenbestellungen anlegen
+  - Beim Statuswechsel auf "paid" automatisiert Kundenauftrag/-vertrag erzeugen (inkl. Referenz zu `customer_id`)
+  - Optionale Provisionierungs-Hooks
+- Bestell-/Konto-Informationen im Frontend-Dashboard einbinden
+  - Übersicht über letzte Bestellungen, Status, Summen; Link zu Details
+- API-Kommunikation prüfen/härten
+  - Auth/Session-Handling, konsistente JSON-Responses, Logging
+- Erste Bezahlmethode: Überweisung (Vorkasse)
+  - Addon `banktransfer` mit Konfiguration (Empfänger, IBAN, BIC, Verwendungszweck `{order_number}`)
+  - Auswahl im Checkout; E-Mail-Template mit Zahlungsanweisung
+- Shop auf Sprachmodell umstellen
+  - `lang/`-Ordner mit XML-Dateien für Übersetzungen
 
 
 
