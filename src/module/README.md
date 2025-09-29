@@ -1,11 +1,11 @@
-# SMF Module Repository
+# Server Management Framework (SMF)
 
-Dieses Repository enthält die optionalen Module für das Server Management Framework (SMF).
+Dies ist das Haupt-Repository des Server Management Frameworks.
 
-## Hinweise zum Haupt-Repo
+## Hinweise zu Modulen
 
-Die Module werden vom Haupt-Repository verwaltet:
+Optionale Module für das System befinden sich in einem separaten Repository:
 
-[Server-Management-Framework Repository](https://github.com/teris/Server-Management-Framework)
+[SMF-Module Repository](https://github.com/teris/SMF-Module)
 
-Installation und Updates erfolgen über die WebUI des Haupt-Systems oder direkt über den Installer.
+Die Module können über die WebUI oder den Installer geladen und installiert werden.
