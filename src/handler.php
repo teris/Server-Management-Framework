@@ -82,6 +82,185 @@ $legacy_actions = [
     'create_email' => 'email'
 ];
 
+// Module Manager Handler
+if (isset($_POST['action']) && in_array($_POST['action'], ['install_module', 'update_module', 'enable_module', 'disable_module', 'uninstall_module', 'install_from_github', 'update_from_github', 'check_github_updates', 'get_github_catalog'])) {
+    header('Content-Type: application/json');
+    
+    // Session-Check und Admin-Check
+    if (!SessionManager::isLoggedIn() || !isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        exit;
+    }
+    
+    require_once __DIR__ . '/core/ModuleManager.php';
+    $moduleManager = new ModuleManager();
+    
+    try {
+        $action = $_POST['action'];
+        
+        switch ($action) {
+            case 'install_module':
+                if (!isset($_FILES['module_zip'])) {
+                    throw new Exception('Keine ZIP-Datei hochgeladen');
+                }
+                
+                $tmp_path = $_FILES['module_zip']['tmp_name'];
+                $module_key = $_POST['module_key'] ?? null;
+                
+                $result = $moduleManager->installModule($tmp_path, $module_key);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Modul erfolgreich installiert',
+                    'data' => $result
+                ]);
+                break;
+                
+            case 'update_module':
+                if (!isset($_FILES['module_zip']) || !isset($_POST['module_key'])) {
+                    throw new Exception('Fehlende Parameter');
+                }
+                
+                $tmp_path = $_FILES['module_zip']['tmp_name'];
+                $module_key = $_POST['module_key'];
+                
+                $result = $moduleManager->updateModule($module_key, $tmp_path);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Modul erfolgreich aktualisiert',
+                    'data' => $result
+                ]);
+                break;
+                
+            case 'enable_module':
+                $input = json_decode(file_get_contents('php://input'), true);
+                if (!$input || !isset($input['module_key'])) {
+                    throw new Exception('Modul-Key fehlt');
+                }
+                
+                $moduleManager->enableModule($input['module_key']);
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Modul erfolgreich aktiviert'
+                ]);
+                break;
+                
+            case 'disable_module':
+                $input = json_decode(file_get_contents('php://input'), true);
+                if (!$input || !isset($input['module_key'])) {
+                    throw new Exception('Modul-Key fehlt');
+                }
+                
+                $moduleManager->disableModule($input['module_key']);
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Modul erfolgreich deaktiviert'
+                ]);
+                break;
+                
+            case 'uninstall_module':
+                $input = json_decode(file_get_contents('php://input'), true);
+                if (!$input || !isset($input['module_key'])) {
+                    throw new Exception('Modul-Key fehlt');
+                }
+                
+                $moduleManager->uninstallModule($input['module_key']);
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Modul erfolgreich deinstalliert'
+                ]);
+                break;
+                
+            case 'install_from_github':
+                $input = json_decode(file_get_contents('php://input'), true);
+                if (!$input || !isset($input['module_key'])) {
+                    throw new Exception('Modul-Key fehlt');
+                }
+                
+                $result = $moduleManager->installFromGitHub($input['module_key']);
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Modul erfolgreich von GitHub installiert',
+                    'data' => $result
+                ]);
+                break;
+                
+            case 'update_from_github':
+                $input = json_decode(file_get_contents('php://input'), true);
+                if (!$input || !isset($input['module_key'])) {
+                    throw new Exception('Modul-Key fehlt');
+                }
+                
+                $result = $moduleManager->updateFromGitHub($input['module_key']);
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Modul erfolgreich von GitHub aktualisiert',
+                    'data' => $result
+                ]);
+                break;
+                
+            case 'check_github_updates':
+                try {
+                    $modules = $moduleManager->getAllModules();
+                    $updates = [];
+                    
+                    foreach ($modules as $key => $module) {
+                        try {
+                            $update_info = $moduleManager->checkGitHubUpdate($key);
+                            if ($update_info && isset($update_info['update_available']) && $update_info['update_available']) {
+                                $updates[$key] = $update_info;
+                            }
+                        } catch (Exception $e) {
+                            error_log("check_github_updates: Error for module $key: " . $e->getMessage());
+                            // Überspringe dieses Modul bei Fehler
+                        }
+                    }
+                    
+                    echo json_encode([
+                        'success' => true,
+                        'updates' => $updates
+                    ]);
+                } catch (Exception $e) {
+                    error_log('check_github_updates error: ' . $e->getMessage());
+                    echo json_encode([
+                        'success' => false,
+                        'error' => 'Fehler beim Prüfen der Updates: ' . $e->getMessage()
+                    ]);
+                }
+                break;
+                
+            case 'get_github_catalog':
+                try {
+                    $catalog = $moduleManager->getGitHubCatalog();
+                    echo json_encode([
+                        'success' => true,
+                        'catalog' => $catalog
+                    ]);
+                } catch (Exception $e) {
+                    error_log('get_github_catalog error: ' . $e->getMessage());
+                    echo json_encode([
+                        'success' => false,
+                        'error' => 'Fehler beim Laden des Katalogs: ' . $e->getMessage()
+                    ]);
+                }
+                break;
+        }
+    } catch (Exception $e) {
+        error_log('Module Manager Handler Error: ' . $e->getMessage());
+        error_log('Stack trace: ' . $e->getTraceAsString());
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+    
+    exit;
+}
+
 // Legacy AJAX Handler (für Kompatibilität mit alter main.js)
 if (isset($_POST['action']) && !isset($_POST['module'])) {
     header('Content-Type: application/json');

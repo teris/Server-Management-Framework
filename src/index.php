@@ -18,11 +18,11 @@ if ($modus_type['modus'] === 'mysql') {
 require_once $frameworkFile;
 require_once 'auth_handler.php';
 
-// TODO: E-Mail-Template-Manager laden
-require_once 'core/EmailTemplateManager.php';
-
 // Login-Überprüfung
 requireLogin();
+
+// TODO: E-Mail-Template-Manager laden
+require_once 'core/EmailTemplateManager.php';
 
 // TODO: E-Mail-Template-System initialisieren
 $emailTemplateManager = EmailTemplateManager::getInstance();
@@ -120,7 +120,6 @@ if (isset($_POST['action'])) {
         }
         exit;
     }
-    
     
     // Users Module AJAX Actions (direkt verarbeiten)
     if (isset($_GET['option']) && $_GET['option'] === 'users' && isset($_POST['action'])) {
@@ -358,7 +357,6 @@ try {
     <script src="assets/session.js"></script>
     <!-- JavaScript-Loader für inc-js Dateien -->
     <script src="assets/inc-js/inc-js-loader.js"></script>
-    
     <!-- Plugin-spezifische Styles -->
     <?php foreach ($pluginManager->getAllStyles() as $style): ?>
     <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($style) ?>">
@@ -485,6 +483,11 @@ try {
                             <li >
                                 <a href="?option=manualupdater">
                                     <i class="bi bi-arrow-clockwise"></i> <?= t('manual_updater') ?>
+                                </a>
+                            </li>
+                            <li >
+                                <a href="?option=module-manager">
+                                    <i class="bi bi-plugin"></i> <?= t('module_manager_title') ?>
                                 </a>
                             </li>
                         </ul>
@@ -671,6 +674,9 @@ try {
                                 break;
                             case 'manualupdater':
                                 include('inc/manualupdater.php');
+                                break;
+                            case 'module-manager':
+                                include('inc/module-manager.php');
                                 break;
                             default:
                                 echo'<!-- Willkommensbereich (Standard) -->

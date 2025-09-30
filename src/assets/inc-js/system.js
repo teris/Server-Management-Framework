@@ -11,7 +11,7 @@ $(function() {
     });
     
     // Beim Laden: richtigen Tab anzeigen (wenn per URL ?tab=... gesetzt)
-    var initialTab = (new URLSearchParams(window.location.search)).get('tab') || 'plugins';
+    var initialTab = (new URLSearchParams(window.location.search)).get('tab') || 'system_config';
     $('#systemTabs .nav-link[data-tab="' + initialTab + '"]').trigger('click');
     
     // AJAX-Formular-Submit (delegiert)

@@ -2,6 +2,157 @@
 Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei dokumentiert.
 
 
+## [3.3.0]
+
+### 🎉 Modulverwaltung - Neues System
+
+#### Wichtige Änderungen
+
+- **Module in separates Repository verschoben**
+  - Alle optionalen Module sind jetzt im separaten Repository verfügbar
+  - Repository: [github.com/teris/SMF-Module](https://github.com/teris/SMF-Module)
+  - Module können von dort installiert und aktualisiert werden
+
+- **Modulverwaltungstool aus System-Einstellungen entfernt**
+  - Die Plugin-Verwaltung unter `System-Einstellungen → Plugins` wurde durch eine dedizierte Modulverwaltung ersetzt
+  - Neue Route: `index.php?option=module-manager`
+
+#### Hinzugefügt
+
+- **Neue Modulverwaltung (`module-manager.php`)**
+  - Zwei-Tab-System:
+    - **Installierte Module**: Übersicht aller installierten Module mit Aktivieren/Deaktivieren/Deinstallieren
+    - **Verfügbare Module**: GitHub-Katalog mit 1-Klick Installation
+  - Moderne Karten-Ansicht mit Modul-Informationen (Name, Autor, Version, Beschreibung, Icon)
+  - Status-Badges (Aktiviert/Deaktiviert/Verfügbar/Update)
+  - Smooth Animations (Fade-in, Slide-in, gestaffelte Karten-Animation)
+
+- **Installation von Modulen**
+  - **Manuell**: ZIP-Upload mit Strukturprüfung (`module/<name>/module.json`, `Module.php`, `templates/main.php`)
+  - **GitHub-Katalog**: 1-Klick Installation direkt von [github.com/teris/SMF-Module](https://github.com/teris/SMF-Module)
+  - Automatische Validierung (PHP-Version, Abhängigkeiten, Pflichtdateien)
+  - Fehlerbehandlung mit hilfreichen Meldungen und Link zum Modul-Repository
+
+- **Update von Modulen**
+  - **Manuell**: ZIP-Upload für Update
+  - **via Katalog**: Automatisches Update von GitHub
+  - Automatische Versionsprüfung gegen GitHub-Katalog
+  - Update-Badges wenn neue Version verfügbar
+  - Erhaltung des enabled-Status bei Updates
+
+- **Deinstallation**
+  - Komplettes Löschen der Modul-Dateien aus `module/<name>/`
+  - Entfernung des Modul-Eintrags aus `sys.conf.php`
+  - Logging aller Aktionen
+
+- **module.json für alle Module**
+  - Jedes Modul hat jetzt eine `module.json` Metadaten-Datei
+  - Felder: name, author, version, description, min_php, dependencies, icon, require_admin
+  - Module ohne `module.json` werden angezeigt aber können nicht aktiviert werden
+
+- **GitHub-Integration**
+  - `GitHubModuleInstaller` Klasse für GitHub-Operationen
+  - Katalog-Caching (1 Stunde TTL)
+  - Lokale Katalog-Datei als Fallback (`src/module/modules.json`)
+  - Automatische Versionsprüfung (zeigt "Update: X.X.X" oder "(unbekannt)")
+  - Download, Entpacken und Installation in einem Schritt
+
+- **ModuleManager Klasse**
+  - Zentrale Verwaltung aller Modul-Operationen
+  - `installModule()` - ZIP-Upload mit Strukturvalidierung
+  - `installFromGitHub()` - Installation vom GitHub-Katalog
+  - `updateModule()` - Manuelles Update via ZIP
+  - `updateFromGitHub()` - Automatisches Update von GitHub
+  - `enableModule()` - Aktivierung (setzt `enabled = true` in sys.conf.php)
+  - `disableModule()` - Deaktivierung (setzt `enabled = false`)
+  - `uninstallModule()` - Komplette Deinstallation (löscht Dateien + Config-Eintrag)
+  - `checkGitHubUpdate()` - Prüft verfügbare Updates
+  - `getGitHubCatalog()` - Lädt Modul-Katalog
+
+- **Sprachunterstützung**
+  - Deutsche und englische Übersetzungen für alle Modulverwaltungs-Texte
+  - Integration in `src/core/lang/de.xml` und `en.xml`
+
+- **Template-Modul**
+  - Vollständiges Beispiel-Modul als Vorlage für neue Module
+  - Pfad: `module-template/` (siehe Repo-Root)
+  - Enthält: module.json, Module.php, templates, Sprachdateien, AJAX-Beispiele
+
+- **Umfangreiche Dokumentation**
+  - `MODULE_MANAGER_README.md` - Technische Dokumentation der Modulverwaltung
+  - `MODULE_TEMPLATE_README.md` - Anleitung zum Erstellen eigener Module
+  - `MODULVERWALTUNG_INSTALLATION.md` - Installations- und Verwendungsanleitung
+  - `KOMPATIBILITAET_MODULE_SYSTEME.md` - Kompatibilität mit bestehendem System
+  - `GITHUB_INTEGRATION.md` - GitHub-Katalog-Integration
+  - `MODULVERWALTUNG_FINAL_V2.md` - Vollständige Feature-Liste
+
+#### Geändert
+
+- **sys.conf.php**
+  - Alle Helper-Funktionen mit `function_exists()` geschützt (verhindert Redeclaration-Fehler)
+  - `$plugins` Array wird weiterhin verwendet (100% kompatibel)
+  - Speichermethode bleibt `var_export()` (kompatibel mit System-Einstellungen)
+
+- **index.php**
+  - Navigation erweitert: Neuer Menüpunkt "Modulverwaltung" unter "Optionen"
+  - Routing für `?option=module-manager` hinzugefügt
+  - Module Manager JavaScript direkt eingebunden
+
+- **Modul-Struktur**
+  - Jedes Modul benötigt jetzt zwingend:
+    - `module.json` (Metadaten)
+    - `Module.php` (Hauptklasse)
+    - `templates/main.php` (UI-Template)
+  - Optional: `lang/` (Übersetzungen), `assets/` (CSS/JS)
+
+#### Technische Details
+
+- **Installation-Flow**:
+  1. ZIP-Upload oder GitHub-Download
+  2. Entpacken in temporäres Verzeichnis
+  3. Strukturvalidierung (`module/<name>/module.json`, `Module.php`, `templates/main.php`)
+  4. Kopieren nach `src/module/<name>/`
+  5. Config-Eintrag in `sys.conf.php` erstellen (`enabled = false`)
+  6. Bei Fehler: Rollback und Fehlermeldung mit GitHub-Link
+
+- **Update-Flow**:
+  1. Wie Installation, aber behält `enabled`-Status
+  2. Alte Dateien werden überschrieben
+  3. Versionsnummer in Config aktualisiert
+
+- **Deinstallation-Flow**:
+  1. Dateien aus `module/<name>/` komplett löschen
+  2. Config-Eintrag aus `sys.conf.php` entfernen (`unset($plugins[<name>])`)
+  3. Logging der Aktion
+
+- **Kompatibilität**:
+  - Alle Module funktionieren nach wie vor mit dem selben Shema
+
+#### Sicherheit
+
+- Nur Administratoren haben Zugriff auf Modulverwaltung
+- PHP-Versions-Prüfung vor Installation
+- Abhängigkeiten-Validierung
+- Strukturvalidierung bei ZIP-Uploads
+- Logging aller Modul-Operationen
+
+#### UI/UX
+
+- Moderne Bootstrap 5 Karten-Ansicht
+- Smooth CSS-Animationen (Fade-in, Slide-in, Hover-Effekte)
+- Gestaffelte Karten-Animation (0.05s - 0.45s)
+- Loading-Overlay bei Aktionen
+- Alert-Nachrichten mit Slide-Animation
+- Tab-System mit Smooth-Transitions
+- Responsive Design
+
+#### Performance
+
+- GitHub-Katalog wird 1 Stunde gecacht
+- Lokale Katalog-Datei als Fallback
+- Lazy Loading der verfügbaren Module (nur bei Tab-Wechsel)
+
+
 ## [3.2.8]
 
 ### Hinzugefügt

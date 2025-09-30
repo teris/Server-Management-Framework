@@ -12,18 +12,10 @@ if (file_exists(__DIR__ . '/core/LanguageManager.php')) {
 }
 
 
+
+
 // --- PLUGINS START ---
 $plugins = array (
-  'admin' => 
-  array (
-    'enabled' => false,
-    'name' => 'Admin Dashboard',
-    'icon' => '📊',
-    'path' => 'module/admin',
-    'version' => '1.0.0',
-    'description' => 'Admin Dashboard und System-Verwaltung',
-    'require_admin' => true,
-  ),
   'proxmox' => 
   array (
     'enabled' => true,
@@ -74,16 +66,6 @@ $plugins = array (
     'description' => 'Erweiterter Datei-Editor mit automatischer Dateityp-Erkennung und strukturierter Datenansicht',
     'require_admin' => true,
   ),
-  'virtual-mac' => 
-  array (
-    'enabled' => false,
-    'name' => 'Virtual MAC Management',
-    'icon' => '🔌',
-    'path' => 'module/virtual-mac',
-    'version' => '1.0.0',
-    'description' => 'Virtual MAC Adressen für dedizierte Server verwalten',
-    'require_admin' => false,
-  ),
   'network' => 
   array (
     'enabled' => false,
@@ -124,16 +106,6 @@ $plugins = array (
     'description' => 'API Endpoints testen und debuggen',
     'require_admin' => false,
   ),
-  'custom-module' => 
-  array (
-    'enabled' => false,
-    'name' => 'Custom Module',
-    'icon' => '🔧',
-    'path' => 'module/custom-module',
-    'version' => '1.0.0',
-    'description' => 'Benutzerdefiniertes Modul für Tests',
-    'require_admin' => false,
-  ),
   'support-tickets' => 
   array (
     'enabled' => true,
@@ -156,7 +128,7 @@ $plugins = array (
   ),
   'terminal' => 
   array (
-    'enabled' => false,
+    'enabled' => true,
     'name' => 'Terminal',
     'icon' => '🔳',
     'path' => 'module/terminal',
@@ -164,9 +136,9 @@ $plugins = array (
     'description' => 'Verwalten von Servern',
     'require_admin' => false,
   ),
-    'content' => 
+  'content' => 
   array (
-    'enabled' => false,
+    'enabled' => true,
     'name' => 'Content Management',
     'icon' => '📄',
     'path' => 'module/content',
@@ -186,6 +158,8 @@ $plugins = array (
   ),
 );
 // --- PLUGINS END ---
+
+
 
 
 // --- SYSTEM_CONFIG START ---
@@ -289,107 +263,127 @@ $modus_type =[
 
 
 // Helper Functions
-function getEnabledPlugins() {
-    global $plugins;
-    $enabled = [];
-    foreach ($plugins as $key => $plugin) {
-        if ($plugin['enabled']) {
-            $enabled[$key] = $plugin;
+if (!function_exists('getEnabledPlugins')) {
+    function getEnabledPlugins() {
+        global $plugins;
+        $enabled = [];
+        foreach ($plugins as $key => $plugin) {
+            if ($plugin['enabled']) {
+                $enabled[$key] = $plugin;
+            }
         }
+        return $enabled;
     }
-    return $enabled;
 }
 
-function isPluginEnabled($plugin_key) {
-    global $plugins;
-    
-    // Check session override first
-    if (isset($_SESSION['plugin_states'][$plugin_key])) {
-        return $_SESSION['plugin_states'][$plugin_key];
+if (!function_exists('isPluginEnabled')) {
+    function isPluginEnabled($plugin_key) {
+        global $plugins;
+        
+        // Check session override first
+        if (isset($_SESSION['plugin_states'][$plugin_key])) {
+            return $_SESSION['plugin_states'][$plugin_key];
+        }
+        
+        return isset($plugins[$plugin_key]) && $plugins[$plugin_key]['enabled'];
     }
-    
-    return isset($plugins[$plugin_key]) && $plugins[$plugin_key]['enabled'];
 }
 
-function getPluginConfig($plugin_key) {
-    global $plugins;
-    return isset($plugins[$plugin_key]) ? $plugins[$plugin_key] : null;
+if (!function_exists('getPluginConfig')) {
+    function getPluginConfig($plugin_key) {
+        global $plugins;
+        return isset($plugins[$plugin_key]) ? $plugins[$plugin_key] : null;
+    }
 }
 
 /**
  * Erkennt das aktuelle Modul basierend auf dem Call-Stack
  */
-function getCurrentModule() {
-    // Prüfe den Call-Stack nach Modul-Klassen
-    $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
-    
-    foreach ($backtrace as $frame) {
-        if (isset($frame['class'])) {
-            $class_name = $frame['class'];
-            
-            // Prüfe ob es sich um ein Modul handelt (endet mit "Module")
-            if (strpos($class_name, 'Module') !== false && $class_name !== 'ModuleBase') {
-                // Extrahiere den Modul-Namen aus dem Klassennamen
-                $module_name = str_replace('Module', '', $class_name);
-                $module_name = strtolower($module_name);
+if (!function_exists('getCurrentModule')) {
+    function getCurrentModule() {
+        // Prüfe den Call-Stack nach Modul-Klassen
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+        
+        foreach ($backtrace as $frame) {
+            if (isset($frame['class'])) {
+                $class_name = $frame['class'];
                 
-                // Prüfe ob das Modul existiert
-                if (getPluginConfig($module_name)) {
-                    return $module_name;
+                // Prüfe ob es sich um ein Modul handelt (endet mit "Module")
+                if (strpos($class_name, 'Module') !== false && $class_name !== 'ModuleBase') {
+                    // Extrahiere den Modul-Namen aus dem Klassennamen
+                    $module_name = str_replace('Module', '', $class_name);
+                    $module_name = strtolower($module_name);
+                    
+                    // Prüfe ob das Modul existiert
+                    if (getPluginConfig($module_name)) {
+                        return $module_name;
+                    }
+                }
+            }
+            
+            // Prüfe auch nach Dateipfaden, die auf Module hinweisen
+            if (isset($frame['file'])) {
+                $file_path = $frame['file'];
+                if (preg_match('/\/module\/([^\/]+)\//', $file_path, $matches)) {
+                    $module_name = $matches[1];
+                    if (getPluginConfig($module_name)) {
+                        return $module_name;
+                    }
                 }
             }
         }
         
-        // Prüfe auch nach Dateipfaden, die auf Module hinweisen
-        if (isset($frame['file'])) {
-            $file_path = $frame['file'];
-            if (preg_match('/\/module\/([^\/]+)\//', $file_path, $matches)) {
-                $module_name = $matches[1];
-                if (getPluginConfig($module_name)) {
-                    return $module_name;
-                }
-            }
-        }
+        return null;
     }
-    
-    return null;
 }
 
 // System Helper Functions
-function isMaintenanceMode() {
-    global $system_config;
-    return $system_config['maintenance_mode'];
+if (!function_exists('isMaintenanceMode')) {
+    function isMaintenanceMode() {
+        global $system_config;
+        return $system_config['maintenance_mode'];
+    }
 }
 
-function isDebugMode() {
-    global $system_config;
-    return $system_config['debug_mode'];
+if (!function_exists('isDebugMode')) {
+    function isDebugMode() {
+        global $system_config;
+        return $system_config['debug_mode'];
+    }
 }
 
-function isFeatureEnabled($feature) {
-    global $feature_flags;
-    return isset($feature_flags[$feature]) && $feature_flags[$feature];
+if (!function_exists('isFeatureEnabled')) {
+    function isFeatureEnabled($feature) {
+        global $feature_flags;
+        return isset($feature_flags[$feature]) && $feature_flags[$feature];
+    }
 }
 
-function isSecurityEnabled($feature) {
-    global $security_config;
-    return isset($security_config[$feature]) && $security_config[$feature];
+if (!function_exists('isSecurityEnabled')) {
+    function isSecurityEnabled($feature) {
+        global $security_config;
+        return isset($security_config[$feature]) && $security_config[$feature];
+    }
 }
 
-function getSystemVersion() {
-    global $system_config;
-    return $system_config['version'];
+if (!function_exists('getSystemVersion')) {
+    function getSystemVersion() {
+        global $system_config;
+        return $system_config['version'];
+    }
 }
 
-function getLogLevel() {
-    global $system_config;
-    $levels = [
-        'DEBUG' => 0,
-        'INFO' => 1,
-        'WARNING' => 2,
-        'ERROR' => 3
-    ];
-    return $levels[$system_config['log_level']] ?? 1;
+if (!function_exists('getLogLevel')) {
+    function getLogLevel() {
+        global $system_config;
+        $levels = [
+            'DEBUG' => 0,
+            'INFO' => 1,
+            'WARNING' => 2,
+            'ERROR' => 3
+        ];
+        return $levels[$system_config['log_level']] ?? 1;
+    }
 }
 
 // Environment-specific overrides
@@ -410,101 +404,134 @@ if ($system_config['debug_mode']) {
 }
 
 // Language Manager Helper Functions
-function getLanguageManager() {
-    if (!class_exists('LanguageManager')) {
-        return null;
+if (!function_exists('getLanguageManager')) {
+    function getLanguageManager() {
+        if (!class_exists('LanguageManager')) {
+            return null;
+        }
+        return LanguageManager::getInstance();
     }
-    return LanguageManager::getInstance();
 }
 
-function translate($module_key, $key, $default = null) {
-    $lm = getLanguageManager();
-    if (!$lm) {
-        return $default !== null ? $default : $key;
+if (!function_exists('translate')) {
+    function translate($module_key, $key, $default = null) {
+        $lm = getLanguageManager();
+        if (!$lm) {
+            return $default !== null ? $default : $key;
+        }
+        return $lm->translate($module_key, $key, $default);
     }
-    return $lm->translate($module_key, $key, $default);
 }
 
-function setLanguage($language) {
-    $lm = getLanguageManager();
-    if (!$lm) {
-        return false;
+if (!function_exists('setLanguage')) {
+    function setLanguage($language) {
+        $lm = getLanguageManager();
+        if (!$lm) {
+            return false;
+        }
+        return $lm->setLanguage($language);
     }
-    return $lm->setLanguage($language);
 }
 
-function getCurrentLanguage() {
-    $lm = getLanguageManager();
-    if (!$lm) {
-        global $system_config;
-        return $system_config['language'] ?? 'de';
+if (!function_exists('getCurrentLanguage')) {
+    function getCurrentLanguage() {
+        $lm = getLanguageManager();
+        if (!$lm) {
+            global $system_config;
+            return $system_config['language'] ?? 'de';
+        }
+        return $lm->getCurrentLanguage();
     }
-    return $lm->getCurrentLanguage();
 }
 
-function getAvailableLanguages() {
-    $lm = getLanguageManager();
-    if (!$lm) {
-        global $system_config;
-        return $system_config['available_languages'] ?? ['de'];
+if (!function_exists('getAvailableLanguages')) {
+    function getAvailableLanguages() {
+        $lm = getLanguageManager();
+        if (!$lm) {
+            global $system_config;
+            return $system_config['available_languages'] ?? ['de'];
+        }
+        return $lm->getAvailableLanguages();
     }
-    return $lm->getAvailableLanguages();
 }
 
 // Enhanced Translation Helper Functions
-function t($key, $default = null, $module_key = null, $debug = null) {
-    static $allKeys = []; // hier merken wir uns alles
-    
-    $lm = getLanguageManager();
-    if (!$lm) {
-        return $default !== null ? $default : $key;
-    }
-     // Key immer speichern (außer debug, weil das sonst auch in der Liste landet)
-     if ($key !== 'debug') {
-        $allKeys[] = $key;
-    }
-
-    // Wenn "debug" aufgerufen wird → alle Keys zurückgeben
-    if ($key === 'debug' && $debug) {
-        return array_unique($allKeys);
-    }
-
-    // Wenn kein Modul angegeben wurde, versuche das aktuelle Modul zu erkennen
-    if ($module_key === null) {
-        $module_key = getCurrentModule();
-    }
-    
-    // Wenn ein Modul erkannt wurde, verwende Modul-Übersetzungen
-    if ($module_key && $module_key !== 'core') {
-        return $lm->translate($module_key, $key, $default);
-    }
-
-    
-    // Fallback auf Core-Übersetzungen
-    return $lm->translateCore($key, $default);
-}
-
-function tMultiple($keys, $module_key = null) {
-    $lm = getLanguageManager();
-    if (!$lm) {
-        $result = [];
-        foreach ($keys as $key) {
-            $result[$key] = $key;
+if (!function_exists('t')) {
+    function t($key, $default = null, $module_key = null, $debug = null) {
+        static $allKeys = []; // hier merken wir uns alles
+        
+        $lm = getLanguageManager();
+        if (!$lm) {
+            return $default !== null ? $default : $key;
         }
-        return $result;
+         // Key immer speichern (außer debug, weil das sonst auch in der Liste landet)
+         if ($key !== 'debug') {
+            $allKeys[] = $key;
+        }
+
+        // Wenn "debug" aufgerufen wird → alle Keys zurückgeben
+        if ($key === 'debug' && $debug) {
+            return array_unique($allKeys);
+        }
+
+        // Wenn kein Modul angegeben wurde, versuche das aktuelle Modul zu erkennen
+        if ($module_key === null) {
+            $module_key = getCurrentModule();
+        }
+        
+        // Wenn ein Modul erkannt wurde, verwende Modul-Übersetzungen
+        if ($module_key && $module_key !== 'core') {
+            return $lm->translate($module_key, $key, $default);
+        }
+
+        
+        // Fallback auf Core-Übersetzungen
+        return $lm->translateCore($key, $default);
     }
-    
-    // Wenn kein Modul angegeben wurde, versuche das aktuelle Modul zu erkennen
-    if ($module_key === null) {
-        $module_key = getCurrentModule();
-    }
-    
-    // Wenn ein Modul erkannt wurde, verwende Modul-Übersetzungen
-    if ($module_key && $module_key !== 'core') {
-        return $lm->translateMultiple($module_key, $keys);
-    }
-    
-    // Fallback auf Core-Übersetzungen
-    return $lm->translateCoreMultiple($keys);
 }
+
+if (!function_exists('tMultiple')) {
+    function tMultiple($keys, $module_key = null) {
+        $lm = getLanguageManager();
+        if (!$lm) {
+            $result = [];
+            foreach ($keys as $key) {
+                $result[$key] = $key;
+            }
+            return $result;
+        }
+        
+        // Wenn kein Modul angegeben wurde, versuche das aktuelle Modul zu erkennen
+        if ($module_key === null) {
+            $module_key = getCurrentModule();
+        }
+        
+        // Wenn ein Modul erkannt wurde, verwende Modul-Übersetzungen
+        if ($module_key && $module_key !== 'core') {
+            return $lm->translateMultiple($module_key, $keys);
+        }
+        
+        // Fallback auf Core-Übersetzungen
+        return $lm->translateCoreMultiple($keys);
+    }
+}
+
+
+$shop_settings = array (
+  'terms' => 'AGBs',
+  'privacy' => 'Datenschutz',
+  'imprint' => 'Impressum',
+  'faq' => 'FAQ',
+  'maintenance' => 0,
+  'categories' => 
+  array (
+  ),
+  'addons' => 
+  array (
+    'paypal' => 
+    array (
+      'enabled' => 0,
+    ),
+  ),
+);
 ?>

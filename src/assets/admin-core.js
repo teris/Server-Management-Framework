@@ -348,14 +348,24 @@ function showNotification(message, type = 'info') {
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', function() {
-    // Load initial stats
-    refreshAllStats();
-    
-    // Auto-refresh stats if enabled
-    if (window.dashboardConfig && window.dashboardConfig.refresh_interval) {
-        setInterval(refreshAllStats, window.dashboardConfig.refresh_interval * 1000);
+    // Prevent double initialization when script is included multiple times
+    if (window.__adminCoreInitialized) {
+        return;
     }
-    
+    window.__adminCoreInitialized = true;
+
+    // Only refresh stats on pages that actually show dashboard stats
+    const hasStatsUI = document.querySelector('[data-stat]') || document.querySelector('.stat-card');
+    if (hasStatsUI) {
+        // Load initial stats
+        refreshAllStats();
+
+        // Auto-refresh stats if enabled
+        if (window.dashboardConfig && window.dashboardConfig.refresh_interval) {
+            setInterval(refreshAllStats, window.dashboardConfig.refresh_interval * 1000);
+        }
+    }
+
     // Initialize tooltips, charts, etc.
     console.log('Admin Dashboard initialized');
 });

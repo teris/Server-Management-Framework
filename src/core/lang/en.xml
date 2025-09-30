@@ -1339,4 +1339,25 @@
     <customer_verification_email>Customer Verification E-Mail</customer_verification_email>
     <backend_user_welcome_email>Backend User Welcome E-Mail</backend_user_welcome_email>
     <system_credentials_email>System Credentials E-Mail</system_credentials_email>
+    
+    <!-- Module Manager -->
+    <module_manager_title>Module Manager</module_manager_title>
+    <module_upload>Upload Module</module_upload>
+    <module_refresh>Refresh</module_refresh>
+    <module_enabled>Enabled</module_enabled>
+    <module_disabled>Disabled</module_disabled>
+    <module_author>Author</module_author>
+    <module_version>Version</module_version>
+    <module_dependencies>Dependencies</module_dependencies>
+    <module_disable>Disable</module_disable>
+    <module_enable>Enable</module_enable>
+    <module_update>Update</module_update>
+    <module_uninstall>Delete</module_uninstall>
+    <module_upload_title>Upload Module</module_upload_title>
+    <module_select_zip>Select ZIP file</module_select_zip>
+    <module_upload_help>Please select a ZIP file containing a valid module.</module_upload_help>
+    <module_key_optional>Module Key (optional)</module_key_optional>
+    <module_key_placeholder>e.g. custom-module</module_key_placeholder>
+    <module_key_help>Will be detected automatically if not specified.</module_key_help>
+    <module_update_title>Update Module</module_update_title>
 </translations> 

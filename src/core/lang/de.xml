@@ -1823,4 +1823,25 @@
     <customer_verification_email>Kunden-Verifikations-E-Mail</customer_verification_email>
     <backend_user_welcome_email>Backend-Benutzer-Willkommens-E-Mail</backend_user_welcome_email>
     <system_credentials_email>System-Anmeldedaten-E-Mail</system_credentials_email>
+    
+    <!-- Module Manager -->
+    <module_manager_title>Modulverwaltung</module_manager_title>
+    <module_upload>Modul hochladen</module_upload>
+    <module_refresh>Aktualisieren</module_refresh>
+    <module_enabled>Aktiviert</module_enabled>
+    <module_disabled>Deaktiviert</module_disabled>
+    <module_author>Autor</module_author>
+    <module_version>Version</module_version>
+    <module_dependencies>Abhängigkeiten</module_dependencies>
+    <module_disable>Deaktivieren</module_disable>
+    <module_enable>Aktivieren</module_enable>
+    <module_update>Update</module_update>
+    <module_uninstall>Löschen</module_uninstall>
+    <module_upload_title>Modul hochladen</module_upload_title>
+    <module_select_zip>ZIP-Datei auswählen</module_select_zip>
+    <module_upload_help>Bitte wählen Sie eine ZIP-Datei mit einem gültigen Modul aus.</module_upload_help>
+    <module_key_optional>Modul-Schlüssel (optional)</module_key_optional>
+    <module_key_placeholder>z.B. custom-module</module_key_placeholder>
+    <module_key_help>Wird automatisch erkannt, falls nicht angegeben.</module_key_help>
+    <module_update_title>Modul aktualisieren</module_update_title>
 </translations> 

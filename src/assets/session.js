@@ -1,10 +1,13 @@
 // Session-Informationen werden global als window.sessionInfo erwartet
 let sessionTimer;
 let warningShown = false;
+let __sessionInitialized = false;
 
 // Session-Timer initialisieren
 function initSessionTimer() {
     if (!window.sessionInfo) return;
+    if (__sessionInitialized) return;
+    __sessionInitialized = true;
     updateSessionDisplay();
     // Timer jede Sekunde aktualisieren
     sessionTimer = setInterval(() => {
@@ -88,5 +91,7 @@ function resetActivityTimer() {
     }, 30000); // Alle 30 Sekunden bei Aktivität
 }
 ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+    // Avoid adding the same listener multiple times
+    document.removeEventListener(event, resetActivityTimer, true);
     document.addEventListener(event, resetActivityTimer, true);
 });
