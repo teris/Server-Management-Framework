@@ -1,0 +1,1276 @@
+{
+  "date": "2026-10-24",
+  "root": "/mnt/c/Users/teris/Desktop/Server-Management-Framework-3.2.7",
+  "file_count": 251,
+  "extensions": {
+    ".md": 25,
+    "(none)": 2,
+    ".html": 3,
+    ".css": 10,
+    ".php": 118,
+    ".js": 40,
+    ".sql": 10,
+    ".ico": 1,
+    ".png": 9,
+    ".bak": 1,
+    ".xml": 30,
+    ".CSV": 2
+  },
+  "files": [
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "bytes": 834,
+      "sha256": "0c8d64f29fb4536513653bf8c97da30f3340e2041b91c8952db1515d6b23a7b3"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/custom.md",
+      "bytes": 126,
+      "sha256": "a062d66844de4e399924f13739309fcd6fa478edca7a6733ba2f9bdb85b9f45d"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md",
+      "bytes": 595,
+      "sha256": "1f48c52f209a971b8e7eae4120144d28fcf8ee38a7778a7b4d8cf1ab356617d2"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 648,
+      "sha256": "975eccb69b0e09df9b3395f62c69f9d435ae82eacd53f6bf6bb59080d19ef439"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 56065,
+      "sha256": "72d7cffe538c9e27e6e6d13a7d7d6cd1f1606f16d36bd0d5e644def57bcf05cd"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "bytes": 7541,
+      "sha256": "84e45a543fee230f6ecb5e754c1af89a23dd0b339032b44ebdf0f376d8f80b87"
+    },
+    {
+      "path": "FrameWorkShema/de_index.html",
+      "bytes": 174127,
+      "sha256": "694ae7780b9afcca74e0c7f82be7b14458003976f086bfd3e957588e7ca78cbf"
+    },
+    {
+      "path": "FrameWorkShema/en_index.html",
+      "bytes": 103850,
+      "sha256": "2bc70f0aee7a1b268706bd0962cd5a6fe3aaae68d6762f41cc548e39e78263d9"
+    },
+    {
+      "path": "FrameWorkShema/index.html",
+      "bytes": 1596,
+      "sha256": "4cc9dc1edf590cb647fb73894f3dee239058b2a339c16189cc22e56b0ed4fc55"
+    },
+    {
+      "path": "FrameWorkShema/styles.css",
+      "bytes": 6663,
+      "sha256": "a85d8c67587996e492711508a93c742ce6ecc54b830584f2459d57b3b997c4b9"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 11339,
+      "sha256": "5ed1540c109ff9acd4ca7415325bf65b41f2bc934e14d7a3b6a824ed806c49a5"
+    },
+    {
+      "path": "PROJECT_OVERVIEW.md",
+      "bytes": 3030,
+      "sha256": "c5ad9eaa1ecc7072466a470ddadb1e515b04508d53c97bfebd59834b02f345f4"
+    },
+    {
+      "path": "README.md",
+      "bytes": 19937,
+      "sha256": "837b406932d0359312d67003014211ae6c50643ee2a06be52c1c0960b02e085e"
+    },
+    {
+      "path": "SECURITY.md",
+      "bytes": 2427,
+      "sha256": "a45f83b5013d4be4be043f251970e871d0abbb1f4c9e2313f7e0d000e66987b0"
+    },
+    {
+      "path": "SUPPORT.md",
+      "bytes": 3582,
+      "sha256": "176ea07d36845244638fb5693b8c4f63c478065ed4bfc1eb3e23fa8600e7164b"
+    },
+    {
+      "path": "config/config.inc.php",
+      "bytes": 5223,
+      "sha256": "aa1942ec7c92c69d0d47d2f9df6c1e3655e768a6f55bfd7e495f76782a24ac30"
+    },
+    {
+      "path": "config/framework-mongodb.js",
+      "bytes": 7660,
+      "sha256": "28c52d0a97e5910577ec9cd2995e094ba2fd0b1c95e54b40ceaf06d2f367c135"
+    },
+    {
+      "path": "config/framework-mysql.sql",
+      "bytes": 4431,
+      "sha256": "21eed7184cb65446655804634f3b59ee37dc9a54f26185bd1c2ac9b0c9adc4ae"
+    },
+    {
+      "path": "config/framework-postgresql.sql",
+      "bytes": 5618,
+      "sha256": "e045662e1cd3796157bd16f0326870042e3011416020cb02fb342429b803f5b5"
+    },
+    {
+      "path": "config/framework-sqlite.sql",
+      "bytes": 5221,
+      "sha256": "4b464881a0c80aed8f6afde88a2a8f77a1bb6c7ff0e8752ea440b6f26248a000"
+    },
+    {
+      "path": "database/MIGRATION_GUIDE.md",
+      "bytes": 16029,
+      "sha256": "9ea2702a399d0388719a73a38c290c16be9e1d2003507232f24e503980fcc398"
+    },
+    {
+      "path": "database/database-structure-optimized.sql",
+      "bytes": 26820,
+      "sha256": "eaebfdeedaea8beb6bb81bf38612c0b2749dc404400ec5449cbcd8b850c7c3d9"
+    },
+    {
+      "path": "database/database-structure-postgresql.sql",
+      "bytes": 27592,
+      "sha256": "977d11aabab7c68814ce9400579f2a9cc5f32ec9cb15e0bac1cd497b6de70b9f"
+    },
+    {
+      "path": "database/database-structure-sqlite.sql",
+      "bytes": 29146,
+      "sha256": "68b76c802691b93df365c816f5c00a94d7246feb8f151ad2ea02943866620315"
+    },
+    {
+      "path": "database/email-templates-structure.sql",
+      "bytes": 10789,
+      "sha256": "cff3f027547917ddf7823ab226ae3e7d6189d7451af5a6b99bccb9541bfe59f7"
+    },
+    {
+      "path": "database/mongodb/CHANGELOG.md",
+      "bytes": 8572,
+      "sha256": "2f10b5d799a3e2e90c66840c8a7a9451ccb4eb10060861f6e6d0a86937d9890a"
+    },
+    {
+      "path": "database/mongodb/MIGRATION_GUIDE.md",
+      "bytes": 15212,
+      "sha256": "66dc47d9764c125b404e5e2be322300770cecee306c9e1a29dc8d3311a11183e"
+    },
+    {
+      "path": "database/mongodb/README.md",
+      "bytes": 7175,
+      "sha256": "6d82907197dd8703f4098900aba90f08307b72af086c086c6421f7be33f48cbe"
+    },
+    {
+      "path": "database/mongodb/database-structure-mongodb.js",
+      "bytes": 26700,
+      "sha256": "31e9839bfa7aca0e58101dc0cf87840fbab0685686015e8bf5d261d2d30ba14e"
+    },
+    {
+      "path": "favicon.ico",
+      "bytes": 174289,
+      "sha256": "01e4d334d4b5ee39816fd452ddacd0b90328c9e6ed0c9f2024343e6bb784e14c"
+    },
+    {
+      "path": "framework.php",
+      "bytes": 276935,
+      "sha256": "8a5e38b9c3bfaac51a7f02f9471610016eaf5c3c17b54d3f997b10a9cfa5ed74"
+    },
+    {
+      "path": "install/database-structure-install-mongodb.js",
+      "bytes": 22490,
+      "sha256": "ca8ead0782df6d0ce2d22d1fecde4414877bbd82bcc19daa793d0f05637cacba"
+    },
+    {
+      "path": "install/database-structure-install-mysql.sql",
+      "bytes": 20968,
+      "sha256": "cde8bb44522ce225d80df6ac363004200f640634f273ebc9750c2444139cee18"
+    },
+    {
+      "path": "install/database-structure-install-postgresql.sql",
+      "bytes": 18128,
+      "sha256": "7e17dd1cb887fb8412d1cbb79ff5b85b2b4e7c8c490363ffcf2815ff4a67c4c4"
+    },
+    {
+      "path": "install/database-structure-install-sqlite.sql",
+      "bytes": 19565,
+      "sha256": "c44b7d1966ed562c3523a422e00d51d3f458c94437d8fb3b324876e4dfd3faf0"
+    },
+    {
+      "path": "public/README.md",
+      "bytes": 11470,
+      "sha256": "85facdace9735d2141e6d15d2d5b713db662137744c113937a9862373c37df29"
+    },
+    {
+      "path": "public/assets/frontpanel.css",
+      "bytes": 10068,
+      "sha256": "ed9827e4bb22c080d08e33ee1d945470fcb63a6b7136c0aa4722bb3e772a1d66"
+    },
+    {
+      "path": "public/assets/frontpanel.js",
+      "bytes": 23781,
+      "sha256": "b170fe32153d97409b509f6fdedbe0a56ff036e35af9de595f5872fb81d68079"
+    },
+    {
+      "path": "public/assets/login.css",
+      "bytes": 8479,
+      "sha256": "a6ec38e79233e934c6de7fc362ff65f9356c9683d96ed095f68d0d39cc9f22f0"
+    },
+    {
+      "path": "public/assets/login.js",
+      "bytes": 15898,
+      "sha256": "3132fc5f5bfb58d71fa8ccacd564994abd3df027ee026ab671fcf9a04bcfe247"
+    },
+    {
+      "path": "public/change-password.php",
+      "bytes": 15941,
+      "sha256": "5f2b1b610b4510430d6297237b5ef6d58f443b27b9c8d9b796fae44ec01e8829"
+    },
+    {
+      "path": "public/clear-activities.php",
+      "bytes": 2805,
+      "sha256": "4d6d8289fff1436c3945c175d9494c8717480168ba3433b632428578bcfac9d0"
+    },
+    {
+      "path": "public/contact.php",
+      "bytes": 16133,
+      "sha256": "4065951715a41c630a9ac31f42ca93ba703be50a68fd500b4d9c84ec9b097514"
+    },
+    {
+      "path": "public/dashboard.php",
+      "bytes": 24928,
+      "sha256": "6a90174752f64841c235050d3f0768f643824c10f4b11f21d7a6e8d44cbd716e"
+    },
+    {
+      "path": "public/domain-registration.php",
+      "bytes": 47134,
+      "sha256": "a85976d96b301f9f7ce63105baf21e08c80e7d0e76447e3e23693203359c9ee9"
+    },
+    {
+      "path": "public/index.php",
+      "bytes": 24647,
+      "sha256": "ac4e37297cf8449fa0b12c48b7e09bb8cf48313b69793d4385c5f39de4dfef5c"
+    },
+    {
+      "path": "public/login.php",
+      "bytes": 11993,
+      "sha256": "21ac382da383dc0475cb509b0626809180a27fc25ea7cee0bac44aaa19765ef7"
+    },
+    {
+      "path": "public/privacy.php",
+      "bytes": 14695,
+      "sha256": "e3fe6b0938d0c23d6058af05736c1f3efd2a92dcb7966a16df48817414d048eb"
+    },
+    {
+      "path": "public/profile.php",
+      "bytes": 14534,
+      "sha256": "0bd47c4b89fd63870b2b969de13ebf3413a77222735edf4380cdb3ca47bc9674"
+    },
+    {
+      "path": "public/register.php",
+      "bytes": 15056,
+      "sha256": "12ccf77e29f4e2f7b293902d031117e0d8886fa9600e5447c6624e57c68e046d"
+    },
+    {
+      "path": "public/support.php",
+      "bytes": 45398,
+      "sha256": "8cde378e9e0366335837486519f957ad901284ca22a48f381fe9504262f37853"
+    },
+    {
+      "path": "public/terms.php",
+      "bytes": 13544,
+      "sha256": "719296567a8d36ac458115343195cc770d237b9a59bb9896563293412486220a"
+    },
+    {
+      "path": "public/verify.php",
+      "bytes": 13049,
+      "sha256": "4eebdb7cde5bb6037037a075fa4fe7f736d40e1f4226aab7b938db8c58feb6b2"
+    },
+    {
+      "path": "screenshoots/adminpanel/add-server.png",
+      "bytes": 61982,
+      "sha256": "fa39109711e802bf0b238417c457b91b0dc79bc07723e0acbe13813d5185f701"
+    },
+    {
+      "path": "screenshoots/adminpanel/endpoints.png",
+      "bytes": 62237,
+      "sha256": "8526799dcfc60493bd6aef5b5b9132a7540524ce0d5a66affa6c2dbff7effb5d"
+    },
+    {
+      "path": "screenshoots/adminpanel/main.png",
+      "bytes": 89626,
+      "sha256": "fbf870c757b28f91cc9eebe7784e10650ad4cec8fa7a2d63dd98ad5383134d13"
+    },
+    {
+      "path": "screenshoots/frontentpanel/dashboard.png",
+      "bytes": 69950,
+      "sha256": "e34692305b350bd776a0c1f0b55944b140119cb47e03c7c3843c1786804c5e7f"
+    },
+    {
+      "path": "screenshoots/frontentpanel/login.png",
+      "bytes": 79057,
+      "sha256": "cd81e0a7e24913cea1c03d8a0288a948a94bffea4185aa418decbf8097683a4d"
+    },
+    {
+      "path": "screenshoots/frontentpanel/mainpage.png",
+      "bytes": 105008,
+      "sha256": "29ec80f1b5fcd84606327803a26c85791a9c700617e57452d1139f79b66a57bb"
+    },
+    {
+      "path": "src/ajax_ip_mac_reverse.php",
+      "bytes": 430,
+      "sha256": "c3e54381d0574c8b97be4e2076d82e46f1f8ecf23c51f257eb6caed3d5f199b9"
+    },
+    {
+      "path": "src/api/status.php",
+      "bytes": 11185,
+      "sha256": "721a80663521b10d975947d786f366dbf572579f37002f0607059458dec7f574"
+    },
+    {
+      "path": "src/api/tickets.php",
+      "bytes": 8088,
+      "sha256": "c3dfa7f916b5a60cef5f4762dae1359afd07d351ab01f91ce77370e4e3064a67"
+    },
+    {
+      "path": "src/assets/add-server.png",
+      "bytes": 61982,
+      "sha256": "fa39109711e802bf0b238417c457b91b0dc79bc07723e0acbe13813d5185f701"
+    },
+    {
+      "path": "src/assets/admin-core.js",
+      "bytes": 11856,
+      "sha256": "52b0f96b08d10d05de52dfaa4f5940479dd5b437dd38329adc1f352cabd91773"
+    },
+    {
+      "path": "src/assets/endpoints.png",
+      "bytes": 62237,
+      "sha256": "8526799dcfc60493bd6aef5b5b9132a7540524ce0d5a66affa6c2dbff7effb5d"
+    },
+    {
+      "path": "src/assets/inc-js/MIGRATION_SUMMARY.md",
+      "bytes": 3930,
+      "sha256": "25f8323672cd4912e5e73f9b4cfa1df60c1502fdadafe9d6b2285912d6e2b0db"
+    },
+    {
+      "path": "src/assets/inc-js/README.md",
+      "bytes": 3543,
+      "sha256": "ad416f88961fa8e3335d98990853e3c85a08e400de04e494315183e1534d8669"
+    },
+    {
+      "path": "src/assets/inc-js/createuser.js",
+      "bytes": 1361,
+      "sha256": "d51517b2022ac511b2fb7dcf38c97a49c526868ac19658d774eff628d2a480af"
+    },
+    {
+      "path": "src/assets/inc-js/domain-registrations.js",
+      "bytes": 5545,
+      "sha256": "6f136b6ab37d93e2a8df99db546ec85840b399206efec2a7e7c71278a35bbef2"
+    },
+    {
+      "path": "src/assets/inc-js/domain-settings.js",
+      "bytes": 7345,
+      "sha256": "fe22b1f42136a066cb7cbf1a2a0e2bc64592655d3fa55380c716b85a9d8b2cee"
+    },
+    {
+      "path": "src/assets/inc-js/email-templates.js",
+      "bytes": 26547,
+      "sha256": "cf713b09015f6685354fead6cec350410f310ce793594369bbf762241f9a5d47"
+    },
+    {
+      "path": "src/assets/inc-js/inc-js-loader.js",
+      "bytes": 3576,
+      "sha256": "c7a7f8e34527556cffa766159d85db4c301b629b73a04b097a9f589b0bf26a1f"
+    },
+    {
+      "path": "src/assets/inc-js/logs.js",
+      "bytes": 569,
+      "sha256": "c3cf381f90c75ffca9493e49fb3d78b3999ee375f70e63f9b3b3e974cb5336b0"
+    },
+    {
+      "path": "src/assets/inc-js/resources.js",
+      "bytes": 3010,
+      "sha256": "13ed14fff5694222070ae90c0fbe8ae478b96224a487c51c2a64526133cdd660"
+    },
+    {
+      "path": "src/assets/inc-js/settings.js",
+      "bytes": 6784,
+      "sha256": "987c104331cbe220dc7ffb35009d9be4c9d473ac070becc5e0794c45c4485cc3"
+    },
+    {
+      "path": "src/assets/inc-js/system.js",
+      "bytes": 1214,
+      "sha256": "55ecc8886c29eea0013a22f77a020c9b48dcf953f212d9da9da71319fbd85f31"
+    },
+    {
+      "path": "src/assets/inc-js/users.js",
+      "bytes": 46892,
+      "sha256": "7214cb716a79a823339dd35e8497d61ad70d3f3364396b5373a999843408891e"
+    },
+    {
+      "path": "src/assets/index.js",
+      "bytes": 7764,
+      "sha256": "fa897cdc7bedc721863f200cc1ee06d959a65ed6a47373bdbb24eb1facbf21b9"
+    },
+    {
+      "path": "src/assets/install.css",
+      "bytes": 5024,
+      "sha256": "fc1dd0763caec8814de8d25f346247b1fa51fb38af2d1003d1ee007150456bb5"
+    },
+    {
+      "path": "src/assets/lazy-loading-main.js",
+      "bytes": 50254,
+      "sha256": "ebc99d99bdbf1c16b2660898f6bb0d2f7df8ceb3e509cc65f0a49d7a5cd79313"
+    },
+    {
+      "path": "src/assets/lazy-loading-main.js.bak",
+      "bytes": 30590,
+      "sha256": "02a1a809f2dd1ce970c12e34880dd058802e8d08d7563bd2775f85e864bc696f"
+    },
+    {
+      "path": "src/assets/lazy_loading.js",
+      "bytes": 17051,
+      "sha256": "7f72dbfa0faa358a080ce685aa61f9ce586a4639fdb6b70dcc59b8c03b836e4e"
+    },
+    {
+      "path": "src/assets/login.css",
+      "bytes": 4202,
+      "sha256": "e9d16c1f3f05add995939074e549de41f2acbf54cf423e9f57e2e2424ebc521b"
+    },
+    {
+      "path": "src/assets/main.css",
+      "bytes": 9177,
+      "sha256": "c50eb50142fe93225aad28ec40b22a6d4a59f2fd1d9893db27830daa2c52022c"
+    },
+    {
+      "path": "src/assets/main.js",
+      "bytes": 7273,
+      "sha256": "2be4b66b3c10e4aecb4c9ddefa3b35ff866c5035c1d58b66a0b34a2f761e93c9"
+    },
+    {
+      "path": "src/assets/main.png",
+      "bytes": 89626,
+      "sha256": "fbf870c757b28f91cc9eebe7784e10650ad4cec8fa7a2d63dd98ad5383134d13"
+    },
+    {
+      "path": "src/assets/session.js",
+      "bytes": 3092,
+      "sha256": "2d33c0e7be3fdd3d07b6e8df40469984189cd5977a2a0fcfaea396e5e6ab225c"
+    },
+    {
+      "path": "src/assets/setup.css",
+      "bytes": 5301,
+      "sha256": "6a387243618fe23d17bfdfae8e746e24ec0c2eaad5cbf5c15355208368d7e301"
+    },
+    {
+      "path": "src/auth.php",
+      "bytes": 23924,
+      "sha256": "c8be6f12b8ce19309a09f3c427b4b39e58550b9fb6c16877a49f71e98aa0c638"
+    },
+    {
+      "path": "src/auth_handler.php",
+      "bytes": 15564,
+      "sha256": "59a9eed4a68601e3424a9a48d40441a6062e73ca4fb49e03df297d47e139b8f3"
+    },
+    {
+      "path": "src/core/ActivityLogger.php",
+      "bytes": 4946,
+      "sha256": "488b90b2ab364f9a59e6621e5ba808cb53618c36265461dea1d8c41e45019bc1"
+    },
+    {
+      "path": "src/core/AdminCore.php",
+      "bytes": 58231,
+      "sha256": "2cb4e95d6ed48e3a1bab8dad464562dc8cf0a579bd68ffcccd7597db8948f8ca"
+    },
+    {
+      "path": "src/core/AdminHandler.php",
+      "bytes": 42889,
+      "sha256": "4b153d9ec9532eea81fad6b933e51c1ebf620cb191e0019b6d31c35cf1050a45"
+    },
+    {
+      "path": "src/core/DatabaseManager.php",
+      "bytes": 24002,
+      "sha256": "90a02effba82eb329224c76f8911e38bb89b080c5b0aef9bb6cff7e8769d3ef6"
+    },
+    {
+      "path": "src/core/DatabaseOnlyFramework.php",
+      "bytes": 31923,
+      "sha256": "5b6dbb5b3ed2abd32dbedfa0d568c9d714027a5b5236206c654bcc1108fdbf99"
+    },
+    {
+      "path": "src/core/EmailTemplateEditor.php",
+      "bytes": 6718,
+      "sha256": "0348a8fb92cb2eaa6536d1c074192ebd1bd1981611bc24b82a778b5cc44c6521"
+    },
+    {
+      "path": "src/core/EmailTemplateManager.php",
+      "bytes": 26387,
+      "sha256": "148803b0b9e961f692eae4d92ee80bdc53a4738b7b38a8abdbd73b7e06e8933f"
+    },
+    {
+      "path": "src/core/FileEditor.php",
+      "bytes": 31837,
+      "sha256": "217b3b28a4e1d02a1d6e48ab50841f8127aabc35638ad49f6de97822a494e724"
+    },
+    {
+      "path": "src/core/LanguageManager.php",
+      "bytes": 7608,
+      "sha256": "7463867ace8ad87c14d2addf2804f3640f6a93bdc6641b51710bf2ef63a57d03"
+    },
+    {
+      "path": "src/core/lang/README.md",
+      "bytes": 7220,
+      "sha256": "e51ad45c53168974fa2e92764ef04db60c22d40f35b1f4c6790e4b703f3c9ee0"
+    },
+    {
+      "path": "src/core/lang/de.xml",
+      "bytes": 105797,
+      "sha256": "ee5d395c23b073b733fe4a3460f005154a425f3bec46dc58746171ae6b3efb82"
+    },
+    {
+      "path": "src/core/lang/en.xml",
+      "bytes": 70538,
+      "sha256": "294b8fb81dbaf14688cc4971c542657cbee378c2ba704cbe2dc71cdea53b137f"
+    },
+    {
+      "path": "src/debug/index.php",
+      "bytes": 46617,
+      "sha256": "0613230224a093049be462a3fc328eee4105717b341e1d7028b8b946c8d591ba"
+    },
+    {
+      "path": "src/debug.php",
+      "bytes": 7088,
+      "sha256": "bd7d54ad70eadef211289140b9a71792c2bf3231a8865466a262bcc4ca557594"
+    },
+    {
+      "path": "src/download_zone.php",
+      "bytes": 1260,
+      "sha256": "842fe08529ebe69b0936e1c574cf449d0d942c0f297048661ef8680d607607d6"
+    },
+    {
+      "path": "src/handler.php",
+      "bytes": 8600,
+      "sha256": "edfc3b4dcc8521e1090852ce464a9a3a33dfb642eefd226934dbb9efc68093f8"
+    },
+    {
+      "path": "src/inc/admin.php",
+      "bytes": 9284,
+      "sha256": "190bd2d2537511767bc77b6d28f5e7e89622e921c6c59809629d893e100e61d7"
+    },
+    {
+      "path": "src/inc/createuser.php",
+      "bytes": 43450,
+      "sha256": "2fa2edf19c20672aeb72b1ffd9da60ea346da62703b633b3c750d95762cca63a"
+    },
+    {
+      "path": "src/inc/domain-registrations.php",
+      "bytes": 19396,
+      "sha256": "9f59b85754476e8be21a51569f621406ffcde3e66b99bfa2e957c971b703235b"
+    },
+    {
+      "path": "src/inc/domain-settings.php",
+      "bytes": 5423,
+      "sha256": "11d46edb0bd3b1d68b8038609a5b6f5c1113bbf70e54be1e06c6c558cb3861c3"
+    },
+    {
+      "path": "src/inc/email-templates.php",
+      "bytes": 21598,
+      "sha256": "d954bdad6337f8d3aade17f0216720888ed24a75ae467ac84bf617a5eb405bb9"
+    },
+    {
+      "path": "src/inc/logs.php",
+      "bytes": 5224,
+      "sha256": "c0f7a8dc4a653f3195299f1c2ab79cd0c518dae86f7a3cddb2f3c855dc303945"
+    },
+    {
+      "path": "src/inc/manualupdater.php",
+      "bytes": 156762,
+      "sha256": "5654764b7a250acab3a5c046b0fe2a825edc0b168b238dad133449e05f4d00da"
+    },
+    {
+      "path": "src/inc/module.php",
+      "bytes": 1368,
+      "sha256": "cb8cf866bc13f7d54a52cdf22179e006d2ef88b8ae344285c6dde68ea2680dce"
+    },
+    {
+      "path": "src/inc/profile.php",
+      "bytes": 6383,
+      "sha256": "8ecea463008112cf2d2841e2fcfb18a73fa42ab7a1e07935db45c7f830b16081"
+    },
+    {
+      "path": "src/inc/resources.php",
+      "bytes": 54057,
+      "sha256": "6ee4508a4d4744272cb59ab19eea05c98d331d7c7eab804ae38d7a9d0383a78f"
+    },
+    {
+      "path": "src/inc/settings.php",
+      "bytes": 39003,
+      "sha256": "843bb780802ab3cf4162d57abb1029935224e2ba8e0272d6ebde633ad0a778f2"
+    },
+    {
+      "path": "src/inc/system.php",
+      "bytes": 18849,
+      "sha256": "eca4ead378d7de636daf24c0ca74d23dacb79521f337d2b17ac9d663c89f6b17"
+    },
+    {
+      "path": "src/inc/users.php",
+      "bytes": 158927,
+      "sha256": "d1bc0e4b673394c0ff305572586937cd249a3b8d3f03d94f3099604c6d7e18ba"
+    },
+    {
+      "path": "src/index.php",
+      "bytes": 54284,
+      "sha256": "3be398f42d83e2746642a5faa50c6a64aabfd15e805739f95d47c2d54bfad53b"
+    },
+    {
+      "path": "src/info.php",
+      "bytes": 3498,
+      "sha256": "6c45ce0f5bc1d27f094d9a7d1ebf41fc0ba3c62397773350ea6c2e7ee9a0b996"
+    },
+    {
+      "path": "src/install.php",
+      "bytes": 36923,
+      "sha256": "8cf0036f64b1eda70eac29d8f501c291d937f07766ab96b6c599bc9c9225d8fd"
+    },
+    {
+      "path": "src/login.php",
+      "bytes": 4143,
+      "sha256": "f607329bad72c27edaaf54e21f0fdc03f1e9c5f1aaf4349c375dc19aada783e9"
+    },
+    {
+      "path": "src/module/ModuleBase.php",
+      "bytes": 14453,
+      "sha256": "6bf3f93fbbbc255510a22e2ad4626e6226d45585fd851e493f768ef95e0dad2d"
+    },
+    {
+      "path": "src/module/admin/Module.php",
+      "bytes": 30278,
+      "sha256": "050db59b833860d3f3f4f75ba4874dae6765a61640e7f125efac3d4dd5fd892d"
+    },
+    {
+      "path": "src/module/admin/assets/admin-ogp.css",
+      "bytes": 5743,
+      "sha256": "0c9886e915def8db611d91fddce56630e1af3b1ea34962ebb230155f08389d51"
+    },
+    {
+      "path": "src/module/admin/assets/admin-ogp.js",
+      "bytes": 14401,
+      "sha256": "cc8b4f9608787c42ae4b1013f5bf40d65f42a72a54e1005a6099956602ba70da"
+    },
+    {
+      "path": "src/module/admin/lang/de.xml",
+      "bytes": 6105,
+      "sha256": "f3bbf1dd966e1bc44624edc56cf20f4f83362547bce44a9d68a86920cf764137"
+    },
+    {
+      "path": "src/module/admin/lang/en.xml",
+      "bytes": 5799,
+      "sha256": "43cf568c6eedf99d748cc359d665bdb8d5103fb6e95357652acb0f32485d707c"
+    },
+    {
+      "path": "src/module/admin/templates/main.php",
+      "bytes": 459,
+      "sha256": "09375bbb25761b327d98ad05b2a70ba0d6f5b7e0745d059fbf453b684c938b60"
+    },
+    {
+      "path": "src/module/admin/templates/parts/footer.php",
+      "bytes": 20569,
+      "sha256": "e2cdd972c7375d9b13fa76f1b0ae6863153c3fea0f6bf67231cef2128e42d4a4"
+    },
+    {
+      "path": "src/module/admin/templates/parts/header.php",
+      "bytes": 14224,
+      "sha256": "b744b1da304ebe284c57dcee9fa8baea13e5ca920bbe9c41f9e0c4cec352cf4f"
+    },
+    {
+      "path": "src/module/admin/templates/tabs/resources-tab.php",
+      "bytes": 13121,
+      "sha256": "404988d3a4853d3a8415997934505e135b8387e962bb9d428587b1bb36c4ceae"
+    },
+    {
+      "path": "src/module/admin/templates/tabs/system-logs-tab.php",
+      "bytes": 3105,
+      "sha256": "53ffeb0b536b8a50a6617c77413f1cf61b31fca46f0440f73f27ca3c4de5eb22"
+    },
+    {
+      "path": "src/module/custom-module/Module.php",
+      "bytes": 521,
+      "sha256": "ebd5be818dae3f34607e2c74014b3dc50355ebc2f30a34ed0f0a4cd463a603ed"
+    },
+    {
+      "path": "src/module/custom-module/lang/de.xml",
+      "bytes": 1322,
+      "sha256": "d3840d5b501e8c5daa5cb7f6ad05622c5549a8c34dc204f756060505f33dc24b"
+    },
+    {
+      "path": "src/module/custom-module/lang/en.xml",
+      "bytes": 1199,
+      "sha256": "f4c2279e4dc6c6c747d3c352e5b08a13169b4eafb57c33d1b4c2e2cfef6ec9c7"
+    },
+    {
+      "path": "src/module/custom-module/templates/main.php",
+      "bytes": 3357,
+      "sha256": "1c4c1f9b74b37eea19fd3d6777fbf02c6edb5be543c855a448480ee1c2b34017"
+    },
+    {
+      "path": "src/module/database/Module.php",
+      "bytes": 3527,
+      "sha256": "9d079f5439706dd04bd41270b1df2a7d851346015cf417a3c0bafd432f0c7c8d"
+    },
+    {
+      "path": "src/module/database/README.md",
+      "bytes": 6326,
+      "sha256": "c3ab0dd17dd8e49a45e2011520c121a8eab5b7bb5270e2e080616d3af2ce198d"
+    },
+    {
+      "path": "src/module/database/lang/de.xml",
+      "bytes": 3436,
+      "sha256": "8d2006a00bfe074ceb6160ac70111171e119d68af52d0149c4dc318a75205ec9"
+    },
+    {
+      "path": "src/module/database/lang/en.xml",
+      "bytes": 3138,
+      "sha256": "c6f913ca48179fa84dfc05d4a17f8ad9cdf1b10b5beb5ed6dfa8a833524bf156"
+    },
+    {
+      "path": "src/module/database/templates/main.php",
+      "bytes": 6574,
+      "sha256": "78b1a15e046518013ec2f599a40919a326cb33920731a5533b01fa2d2b0c7b02"
+    },
+    {
+      "path": "src/module/dns/Module.php",
+      "bytes": 38683,
+      "sha256": "ed5576495f38e015f3ed901fc61403b76c9a92ab2f1cb28022112c76558c6d3a"
+    },
+    {
+      "path": "src/module/dns/assets/module.js",
+      "bytes": 62166,
+      "sha256": "8322565c8c749b7b82be1dd15538951c02bb2c922467c57ad3ad6e33dde2050d"
+    },
+    {
+      "path": "src/module/dns/assets/style.css",
+      "bytes": 4688,
+      "sha256": "db10bef46dbf04d12cc78c6462c83fb6a3ce465d470463808f13752308bc08a5"
+    },
+    {
+      "path": "src/module/dns/lang/de.xml",
+      "bytes": 12052,
+      "sha256": "4412a868cb9a9a9ad69e9583bce16708d001f1d27b77cb34a988890a1eebc9aa"
+    },
+    {
+      "path": "src/module/dns/lang/en.xml",
+      "bytes": 11378,
+      "sha256": "e579fb2c8f56e9bd6c91d2ea4290216780ec30ac2cab5e119ccd46c28d617d09"
+    },
+    {
+      "path": "src/module/dns/templates/main.php",
+      "bytes": 19260,
+      "sha256": "4f047a85ce17705fc9e20fdc8c91b61a3def698e89150dc848bfec898f068b5c"
+    },
+    {
+      "path": "src/module/email/Module.php",
+      "bytes": 5226,
+      "sha256": "bbbc4dbf72a24e729c8e4bf1ba7fb0dfcb1c09ef8beff086c536d2084b2cb368"
+    },
+    {
+      "path": "src/module/email/README.md",
+      "bytes": 8671,
+      "sha256": "db32cd6b270564a5dfc532725a7e224f84b8b926150a811b01b6616895e0744a"
+    },
+    {
+      "path": "src/module/email/lang/de.xml",
+      "bytes": 3877,
+      "sha256": "05e830a5e716fdf1ee3a4b5a453a1b347bbc54e6838dea7d6024a035db02cd5c"
+    },
+    {
+      "path": "src/module/email/lang/en.xml",
+      "bytes": 3573,
+      "sha256": "d6e3f872fa2fa0af1504a1ce4d92e107384fd24820f4f7187c0bf858c64f5361"
+    },
+    {
+      "path": "src/module/email/templates/main.php",
+      "bytes": 11254,
+      "sha256": "a04d6b0ef4f5ee1ca37baf1ef8c8901baa63e57ab6c209bd000ac8564daaa2b1"
+    },
+    {
+      "path": "src/module/endpoints/Module.php",
+      "bytes": 12649,
+      "sha256": "98f13f4393d94d29e6569b0bac3ce4e688bbc75aa4f62d4cb458432ff364046c"
+    },
+    {
+      "path": "src/module/endpoints/README.md",
+      "bytes": 9062,
+      "sha256": "4c00199c20c105b1b43b820c74adaeac6a23f3d9868343a897702c3cb1b9268e"
+    },
+    {
+      "path": "src/module/endpoints/assets/module.js",
+      "bytes": 11508,
+      "sha256": "bf27ff4b19889fcc0f0bf47dcabac5fbee491601978dd5f670b23b98f38d587a"
+    },
+    {
+      "path": "src/module/endpoints/lang/de.xml",
+      "bytes": 7287,
+      "sha256": "4b4d78285f81d9ed5b801a03baf9836b268b3c53d4ae7fe354017a451cf50c70"
+    },
+    {
+      "path": "src/module/endpoints/lang/en.xml",
+      "bytes": 4105,
+      "sha256": "a87beb699aa1db367a4ac8c2e5a2eb7f4801395e54a7e2eb97e63b753ddf02bf"
+    },
+    {
+      "path": "src/module/endpoints/templates/main.php",
+      "bytes": 3511,
+      "sha256": "08d5766a4e923569aec5fc83de64c0163c250f02a625fc6816b5847a39924892"
+    },
+    {
+      "path": "src/module/endpoints/templates/sections/database.php",
+      "bytes": 1192,
+      "sha256": "189673102e3feed3ddacab45fa70dbd71134c89ae2992f98e448044031e92cde"
+    },
+    {
+      "path": "src/module/endpoints/templates/sections/email.php",
+      "bytes": 1206,
+      "sha256": "aa8cdf6c7f47b76552d7239bcca99d8b0e5eaa9866f7e40e9404b429edbb4b89"
+    },
+    {
+      "path": "src/module/endpoints/templates/sections/ispconfig.php",
+      "bytes": 1519,
+      "sha256": "8ba06f57623a3eddeb5cc74f755e7c6737e523b92d4540a091002931d179b342"
+    },
+    {
+      "path": "src/module/endpoints/templates/sections/ogp.php",
+      "bytes": 1418,
+      "sha256": "6294c5abec8d7a1cc2c70264e1d6a4cc5b8c9cabf6a169030e4e4268916b6322"
+    },
+    {
+      "path": "src/module/endpoints/templates/sections/ovh.php",
+      "bytes": 2784,
+      "sha256": "a598f35b40f97a4ab51fe2ef6efa172029ba9c4571b7875160a0d0f5f2d28c3f"
+    },
+    {
+      "path": "src/module/endpoints/templates/sections/proxmox.php",
+      "bytes": 1811,
+      "sha256": "f4d4ceb79728e7fb42a959b20108c729cd00369b7f51ac222c7333c1680d9804"
+    },
+    {
+      "path": "src/module/endpoints/templates/sections/system.php",
+      "bytes": 719,
+      "sha256": "c6397718154336e778e08afd8d37a2115171b5da6b1eaf69c299d9048c2fa6bb"
+    },
+    {
+      "path": "src/module/endpoints/templates/sections/virtual-mac.php",
+      "bytes": 2385,
+      "sha256": "b2e7d1813b8b719f88be33c3856120971ac2868c7bdc5cd3cf64c2ecd7e7cad3"
+    },
+    {
+      "path": "src/module/file-editor/Module.php",
+      "bytes": 9019,
+      "sha256": "8d75a960b133ea4972b110df07c626c2f6763c00197e2a5878342251becd5ef9"
+    },
+    {
+      "path": "src/module/file-editor/lang/de.xml",
+      "bytes": 2060,
+      "sha256": "b596319e78e93627d9f16beb20505693cc9b026ab99f39cb381e3f869c14a018"
+    },
+    {
+      "path": "src/module/file-editor/lang/en.xml",
+      "bytes": 1912,
+      "sha256": "bc3cca28602fb1b5f0070bfa749c491b26908f4d189d7166d8b593a7c58eaee9"
+    },
+    {
+      "path": "src/module/file-editor/templates/main.php",
+      "bytes": 30048,
+      "sha256": "afd84f74d94e3978bf3a319a5b258f37499eac68f0f98f7224da2d036aa1124d"
+    },
+    {
+      "path": "src/module/ispconfig/Module.php",
+      "bytes": 67591,
+      "sha256": "168fad5a58d12f3b478a8e81c4d6ecefb5defef07327a0d8eff06fa9feb4b1f9"
+    },
+    {
+      "path": "src/module/ispconfig/assets/dns-management.js",
+      "bytes": 18390,
+      "sha256": "57717e6f968214f2d5c847e2da6a380cc9955dac9af7697989a270e0e5efc485"
+    },
+    {
+      "path": "src/module/ispconfig/assets/domain-management.js",
+      "bytes": 24906,
+      "sha256": "728d23415ab6d7e8d9d00f93f26a4c3113d57b9b10443537bc352126fecaf854"
+    },
+    {
+      "path": "src/module/ispconfig/assets/module.js",
+      "bytes": 9124,
+      "sha256": "2ed3aa5d03762a5a0f889153dd858f6275b644ae0cc90d83023485df410d0018"
+    },
+    {
+      "path": "src/module/ispconfig/assets/user-management.js",
+      "bytes": 19329,
+      "sha256": "7292f6f602df199109eb84efd85c196d7713d7ce198d65142da4dfe47d6a3e8c"
+    },
+    {
+      "path": "src/module/ispconfig/lang/de.xml",
+      "bytes": 13468,
+      "sha256": "e22218869e82e15cc45b1c8ea486761f676db536b9d857ce88e086f5ec3b0d13"
+    },
+    {
+      "path": "src/module/ispconfig/lang/en.xml",
+      "bytes": 12181,
+      "sha256": "6f383a9ee1b2e5e91938d7b8000058577932e2d6932e7125e4badc1fcbad6c37"
+    },
+    {
+      "path": "src/module/ispconfig/strukturdatei.md",
+      "bytes": 4678,
+      "sha256": "ca73dccd0c2670163cb49a2983547dfc5a688c491ad72801d4c45ebba99145ff"
+    },
+    {
+      "path": "src/module/ispconfig/templates/main.php",
+      "bytes": 794,
+      "sha256": "f6349a4072a0529505675bf293d60ef0141a0e385006b00506e283a7819d1ce9"
+    },
+    {
+      "path": "src/module/ispconfig/templates/modals/dns-management.php",
+      "bytes": 9173,
+      "sha256": "54f21f1b6030c2c51d0b7bb92127c720287c44a01012928abb33a7e1146397d1"
+    },
+    {
+      "path": "src/module/ispconfig/templates/modals/domain-management.php",
+      "bytes": 8356,
+      "sha256": "e4dc62538af87d02e901d407b43b158678c5524b5b75485e891ba342f7a8b88b"
+    },
+    {
+      "path": "src/module/ispconfig/templates/modals/user-management.php",
+      "bytes": 6160,
+      "sha256": "26f14c28c276e92d167985b67005c698e4c3a5bc24787dda21cde8fed8726637"
+    },
+    {
+      "path": "src/module/ispconfig/templates/parts/footer.php",
+      "bytes": 342,
+      "sha256": "8e617abfc0d55a81cf225918e9fba04ce41e4609949b4190a8a9223dbee144e5"
+    },
+    {
+      "path": "src/module/ispconfig/templates/parts/header.php",
+      "bytes": 610,
+      "sha256": "32dd7520a0a390c62ec076e91f3809ebe06ebc718526958c15eeab887b858b29"
+    },
+    {
+      "path": "src/module/ispconfig/templates/tabs/domain-management-tab.php",
+      "bytes": 4471,
+      "sha256": "3a1305ecbc6856786ce081212bddfde523a8375cd174f560d0ef47446c611ba2"
+    },
+    {
+      "path": "src/module/ispconfig/templates/tabs/user-management-tab.php",
+      "bytes": 3740,
+      "sha256": "590bbd789706d6cc53ca382dbc564723bb567b2f6e9dd7f488fb9edc184042c8"
+    },
+    {
+      "path": "src/module/ispconfig/templates/tabs/websites-tab.php",
+      "bytes": 3799,
+      "sha256": "184a5315dc637670efc871380bb2a9684822107613793a5130fdbba2dd36d89b"
+    },
+    {
+      "path": "src/module/lang/README.md",
+      "bytes": 7284,
+      "sha256": "46f8f1c896c6717c49dfecc2f9d2ae922a5354e5eef437f9a7cbcc5be7e42a67"
+    },
+    {
+      "path": "src/module/migration/Module.php",
+      "bytes": 15476,
+      "sha256": "a518f2da7ad51557f3af0ba43bb598f738866e0b76e77aa123929496eaacad1a"
+    },
+    {
+      "path": "src/module/migration/assets/migration.js",
+      "bytes": 20632,
+      "sha256": "7fe90b2dd550d8b5c5429469463fe14d4353a2e19d8aa5e27667a2e2710669e0"
+    },
+    {
+      "path": "src/module/migration/lang/de.xml",
+      "bytes": 5429,
+      "sha256": "84d6ce9e1d82eb118ab190890ed8db6049c0f82b680860dff3ed3a0252529d2e"
+    },
+    {
+      "path": "src/module/migration/lang/en.xml",
+      "bytes": 5094,
+      "sha256": "e08340d407542c0712dcd8b5db282913e30bab8102256992e708a07219691334"
+    },
+    {
+      "path": "src/module/migration/templates/main.php",
+      "bytes": 10315,
+      "sha256": "124c309f53a4ec90b9383b3c5fe424f3bcd9170c32b6786dfd7ed2bb4dd781de"
+    },
+    {
+      "path": "src/module/module-readme.md",
+      "bytes": 6325,
+      "sha256": "d2fb575f9111aa2a120bd227787bbbc7567226a2e0116f74e59193179e6c527e"
+    },
+    {
+      "path": "src/module/network/Module.php",
+      "bytes": 3018,
+      "sha256": "f932198cc37e10dd7959ce14881ad44fa5c223502db5a930139fd4a984e3c6a4"
+    },
+    {
+      "path": "src/module/network/lang/de.xml",
+      "bytes": 2971,
+      "sha256": "1f4c7ffa6c5a2dd48ebe1a6ce69fed09409d0ef6229828d448734f3c5e50913e"
+    },
+    {
+      "path": "src/module/network/lang/en.xml",
+      "bytes": 2676,
+      "sha256": "0009d701f5ef02800b2a4272d1d724ebbd2ea04b1762f487c400304db6148adc"
+    },
+    {
+      "path": "src/module/network/templates/main.php",
+      "bytes": 5014,
+      "sha256": "60835cdd7bf06d2826f83d85882414a34e3a4fc7a6b177e9182809120fef3ea7"
+    },
+    {
+      "path": "src/module/ovh/Module.php",
+      "bytes": 17800,
+      "sha256": "d675e3b77b32e35659b73919ba2015f4848e4c750c27c199ad402c85444c65de"
+    },
+    {
+      "path": "src/module/ovh/assets/module.js",
+      "bytes": 10853,
+      "sha256": "350b788c1fcb8988bf3d7fbf9fadb32267c14a4bae97a47afb2b1f1a2f18d52a"
+    },
+    {
+      "path": "src/module/ovh/lang/de.xml",
+      "bytes": 5106,
+      "sha256": "adfcb8f83cfdacface14d6575951fabaf340bc937798b196d12a8f770adda3c9"
+    },
+    {
+      "path": "src/module/ovh/lang/en.xml",
+      "bytes": 4982,
+      "sha256": "a60055a962936abc3163b37a0b22dee21881de501423612afe0a2e2643a23ec4"
+    },
+    {
+      "path": "src/module/ovh/templates/main.php",
+      "bytes": 11442,
+      "sha256": "30b1b91ce05df81f5e280c3771983e7998fe336cd054fed9b79f98a469d6371f"
+    },
+    {
+      "path": "src/module/proxmox/Module.php",
+      "bytes": 25536,
+      "sha256": "fb2900e67017d00b99b210887d35caedbf423bb98e7a46d13975154228aa8fad"
+    },
+    {
+      "path": "src/module/proxmox/README.md",
+      "bytes": 3789,
+      "sha256": "554b14adb694da9519e3e4f749b60fa93de98add902aad1428bac19c84bc3c4c"
+    },
+    {
+      "path": "src/module/proxmox/debug_helper.php",
+      "bytes": 8239,
+      "sha256": "fd0d6d73f217fb3e601cc31f5c480f21425972037d3934b55f343256821bb562"
+    },
+    {
+      "path": "src/module/proxmox/lang/de.xml",
+      "bytes": 9020,
+      "sha256": "f3d2324e154ff30e65d6e5d3115665bacfb236f444f42bfd16811a1b653bb7bd"
+    },
+    {
+      "path": "src/module/proxmox/lang/en.xml",
+      "bytes": 8430,
+      "sha256": "68222ec149382d2d52a00818d2fbae31776b25c839983af47777e338582e4525"
+    },
+    {
+      "path": "src/module/proxmox/templates/assets/proxmox-confirmation.js",
+      "bytes": 6728,
+      "sha256": "f698d444f5940d55ea470889153c7cc829a79dffe05605189864dc72bf01e645"
+    },
+    {
+      "path": "src/module/proxmox/templates/assets/proxmox-core.js",
+      "bytes": 18519,
+      "sha256": "dc6f0996b2c39d5037b443ce4a969683c7d5a7ec6f97ab52a5fb163093c9d04b"
+    },
+    {
+      "path": "src/module/proxmox/templates/assets/proxmox-extended-features.js",
+      "bytes": 2556,
+      "sha256": "dae2d3663fe39092673641298264ef103ef6715c8a9124bc0c44c8d0bb196b69"
+    },
+    {
+      "path": "src/module/proxmox/templates/assets/proxmox-init.js",
+      "bytes": 244,
+      "sha256": "fa5de0c3491ec4f668f306fd7edde60666f150583740c999ac95e6a4ef47b839"
+    },
+    {
+      "path": "src/module/proxmox/templates/assets/proxmox-node-selection.js",
+      "bytes": 23897,
+      "sha256": "be67b5c39e336ad28c3be85a6c0e6cf101655668c8826ce0f72682fbea8006d5"
+    },
+    {
+      "path": "src/module/proxmox/templates/assets/proxmox-server-list.js",
+      "bytes": 74352,
+      "sha256": "a5de06dae24c33bb83055ed1dc81995f11069acfc6793acad53cede92206a9b9"
+    },
+    {
+      "path": "src/module/proxmox/templates/assets/proxmox-server-management.js",
+      "bytes": 19551,
+      "sha256": "88c8b0772a425db9dd729fb6d00aeb4194ff40d4f171a6712761b4ed60f08b8e"
+    },
+    {
+      "path": "src/module/proxmox/templates/assets/proxmox-vm-creation.js",
+      "bytes": 12001,
+      "sha256": "401eb20cf09a34198d19d0d29b8c5a9efa5276597764b38ad511cfd2783617ff"
+    },
+    {
+      "path": "src/module/proxmox/templates/main.php",
+      "bytes": 1709,
+      "sha256": "468c55267fd6d7890b9a1bfcd6530e0f20b0a09b740d5b9f5a3c7965637d4858"
+    },
+    {
+      "path": "src/module/proxmox/templates/modals/confirmation_modal.php",
+      "bytes": 1208,
+      "sha256": "280b385c2cac25920034ccfdf7785749b9b3d8b010b63427b2e2fc2430ad0a90"
+    },
+    {
+      "path": "src/module/proxmox/templates/modals/create_vm.php",
+      "bytes": 6279,
+      "sha256": "faa55f85a82cfe99d6fd65b9877c5e25df702e13dfa6a22a36197396fead04c2"
+    },
+    {
+      "path": "src/module/proxmox/templates/modals/edit_server.php",
+      "bytes": 2979,
+      "sha256": "7790d1abd1092ba459a945ffe7d77cbc2ab439a89cf7ceffc15491730fe3192b"
+    },
+    {
+      "path": "src/module/proxmox/templates/modals/server_management.php",
+      "bytes": 932,
+      "sha256": "c57feee82c4619f0d282ccb7d980513aa2f6763570aae1e7a6eb36c3bd9f38c9"
+    },
+    {
+      "path": "src/module/proxmox/templates/parts/footer.php",
+      "bytes": 688,
+      "sha256": "a961704a8d24db8887f11c2ffd9922762f916b42c983ffbc4cd0c9c09069d117"
+    },
+    {
+      "path": "src/module/proxmox/templates/parts/header.php",
+      "bytes": 429,
+      "sha256": "f089b75a7de48896440c8fbd8fc788939a3d26737840f42aa08829dcc391d50a"
+    },
+    {
+      "path": "src/module/proxmox/templates/tabs/edit_server.php",
+      "bytes": 8059,
+      "sha256": "e684b44e87332911a2805f57c10a60f8a47275eea947d552c0090103983ede12"
+    },
+    {
+      "path": "src/module/proxmox/templates/tabs/extended_features.php",
+      "bytes": 3377,
+      "sha256": "ccfaaee63266843c2b85b880873267824b0397f4b0405ed71cceb0f351f57d10"
+    },
+    {
+      "path": "src/module/proxmox/templates/tabs/lxc.CSV",
+      "bytes": 6135,
+      "sha256": "496fc9d7e2ea45a9b195d82c6c1ae466878860158fd721cb42892c2d2ffa0002"
+    },
+    {
+      "path": "src/module/proxmox/templates/tabs/node_selection.php",
+      "bytes": 681,
+      "sha256": "4fb24556dadbc967e87a5a39c634f71ff5697ebc86e3a396be2fd7b84a389c0b"
+    },
+    {
+      "path": "src/module/proxmox/templates/tabs/server_list.php",
+      "bytes": 2042,
+      "sha256": "c3975dc1e14530b2bf9080122c607997633d9622362cd02c5ce18722d0480870"
+    },
+    {
+      "path": "src/module/proxmox/templates/tabs/server_management.php",
+      "bytes": 1819,
+      "sha256": "8ddef901ebeca68b4e2722a13ae0ccb8a317eee08de6604fe81449d75ea82ccc"
+    },
+    {
+      "path": "src/module/proxmox/templates/tabs/vm.CSV",
+      "bytes": 19841,
+      "sha256": "c1724927174c3038a33ecd14e1ca8585ed81090252adc466d9f22a15ddbac44d"
+    },
+    {
+      "path": "src/module/proxmox/templates/tabs/vm_creation.php",
+      "bytes": 44317,
+      "sha256": "382a64787219934cfe4f3b17843098ccde084a260be65730c987a3405ed65255"
+    },
+    {
+      "path": "src/module/support-tickets/Module.php",
+      "bytes": 32784,
+      "sha256": "b7e10d8c295e96ffdafb5ae4cbb9d2b3c7921f4d4f0218c315674a7974fda762"
+    },
+    {
+      "path": "src/module/support-tickets/README.md",
+      "bytes": 7148,
+      "sha256": "a7e2f438950304de61ebf5cb40c080e5d363fbf713ef1c469418ebe22ef2ba10"
+    },
+    {
+      "path": "src/module/support-tickets/assets/module.css",
+      "bytes": 6452,
+      "sha256": "aa83910648e37bfe95be205c8ea11114d4bbb5674300b8a1995f71a70d883dbb"
+    },
+    {
+      "path": "src/module/support-tickets/assets/module.js",
+      "bytes": 27550,
+      "sha256": "b8f0b2a0fde98e87ea10a1d679ef592de95d2e1a125372c3805af574b2352afe"
+    },
+    {
+      "path": "src/module/support-tickets/config.php",
+      "bytes": 1184,
+      "sha256": "29b7cb104835d04a84dfa0ed5218680688703e6cc6396f7452b52ecfdf24a9fe"
+    },
+    {
+      "path": "src/module/support-tickets/lang/de.xml",
+      "bytes": 12246,
+      "sha256": "bc9bf8dbf20b4796d4aef190bdea5b658996c387d4224e91f84b74de181dcfef"
+    },
+    {
+      "path": "src/module/support-tickets/lang/en.xml",
+      "bytes": 11494,
+      "sha256": "e9d7bcf3c98d817dc62fdffaeb6d4824d8603a46f4e44120038ec6043188fae2"
+    },
+    {
+      "path": "src/module/support-tickets/templates/main.php",
+      "bytes": 38591,
+      "sha256": "030204f0bd4623d910f7ab6e04edd6fe2164585bea93c7066e21f9fab0e3f469"
+    },
+    {
+      "path": "src/module/virtual-mac/Module.php",
+      "bytes": 21522,
+      "sha256": "1912fa97e82f38c2b2a70e3316e4651bdf6b53cb359389c52f6542f5adf04c5a"
+    },
+    {
+      "path": "src/module/virtual-mac/assets/module.js",
+      "bytes": 5496,
+      "sha256": "501af140cf75d97d66156cd21bb3f10c1f0e51b82c9053bcbfe333a12b42c782"
+    },
+    {
+      "path": "src/module/virtual-mac/lang/de.xml",
+      "bytes": 5491,
+      "sha256": "7f68b1ef493be1d1d93395a9e7e5b085afe8a82b18bb90511d7054ea74bdc44c"
+    },
+    {
+      "path": "src/module/virtual-mac/lang/en.xml",
+      "bytes": 5530,
+      "sha256": "4ae7e6ca458310b2db324eb2c5b5acd94721b936abb85aeb8d91b6ed3a43fe66"
+    },
+    {
+      "path": "src/module/virtual-mac/templates/main.php",
+      "bytes": 17448,
+      "sha256": "4bfd63e634ae56321ae835b4d66d3ffb7b6a525fdd06ba0e8bf58c11c3b35cce"
+    },
+    {
+      "path": "src/password_change.php",
+      "bytes": 13247,
+      "sha256": "dc9118bc1977627342cc93f28b0bb5a2e593086d8129f2c5a8c9771e17048a0f"
+    },
+    {
+      "path": "src/setup.php",
+      "bytes": 10049,
+      "sha256": "b7ea0f06c20ac8ba13ee0bebe4cd480b414a8c1113f0a463cf90e39bdf59fff4"
+    },
+    {
+      "path": "src/sys.conf.php",
+      "bytes": 12259,
+      "sha256": "98ab2fb8debd6d01ec4752acaf5bcfc57313badae8cd97757c1677e0fa5995f0"
+    },
+    {
+      "path": "src/update.php",
+      "bytes": 56891,
+      "sha256": "3551d13e561c156f6cba5db00be3b8cefc1c7a0b276105c1c59ac13b178697bb"
+    },
+    {
+      "path": "test.php",
+      "bytes": 889,
+      "sha256": "a84dd497a2561e5544e3cff606cc8c49abba5fe3f6410c452d45e48f5dd167f7"
+    }
+  ]
+}
