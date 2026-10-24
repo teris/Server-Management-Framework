@@ -6,7 +6,8 @@
  * @version 3.1.2
  */
 
-require_once '../framework.php';
+require_once __DIR__ . '/sys.conf.php';
+require_once __DIR__ . '/../framework.php';
 require_once 'auth_handler.php';
 require_once 'sys.conf.php';
 
@@ -179,7 +180,7 @@ $user_info = SessionManager::getUserInfo();
             line-height: 1.4;
         }
     </style>
-</head>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="assets/security.js"></script></head>
 <body>
     <div class="container">
         <div class="password-container">
@@ -220,7 +221,7 @@ $user_info = SessionManager::getUserInfo();
                 </ul>
             </div>
             
-            <form method="POST" id="passwordForm">
+            <form method="POST" id="passwordForm"><?php echo HttpSecurity::csrfField(); ?>
                 <input type="hidden" name="action" value="change_password">
                 
                 <div class="form-group">

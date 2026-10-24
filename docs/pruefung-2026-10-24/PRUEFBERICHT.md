@@ -1,10 +1,12 @@
 # Framework-Prüfung und Verbesserungsplan
 
-Stand: **24.10.2026** · geprüfter lokaler Ausgangsstand: **3.2.7** · Status: **Analyse abgeschlossen, Umsetzung offen**
+Stand: **24.10.2026** · geprüfter lokaler Ausgangsstand: **3.2.7** · Status dieses Ausgangsberichts: **historische Analyse vor Umsetzung**
 
 Das Framework besitzt eine brauchbare fachliche Basis für Server-, Hosting- und Domainverwaltung. Vor einer neuen produktiven Veröffentlichung müssen jedoch mehrere zentrale Zugriffs- und Updatefehler behoben werden. Der Ausbau sollte in kleinen überprüfbaren Schritten erfolgen. Das bestehende Projekt **„Online Shop“** liefert bereits viele der benötigten Shopfunktionen und wird als Ausgangsbasis für deren Modularisierung eingeplant.
 
 Diese Unterlagen enthalten die Prüfung und Planung. Anwendungscode, produktive Daten, Provider-Ressourcen und bestehende Veröffentlichungen wurden dabei nicht verändert. Isolierte Laufzeitproben verwendeten eine Kopie unter /tmp, eine lokale SQLite-Datei, deaktivierte Provider und harmlose Testdateien.
+
+**Aktueller Stand:** AP01–AP09 wurden anschließend lokal umgesetzt und geprüft. Änderungen, gesperrte Funktionen und Prüfgrenzen stehen im [Umsetzungsbericht](UMSETZUNG-AP01-AP09.md). Befunde und Zeilenbelege hier beschreiben weiterhin den ursprünglichen Stand 3.2.7.
 
 ## Direkt weiterarbeiten
 

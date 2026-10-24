@@ -1,37 +1,8 @@
 <?php
-/**
- * Server Management Framework
- * 
- * @author Teris
- * @version 3.1.4
- */
-?>
-<div id="plugin-area">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    
-                        <?php 
-                        if(isset($_GET['mod'])){    
-                            $mod_key = $_GET['mod'];
-                            $module_file = __DIR__ . '/../module/'.$mod_key.'/templates/main.php';
-                            
-                            if (file_exists($module_file)) {
-                                include($module_file);
-                            } else {
-                                echo '<div class="alert alert-danger text-center">';
-                                echo 'Module template not found: ' . htmlspecialchars($module_file);
-                                echo '</div>';
-                            }
-                        } else {
-                            echo '<div class="alert alert-info text-center">';
-                            echo function_exists('t') ? t('select_module_from_tabs_above') : 'Bitte wählen Sie ein Modul aus den Tabs oben aus.';
-                            echo '</div>';
-                        }
-                        ?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+$key = $_GET['mod'] ?? '';
+if (!is_string($key) || !in_array($key, ResourceAccess::MODULES, true)) HttpSecurity::abort(404, 'Modul nicht gefunden.');
+ResourceAccess::requireLegacyModule($key);
+$selected = ModuleLoader::getInstance()->getModule($key);
+if (!$selected) HttpSecurity::abort(404, 'Modul nicht gefunden.');
+echo $selected->getContent();

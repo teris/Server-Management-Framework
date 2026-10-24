@@ -81,9 +81,8 @@ function startSessionHeartbeat() {
         fetch('?heartbeat=1')
             .then(response => response.json())
             .then(data => {
-                if (!data.success && data.redirect) {
-                    window.location.href = data.redirect;
-                }
+                if (!data.success) window.location.href = data.redirect || 'login.php';
+                else if (window.sessionInfo && Number.isFinite(data.remaining)) window.sessionInfo.timeRemaining = data.remaining;
             })
             .catch(error => {
                 console.warn('Heartbeat failed:', error);

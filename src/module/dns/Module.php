@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * DNS Module - Serverseitiges Rendering
  * Verwaltung von DNS-Einstellungen für OVH-Domains
@@ -17,6 +19,7 @@ class DnsModule extends ModuleBase {
     private $actionResult = null;
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         // Diese Methode wird nur für das initiale Laden verwendet
         // Alle Aktionen werden über AJAX verarbeitet
         
@@ -573,27 +576,10 @@ class DnsModule extends ModuleBase {
      * Generiert Download-URL für Zone-Datei
      */
     private function generateDownloadUrl($domain, $zoneContent) {
-        // Erstelle temporäre Datei
-        $filename = $domain . '_dns_zone.txt';
-        $filepath = sys_get_temp_dir() . '/' . $filename;
-        
-        if (file_put_contents($filepath, $zoneContent) === false) {
-            return null;
-        }
-        
-        // Generiere Download-URL - verwende absolute URL
-        $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'];
-        
-        // Bestimme den korrekten Pfad
-        $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
-        if ($scriptDir === '/' || $scriptDir === '\\') {
-            $scriptDir = '';
-        }
-        
-        $baseUrl = $protocol . '://' . $host . $scriptDir;
-        
-        return $baseUrl . '/download_zone.php?file=' . urlencode($filename);
+        require_once dirname(__DIR__, 2) . '/core/PrivateFiles.php';
+        $identity = Identity::requireIdentity('backend', true);
+        $id = PrivateFiles::create($identity, 'dns-zone.txt', $zoneContent);
+        return 'download_zone.php?context=backend&id=' . $id;
     }
     
     /**
@@ -794,6 +780,7 @@ class DnsModule extends ModuleBase {
      * Implementiert die abstrakte Methode für AJAX-Requests
      */
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         switch ($action) {
             case 'getContent':
                 return $this->getContentResponse();

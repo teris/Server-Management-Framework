@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 // ========================================
 // Network Module
 // modules/network/Module.php
@@ -9,6 +11,7 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class NetworkModule extends ModuleBase {
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         $translations = $this->tMultiple([
             'module_title', 'vm_network_configuration', 'vm_id', 'mac_address', 'ip_address',
             'update_network', 'helpful_information', 'mac_address_format', 'mac_format_description',
@@ -24,6 +27,7 @@ class NetworkModule extends ModuleBase {
     }
     
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         switch ($action) {
             case 'update_vm_network':
                 return $this->updateVMNetwork($data);

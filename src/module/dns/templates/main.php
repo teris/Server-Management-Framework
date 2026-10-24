@@ -1,4 +1,6 @@
-<?php 
+<?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 // Ensure all variables are always defined at the very beginning
 $currentDomain = $currentDomain ?? null;
 $domains = $domains ?? [];
@@ -13,7 +15,7 @@ $translations = $translations ?? [];
         <h2><?php echo $translations['module_title'] ?? 'DNS Verwaltung'; ?></h2>
     </div>
 
-    
+
 
     <!-- API Connection Test -->
     <div class="api-test-section">
@@ -39,14 +41,14 @@ $translations = $translations ?? [];
                 <button type="button" class="btn btn-primary dns-action-btn" data-action="load_domains">
                     <i class="bi bi-arrow-clockwise"></i> <?= t('refresh') ?>
                 </button>
-                
+
                 <div class="form-group mt-3">
                     <label for="domain-select"><?= t('select_domain') ?></label>
                     <select id="domain-select" class="form-control dns-domain-select">
                         <option value=""><?= t('select_domain') ?></option>
                         <?php if (!empty($domains)): ?>
                             <?php foreach ($domains as $domain): ?>
-                                <option value="<?php echo htmlspecialchars($domain); ?>" 
+                                <option value="<?php echo htmlspecialchars($domain); ?>"
                                         <?php echo ($currentDomain === $domain) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($domain); ?>
                                 </option>
@@ -62,7 +64,7 @@ $translations = $translations ?? [];
 
     <!-- Loading Progress Bar -->
     <div id="dns-progressbar" class="progress mb-3" style="height: 24px; display: none;">
-        <div id="dns-progressbar-inner" class="progress-bar progress-bar-striped progress-bar-animated" 
+        <div id="dns-progressbar-inner" class="progress-bar progress-bar-striped progress-bar-animated"
             role="progressbar" style="width: 0%">0%</div>
     </div>
 
@@ -242,7 +244,7 @@ $translations = $translations ?? [];
                             </div>
                         </div>
                     </div>
-                    
+
                     <?php if ($dnssecStatus && isset($dnssecStatus['status']) && $dnssecStatus['status'] === 'ENABLED'): ?>
                         <div id="dnssec-keys-container">
                             <h4><?php echo $translations['dnssec_keys'] ?? 'DNSSEC-Schlüssel'; ?></h4>

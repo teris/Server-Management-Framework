@@ -1,4 +1,6 @@
-<?php 
+<?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 // Ensure all variables are always defined at the very beginning
 $virtualMacOverview = $virtualMacOverview ?? [
     'stats' => [
@@ -13,7 +15,7 @@ $servers = $servers ?? [];
 <div id="virtual-mac-content">
     <!-- Aktionsergebnis anzeigen -->
     <div id="action-result" style="display: none;"></div>
-    
+
     <div class="card">
         <div class="card-header">
             <h2 class="mb-0">🔌 <?= t('virtual_mac_management') ?></h2>
@@ -27,7 +29,7 @@ $servers = $servers ?? [];
             </div>
         </div>
     </div>
-    
+
     <!-- Overview -->
     <div id="virtual-mac-overview" class="virtual-mac-tab-content">
         <div class="card">
@@ -61,7 +63,7 @@ $servers = $servers ?? [];
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="row mb-3">
                     <div class="col-md-8">
                         <input type="text" class="form-control" id="virtual-mac-overview-search" placeholder="<?= t('search_virtual_macs') ?>">
@@ -70,7 +72,7 @@ $servers = $servers ?? [];
                         <a href="?option=virtual-mac" class="btn btn-secondary">🔄 <?= t('refresh') ?></a>
                     </div>
                 </div>
-                
+
                 <div class="table-responsive">
                     <table class="table table-striped" id="virtual-mac-overview-table">
                         <thead>
@@ -93,7 +95,7 @@ $servers = $servers ?? [];
                                         <td><?php echo htmlspecialchars($mac['macAddress'] ?? ''); ?></td>
                                         <td><?php echo htmlspecialchars($mac['virtualMachineName'] ?? ''); ?></td>
                                         <td>
-                                            <?php 
+                                            <?php
                                             if (isset($mac['ipAddresses']) && is_array($mac['ipAddresses'])) {
                                                 echo htmlspecialchars(implode(', ', $mac['ipAddresses']));
                                             } else {
@@ -118,7 +120,7 @@ $servers = $servers ?? [];
             </div>
         </div>
     </div>
-    
+
     <!-- Create Virtual MAC -->
     <div id="virtual-mac-create" class="virtual-mac-tab-content hidden">
         <div class="card">
@@ -151,12 +153,12 @@ $servers = $servers ?? [];
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="form-group mb-3">
                         <label for="vmac_virtual_network_interface"><?= t('virtual_network_interface') ?></label>
                         <input type="text" class="form-control" id="vmac_virtual_network_interface" name="virtual_network_interface" required placeholder="eth0">
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary">
                         <span class="loading hidden"></span>
                         <?= t('create_virtual_mac') ?>
@@ -165,7 +167,7 @@ $servers = $servers ?? [];
             </div>
         </div>
     </div>
-    
+
     <!-- IP Management -->
     <div id="virtual-mac-ip-management" class="virtual-mac-tab-content hidden">
         <div class="row">
@@ -210,7 +212,7 @@ $servers = $servers ?? [];
                     </div>
                 </div>
             </div>
-            
+
             <!-- IP entfernen -->
             <div class="col-md-6">
                 <div class="card">
@@ -248,7 +250,7 @@ $servers = $servers ?? [];
             </div>
         </div>
     </div>
-    
+
     <!-- Reverse DNS -->
     <div id="virtual-mac-reverse-dns" class="virtual-mac-tab-content hidden">
         <div class="row">
@@ -278,7 +280,7 @@ $servers = $servers ?? [];
                     </div>
                 </div>
             </div>
-            
+
             <!-- Reverse DNS abfragen -->
             <div class="col-md-6">
                 <div class="card">
@@ -298,7 +300,7 @@ $servers = $servers ?? [];
                                 <?= t('query_reverse_dns') ?>
                             </button>
                         </form>
-                        
+
                         <div id="reverse_dns_result" class="mt-3" style="display: none;">
                                 <h5><?= t('reverse_dns_information') ?>:</h5>
                             <pre id="reverse_dns_content" class="bg-light p-3 rounded"></pre>

@@ -1,10 +1,14 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * ModuleBase - Abstrakte Basisklasse für alle Module
  */
 
 // LanguageManager einbinden
 require_once dirname(__DIR__) . '/core/LanguageManager.php';
+require_once dirname(__DIR__) . '/core/ResourceAccess.php';
+require_once dirname(__DIR__) . '/core/ProviderTransport.php';
 
 abstract class ModuleBase {
     protected $module_key;
@@ -17,12 +21,10 @@ abstract class ModuleBase {
         $this->module_key = $module_key;
         $this->module_config = getModuleConfig($module_key);
         
-        // User-Informationen aus Session
-        if (isset($_SESSION['user'])) {
-            $this->user_role = $_SESSION['user']['role'] ?? 'user';
-            $this->user_id = $_SESSION['user']['id'] ?? null;
-        }
-        
+        $identity = Identity::current('backend');
+        $this->user_role = $identity['role'] ?? null;
+        $this->user_id = $identity['id'] ?? null;
+
         // Sprachmanager initialisieren
         $this->language_manager = LanguageManager::getInstance();
     }
@@ -31,7 +33,7 @@ abstract class ModuleBase {
      * Prüft ob der aktuelle Benutzer auf das Modul zugreifen darf
      */
     public function canAccess() {
-        return canAccessModule($this->module_key, $this->user_role);
+        return ResourceAccess::legacyAllowed($this->module_key);
     }
     
     /**
@@ -276,6 +278,7 @@ class ModuleLoader {
         $enabled_modules = getEnabledPlugins();
         
         foreach ($enabled_modules as $key => $config) {
+            if (!ResourceAccess::legacyAllowed($key)) continue;
             $module_file = $config['path'] . '/Module.php';
             
             if (file_exists($module_file)) {
@@ -389,7 +392,7 @@ class ModuleLoader {
                 ];
             }
             
-            return $module->handleAjaxRequest($action, $data);
+            return HttpSecurity::redact($module->handleAjaxRequest($action, $data));
         } catch (Exception $e) {
             error_log("ModuleLoader: Error handling request for $module_key/$action: " . $e->getMessage());
             return ['success' => false, 'error' => $e->getMessage()];

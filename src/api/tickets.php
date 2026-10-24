@@ -13,7 +13,7 @@ require_once '../sys.conf.php';
 require_once '../../framework.php';
 
 // CORS Headers
-header('Access-Control-Allow-Origin: *');
+// Same-origin; CSRF and request limits run in sys.conf.php.
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json; charset=utf-8');

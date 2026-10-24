@@ -19,10 +19,19 @@ require_once $frameworkFile;
 require_once 'auth_handler.php';
 
 // TODO: E-Mail-Template-Manager laden
-require_once 'core/EmailTemplateManager.php';
+// Template manager loads after the authorization boundary.
 
 // Login-Überprüfung
 requireLogin();
+Identity::requireIdentity('backend', true);
+if (isset($_GET['heartbeat']) || in_array($_POST['action'] ?? '', ['heartbeat', 'extend_session'], true)) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo HttpSecurity::encode(['success' => true, 'remaining' => SessionManager::getSessionTimeRemaining(), 'timeout' => HttpSecurity::timeout()]);
+    exit;
+}
+
+if (($_GET['option'] ?? '') === 'manualupdater') HttpSecurity::abort(503, 'Der Web-Updater ist bis zur geprüften Überarbeitung gesperrt.');
+require_once __DIR__ . '/core/EmailTemplateManager.php';
 
 // TODO: E-Mail-Template-System initialisieren
 $emailTemplateManager = EmailTemplateManager::getInstance();
@@ -43,7 +52,7 @@ try {
 }
 
 // Handler für Logout
-if (isset($_GET['logout'])) {
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ($_POST['action'] ?? '') === 'logout') {
     SessionManager::logout();
     header('Location: login.php');
     exit;
@@ -69,14 +78,14 @@ if (isset($_POST['action'])) {
         
         // Session-Check für AJAX
         if (!SessionManager::isLoggedIn()) {
-            echo json_encode(['success' => false, 'redirect' => 'login.php']);
+            echo HttpSecurity::encode(['success' => false, 'redirect' => 'login.php']);
             exit;
         }
     
     // Heartbeat
     if (isset($_POST['action']) && $_POST['action'] === 'heartbeat') {
         SessionManager::updateActivity();
-        echo json_encode(['success' => true]);
+        echo HttpSecurity::encode(['success' => true]);
         exit;
     }
     
@@ -87,10 +96,10 @@ if (isset($_POST['action'])) {
             $adminHandler = new AdminHandler();
             
             $result = $adminHandler->handleRequest($_POST['action'] ?? '', $_POST);
-            echo json_encode($result);
+            echo HttpSecurity::encode($result);
         } catch (Exception $e) {
             error_log('AdminHandler Exception: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            echo HttpSecurity::encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit;
     }
@@ -103,7 +112,7 @@ if (isset($_POST['action'])) {
             // und wird hier automatisch ausgeführt
         } catch (Exception $e) {
             error_log('ManualUpdater Exception: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            echo HttpSecurity::encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit;
     }
@@ -116,7 +125,7 @@ if (isset($_POST['action'])) {
             // und wird hier automatisch ausgeführt
         } catch (Exception $e) {
             error_log('EmailTemplates Exception: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            echo HttpSecurity::encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit;
     }
@@ -159,7 +168,7 @@ if (isset($_POST['action'])) {
         }
         
         
-        echo json_encode($result);
+        echo HttpSecurity::encode($result);
         exit;
     }
     
@@ -200,19 +209,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
                     $db->execute($stmt, [$userId]);
                     $systemLinks = $db->fetchAll($stmt);
                     
-                    echo json_encode([
+                    echo HttpSecurity::encode([
                         'success' => true,
                         'data' => $user,
                         'system_links' => $systemLinks
                     ]);
                 } else {
-                    echo json_encode([
+                    echo HttpSecurity::encode([
                         'success' => false,
                         'message' => 'Benutzer nicht gefunden'
                     ]);
                 }
             } catch (Exception $e) {
-                echo json_encode([
+                echo HttpSecurity::encode([
                     'success' => false,
                     'message' => 'Fehler beim Laden der Benutzerdaten: ' . $e->getMessage()
                 ]);
@@ -226,12 +235,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
                 $db->execute($stmt, [$userId]);
                 $systems = $db->fetchAll($stmt);
                 
-                echo json_encode([
+                echo HttpSecurity::encode([
                     'success' => true,
                     'systems' => $systems
                 ]);
             } catch (Exception $e) {
-                echo json_encode([
+                echo HttpSecurity::encode([
                     'success' => false,
                     'message' => 'Fehler beim Laden der System-Verknüpfungen: ' . $e->getMessage()
                 ]);
@@ -251,19 +260,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
                     $db->execute($stmt, [$userId]);
                     $systemLinks = $db->fetchAll($stmt);
                     
-                    echo json_encode([
+                    echo HttpSecurity::encode([
                         'success' => true,
                         'data' => $user,
                         'system_links' => $systemLinks
                     ]);
                 } else {
-                    echo json_encode([
+                    echo HttpSecurity::encode([
                         'success' => false,
                         'message' => 'Benutzer nicht gefunden'
                     ]);
                 }
             } catch (Exception $e) {
-                echo json_encode([
+                echo HttpSecurity::encode([
                     'success' => false,
                     'message' => 'Fehler beim Laden der Benutzerdetails: ' . $e->getMessage()
                 ]);
@@ -291,12 +300,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
                         throw new Exception('Unbekannter Systemtyp: ' . $systemType);
                 }
                 
-                echo json_encode([
+                echo HttpSecurity::encode([
                     'success' => true,
                     'data' => $userData
                 ]);
             } catch (Exception $e) {
-                echo json_encode([
+                echo HttpSecurity::encode([
                     'success' => false,
                     'message' => 'Fehler beim Laden der System-Benutzerdaten: ' . $e->getMessage()
                 ]);
@@ -304,7 +313,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
             exit;
             
         default:
-            echo json_encode([
+            echo HttpSecurity::encode([
                 'success' => false,
                 'message' => 'Unbekannte Aktion: ' . htmlspecialchars($_POST['action'])
             ]);
@@ -363,7 +372,7 @@ try {
     <?php foreach ($pluginManager->getAllStyles() as $style): ?>
     <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($style) ?>">
     <?php endforeach; ?>
-</head>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="assets/security.js"></script></head>
 <body class="bg-light">
     <!-- Sidebar-Menü -->
     <nav id="sidebarMenu" class="d-md-block bg-light sidebar collapse position-fixed" style="width: 220px; height: 100vh; z-index: 1040;">
@@ -497,9 +506,9 @@ try {
                 <a href="password_change.php" class="btn btn-outline-secondary w-100 mb-2">
                     <i class="bi bi-key"></i> <?= t('password') ?>
                 </a>
-                <a href="?logout=1" class="btn btn-outline-danger w-100">
+                <form method="post" action="index.php" class="d-inline"><?= HttpSecurity::csrfField() ?><input type="hidden" name="action" value="logout"><button type="submit" class="nav-link" style="background:none;border:0">
                     <i class="bi bi-box-arrow-right"></i> <?= t('logout') ?>
-                </a>
+                </button></form>
             </div>
         </div>
     </nav>
@@ -545,9 +554,9 @@ try {
                             <a href="password_change.php" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-key"></i> <?= t('password') ?>
                             </a>
-                            <a href="?logout=1" class="btn btn-outline-danger btn-sm">
+                            <form method="post" action="index.php" class="d-inline"><?= HttpSecurity::csrfField() ?><input type="hidden" name="action" value="logout"><button type="submit" class="nav-link" style="background:none;border:0">
                                 <i class="bi bi-box-arrow-right"></i> <?= t('logout') ?>
-                            </a>
+                            </button></form>
                         </div>
                     </div>
                 </div>
@@ -627,7 +636,7 @@ try {
                                                 $_SESSION['last_activity'] = time();
                                                 if (isset($_POST['ajax'])) {
                                                     header('Content-Type: application/json');
-                                                    echo json_encode(['success' => true, 'message' => 'Session verlängert']);
+                                                    echo HttpSecurity::encode(['success' => true, 'message' => 'Session verlängert']);
                                                     exit;
                                                 } else {
                                                     $_SESSION['success_message'] = "Session erfolgreich verlängert!";
@@ -637,7 +646,7 @@ try {
                                             } else {
                                                 if (isset($_POST['ajax'])) {
                                                     header('Content-Type: application/json');
-                                                    echo json_encode(['success' => false, 'message' => 'Keine aktive Session']);
+                                                    echo HttpSecurity::encode(['success' => false, 'message' => 'Keine aktive Session']);
                                                     exit;
                                                 } else {
                                                     $_SESSION['error_message'] = "Keine aktive Session gefunden!";

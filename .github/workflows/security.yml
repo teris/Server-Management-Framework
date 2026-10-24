@@ -1,0 +1,44 @@
+name: Security regressions
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  regressions:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite, mbstring, simplexml, curl, ctype, tokenizer
+          ini-values: short_open_tag=0, display_errors=0, log_errors=1
+          coverage: none
+      - name: Test dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y python3-cryptography
+      - name: PHP and new browser asset syntax
+        run: |
+          python3 tests/check_syntax.py
+          node --check src/assets/security.js
+          node --check src/assets/session.js
+          node --check src/assets/lazy-loading-main.js
+          node --check public/assets/login.js
+          node tests/test_session_ui.cjs
+          node tests/test_browser_security.cjs
+      - name: Authorization, sessions, tokens and private files
+        run: php tests/run.php
+      - name: HTTP access and isolated provider
+        run: python3 tests/test_http.py
+      - name: TLS rejection cases
+        run: python3 tests/test_tls.py
+      - name: Concurrent limits and single-use tokens
+        run: python3 tests/test_concurrency.py
+      - name: Package exclusions
+        run: python3 tests/test_packaging.py
+      - name: Preserve private configuration and encryption keys
+        run: python3 tests/test_config_migration.py

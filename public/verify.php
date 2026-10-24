@@ -9,7 +9,7 @@
  * E-Mail-Bestätigung für Kundenregistrierung
  */
 
-require_once '../src/sys.conf.php';
+require_once __DIR__ . '/../src/public-bootstrap.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
 // TODO: E-Mail-Template-System ist jetzt über EmailTemplateManager verfügbar
@@ -20,7 +20,7 @@ $lang = LanguageManager::getInstance();
 $currentLang = $lang->getCurrentLanguage();
 
 // Session starten
-session_start();
+HttpSecurity::session();
 
 $error = '';
 $success = '';
@@ -197,7 +197,7 @@ if (empty($token)) {
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="login-page">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">

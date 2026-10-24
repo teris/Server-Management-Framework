@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -13,7 +15,7 @@
  * @psalm-suppress UndefinedClass
  */
 
-require_once __DIR__ . '/../../config/config.inc.php';
+require_once __DIR__ . '/../../config/load.php';
 
 // Bedingte Typprüfung für MongoDB-Klassen
 if (!class_exists('\MongoDB\Client', false)) {
@@ -293,7 +295,9 @@ class PostgreSQLDriver extends DatabaseDriver {
 class SQLiteDriver extends DatabaseDriver {
     public function connect() {
         try {
-            $dbPath = __DIR__ . '/../../' . Config::DB_SQLITE_PATH;
+            $configuredPath = Config::DB_SQLITE_PATH;
+            $absolute = $configuredPath[0] === '/' || preg_match('/^[A-Za-z]:[\\\\\/]/', $configuredPath);
+            $dbPath = $absolute ? $configuredPath : __DIR__ . '/../../' . $configuredPath;
             $dbDir = dirname($dbPath);
             
             if (!is_dir($dbDir)) {

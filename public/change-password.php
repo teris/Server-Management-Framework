@@ -1,102 +1,14 @@
 <?php
-/**
- * Server Management Framework
- * 
- * @author Teris
- * @version 3.1.2
- */
-/**
- * Passwort-Änderungsseite für Kunden
- */
-
-require_once '../src/sys.conf.php';
-require_once '../framework.php';
-require_once '../src/core/LanguageManager.php';
-require_once '../src/core/ActivityLogger.php';
-
-// Sprache setzen
-$lang = LanguageManager::getInstance();
-$currentLang = $lang->getCurrentLanguage();
-
-// Session starten
-session_start();
-
-// Prüfen ob Kunde eingeloggt ist
-if (!isset($_SESSION['customer_logged_in']) || $_SESSION['customer_logged_in'] !== true) {
-    header('Location: login.php');
-    exit;
-}
-
-$customerId = $_SESSION['customer_id'] ?? 0;
-$customerName = $_SESSION['customer_name'] ?? '';
-
-$success = '';
-$error = '';
-
-// Formularverarbeitung
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $currentPassword = $_POST['current_password'] ?? '';
-    $newPassword = $_POST['new_password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
-    
-    // Validierung
-    if (empty($currentPassword)) {
-        $error = t('please_enter_current_password');
-    } elseif (empty($newPassword)) {
-        $error = t('please_enter_new_password');
-    } elseif (strlen($newPassword) < 8) {
-        $error = t('new_password_must_be_at_least_8_characters_long');
-    } elseif ($newPassword !== $confirmPassword) {
-        $error = t('new_passwords_do_not_match');
-    } else {
-        try {
-            $db = Database::getInstance();
-            
-            // Aktuelles Passwort überprüfen
-            $stmt = $db->prepare("SELECT password_hash FROM customers WHERE id = ? AND status = 'active'");
-            $stmt->execute([$customerId]);
-            $customer = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$customer) {
-                $error = t('customer_not_found_or_inactive');
-            } elseif (!password_verify($currentPassword, $customer['password_hash'])) {
-                $error = t('current_password_is_incorrect');
-            } else {
-                // Neues Passwort hashen und speichern
-                $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-                
-                $stmt = $db->prepare("UPDATE customers SET password_hash = ?, updated_at = NOW() WHERE id = ?");
-                if ($stmt->execute([$hashedPassword, $customerId])) {
-                    $success = t('password_changed_successfully');
-                    
-                    // Aktivität loggen
-                    try {
-                        $activityLogger = ActivityLogger::getInstance();
-                        $activityLogger->logCustomerActivity(
-                            $customerId, 
-                            'password_change', 
-                            t('password_changed_successfully'), 
-                            $customerId, 
-                            'customers'
-                        );
-                    } catch (Exception $e) {
-                        error_log("Activity Logging Error: " . $e->getMessage());
-                    }
-                    
-                    // Remember Me Token löschen (Sicherheitsmaßnahme)
-                    if (isset($_COOKIE['remember_token'])) {
-                        $stmt = $db->prepare("DELETE FROM customer_remember_tokens WHERE token = ?");
-                        $stmt->execute([$_COOKIE['remember_token']]);
-                        setcookie('remember_token', '', time() - 3600, '/', '', true, true);
-                    }
-                } else {
-                    $error = t('error_changing_password') . ' ' . t('please_try_again');
-                }
-            }
-        } catch (Exception $e) {
-            error_log("Password Change Error: " . $e->getMessage());
-            $error = t('error_occurred') . ' ' . t('please_try_later');
-        }
+require_once __DIR__ . '/../src/public-bootstrap.php';
+$lang = LanguageManager::getInstance(); $currentLang = $lang->getCurrentLanguage();
+$identity = Identity::requireIdentity('customer');
+$customerId = $identity['id']; $customerName = $_SESSION['customer_name'];
+$success = ''; $error = '';
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    if (($_POST['new_password'] ?? '') !== ($_POST['confirm_password'] ?? '')) $error = t('new_passwords_do_not_match');
+    else {
+        $result = AccountPasswords::change('customer', $identity, $_POST['current_password'] ?? '', $_POST['new_password'] ?? '');
+        if ($result['success']) $success = $result['message']; else $error = $result['message'];
     }
 }
 ?>
@@ -119,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="dashboard-page">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -164,9 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="bi bi-key"></i> <?= t('change_password') ?>
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="dashboard.php?logout=1">
+                            <li><form method="post" action="dashboard.php" class="d-inline"><?= HttpSecurity::csrfField() ?><input type="hidden" name="action" value="logout"><button type="submit" class="dropdown-item" style="background:none;border:0">
                                 <i class="bi bi-box-arrow-right"></i> <?= t('logout') ?>
-                            </a></li>
+                            </button></form></li>
                         </ul>
                     </li>
                 </ul>
@@ -200,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         <?php endif; ?>
                         
-                        <form method="POST" action="change-password.php" id="changePasswordForm">
+                        <form method="POST" action="change-password.php" id="changePasswordForm"><?php echo HttpSecurity::csrfField(); ?>
                             <div class="mb-3">
                                 <label for="current_password" class="form-label"><?= t('current_password') ?> *</label>
                                 <div class="input-group">
@@ -215,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label for="new_password" class="form-label"><?= t('new_password') ?> *</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="new_password" name="new_password" 
-                                           minlength="8" required>
+                                           minlength="12" required>
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password')">
                                         <i class="bi bi-eye" id="new_password_icon"></i>
                                     </button>
@@ -232,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label for="confirm_password" class="form-label"><?= t('confirm_new_password') ?> *</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
-                                           minlength="8" required>
+                                           minlength="12" required>
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password')">
                                         <i class="bi bi-eye" id="confirm_password_icon"></i>
                                     </button>

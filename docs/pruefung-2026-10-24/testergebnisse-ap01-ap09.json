@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-24",
+  "php_version": "8.3.6",
+  "node_version": "v24.22.1",
+  "suites": {
+    "php_syntax": {
+      "php_files": 137,
+      "errors": []
+    },
+    "authorization_sessions_files": {
+      "checks": 119,
+      "failed": 0,
+      "failures": []
+    },
+    "http": {
+      "checks": 46,
+      "failed": 0,
+      "provider_calls": 8
+    },
+    "tls": {
+      "checks": 5,
+      "failed": []
+    },
+    "concurrency": {
+      "checks": 2,
+      "failed": 0,
+      "parallel_requests": 30
+    },
+    "package_selection": {
+      "checks": 17,
+      "files_selected": 260,
+      "failed": 0
+    },
+    "private_config_migration": {
+      "checks": 5,
+      "failed": 0
+    },
+    "session_browser": {
+      "checks": 2,
+      "failed": 0
+    },
+    "csrf_browser": {
+      "checks": 4,
+      "failed": 0
+    },
+    "baseline_negative_control": {
+      "negative_control": "tag 3.2.7",
+      "security_checks": [
+        {
+          "check": "diagnostic page must be closed",
+          "expected": 404,
+          "baseline_status": 200,
+          "passes": false
+        },
+        {
+          "check": "updater must reject anonymous request",
+          "expected": 404,
+          "baseline_status": 200,
+          "passes": false
+        },
+        {
+          "check": "internal status must require login",
+          "expected": 401,
+          "baseline_status": 200,
+          "passes": false
+        },
+        {
+          "check": "public form must require CSRF",
+          "expected": 403,
+          "baseline_status": 200,
+          "passes": false
+        },
+        {
+          "check": "temporary file must require owner",
+          "expected": 401,
+          "baseline_status": 200,
+          "passes": false
+        }
+      ],
+      "expected_failures": 5
+    },
+    "changed_browser_syntax": {
+      "files": 4,
+      "failed": 0
+    }
+  },
+  "limitations": [
+    "No production deployment",
+    "No live provider mutations",
+    "Live MySQL/MariaDB/PostgreSQL integration and production webserver acceptance pending",
+    "GitHub Actions configured but not run remotely before push"
+  ],
+  "clean_checkout": {
+    "passed": true,
+    "source": "Git index",
+    "tree": "89206b7a420c0bde2f7cb7cff2afe7ecb8eb65d1",
+    "runtime_configuration_present": false,
+    "suite_count": 10
+  },
+  "scenario_checks": 200
+}

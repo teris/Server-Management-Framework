@@ -9,7 +9,7 @@
  * Kundenregistrierung - Neue Kunden können sich hier registrieren
  */
 
-require_once '../src/sys.conf.php';
+require_once __DIR__ . '/../src/public-bootstrap.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
 // TODO: E-Mail-Template-System ist jetzt über EmailTemplateManager verfügbar
@@ -22,7 +22,7 @@ $currentLang = $lang->getCurrentLanguage();
 // Übersetzungsfunktion wird von sys.conf.php bereitgestellt
 
 // Session starten
-session_start();
+HttpSecurity::session();
 
 // Bereits eingeloggt?
 if (isset($_SESSION['customer_logged_in']) && $_SESSION['customer_logged_in'] === true) {
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="login-page">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         <?php endif; ?>
 
-                        <form method="POST" action="" id="registration-form">
+                        <form method="POST" action="" id="registration-form"><?php echo HttpSecurity::csrfField(); ?>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="first_name" class="form-label">

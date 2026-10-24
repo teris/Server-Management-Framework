@@ -9,7 +9,7 @@
  * AGB-Seite
  */
 
-require_once '../src/sys.conf.php';
+require_once __DIR__ . '/../src/public-bootstrap.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
 
@@ -18,7 +18,7 @@ $lang = LanguageManager::getInstance();
 $currentLang = $lang->getCurrentLanguage();
 
 // Session starten
-session_start();
+HttpSecurity::session();
 
 $isLoggedIn = isset($_SESSION['customer_logged_in']) && $_SESSION['customer_logged_in'] === true;
 $customerName = $_SESSION['customer_name'] ?? '';
@@ -42,7 +42,7 @@ $customerName = $_SESSION['customer_name'] ?? '';
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="dashboard-page">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -88,9 +88,9 @@ $customerName = $_SESSION['customer_name'] ?? '';
                                     <i class="bi bi-key"></i> <?= t('change_password') ?>
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="dashboard.php?logout=1">
+                                <li><form method="post" action="dashboard.php" class="d-inline"><?= HttpSecurity::csrfField() ?><input type="hidden" name="action" value="logout"><button type="submit" class="dropdown-item" style="background:none;border:0">
                                     <i class="bi bi-box-arrow-right"></i> <?= t('logout') ?>
-                                </a></li>
+                                </button></form></li>
                             </ul>
                         </li>
                     </ul>

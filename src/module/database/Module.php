@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 // ========================================
 // Database Module
 // modules/database/Module.php
@@ -9,10 +11,12 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class DatabaseModule extends ModuleBase {
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         return $this->render('main');
     }
     
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         switch ($action) {
             case 'create_database':
                 return $this->createDatabase($data);

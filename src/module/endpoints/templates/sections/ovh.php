@@ -1,3 +1,6 @@
+<?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+?>
 <div class="card mt-4">
     <div class="card-header">
         <h3 class="mb-0">🔗 <?= t('ovh_api_endpoints') ?></h3>

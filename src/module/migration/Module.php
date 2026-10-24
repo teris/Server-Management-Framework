@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Migration-Modul für das Backend
  * 
@@ -45,6 +47,7 @@ class MigrationModule extends ModuleBase {
      * Gibt den HTML-Content für das Migration-Interface zurück
      */
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         if (!$this->canAccess()) {
             return '<div class="error">' . $this->t('access_denied') . '</div>';
         }
@@ -63,6 +66,7 @@ class MigrationModule extends ModuleBase {
      * Verarbeitet AJAX-Requests für das Migration-Modul
      */
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         if (!$this->canAccess()) {
             return $this->error($this->t('access_denied'));
         }
@@ -452,7 +456,7 @@ class ProxmoxAPI {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         
         if ($method === 'POST' && $data) {
@@ -464,6 +468,7 @@ class ProxmoxAPI {
             curl_setopt($ch, CURLOPT_COOKIE, 'PVEAuthCookie=' . $this->ticket);
         }
         
+        ProviderTransport::apply($ch, $url, 'proxmox');
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -503,9 +508,10 @@ class OpenGamePanelAPI {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         
+        ProviderTransport::apply($ch, $url, 'ogp');
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);

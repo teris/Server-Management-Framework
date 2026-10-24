@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 // ========================================
 // File Editor Module
 // modules/file-editor/Module.php
@@ -13,11 +15,12 @@ class FileEditorModule extends ModuleBase {
     
     public function __construct() {
         parent::__construct('file-editor');
-        $this->fileEditor = new FileEditor();
+        $this->fileEditor = null; // Disabled until a constrained content editor is implemented.
         
     }
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         // Template direkt laden
         $template_path = __DIR__ . '/templates/main.php';
         if (file_exists($template_path)) {
@@ -30,6 +33,7 @@ class FileEditorModule extends ModuleBase {
     }
     
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         
         switch ($action) {
             case 'get_file_content':

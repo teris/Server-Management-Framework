@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Endpoints Module
  * API Endpoints Tester für Entwickler und Admins
@@ -9,6 +11,7 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class EndpointsModule extends ModuleBase {
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         $translations = $this->tMultiple([
             'module_title', 'api_endpoints_tester', 'test_api_endpoints', 'proxmox_api_endpoints',
             'load_nodes', 'load_storages', 'vm_config', 'vm_status', 'clone_vm',
@@ -61,6 +64,7 @@ class EndpointsModule extends ModuleBase {
     }
     
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         switch ($action) {
             case 'getContent':
                 return $this->getContentResponse();

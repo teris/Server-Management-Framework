@@ -1,3 +1,6 @@
+<?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+?>
 <!-- Server-Liste Tab -->
 <div class="tab-content" id="server-list-tab" style="display: none;">
     <!-- Node-Informationen -->
@@ -44,6 +47,7 @@
     
     <!-- VM-Erstellungsformular (versteckt, wird per JavaScript angezeigt) -->
     <div id="vm-creation-container" style="display: none;">
-        <?php include 'vm_creation.php'; ?>
+        <?php
+ include 'vm_creation.php'; ?>
     </div>
 </div>

@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Modularer Request Handler
  * Leitet AJAX-Requests an die entsprechenden Module weiter
@@ -209,64 +211,23 @@ function logActivity($message, $level = 'INFO', $module = null) {
  * Helper-Funktion für Rate Limiting
  */
 function checkRateLimit($identifier, $max_requests = 60, $time_window = 60) {
-    if (!isFeatureEnabled('rate_limit')) {
+    if (empty($GLOBALS['api_config']['rate_limit']['enabled'])) {
         return true;
     }
     
-    $cache_key = 'rate_limit_' . md5($identifier);
-    $cache_file = 'cache/' . $cache_key . '.json';
-    
-    if (!is_dir('cache')) {
-        mkdir('cache', 0755, true);
-    }
-    
-    $now = time();
-    $requests = [];
-    
-    if (file_exists($cache_file)) {
-        $data = json_decode(file_get_contents($cache_file), true);
-        if (is_array($data)) {
-            // Alte Einträge entfernen
-            $requests = array_filter($data, function($timestamp) use ($now, $time_window) {
-                return ($now - $timestamp) < $time_window;
-            });
-        }
-    }
-    
-    if (count($requests) >= $max_requests) {
-        return false;
-    }
-    
-    $requests[] = $now;
-    file_put_contents($cache_file, json_encode($requests));
-    
-    return true;
+    try { HttpSecurity::rateLimit('legacy', $identifier, $max_requests, $time_window); return true; }
+    catch (SecurityViolation $e) { return false; }
 }
 
 /**
  * Helper-Funktion für CSRF-Schutz
  */
 function validateCSRFToken($token = null) {
-    if (!isFeatureEnabled('csrf_protection')) {
-        return true;
-    }
-    
-    if ($token === null) {
-        $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
-    }
-    
-    if (!$token || !isset($_SESSION['csrf_token'])) {
-        return false;
-    }
-    
-    return hash_equals($_SESSION['csrf_token'], $token);
+    return HttpSecurity::validCsrf($token);
 }
 
 function generateCSRFToken() {
-    if (!isset($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
+    return HttpSecurity::csrfToken();
 }
 
 /**

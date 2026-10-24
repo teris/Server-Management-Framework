@@ -1,3 +1,6 @@
+<?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+?>
 <!-- Server-Verwaltung Tab -->
 <div class="tab-content" id="server-management-tab" style="display: none;">
     <div class="card">

@@ -1,4 +1,7 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+if (PHP_SAPI !== 'cli') { http_response_code(503); exit('Der Web-Updater ist vorübergehend gesperrt.'); }
+
 // @intelephense-ignore-file
 /**
  * Server Management Framework
@@ -391,7 +394,7 @@ class ManualUpdater {
     private function backupDatabase($backupPath) {
         try {
             // Datenbank-Konfiguration laden
-            $configFile = __DIR__ . '/../../config/config.inc.php';
+            $configFile = __DIR__ . '/../../config/load.php';
             if (!file_exists($configFile)) {
                 throw new Exception('Datenbank-Konfiguration nicht gefunden');
             }
@@ -2639,7 +2642,7 @@ if (isset($_POST['action'])) {
     
     // Output buffer leeren und JSON ausgeben
     ob_clean();
-    echo json_encode($response);
+    echo HttpSecurity::encode($response);
     exit;
 }
 ?>

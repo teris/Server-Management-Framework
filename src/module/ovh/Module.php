@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * OVH Module
  * Verwaltung von Domains und VPS
@@ -77,6 +79,7 @@ class OVHAPI {
 class OvhModule extends ModuleBase {
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         $translations = $this->tMultiple([
             'module_title', 'order_domain_ovh', 'domain_name', 'duration', 'order_domain',
             'get_vps_info', 'vps_name', 'get_vps_info_button', 'vps_information', 'ip_address',
@@ -117,6 +120,7 @@ class OvhModule extends ModuleBase {
     }
     
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         switch ($action) {
             case 'getContent':
                 return $this->getContentResponse();

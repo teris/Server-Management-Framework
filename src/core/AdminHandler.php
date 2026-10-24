@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -15,28 +17,13 @@ class AdminHandler {
     private $adminCore;
     private $user;
     
-    public function __construct() {
-        $this->adminCore = new AdminCore();
-        
-        // Session starten und Benutzer-Info abrufen
-        require_once dirname(__FILE__) . '/../auth_handler.php';
-        SessionManager::startSession();
-        
+    public function __construct($coreFactory = null) {
+        require_once dirname(__DIR__) . '/auth_handler.php';
+        $identity = Identity::requireIdentity('backend', true);
         $this->user = SessionManager::getUserInfo();
-        
-        // Temporäre weichere Admin-Rechte-Prüfung
-        if (!$this->user) {
-            throw new Exception('Benutzer nicht angemeldet');
-        }
-        
-        // Prüfe Admin-Rechte (temporär deaktiviert für Debugging)
-        if ($this->user['role'] !== 'admin') {
-            // Temporär: Log statt Exception
-            error_log("AdminHandler: Benutzer {$this->user['username']} hat Rolle {$this->user['role']}, Admin-Rolle erforderlich");
-            // throw new Exception('Admin-Rechte erforderlich');
-        }
+        $this->adminCore = $coreFactory ? $coreFactory() : new AdminCore();
     }
-    
+
     /**
      * Hauptmethode für Request-Verarbeitung
      */

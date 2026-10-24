@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -162,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="tab-pane fade show active" id="tab-plugins">
                         <?= $activeTab === 'plugins' ? $message : '' ?>
                         <!-- Plugins-Formular wie bisher -->
-                        <form method="post">
+                        <form method="post"><?php echo HttpSecurity::csrfField(); ?>
                             <input type="hidden" name="active_tab" value="plugins">
                             <table class="table table-bordered">
                                 <thead>
@@ -210,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="tab-pane fade" id="tab-system_config">
                         <?= $activeTab === 'system_config' ? $message : '' ?>
-                        <form method="post">
+                        <form method="post"><?php echo HttpSecurity::csrfField(); ?>
                             <input type="hidden" name="active_tab" value="system_config">
                             <table class="table table-bordered">
                                 <thead><tr><th>Variable</th><th>Wert</th></tr></thead>
@@ -236,7 +238,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="tab-pane fade" id="tab-feature_flags">
                         <?= $activeTab === 'feature_flags' ? $message : '' ?>
-                        <form method="post">
+                        <form method="post"><?php echo HttpSecurity::csrfField(); ?>
                             <input type="hidden" name="active_tab" value="feature_flags">
                             <table class="table table-bordered">
                                 <thead><tr><th>Feature</th><th>Aktiviert</th></tr></thead>
@@ -254,7 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="tab-pane fade" id="tab-api_config">
                         <?= $activeTab === 'api_config' ? $message : '' ?>
-                        <form method="post">
+                        <form method="post"><?php echo HttpSecurity::csrfField(); ?>
                             <input type="hidden" name="active_tab" value="api_config">
                             <table class="table table-bordered">
                                 <thead><tr><th>Variable</th><th>Wert</th></tr></thead>

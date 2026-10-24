@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -10,7 +12,7 @@
  * Modulares Framework für Proxmox, ISPConfig und OVH API-Integration
  * Erweitert um Virtual MAC Support
  */
-require_once __DIR__ . '/../../config/config.inc.php';
+require_once __DIR__ . '/../../config/load.php';
 require_once __DIR__ . '/DatabaseManager.php';
 
 // =============================================================================
@@ -504,22 +506,8 @@ function getModuleConfig($module_key) {
  * Prüft ob ein Benutzer auf ein Modul zugreifen darf (DB + Logik)
  */
 function canAccessModule($module_key, $user_role) {
-    $model = new ModulePermission();
-    $stmt = $model->getDb()->prepare("SELECT * FROM module_permissions WHERE module_name = ?");
-    $stmt->execute([$module_key]);
-    $permissions = $stmt->fetchAll();
-    if (empty($permissions)) {
-        return true; // Standard: Zugriff erlaubt
-    }
-    if ($user_role === 'admin') {
-        return true;
-    }
-    foreach ($permissions as $perm) {
-        if (isset($perm['required_role']) && $perm['required_role'] === $user_role) {
-            return true;
-        }
-    }
-    return false;
+    require_once __DIR__ . '/ResourceAccess.php';
+    return ResourceAccess::legacyAllowed($module_key);
 }
 // Platzhalter für getPluginConfig, falls im Projekt nicht vorhanden
 if (!function_exists('getPluginConfig')) {

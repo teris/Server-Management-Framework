@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Virtual MAC Module
  * Verwaltung von Virtual MAC Adressen
@@ -14,6 +16,7 @@ if (!class_exists('ServiceManager')) {
 class VirtualMacModule extends ModuleBase {
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         $translations = $this->tMultiple([
             'module_title', 'virtual_mac_management', 'overview', 'create', 'ip_management',
             'reverse_dns', 'virtual_mac_overview', 'total_virtual_macs', 'assigned_ips',
@@ -150,6 +153,7 @@ class VirtualMacModule extends ModuleBase {
     }
     
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         switch ($action) {
             case 'getContent':
                 return $this->getContentResponse();

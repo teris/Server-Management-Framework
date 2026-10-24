@@ -10,7 +10,8 @@
  * Speichert auch die API-Credentials aus config.inc.php in der Datenbank
  */
 
-require_once '../framework.php';
+require_once __DIR__ . '/sys.conf.php';
+require_once __DIR__ . '/../framework.php';
 require_once 'auth_handler.php';
 require_once 'sys.conf.php';
 
@@ -45,7 +46,7 @@ class DatabaseUpdater {
         'domains' => ['added' => 0, 'updated' => 0, 'errors' => 0],
         'credentials' => ['updated' => 0, 'errors' => 0]
     ];
-    private $debugSql = true; // NEU: Debug-Flag für SQL-Ausgabe
+    private $debugSql = false; // NEU: Debug-Flag für SQL-Ausgabe
 
     public function setDebugSql($debug) {
         $this->debugSql = (bool)$debug;
@@ -56,7 +57,7 @@ class DatabaseUpdater {
         if ($this->debugSql) {
             $this->output("\n--- SQL-DEBUG ---\n");
             $this->output("SQL: " . $sql . "\n");
-            $this->output("Parameter: " . var_export($params, true) . "\n");
+            $this->output("Parameter: " . var_export(HttpSecurity::redact($params), true) . "\n");
             $this->output("--- ENDE SQL-DEBUG ---\n\n");
         }
     }
@@ -112,7 +113,7 @@ class DatabaseUpdater {
                 'endpoint' => Config::PROXMOX_HOST,
                 'username' => Config::PROXMOX_USER,
                 'password' => Config::PROXMOX_PASSWORD,
-                'additional_config' => json_encode(['verify_ssl' => false])
+                'additional_config' => json_encode(['verify_ssl' => true])
             ]);
             
             // ISPConfig Credentials
@@ -1304,7 +1305,9 @@ class DatabaseUpdater {
     private function getEncryptionKey() {
         // In Produktion sollte dieser Schlüssel sicher gespeichert werden
         // z.B. in einer Umgebungsvariable oder separaten Konfigurationsdatei
-        $keyFile = __DIR__ . '/.encryption_key';
+        $legacyKey = __DIR__ . '/.encryption_key';
+        if (is_file($legacyKey)) return file_get_contents($legacyKey);
+        $keyFile = HttpSecurity::privateDirectory('keys') . '/provider-encryption.key';
         
         if (file_exists($keyFile)) {
             return file_get_contents($keyFile);

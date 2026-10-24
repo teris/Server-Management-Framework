@@ -18,7 +18,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'check_domain_ajax') {
     ini_set('display_errors', 0);
 }
 
-require_once '../src/sys.conf.php';
+require_once __DIR__ . '/../src/public-bootstrap.php';
 require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
 require_once '../src/core/ActivityLogger.php';
@@ -28,7 +28,7 @@ $lang = LanguageManager::getInstance();
 $currentLang = $lang->getCurrentLanguage();
 
 // Session starten
-session_start();
+HttpSecurity::session();
 
 // Prüfen ob Kunde eingeloggt ist
 if (!isset($_SESSION['customer_logged_in']) || $_SESSION['customer_logged_in'] !== true) {
@@ -482,7 +482,7 @@ try {
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="dashboard-page">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -532,9 +532,9 @@ try {
                                 <i class="bi bi-key"></i> <?= t('change_password') ?>
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="dashboard.php?logout=1">
+                            <li><form method="post" action="dashboard.php" class="d-inline"><?= HttpSecurity::csrfField() ?><input type="hidden" name="action" value="logout"><button type="submit" class="dropdown-item" style="background:none;border:0">
                                 <i class="bi bi-box-arrow-right"></i> <?= t('logout') ?>
-                            </a></li>
+                            </button></form></li>
                         </ul>
                     </li>
                 </ul>
@@ -574,7 +574,7 @@ try {
                         </h5>
                     </div>
                     <div class="card-body">
-                                                                         <form method="POST" id="domainCheckForm">
+                                                                         <form method="POST" id="domainCheckForm"><?php echo HttpSecurity::csrfField(); ?>
                             <input type="hidden" name="action" value="check_domain">
                             <div class="row">
                                 <div class="col-md-6">
@@ -671,7 +671,7 @@ try {
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form method="POST" id="domainRegistrationForm">
+                        <form method="POST" id="domainRegistrationForm"><?php echo HttpSecurity::csrfField(); ?>
                             <input type="hidden" name="action" value="register_domain">
                             <input type="hidden" name="domain" id="registrationDomain">
                             

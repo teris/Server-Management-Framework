@@ -1,0 +1,18 @@
+Options -Indexes
+DirectoryIndex public/index.php
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^(?:config|database|install|docs|tests|bin|deploy|\.git|\.github|\.codex)(?:/|$) - [F,L,NC]
+RewriteRule ^src/(?:core|inc|module)(?:/|$).*\.php(?:/|$) - [F,L,NC]
+RewriteRule ^(?:framework|test)\.php(?:/|$) - [F,L,NC]
+RewriteRule ^src/(?:debug(?:/.*)?|auth|info|install|setup|handler|auth_handler|sys\.conf)\.php(?:/|$) - [F,L,NC]
+RewriteRule (?:^|/)\.[^/]+ - [F,L]
+RewriteRule \.(?:sql|sqlite3?|db|log|bak|bnk|zip|pem|key|env|tar|tgz|gz|7z|rar)(?:[.-]|$) - [F,L,NC]
+</IfModule>
+<FilesMatch "^(?:\.|config\.inc\.php|sys\.conf\.local\.php)">
+Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(?:sql|sqlite3?|db|log|bak|bnk|zip|pem|key|env|tar|tgz|gz|7z|rar)(?:[.-]|$)">
+Require all denied
+</FilesMatch>

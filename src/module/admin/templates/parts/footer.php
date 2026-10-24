@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 // Template-Daten aus der globalen Variable verfügbar machen
 if (isset($GLOBALS['_template_data'])) {
     extract($GLOBALS['_template_data']);

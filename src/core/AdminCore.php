@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -1470,24 +1472,6 @@ class AdminCore {
     }
     
     public function resetUserPassword($userId) {
-        try {
-            $db = $this->getSafeDbConnection();
-            
-            // Generiere ein sicheres Passwort
-            $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-            $password = '';
-            for ($i = 0; $i < 12; $i++) {
-                $password .= $chars[random_int(0, strlen($chars) - 1)];
-            }
-            
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
-            $stmt->execute([$hash, $userId]);
-            
-            return ['success' => true, 'data' => ['password' => $password]];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        return ['success' => false, 'error' => 'Diese Passwort-Rücksetzung ist bis zur sicheren Überarbeitung gesperrt.'];
     }
 }
-?>

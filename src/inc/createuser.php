@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -459,7 +461,7 @@ if (isset($_SESSION['info_message'])) {
                     <?php endfor; ?>
                 </div>
 
-                <form id="createUserForm" method="post">
+                <form id="createUserForm" method="post"><?php echo HttpSecurity::csrfField(); ?>
                     <input type="hidden" name="createuser_form" value="1">
                     <?php if ($currentStep == 1): ?>
                         <!-- Schritt 1: System-Auswahl -->

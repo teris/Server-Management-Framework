@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -11,7 +13,7 @@ if (__FILE__ === $_SERVER['SCRIPT_FILENAME']) {
     exit;
 }
 require_once dirname(__DIR__) . '/sys.conf.php';
-require_once dirname(__DIR__) . '/../config/config.inc.php';
+require_once dirname(__DIR__) . '/../config/load.php';
 if (!isset($db)) {
     require_once dirname(__DIR__) . '/core/DatabaseManager.php';
     $db = DatabaseManager::getInstance();
@@ -207,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                         } catch (Exception $e) {}
                         ?>
                         <div class="tab-pane fade" id="tab-modules" role="tabpanel" aria-labelledby="tab-modules-tab">
-                            <form id="modules-settings-form" action="?option=submit" method="post">
+                            <form id="modules-settings-form" action="?option=submit" method="post"><?php echo HttpSecurity::csrfField(); ?>
                                 <input type="hidden" name="action" value="save_module_permissions">
                                 <table class="table table-bordered">
                                     <thead>

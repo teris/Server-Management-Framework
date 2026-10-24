@@ -1,3 +1,6 @@
+<?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+?>
 <!-- VM-Erstellen-Modal -->
 <div class="modal fade" id="createVMModal" tabindex="-1" aria-labelledby="createVMModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">

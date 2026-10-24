@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Proxmox Module
  * Verwaltung von virtuellen Maschinen
@@ -8,6 +10,7 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class ProxmoxModule extends ModuleBase {
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         $translations = $this->tMultiple([
             'module_title', 'server_list', 'create_vm', 'vm_management', 'server_details',
             'vm_id', 'node', 'status', 'memory_mb', 'cpu_cores_count', 'uptime',
@@ -28,6 +31,7 @@ class ProxmoxModule extends ModuleBase {
     }
     
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         switch ($action) {
             case 'create_vm':
                 return $this->createVM($data);
@@ -78,7 +82,7 @@ class ProxmoxModule extends ModuleBase {
         try {
             // Debug: Zeige alle übergebenen Daten
             $debugInfo = [
-                'raw_data' => $data,
+                'raw_data' => HttpSecurity::redact($data),
                 'required_fields_check' => [],
                 'vm_params' => [],
                 'api_call_info' => []
@@ -141,7 +145,7 @@ class ProxmoxModule extends ModuleBase {
                 }
             }
             
-            $debugInfo['vm_params'] = $vmParams;
+            $debugInfo['vm_params'] = HttpSecurity::redact($vmParams);
             $debugInfo['api_call_info'] = [
                 'method' => 'POST',
                 'url' => '/nodes/' . $data['node'] . '/qemu',

@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -67,11 +69,11 @@ if (isset($_POST['action']) && in_array($_POST['action'], ['get_user_data', 'get
                 handleDeleteUser($serviceManager, $db);
                 break;
             default:
-                echo json_encode(['success' => false, 'message' => 'Unbekannte Aktion: ' . $action]);
+                echo HttpSecurity::encode(['success' => false, 'message' => 'Unbekannte Aktion: ' . $action]);
                 break;
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage()]);
     }
     exit;
 }
@@ -81,7 +83,7 @@ function handleGetUserData($db) {
     $userId = (int)($_POST['user_id'] ?? 0);
     
     if ($userId <= 0) {
-        echo json_encode(['success' => false, 'message' => 'Ungültige Benutzer-ID']);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Ungültige Benutzer-ID']);
         return;
     }
     
@@ -91,12 +93,12 @@ function handleGetUserData($db) {
         $user = $db->fetch($stmt);
         
         if ($user) {
-            echo json_encode(['success' => true, 'data' => $user]);
+            echo HttpSecurity::encode(['success' => true, 'data' => $user]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Benutzer nicht gefunden']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Benutzer nicht gefunden']);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der Benutzerdaten: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Laden der Benutzerdaten: ' . $e->getMessage()]);
     }
 }
 
@@ -104,7 +106,7 @@ function handleGetUserDetails($db) {
     $userId = (int)($_POST['user_id'] ?? 0);
     
     if ($userId <= 0) {
-        echo json_encode(['success' => false, 'message' => 'Ungültige Benutzer-ID']);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Ungültige Benutzer-ID']);
         return;
     }
     
@@ -114,12 +116,12 @@ function handleGetUserDetails($db) {
         $user = $db->fetch($stmt);
         
         if ($user) {
-            echo json_encode(['success' => true, 'data' => $user]);
+            echo HttpSecurity::encode(['success' => true, 'data' => $user]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Benutzer nicht gefunden']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Benutzer nicht gefunden']);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der Benutzerdetails: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Laden der Benutzerdetails: ' . $e->getMessage()]);
     }
 }
 
@@ -127,7 +129,7 @@ function handleGetUserSystemLinks($db, $serviceManager) {
     $userId = (int)($_POST['user_id'] ?? 0);
     
     if ($userId <= 0) {
-        echo json_encode(['success' => false, 'message' => 'Ungültige Benutzer-ID']);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Ungültige Benutzer-ID']);
         return;
     }
     
@@ -138,7 +140,7 @@ function handleGetUserSystemLinks($db, $serviceManager) {
         $user = $db->fetch($stmt);
         
         if (!$user) {
-            echo json_encode(['success' => false, 'message' => 'Benutzer nicht gefunden']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Benutzer nicht gefunden']);
             return;
         }
         
@@ -183,9 +185,9 @@ function handleGetUserSystemLinks($db, $serviceManager) {
             // ISPConfig nicht verfügbar
         }
         
-        echo json_encode(['success' => true, 'data' => $systemLinks]);
+        echo HttpSecurity::encode(['success' => true, 'data' => $systemLinks]);
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der System-Verknüpfungen: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Laden der System-Verknüpfungen: ' . $e->getMessage()]);
     }
 }
 
@@ -193,7 +195,7 @@ function handleGetCustomerDetails($db) {
     $customerId = (int)($_POST['customer_id'] ?? 0);
     
     if ($customerId <= 0) {
-        echo json_encode(['success' => false, 'message' => 'Ungültige Kunden-ID']);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Ungültige Kunden-ID']);
         return;
     }
     
@@ -203,12 +205,12 @@ function handleGetCustomerDetails($db) {
         $customer = $db->fetch($stmt);
         
         if ($customer) {
-            echo json_encode(['success' => true, 'data' => $customer]);
+            echo HttpSecurity::encode(['success' => true, 'data' => $customer]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Kunde nicht gefunden']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Kunde nicht gefunden']);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der Kundendetails: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Laden der Kundendetails: ' . $e->getMessage()]);
     }
 }
 
@@ -220,7 +222,7 @@ function handleEditSystemUser($db, $serviceManager) {
     $expires = $_POST['expires'] ?? '';
     
     if (empty($systemType) || empty($systemUserId)) {
-        echo json_encode(['success' => false, 'message' => 'Fehlende Parameter']);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehlende Parameter']);
         return;
     }
     
@@ -238,17 +240,17 @@ function handleEditSystemUser($db, $serviceManager) {
                 $result = $serviceManager->editISPConfigUser($systemUserId, $email, $username);
                 break;
             default:
-                echo json_encode(['success' => false, 'message' => 'Unbekanntes System: ' . $systemType]);
+                echo HttpSecurity::encode(['success' => false, 'message' => 'Unbekanntes System: ' . $systemType]);
                 return;
         }
         
         if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Benutzer erfolgreich aktualisiert']);
+            echo HttpSecurity::encode(['success' => true, 'message' => 'Benutzer erfolgreich aktualisiert']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Fehler beim Aktualisieren des Benutzers']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Aktualisieren des Benutzers']);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage()]);
     }
 }
 
@@ -257,7 +259,7 @@ function handleDeleteSystemUser($db, $serviceManager) {
     $systemUserId = $_POST['system_user_id'] ?? '';
     
     if (empty($systemType) || empty($systemUserId)) {
-        echo json_encode(['success' => false, 'message' => 'Fehlende Parameter']);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehlende Parameter']);
         return;
     }
     
@@ -275,17 +277,17 @@ function handleDeleteSystemUser($db, $serviceManager) {
                 $result = $serviceManager->deleteISPConfigUser($systemUserId);
                 break;
             default:
-                echo json_encode(['success' => false, 'message' => 'Unbekanntes System: ' . $systemType]);
+                echo HttpSecurity::encode(['success' => false, 'message' => 'Unbekanntes System: ' . $systemType]);
                 return;
         }
         
         if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Benutzer erfolgreich gelöscht']);
+            echo HttpSecurity::encode(['success' => true, 'message' => 'Benutzer erfolgreich gelöscht']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Fehler beim Löschen des Benutzers']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Löschen des Benutzers']);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage()]);
     }
 }
 
@@ -293,7 +295,7 @@ function handleEditCustomer($db) {
     $customerId = (int)($_POST['customer_id'] ?? 0);
     
     if ($customerId <= 0) {
-        echo json_encode(['success' => false, 'message' => 'Ungültige Kunden-ID']);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Ungültige Kunden-ID']);
         return;
     }
     
@@ -317,7 +319,7 @@ function handleEditCustomer($db) {
         
         // Validierung
         if (empty($firstName) || empty($lastName) || empty($email)) {
-            echo json_encode(['success' => false, 'message' => 'Vorname, Nachname und E-Mail sind erforderlich']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Vorname, Nachname und E-Mail sind erforderlich']);
             return;
         }
         
@@ -375,12 +377,12 @@ function handleEditCustomer($db) {
         $result = $db->execute($stmt, $params);
         
         if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Kunde erfolgreich aktualisiert']);
+            echo HttpSecurity::encode(['success' => true, 'message' => 'Kunde erfolgreich aktualisiert']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Fehler beim Aktualisieren des Kunden']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Aktualisieren des Kunden']);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Bearbeiten des Kunden: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Bearbeiten des Kunden: ' . $e->getMessage()]);
     }
 }
 
@@ -407,17 +409,17 @@ function handleCreateCustomer($db) {
         
         // Validierung
         if (empty($firstName) || empty($lastName) || empty($email) || empty($password)) {
-            echo json_encode(['success' => false, 'message' => 'Vorname, Nachname, E-Mail und Passwort sind erforderlich']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Vorname, Nachname, E-Mail und Passwort sind erforderlich']);
             return;
         }
         
         if ($password !== $passwordConfirm) {
-            echo json_encode(['success' => false, 'message' => 'Passwörter stimmen nicht überein']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Passwörter stimmen nicht überein']);
             return;
         }
         
         if (strlen($password) < 8) {
-            echo json_encode(['success' => false, 'message' => 'Passwort muss mindestens 8 Zeichen lang sein']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Passwort muss mindestens 8 Zeichen lang sein']);
             return;
         }
         
@@ -425,7 +427,7 @@ function handleCreateCustomer($db) {
         $stmt = $db->prepare("SELECT id FROM customers WHERE email = ?");
         $db->execute($stmt, [$email]);
         if ($db->fetch($stmt)) {
-            echo json_encode(['success' => false, 'message' => 'E-Mail-Adresse bereits vorhanden']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'E-Mail-Adresse bereits vorhanden']);
             return;
         }
         
@@ -475,16 +477,16 @@ function handleCreateCustomer($db) {
                 'success'
             );
             
-            echo json_encode([
+            echo HttpSecurity::encode([
                 'success' => true, 
                 'message' => 'Kunde erfolgreich erstellt' . ($emailVerified ? ' und E-Mail gesendet' : ' - Verifikations-E-Mail gesendet'),
                 'customer_id' => $customerId
             ]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Fehler beim Erstellen des Kunden']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Erstellen des Kunden']);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Erstellen des Kunden: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Erstellen des Kunden: ' . $e->getMessage()]);
     }
 }
 
@@ -499,9 +501,9 @@ function handleGetCustomers($db) {
         $stmt = $db->query("SELECT * FROM customers ORDER BY created_at DESC");
         $customers = $db->fetchAll($stmt);
         
-        echo json_encode(['success' => true, 'data' => $customers]);
+        echo HttpSecurity::encode(['success' => true, 'data' => $customers]);
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Laden der Kunden: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Laden der Kunden: ' . $e->getMessage()]);
     }
 }
 
@@ -754,7 +756,7 @@ function handleCreateSystemUser($db, $serviceManager) {
         
         // Validierung
         if (empty($username) || empty($email) || empty($fullName) || empty($password)) {
-            echo json_encode(['success' => false, 'message' => 'Alle Felder sind erforderlich']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Alle Felder sind erforderlich']);
             return;
         }
         
@@ -762,7 +764,7 @@ function handleCreateSystemUser($db, $serviceManager) {
         $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
         $db->execute($stmt, [$email]);
         if ($db->fetch($stmt)) {
-            echo json_encode(['success' => false, 'message' => 'E-Mail-Adresse bereits vorhanden']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'E-Mail-Adresse bereits vorhanden']);
             return;
         }
         
@@ -770,7 +772,7 @@ function handleCreateSystemUser($db, $serviceManager) {
         $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
         $db->execute($stmt, [$username]);
         if ($db->fetch($stmt)) {
-            echo json_encode(['success' => false, 'message' => 'Benutzername bereits vorhanden']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Benutzername bereits vorhanden']);
             return;
         }
         
@@ -784,10 +786,10 @@ function handleCreateSystemUser($db, $serviceManager) {
         $emailTemplateManager = EmailTemplateManager::getInstance();
         $emailTemplateManager->sendUserWelcomeEmail($email, $fullName, $username, $password);
         
-        echo json_encode(['success' => true, 'message' => 'Backend-Benutzer erfolgreich erstellt und E-Mail gesendet!']);
+        echo HttpSecurity::encode(['success' => true, 'message' => 'Backend-Benutzer erfolgreich erstellt und E-Mail gesendet!']);
         
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Erstellen des Benutzers: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Erstellen des Benutzers: ' . $e->getMessage()]);
     }
 }
 
@@ -803,7 +805,7 @@ function handleEditUser($db) {
         
         // Validierung
         if (empty($userId) || empty($username) || empty($email) || empty($fullName)) {
-            echo json_encode(['success' => false, 'message' => 'Benutzer-ID, Benutzername, E-Mail und vollständiger Name sind erforderlich']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Benutzer-ID, Benutzername, E-Mail und vollständiger Name sind erforderlich']);
             return;
         }
         
@@ -811,7 +813,7 @@ function handleEditUser($db) {
         $stmt = $db->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
         $db->execute($stmt, [$email, $userId]);
         if ($db->fetch($stmt)) {
-            echo json_encode(['success' => false, 'message' => 'E-Mail-Adresse bereits von einem anderen Benutzer verwendet']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'E-Mail-Adresse bereits von einem anderen Benutzer verwendet']);
             return;
         }
         
@@ -819,7 +821,7 @@ function handleEditUser($db) {
         $stmt = $db->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
         $db->execute($stmt, [$username, $userId]);
         if ($db->fetch($stmt)) {
-            echo json_encode(['success' => false, 'message' => 'Benutzername bereits von einem anderen Benutzer verwendet']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Benutzername bereits von einem anderen Benutzer verwendet']);
             return;
         }
         
@@ -846,10 +848,10 @@ function handleEditUser($db) {
             $db->execute($stmt, [$username, $email, $fullName, $role, $active, $userId]);
         }
         
-        echo json_encode(['success' => true, 'message' => 'Benutzer erfolgreich aktualisiert']);
+        echo HttpSecurity::encode(['success' => true, 'message' => 'Benutzer erfolgreich aktualisiert']);
         
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Aktualisieren des Benutzers: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Aktualisieren des Benutzers: ' . $e->getMessage()]);
     }
 }
 
@@ -860,12 +862,12 @@ function handleDeleteCustomer($db) {
         
         // Validierung
         if (empty($customerId)) {
-            echo json_encode(['success' => false, 'message' => 'Kunden-ID ist erforderlich']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Kunden-ID ist erforderlich']);
             return;
         }
         
         if (empty($deleteFromSystems)) {
-            echo json_encode(['success' => false, 'message' => 'Bitte wählen Sie mindestens ein System aus']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Bitte wählen Sie mindestens ein System aus']);
             return;
         }
         
@@ -918,13 +920,13 @@ function handleDeleteCustomer($db) {
             if (!empty($errors)) {
                 $message .= '. Warnungen: ' . implode(', ', $errors);
             }
-            echo json_encode(['success' => true, 'message' => $message]);
+            echo HttpSecurity::encode(['success' => true, 'message' => $message]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Fehler beim Löschen des Kunden: ' . implode(', ', $errors)]);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Löschen des Kunden: ' . implode(', ', $errors)]);
         }
         
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Löschen des Kunden: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Löschen des Kunden: ' . $e->getMessage()]);
     }
 }
 
@@ -1055,7 +1057,7 @@ function handleDeleteUser($serviceManager, $db) {
         $deleteFromSystems = $_POST['delete_from_systems'] ?? [];
         
         if (empty($userId)) {
-            echo json_encode(['success' => false, 'message' => 'Benutzer-ID ist erforderlich']);
+            echo HttpSecurity::encode(['success' => false, 'message' => 'Benutzer-ID ist erforderlich']);
             return;
         }
         
@@ -1097,10 +1099,10 @@ function handleDeleteUser($serviceManager, $db) {
         $stmt = $db->prepare("DELETE FROM users WHERE id = ?");
         $db->execute($stmt, [$userId]);
         
-        echo json_encode(['success' => true, 'message' => 'Benutzer erfolgreich gelöscht']);
+        echo HttpSecurity::encode(['success' => true, 'message' => 'Benutzer erfolgreich gelöscht']);
         
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Fehler beim Löschen des Benutzers: ' . $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Löschen des Benutzers: ' . $e->getMessage()]);
     }
 }
 
@@ -1805,7 +1807,7 @@ function handleUpdatePassword($serviceManager, $db) {
                                             <?php endif; ?>
                                         </div>
                                         <div class="card-body">
-                                            <form method="post" class="merge-form">
+                                            <form method="post" class="merge-form"><?php echo HttpSecurity::csrfField(); ?>
                                                 <input type="hidden" name="action" value="merge_users">
                                                 <div class="row">
                                                     <div class="col-md-2">
@@ -1956,7 +1958,7 @@ function handleUpdatePassword($serviceManager, $db) {
                                 <strong><?= t('note') ?></strong> <?= t('link_users_note') ?>
                             </div>
                             
-                            <form method="post">
+                            <form method="post"><?php echo HttpSecurity::csrfField(); ?>
                                 <input type="hidden" name="action" value="link_existing_user">
                                 
                                 <!-- Grundlegende Benutzerdaten -->
@@ -2139,7 +2141,7 @@ function handleUpdatePassword($serviceManager, $db) {
                                                             </td>
                                                             <td>
                                                                 <?php if ($customer['status'] === 'pending'): ?>
-                                                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Kunde wirklich aktivieren?')">
+                                                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Kunde wirklich aktivieren?')"><?php echo HttpSecurity::csrfField(); ?>
                                                                         <input type="hidden" name="action" value="activate_customer">
                                                                         <input type="hidden" name="customer_id" value="<?= $customer['id'] ?>">
                                                                         <button type="submit" class="btn btn-success btn-sm" title="Kunde aktivieren">
@@ -2357,7 +2359,7 @@ function handleUpdatePassword($serviceManager, $db) {
                 <h5 class="modal-title" id="createCustomerModalLabel"><?= t('create_customer') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post">
+            <form method="post"><?php echo HttpSecurity::csrfField(); ?>
                 <input type="hidden" name="action" value="create_customer">
                 <div class="modal-body">
                     <!-- Grundlegende Informationen -->

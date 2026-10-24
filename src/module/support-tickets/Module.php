@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Support Tickets Module
  * Verwaltung von Support-Tickets durch Administratoren
@@ -9,6 +11,7 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class SupportTicketsModule extends ModuleBase {
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         if (!$this->canAccess()) {
             return '<div class="alert alert-danger">' . $this->t('access_denied') . '</div>';
         }
@@ -22,6 +25,7 @@ class SupportTicketsModule extends ModuleBase {
     }
     
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         switch ($action) {
             case 'get_tickets':
                 return $this->getTickets($data);

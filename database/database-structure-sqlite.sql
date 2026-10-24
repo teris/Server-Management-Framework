@@ -727,8 +727,7 @@ GROUP BY w.id;
 -- =============================================================================
 
 -- Standard-Admin-Benutzer
-INSERT INTO users (username, email, password_hash, full_name, role, active) VALUES
-('admin', 'admin@yourserver.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System Administrator', 'admin', 'y');
+-- Administrator creation is an explicit CLI step: bin/create-admin.php
 
 -- Standard-Module
 INSERT INTO modules (name, is_active) VALUES

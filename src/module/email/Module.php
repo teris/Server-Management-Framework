@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 // ========================================
 // Email Module
 // modules/email/Module.php
@@ -9,6 +11,7 @@ require_once dirname(dirname(__FILE__)) . '/ModuleBase.php';
 class EmailModule extends ModuleBase {
     
     public function getContent() {
+        ResourceAccess::requireLegacyModule($this->module_key);
         $translations = $this->tMultiple([
             'module_title', 'create_email', 'email_address', 'login_name', 'password',
             'storage_space', 'full_name', 'domain', 'email_client_config', 'imap_receive',
@@ -26,6 +29,7 @@ class EmailModule extends ModuleBase {
     }
     
     public function handleAjaxRequest($action, $data) {
+        ResourceAccess::requireLegacyModule($this->module_key);
         switch ($action) {
             case 'create_email':
                 return $this->createEmail($data);

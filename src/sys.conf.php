@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -66,7 +68,7 @@ $plugins = array (
   ),
   'file-editor' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'Datei Editor',
     'icon' => '📝',
     'path' => 'module/file-editor',
@@ -116,7 +118,7 @@ $plugins = array (
   ),
   'endpoints' => 
   array (
-    'enabled' => true,
+    'enabled' => false,
     'name' => 'API Endpoint Tester',
     'icon' => '🔌',
     'path' => 'module/endpoints',
@@ -165,7 +167,7 @@ $system_config = array (
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',
   'timezone' => 'Europe/Berlin',
-  'debug_mode' => true,
+  'debug_mode' => false,
   'maintenance_mode' => false,
   'session_timeout' => '3600',
   'max_upload_size' => '50M',
@@ -477,4 +479,13 @@ function tMultiple($keys, $module_key = null) {
     // Fallback auf Core-Übersetzungen
     return $lm->translateCoreMultiple($keys);
 }
-?>
+
+// Shared boundary applies to public forms and all backend/API requests.
+require_once __DIR__ . '/core/Security.php';
+require_once __DIR__ . '/core/Identity.php';
+if (PHP_SAPI !== 'cli') set_exception_handler(function ($error) {
+    if ($error instanceof SecurityViolation) HttpSecurity::abort($error->getCode(), $error->getMessage());
+    error_log('Framework request failed: ' . get_class($error));
+    HttpSecurity::abort(503, 'Die Anfrage kann gerade nicht verarbeitet werden.');
+});
+HttpSecurity::guardRequest();
