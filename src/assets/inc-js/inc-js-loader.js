@@ -59,6 +59,7 @@
     function loadPageSpecificScripts() {
         var currentPage = getCurrentPage();
         
+        if (currentPage === 'users' || currentPage === 'createuser') return;
         if (!currentPage) {
             console.log('Keine spezifische Seite erkannt, lade keine zusätzlichen Scripts');
             return;

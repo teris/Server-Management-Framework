@@ -21,7 +21,6 @@ class EmailTemplateEditor extends FileEditor {
         '{lastName}' => 'Nachname des Empfängers',
         '{email}' => 'E-Mail-Adresse des Empfängers',
         '{username}' => 'Benutzername',
-        '{password}' => 'Passwort',
         '{loginUrl}' => 'Login-URL',
         '{verificationLink}' => 'Verifizierungs-Link',
         '{site_name}' => 'Name der Website',
@@ -134,7 +133,7 @@ class EmailTemplateEditor extends FileEditor {
         try {
             $field = $contentType === 'html' ? 'html_content' : 'raw_content';
             
-            $stmt = $this->db->prepare("UPDATE email_templates SET $field = ?, updated_at = NOW() WHERE id = ?");
+            $stmt = $this->db->prepare("UPDATE email_templates SET $field = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
             $result = $this->db->execute($stmt, [$content, $templateId]);
             
             if ($result) {

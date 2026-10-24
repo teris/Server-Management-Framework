@@ -5,6 +5,7 @@ require_once __DIR__ . '/../core/ResourceAccess.php';
 
 $realm = ($_REQUEST['context'] ?? 'customer') === 'backend' ? 'backend' : 'customer';
 $identity = Identity::requireIdentity($realm);
+if (in_array($modus_type['modus'] ?? 'api', ['database','mysql'], true)) HttpSecurity::abort(503, 'Providerzugriffe sind im Datenbank-Cachemodus deaktiviert.');
 $action = $_REQUEST['action'] ?? 'view';
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== ($action === 'view' ? 'GET' : 'POST')) HttpSecurity::abort(405, 'Methode nicht erlaubt.');
 $manager = null;

@@ -683,7 +683,7 @@ function generateXMLFromTable() {
     const table = document.getElementById('xml-translations-table');
     if (!table) return '';
     
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    let xml = '<\x3fxml version="1.0" encoding="UTF-8"?>\n';
     xml += '<translations>\n';
     
     const rows = table.querySelectorAll('tr');

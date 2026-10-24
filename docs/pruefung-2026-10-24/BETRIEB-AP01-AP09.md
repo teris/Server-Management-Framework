@@ -1,5 +1,7 @@
 # Betrieb nach AP01–AP09
 
+> Historischer Prüfstand. AP10–AP17 sind inzwischen lokal umgesetzt; aktuelle Befehle und Grenzen stehen in [BETRIEB-AP10-AP17.md](BETRIEB-AP10-AP17.md) und [UMSETZUNG-AP10-AP17.md](UMSETZUNG-AP10-AP17.md).
+
 Stand: 24.10.2026. Diese Hinweise beschreiben den lokal umgesetzten Sicherheitsstand; ein produktiver Upload oder GitHub-Release ist nicht erfolgt.
 
 ## Arbeitsbasis

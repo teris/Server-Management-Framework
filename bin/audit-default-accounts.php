@@ -1,6 +1,7 @@
 <?php
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once dirname(__DIR__) . '/framework.php';
+HttpSecurity::cliBoundary();
 $count = 0;
 foreach (HttpSecurity::connection()->query("SELECT id, username, password_hash FROM users WHERE role = 'admin' AND active = 'y'") as $row) {
     foreach (['admin123', 'password', 'admin'] as $known) {

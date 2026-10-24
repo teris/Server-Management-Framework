@@ -10,7 +10,6 @@
  */
 
 require_once __DIR__ . '/../src/public-bootstrap.php';
-require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
 // TODO: E-Mail-Template-System ist jetzt über EmailTemplateManager verfügbar
 require_once '../src/core/EmailTemplateManager.php';
@@ -25,158 +24,15 @@ HttpSecurity::session();
 $error = '';
 $success = '';
 $systemCreationResults = '';
-
-// Token aus URL-Parameter holen
-$token = $_GET['token'] ?? '';
-
-if (empty($token)) {
-    $error = t('invalid_confirmation_link');
-} else {
+$token = (string) ($_POST['token'] ?? $_GET['token'] ?? '');
+if (!preg_match('/^[a-f0-9]{64}$/D', $token)) $error = 'Ungültiger Bestätigungslink.';
+elseif (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     try {
-        // Datenbankverbindung
-        $db = Database::getInstance();
-        
-        // Token in der Datenbank suchen
-        $stmt = $db->prepare("
-            SELECT cv.id, cv.customer_id, cv.expires_at, c.email, c.first_name, c.last_name, c.status 
-            FROM customer_verification_tokens cv 
-            JOIN customers c ON cv.customer_id = c.id 
-            WHERE cv.token = ? AND cv.expires_at > NOW()
-        ");
-        $stmt->execute([$token]);
-        $verification = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$verification) {
-            $error = t('invalid_or_expired_confirmation_token');
-        } elseif ($verification['status'] === 'active') {
-            $error = t('your_account_is_already_activated');
-        } else {
-            // Konto aktivieren
-            $stmt = $db->prepare("
-                UPDATE customers 
-                SET status = 'active', email_verified_at = NOW(), updated_at = NOW() 
-                WHERE id = ?
-            ");
-            $result = $stmt->execute([$verification['customer_id']]);
-            
-            if ($result) {
-                // Token löschen
-                $stmt = $db->prepare("DELETE FROM customer_verification_tokens WHERE id = ?");
-                $stmt->execute([$verification['id']]);
-                
-                // Benutzerkonten in allen Systemen erstellen
-                try {
-                    $serviceManager = new ServiceManager();
-                    
-                    // Benutzername aus E-Mail generieren (alles vor dem @)
-                    $username = strtolower(explode('@', $verification['email'])[0]);
-                    
-                    // Für jedes externe System ein eigenes Passwort generieren
-                    $systemPasswords = [];
-                    
-                    if (Config::ISPCONFIG_USEING) {
-                        $systemPasswords['ispconfig'] = bin2hex(random_bytes(8)); // 16 Zeichen
-                    }
-                    if (Config::OGP_USEING) {
-                        $systemPasswords['ogp'] = bin2hex(random_bytes(8)); // 16 Zeichen
-                    }
-                    if (Config::PROXMOX_USEING) {
-                        $systemPasswords['proxmox'] = bin2hex(random_bytes(8)); // 16 Zeichen
-                    }
-                    
-                    // Benutzer in allen Systemen erstellen
-                    $creationResult = $serviceManager->createUserInAllSystems(
-                        $username,
-                        $systemPasswords, // Alle System-Passwörter übergeben
-                        $verification['first_name'],
-                        $verification['last_name'],
-                        [
-                            'email' => $verification['email'],
-                            'company' => '', // Kann später ergänzt werden
-                            'phone' => ''    // Kann später ergänzt werden
-                        ]
-                    );
-                    
-                    if ($creationResult['success']) {
-                        $systemCreationResults = t('your_system_accounts_have_been_successfully_created');
-                        
-                        // Erfolgreiche Systemerstellung loggen
-                        $db->logAction(
-                            'System User Creation',
-                            t('user') . " $username " . t('successfully_created_in_all_systems') . ": " . implode(', ', array_keys($creationResult['results'])),
-                            'success'
-                        );
-                        
-                        // TODO: E-Mail mit allen System-Anmeldedaten senden - ausschließlich über Template-System
-                        $emailTemplateManager = EmailTemplateManager::getInstance();
-                        $emailSent = $emailTemplateManager->sendSystemCredentialsEmail(
-                            $verification['email'], 
-                            $verification['first_name'], 
-                            $verification['last_name'],
-                            $username, 
-                            $systemPasswords,
-                            $creationResult['results']
-                        );
-                        
-                        if ($emailSent) {
-                            $success .= t('an_email_with_your_system_login_details_has_been_sent_to_your_email_address');
-                        } else {
-                            $success .= ' WARNUNG: Die E-Mail mit Ihren System-Anmeldedaten konnte nicht gesendet werden. Bitte kontaktieren Sie den Support.';
-                        }
-                        
-                    } else {
-                        $systemCreationResults = t('warning') . ': ' . t('some_system_accounts_could_not_be_created');
-                        
-                        // Fehler loggen
-                        $db->logAction(
-                            'System User Creation',
-                            "Fehler beim Anlegen der Systemkonten für $username: " . json_encode($creationResult['errors']),
-                            'error'
-                        );
-                    }
-                    
-                } catch (Exception $e) {
-                    $systemCreationResults = 'Warnung: Fehler beim Anlegen der Systemkonten.';
-                    error_log("System User Creation Error: " . $e->getMessage());
-                    
-                    // Fehler loggen
-                    $db->logAction(
-                        'System User Creation',
-                        "Exception beim Anlegen der Systemkonten für Benutzer {$verification['customer_id']}: " . $e->getMessage(),
-                        'error'
-                    );
-                }
-                
-                $success = 'Ihr Konto wurde erfolgreich aktiviert! Sie können sich jetzt anmelden.';
-                
-                // TODO: E-Mail mit Anmeldedaten senden (wenn noch nicht gesendet) - ausschließlich über Template-System
-                if (!isset($emailSent) || !$emailSent) {
-                    $emailTemplateManager = EmailTemplateManager::getInstance();
-                    $emailSent = $emailTemplateManager->sendSystemCredentialsEmail(
-                        $verification['email'], 
-                        $verification['first_name'], 
-                        $verification['last_name'],
-                        $username, 
-                        $systemPasswords ?? [],
-                        $creationResult['results'] ?? []
-                    );
-                    
-                    if ($emailSent) {
-                        $success .= t('an_email_with_your_system_login_details_has_been_sent_to_your_email_address');
-                    } else {
-                        $success .= t('warning') . ': ' . t('the_email_with_your_system_login_details_could_not_be_sent');
-                    }
-                }
-                
-            } else {
-                $error = t('error_during_account_activation');
-            }
-        }
-    } catch (Exception $e) {
-        error_log("Email Verification Error: " . $e->getMessage());
-        $error = t('an_error_occurred');
-    }
+        if ((new RegistrationService())->verify($token)) $success = 'Ihre E-Mail-Adresse ist bestätigt. Sie können sich jetzt anmelden.';
+        else $error = 'Der Link ist abgelaufen, wurde bereits verwendet oder ist nicht mehr gültig. Bitte einen neuen Link anfordern.';
+    } catch (Throwable $e) { error_log('Verification failed: ' . get_class($e)); $error = 'Die Bestätigung kann gerade nicht verarbeitet werden.'; }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="<?= $currentLang ?>">
@@ -186,19 +42,24 @@ if (empty($token)) {
     <title><?= t('email_verification') ?> - Server Management</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/frontpanel.css">
     <link rel="stylesheet" type="text/css" href="assets/login.css">
     
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="login-page">
+<?php if (!$error && !$success): ?>
+<div class="container py-4"><h1>E-Mail-Adresse bestätigen</h1><p>Mit der Bestätigung aktivieren Sie Ihr Kundenkonto.</p>
+<form method="POST"><?php echo HttpSecurity::csrfField(); ?><input type="hidden" name="token" value="<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>"><button class="btn btn-primary" type="submit">E-Mail-Adresse bestätigen</button></form></div>
+<?php endif; ?>
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">

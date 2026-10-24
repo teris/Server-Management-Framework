@@ -235,7 +235,7 @@ $security_config = [
     'sql_injection_protection' => true,
     'force_https' => false,
     'secure_cookies' => true,
-    'password_min_length' => 8,
+    'password_min_length' => 12,
     'password_require_special' => true,
     'password_require_numbers' => true,
     'password_require_uppercase' => true,
@@ -259,6 +259,13 @@ $modus_type =[
     'modus' => 'api' //mysql oder api
 ];
 
+
+// Operator overrides live outside release folders and survive activation/rollback.
+require_once __DIR__ . '/core/Security.php';
+$localConfiguration = getenv('SMF_SYSTEM_CONFIG_FILE') ?: HttpSecurity::privateDirectory('config') . '/system.local.php';
+if (is_file($localConfiguration)) require $localConfiguration;
+require_once __DIR__ . '/core/SystemConfiguration.php';
+SystemConfiguration::apply();
 
 // Helper Functions
 function getEnabledPlugins() {

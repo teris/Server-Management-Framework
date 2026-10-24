@@ -109,7 +109,7 @@ class SupportTicketsModule extends ModuleBase {
             
             $stmt = $db->prepare("
                 INSERT INTO support_tickets (ticket_number, customer_id, email, subject, priority, message, category, department, status, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', NOW())
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', CURRENT_TIMESTAMP)
             ");
             
             if ($stmt->execute([$ticketNumber, $customerId, $customerEmail, $subject, $priority, $message, $category, $department])) {
@@ -139,7 +139,7 @@ class SupportTicketsModule extends ModuleBase {
             
             $stmt = $db->prepare("
                 UPDATE support_tickets 
-                SET assigned_to = ?, updated_at = NOW() 
+                SET assigned_to = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
             $stmt->execute([$assignedTo, $ticketId]);
@@ -208,7 +208,7 @@ class SupportTicketsModule extends ModuleBase {
             
             $stmt = $db->prepare("
                 INSERT INTO ticket_replies (ticket_id, admin_id, message, is_internal, created_at) 
-                VALUES (?, ?, ?, 2, NOW())
+                VALUES (?, ?, ?, 2, CURRENT_TIMESTAMP)
             ");
             $stmt->execute([$ticketId, $this->user_id, $note]);
             
@@ -391,7 +391,7 @@ class SupportTicketsModule extends ModuleBase {
                 return $this->error('No fields to update');
             }
             
-            $updates[] = "updated_at = NOW()";
+            $updates[] = "updated_at = CURRENT_TIMESTAMP";
             $params[] = $ticketId;
             
             $sql = "UPDATE support_tickets SET " . implode(', ', $updates) . " WHERE id = ?";
@@ -472,7 +472,7 @@ class SupportTicketsModule extends ModuleBase {
                 // Reply hinzufügen - Standardmäßig nicht intern (0), nur wenn explizit true gesetzt
                 $stmt = $db->prepare("
                     INSERT INTO ticket_replies (ticket_id, admin_id, message, is_internal, created_at) 
-                    VALUES (?, ?, ?, ?, NOW())
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
                 ");
                 $stmt->execute([$ticketId, $this->user_id, $message, $isInternal === true ? 1 : 0]);
                 
@@ -480,7 +480,7 @@ class SupportTicketsModule extends ModuleBase {
                 if ($isInternal !== true) {
                     $stmt = $db->prepare("
                         UPDATE support_tickets 
-                        SET status = 'waiting_customer', updated_at = NOW() 
+                        SET status = 'waiting_customer', updated_at = CURRENT_TIMESTAMP
                         WHERE id = ?
                     ");
                     $stmt->execute([$ticketId]);
@@ -513,7 +513,7 @@ class SupportTicketsModule extends ModuleBase {
             
             $stmt = $db->prepare("
                 UPDATE support_tickets 
-                SET status = 'closed', closed_at = NOW(), updated_at = NOW() 
+                SET status = 'closed', closed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
             $stmt->execute([$ticketId]);
@@ -542,7 +542,7 @@ class SupportTicketsModule extends ModuleBase {
             
             $stmt = $db->prepare("
                 UPDATE support_tickets 
-                SET status = 'open', closed_at = NULL, updated_at = NOW() 
+                SET status = 'open', closed_at = NULL, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
             $stmt->execute([$ticketId]);
@@ -578,7 +578,7 @@ class SupportTicketsModule extends ModuleBase {
             
             $stmt = $db->prepare("
                 UPDATE support_tickets 
-                SET priority = ?, updated_at = NOW() 
+                SET priority = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
             $stmt->execute([$priority, $ticketId]);
@@ -612,14 +612,14 @@ class SupportTicketsModule extends ModuleBase {
             
             $db = Database::getInstance();
             
-            $updates = ["status = ?", "updated_at = NOW()"];
+            $updates = ["status = ?", "updated_at = CURRENT_TIMESTAMP"];
             $params = [$status, $ticketId];
             
             // Spezielle Behandlung für bestimmte Status
             if ($status === 'closed') {
-                $updates[] = "closed_at = NOW()";
+                $updates[] = "closed_at = CURRENT_TIMESTAMP";
             } elseif ($status === 'resolved') {
-                $updates[] = "resolved_at = NOW()";
+                $updates[] = "resolved_at = CURRENT_TIMESTAMP";
             }
             
             $sql = "UPDATE support_tickets SET " . implode(', ', $updates) . " WHERE id = ?";
@@ -687,9 +687,9 @@ class SupportTicketsModule extends ModuleBase {
             $stmt = $db->prepare("
                 SELECT COUNT(*) 
                 FROM support_tickets 
-                WHERE status = 'closed' AND closed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                WHERE status = 'closed' AND closed_at >= ?
             ");
-            $stmt->execute();
+            $stmt->execute([gmdate('Y-m-d H:i:s', time() - 30 * 86400)]);
             $stats['closed_30_days'] = $stmt->fetchColumn();
             
             return $this->success($stats);
@@ -719,7 +719,7 @@ class SupportTicketsModule extends ModuleBase {
                     case 'close':
                         $stmt = $db->prepare("
                             UPDATE support_tickets 
-                            SET status = 'closed', closed_at = NOW(), updated_at = NOW() 
+                            SET status = 'closed', closed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
                             WHERE id IN (" . str_repeat('?,', count($ticketIds) - 1) . "?)
                         ");
                         $stmt->execute($ticketIds);
@@ -751,7 +751,7 @@ class SupportTicketsModule extends ModuleBase {
                         
                         $stmt = $db->prepare("
                             UPDATE support_tickets 
-                            SET priority = ?, updated_at = NOW() 
+                            SET priority = ?, updated_at = CURRENT_TIMESTAMP
                             WHERE id IN (" . str_repeat('?,', count($ticketIds) - 1) . "?)
                         ");
                         $params = array_merge([$priority], $ticketIds);
@@ -765,13 +765,13 @@ class SupportTicketsModule extends ModuleBase {
                             throw new Exception('Status required for bulk status change');
                         }
                         
-                        $updates = ["status = ?", "updated_at = NOW()"];
+                        $updates = ["status = ?", "updated_at = CURRENT_TIMESTAMP"];
                         $params = [$status];
                         
                         if ($status === 'closed') {
-                            $updates[] = "closed_at = NOW()";
+                            $updates[] = "closed_at = CURRENT_TIMESTAMP";
                         } elseif ($status === 'resolved') {
-                            $updates[] = "resolved_at = NOW()";
+                            $updates[] = "resolved_at = CURRENT_TIMESTAMP";
                         }
                         
                         $sql = "UPDATE support_tickets SET " . implode(', ', $updates) . " WHERE id IN (" . str_repeat('?,', count($ticketIds) - 1) . "?)";

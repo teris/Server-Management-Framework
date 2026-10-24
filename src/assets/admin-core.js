@@ -244,11 +244,11 @@ async function deleteWebsite(domainId) {
 
 // Plugin Management
 function openPlugin(pluginKey) {
-    PluginManager.open(pluginKey);
+    window.location.assign('?option=modules&mod=' + encodeURIComponent(pluginKey));
 }
 
 function closePlugin() {
-    PluginManager.close();
+    window.location.assign('index.php');
 }
 
 async function togglePlugin(pluginKey, enable) {

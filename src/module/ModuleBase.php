@@ -72,7 +72,7 @@ abstract class ModuleBase {
     public function getScripts() {
         $scripts = [];
         $script_path = $this->module_config['path'] . '/assets/module.js';
-        if (file_exists($script_path)) {
+        if (file_exists(dirname(__DIR__) . '/' . $script_path)) {
             $scripts[] = $script_path;
         }
         return $scripts;
@@ -85,7 +85,7 @@ abstract class ModuleBase {
     public function getStyles() {
         $styles = [];
         $style_path = $this->module_config['path'] . '/assets/module.css';
-        if (file_exists($style_path)) {
+        if (file_exists(dirname(__DIR__) . '/' . $style_path)) {
             $styles[] = $style_path;
         }
         return $styles;
@@ -103,28 +103,17 @@ abstract class ModuleBase {
      * Helper: Rendert ein Template
      */
     protected function render($template, $data = []) {
-        $template_path = $this->module_config['path'] . '/templates/' . $template . '.php';
+        $template_path = dirname(__DIR__) . '/' . $this->module_config['path'] . '/templates/' . $template . '.php';
         
         if (!file_exists($template_path)) {
             throw new Exception("Template not found: $template_path");
         }
         
-        // Store data in a way that can be accessed by included files
-        $GLOBALS['_template_data'] = $data;
-        
-        // Extract variables to make them available in current scope
-        extract($data);
-        
-        // Start output buffering
+        extract($data, EXTR_SKIP);
         ob_start();
+        try { include $template_path; return ob_get_contents(); }
+        finally { ob_end_clean(); }
         
-        // Include the template with variables available
-        include $template_path;
-        
-        // Clean up
-        unset($GLOBALS['_template_data']);
-        
-        return ob_get_clean();
     }
     
     /**
@@ -154,44 +143,8 @@ abstract class ModuleBase {
      * Helper: Validiert Eingabedaten
      */
     protected function validate($data, $rules) {
-        $errors = [];
-        
-        foreach ($rules as $field => $rule) {
-            if (!isset($data[$field]) && strpos($rule, 'required') !== false) {
-                $errors[$field] = "Field $field is required";
-                continue;
-            }
-            
-            if (isset($data[$field])) {
-                $value = $data[$field];
-                
-                // Email validation
-                if (strpos($rule, 'email') !== false && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                    $errors[$field] = "Invalid email format";
-                }
-                
-                // Numeric validation
-                if (strpos($rule, 'numeric') !== false && !is_numeric($value)) {
-                    $errors[$field] = "Field must be numeric";
-                }
-                
-                // Min length
-                if (preg_match('/min:(\d+)/', $rule, $matches)) {
-                    if (strlen($value) < $matches[1]) {
-                        $errors[$field] = "Field must be at least {$matches[1]} characters";
-                    }
-                }
-                
-                // Max length
-                if (preg_match('/max:(\d+)/', $rule, $matches)) {
-                    if (strlen($value) > $matches[1]) {
-                        $errors[$field] = "Field must not exceed {$matches[1]} characters";
-                    }
-                }
-            }
-        }
-        
-        return $errors;
+        require_once dirname(__DIR__) . '/core/Validation.php';
+        return Validation::errors($data, $rules);
     }
     
     /**
@@ -279,7 +232,7 @@ class ModuleLoader {
         
         foreach ($enabled_modules as $key => $config) {
             if (!ResourceAccess::legacyAllowed($key)) continue;
-            $module_file = $config['path'] . '/Module.php';
+            $module_file = dirname(__DIR__) . '/' . $config['path'] . '/Module.php';
             
             if (file_exists($module_file)) {
                 require_once $module_file;
@@ -380,6 +333,7 @@ class ModuleLoader {
             // Spezielle Behandlung für getContent Aktion
             if ($action === 'getContent') {
                 $content = $module->getContent();
+                if (!is_string($content)) throw new RuntimeException('Module rendering must return a string');
                 $config = getModuleConfig($module_key);
                 
                 // Debug-Log
@@ -393,7 +347,7 @@ class ModuleLoader {
             }
             
             return HttpSecurity::redact($module->handleAjaxRequest($action, $data));
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             error_log("ModuleLoader: Error handling request for $module_key/$action: " . $e->getMessage());
             return ['success' => false, 'error' => $e->getMessage()];
         }

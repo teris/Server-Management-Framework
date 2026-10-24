@@ -1,5 +1,7 @@
 # Framework-Prüfung und Verbesserungsplan
 
+> Historischer Prüfstand. AP10–AP17 sind inzwischen lokal umgesetzt; aktuelle Befehle und Grenzen stehen in [BETRIEB-AP10-AP17.md](BETRIEB-AP10-AP17.md) und [UMSETZUNG-AP10-AP17.md](UMSETZUNG-AP10-AP17.md).
+
 Stand: **24.10.2026** · geprüfter lokaler Ausgangsstand: **3.2.7** · Status dieses Ausgangsberichts: **historische Analyse vor Umsetzung**
 
 Das Framework besitzt eine brauchbare fachliche Basis für Server-, Hosting- und Domainverwaltung. Vor einer neuen produktiven Veröffentlichung müssen jedoch mehrere zentrale Zugriffs- und Updatefehler behoben werden. Der Ausbau sollte in kleinen überprüfbaren Schritten erfolgen. Das bestehende Projekt **„Online Shop“** liefert bereits viele der benötigten Shopfunktionen und wird als Ausgangsbasis für deren Modularisierung eingeplant.

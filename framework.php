@@ -9,6 +9,7 @@ require_once __DIR__ . '/config/load.php';
 require_once __DIR__ . '/src/core/Security.php';
 require_once __DIR__ . '/src/core/ProviderTransport.php';
 require_once __DIR__ . '/src/core/DatabaseManager.php';
+require_once __DIR__ . '/src/core/ProviderResult.php';
 
 // DATABASE CLASS - KompatibilitÃ¤tsklasse fÃ¼r bestehenden Code
 class Database {
@@ -879,17 +880,17 @@ class ProxmoxPost extends ProxmoxGet {
     }
 
     public function deleteProxmoxUser($userid) {
-        $url = $this->host . "/api2/json/access/users/$userid";
+        $url = $this->host . "/api2/json/access/users/" . rawurlencode($userid);
         $response = $this->makeRequest('DELETE', $url);
         //$this->logRequest("/access/users/$userid", 'DELETE', $response !== false);
         return $response;
     }
 
     public function updateProxmoxUser($userid, $userData) {
-        $url = $this->host . "/api2/json/access/users/$userid";
+        $url = $this->host . "/api2/json/access/users/" . rawurlencode($userid);
         
         $data = [];
-        if (isset($userData['password'])) $data['password'] = $userData['password'];
+        if (isset($userData['password'])) throw new InvalidArgumentException('Use the dedicated password endpoint');
         if (isset($userData['comment'])) $data['comment'] = $userData['comment'];
         if (isset($userData['email'])) $data['email'] = $userData['email'];
         if (isset($userData['firstname'])) $data['firstname'] = $userData['firstname'];
@@ -908,7 +909,7 @@ class ProxmoxPost extends ProxmoxGet {
     }
 
     public function getProxmoxUser($userid) {
-        $url = $this->host . "/api2/json/access/users/$userid";
+        $url = $this->host . "/api2/json/access/users/" . rawurlencode($userid);
         $response = $this->makeRequest('GET', $url);
         //$this->logRequest("/access/users/$userid", 'GET', $response !== false);
         return $response;
@@ -4946,6 +4947,27 @@ class OGPPost extends OGPGet {
 
 // SERVICE MANAGER CLASS - ERWEITERT
 class ServiceManager {
+
+    public function getISPConfigUsers($filter = []) { return $this->getISPConfigClients($filter); }
+    public function deleteOGPUser($email) { return $this->removeOGPUser($email); }
+    public function deleteISPConfigUser($id) { return $this->deleteISPConfigClient($id); }
+    public function editProxmoxUser($id, $email, $name) { return $this->updateProxmoxUser($id, ['email' => $email, 'firstname' => $name]); }
+    public function editISPConfigUser($id, $email, $name) { return $this->updateISPConfigClient($id, ['email' => $email, 'contact_name' => $name]); }
+    public function createISPConfigUser($username, $password, $firstName = '', $lastName = '', $options = []) {
+        if (strlen((string) $password) < 12) return ['success' => false, 'error' => 'INVALID_USER_DATA'];
+        return $this->createISPConfigClient(array_merge((array) $options, ['username' => $username, 'password' => $password, 'contact_firstname' => $firstName, 'contact_name' => $lastName]));
+    }
+    public function editOGPUser($id, $email, $name, $expires = null) { return ['success' => false, 'error' => 'UNSUPPORTED_OPERATION', 'message' => 'Die OGP-Anbindung unterstützt keine Änderung von Benutzername/E-Mail.']; }
+    public function updateOGPUserPassword($id, $password) { return ['success' => false, 'error' => 'UNSUPPORTED_OPERATION', 'message' => 'OGP-Passwörter müssen im OGP-Portal geändert werden.']; }
+    public function updateISPConfigUserPassword($id, $password) {
+        if (strlen((string) $password) < 12) return ['success' => false, 'error' => 'INVALID_PASSWORD'];
+        return $this->updateISPConfigClient($id, ['password' => $password]);
+    }
+    public function updateProxmoxUserPassword($id, $password) {
+        if (!preg_match('/^[a-zA-Z0-9_.-]+@pve$/D', (string) $id) || strlen((string) $password) < 12) return ['success' => false, 'error' => 'INVALID_USER_OR_REALM'];
+        return $this->ProxmoxAPI('put', '/access/password', ['userid' => $id, 'password' => $password]);
+    }
+
     private $proxmoxGet;
     private $proxmoxPost;
     private $ispconfigGet;
@@ -4955,7 +4977,15 @@ class ServiceManager {
     private $ogpGet;
     private $ogpPost;
 
-    public function __construct() {
+    private array $injectedProviders = [];
+    public function __construct(?array $adapters = null) {
+        if ($adapters !== null) {
+            foreach ($adapters as $provider => $objects) {
+                if (!in_array($provider, ['proxmox', 'ispconfig', 'ovh', 'ogp'], true) || count($objects) !== 2) throw new InvalidArgumentException('Invalid provider adapter');
+                $this->{$provider . 'Get'} = $objects[0]; $this->{$provider . 'Post'} = $objects[1]; $this->injectedProviders[$provider] = true;
+            }
+            return;
+        }
         // Proxmox API initialisieren nur wenn aktiviert
         if (Config::PROXMOX_USEING) {
             try {
@@ -5034,6 +5064,7 @@ class ServiceManager {
      * @return array|true Gibt true zurÃ¼ck wenn API aktiviert ist, sonst strukturierte Fehlermeldung
      */
     private function checkAPIEnabled($apiName) {
+        if (isset($this->injectedProviders[$apiName])) return true;
         try {
             $db = Database::getInstance();
         } catch (Exception $e) {
@@ -5270,11 +5301,11 @@ class ServiceManager {
         
         try {
             return call_user_func_array([$apiObject, $methodName], $params);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return [
                 'success' => false,
                 'error' => 'API_CALL_FAILED',
-                'message' => "$apiName API Aufruf fehlgeschlagen: " . $e->getMessage(),
+                'message' => "$apiName API Aufruf fehlgeschlagen",
                 'api' => $apiName,
                 'method' => $methodName
             ];
@@ -6880,7 +6911,11 @@ class ServiceManager {
     /**
      * Erstellt OGP Benutzer (erweiterte Methode)
      */
-    public function createOGPUser($userData) {
+    public function createOGPUser($userData, $password = null, $firstName = '', $lastName = '', $options = []) {
+        if (is_string($userData)) $userData = array_merge((array) $options, ['username' => $userData, 'password' => $password, 'firstname' => $firstName, 'lastname' => $lastName]);
+        if (!is_array($userData) || !isset($userData['password']) || strlen((string) $userData['password']) < 12) return ['success' => false, 'error' => 'INVALID_USER_DATA'];
+        if (!isset($userData['name'])) $userData['name'] = trim(($userData['firstname'] ?? '') . ' ' . ($userData['lastname'] ?? ''));
+        $userData = array_intersect_key($userData, array_flip(['email','name','password']));
         $apiCheck = $this->checkAPIEnabled('ogp');
         if ($apiCheck !== true) {
             return $apiCheck;
@@ -6892,7 +6927,9 @@ class ServiceManager {
     /**
      * Erstellt Proxmox Benutzer (erweiterte Methode)
      */
-    public function createProxmoxUser($userData) {
+    public function createProxmoxUser($userData, $password = null, $firstName = '', $lastName = '', $options = []) {
+        if (is_string($userData)) $userData = array_merge((array) $options, ['username' => $userData, 'password' => $password, 'firstname' => $firstName, 'lastname' => $lastName]);
+        if (!is_array($userData) || !isset($userData['password']) || strlen((string) $userData['password']) < 12) return ['success' => false, 'error' => 'INVALID_USER_DATA'];
         $apiCheck = $this->checkAPIEnabled('proxmox');
         if ($apiCheck !== true) {
             return $apiCheck;

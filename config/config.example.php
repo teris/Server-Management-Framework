@@ -14,7 +14,7 @@ class Config {
     // =============================================================================
     // DATABASE CONFIGURATION
     // =============================================================================
-    const DB_TYPE = 'mysql';  // mysql, pgsql, sqlite, mongodb, mariadb
+    const DB_TYPE = 'mysql';  // mysql/mariadb, pgsql/postgresql, sqlite; MongoDB is unsupported
 
     // MySQL/MariaDB Configuration
     const DB_HOST 				= 'localhost';									//MySQL Host
@@ -24,6 +24,8 @@ class Config {
     const DB_PORT               = 3306;                                         //MySQL Port
     const DB_CHARSET            = 'utf8mb4';                                    //MySQL Charset
     const DB_USEING 			= True;											//MySQL Useing
+
+    const DB_SOCKET = ''; // Optional private Unix socket for MySQL/MariaDB
 
     // PostgreSQL Configuration
     const DB_PGSQL_HOST         = 'localhost';                                  //PostgreSQL Host

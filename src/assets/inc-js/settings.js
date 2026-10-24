@@ -16,7 +16,7 @@ $(function() {
             if (response.success) {
                 $('#user-add-notice').html('<div class="alert alert-success">Benutzer gespeichert</div>');
                 $form[0].reset();
-                $('#users-list').load('inc/settings.php #users-list > *');
+                $('#users-list').load('index.php?option=settings #users-list > *');
             } else {
                 $('#user-add-notice').html('<div class="alert alert-danger">' + (response.error || 'Fehler beim Speichern') + '</div>');
             }
@@ -32,7 +32,7 @@ $(function() {
             if (response.success) {
                 $('#group-add-notice').html('<div class="alert alert-success">Gruppe gespeichert</div>');
                 $form[0].reset();
-                $('#groups-list').load('inc/settings.php #groups-list > *');
+                $('#groups-list').load('index.php?option=settings #groups-list > *');
             } else {
                 $('#group-add-notice').html('<div class="alert alert-danger">' + (response.error || 'Fehler beim Speichern') + '</div>');
             }
@@ -49,20 +49,6 @@ $(function() {
                 $('#general-settings-status').html('<div class="alert alert-success">Einstellungen gespeichert</div>');
             } else {
                 $('#general-settings-status').html('<div class="alert alert-danger">' + (response.error || 'Fehler beim Speichern') + '</div>');
-            }
-        }, 'json');
-    });
-    
-    // API-Zugangsdaten speichern per AJAX
-    $('#api-settings-form').on('submit', function(e) {
-        e.preventDefault();
-        var $form = $(this);
-        var formData = $form.serialize() + '&core=admin&action=save_api_credentials';
-        $.post('index.php', formData, function(response) {
-            if (response.success) {
-                $('#api-settings-status').html('<div class="alert alert-success">API-Zugangsdaten gespeichert</div>');
-            } else {
-                $('#api-settings-status').html('<div class="alert alert-danger">' + (response.error || 'Fehler beim Speichern') + '</div>');
             }
         }, 'json');
     });
@@ -89,7 +75,7 @@ $(function() {
         $.post('index.php', formData, function(response) {
             if (response.success) {
                 $('#group-add-notice').html('<div class="alert alert-success">Gruppe gespeichert</div>');
-                $('#groups-list').load('inc/settings.php #groups-list > *');
+                $('#groups-list').load('index.php?option=settings #groups-list > *');
             } else {
                 $('#group-add-notice').html('<div class="alert alert-danger">' + (response.error || 'Fehler beim Speichern') + '</div>');
             }
@@ -102,10 +88,10 @@ $(function() {
         if (!confirm('Löschen bestätigen?')) return;
         var $form = $(this);
         var formData = $form.serialize() + '&core=admin&action=delete_group';
-        $.post('inc/admin.php', formData, function(response) {
+        $.post('index.php', formData, function(response) {
             if (response.success) {
                 $('#group-add-notice').html('<div class="alert alert-success">Gruppe gelöscht</div>');
-                $('#groups-list').load('inc/settings.php #groups-list > *');
+                $('#groups-list').load('index.php?option=settings #groups-list > *');
             } else {
                 $('#group-add-notice').html('<div class="alert alert-danger">' + (response.error || 'Fehler beim Löschen') + '</div>');
             }
@@ -120,7 +106,7 @@ $(function() {
         $.post('index.php', formData, function(response) {
             if (response.success) {
                 $('#user-add-notice').html('<div class="alert alert-success">Benutzer gespeichert</div>');
-                $('#users-list').load('inc/settings.php #users-list > *');
+                $('#users-list').load('index.php?option=settings #users-list > *');
             } else {
                 $('#user-add-notice').html('<div class="alert alert-danger">' + (response.error || 'Fehler beim Speichern') + '</div>');
             }
@@ -133,10 +119,10 @@ $(function() {
         if (!confirm('Löschen bestätigen?')) return;
         var $form = $(this);
         var formData = $form.serialize() + '&core=admin&action=delete_user';
-        $.post('inc/admin.php', formData, function(response) {
+        $.post('index.php', formData, function(response) {
             if (response.success) {
                 $('#user-add-notice').html('<div class="alert alert-success">Benutzer gelöscht</div>');
-                $('#users-list').load('inc/settings.php #users-list > *');
+                $('#users-list').load('index.php?option=settings #users-list > *');
             } else {
                 $('#user-add-notice').html('<div class="alert alert-danger">' + (response.error || 'Fehler beim Löschen') + '</div>');
             }

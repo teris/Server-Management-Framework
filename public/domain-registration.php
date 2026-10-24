@@ -19,7 +19,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'check_domain_ajax') {
 }
 
 require_once __DIR__ . '/../src/public-bootstrap.php';
-require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
 require_once '../src/core/ActivityLogger.php';
 
@@ -422,7 +421,7 @@ function submitDomainRegistration($customerId, $domain, $purpose, $notes) {
         // Neue Registrierung einfügen
         $stmt = $db->prepare("
             INSERT INTO domain_registrations (user_id, domain, purpose, notes, status, created_at) 
-            VALUES (?, ?, ?, ?, 'pending', NOW())
+            VALUES (?, ?, ?, ?, 'pending', CURRENT_TIMESTAMP)
         ");
         
         $stmt->execute([$customerId, $domain, $purpose, $notes]);
@@ -471,17 +470,17 @@ try {
     <title><?= t('domain_registration') ?> - Server Management</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/frontpanel.css">
     <link rel="stylesheet" type="text/css" href="assets/login.css">
     
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="dashboard-page">
     <!-- Navigation -->

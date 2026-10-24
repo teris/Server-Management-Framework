@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['profile_update'])) {
             $db->execute($stmt, [$full_name, $email, $user_id]);
         } elseif (empty($password) && empty($old_password)) {
             // Nur Name und E-Mail ändern, updated_at aktualisieren
-            $stmt = $db->prepare('UPDATE users SET full_name=?, email=?, updated_at=NOW() WHERE id=?');
+            $stmt = $db->prepare('UPDATE users SET full_name=?, email=?, updated_at=CURRENT_TIMESTAMP WHERE id=?');
             $db->execute($stmt, [$full_name, $email, $user_id]);
         } else {
             // Ein Passwortfeld ist leer, das ist nicht erlaubt

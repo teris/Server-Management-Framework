@@ -1,367 +1,79 @@
 <?php
-/**
- * Server Management Interface - Admin Dashboard Core
- * Version 3.0 mit integriertem Admin-Modul und Plugin-System
- */
-
-require_once 'sys.conf.php';
-
-// Framework-Loaded Konstante für Sicherheitschecks
+require_once __DIR__ . '/sys.conf.php';
 define('FRAMEWORK_LOADED', true);
-
-$frameworkFile = '../framework.php';
-if ($modus_type['modus'] === 'mysql') {
-    $frameworkFile = 'core/DatabaseOnlyFramework.php';
-} elseif ($modus_type['modus']  === 'mysql') {
-    $frameworkFile = 'core/DatabaseOnlyFramework.php';
+$databaseMode = in_array($modus_type['modus'] ?? 'api', ['mysql','database'], true);
+require_once ($databaseMode ? __DIR__ . '/core/DatabaseOnlyFramework.php' : dirname(__DIR__) . '/framework.php');
+require_once __DIR__ . '/auth_handler.php';
+requireLogin(); Identity::requireIdentity('backend', true);
+if (isset($_GET['heartbeat']) || in_array($_POST['action'] ?? '', ['heartbeat','extend_session'], true)) {
+    header('Content-Type: application/json; charset=utf-8'); echo json_encode(['success'=>true,'remaining'=>SessionManager::getSessionTimeRemaining(),'timeout'=>HttpSecurity::timeout()]); exit;
 }
-require_once $frameworkFile;
-require_once 'auth_handler.php';
-
-// TODO: E-Mail-Template-Manager laden
-// Template manager loads after the authorization boundary.
-
-// Login-Überprüfung
-requireLogin();
-Identity::requireIdentity('backend', true);
-if (isset($_GET['heartbeat']) || in_array($_POST['action'] ?? '', ['heartbeat', 'extend_session'], true)) {
-    header('Content-Type: application/json; charset=utf-8');
-    echo HttpSecurity::encode(['success' => true, 'remaining' => SessionManager::getSessionTimeRemaining(), 'timeout' => HttpSecurity::timeout()]);
-    exit;
-}
-
-if (($_GET['option'] ?? '') === 'manualupdater') HttpSecurity::abort(503, 'Der Web-Updater ist bis zur geprüften Überarbeitung gesperrt.');
+if (($_POST['action'] ?? '') === 'logout') { Identity::logout(); header('Location: login.php', true, 303); exit; }
+if (($_GET['option'] ?? '') === 'manualupdater') { require __DIR__ . '/inc/manualupdater.php'; exit; }
 require_once __DIR__ . '/core/EmailTemplateManager.php';
-
-// TODO: E-Mail-Template-System initialisieren
 $emailTemplateManager = EmailTemplateManager::getInstance();
-$emailTemplateManager->createDefaultTemplates();
-
-// Plugin-System initialisieren
-try {
-    require_once 'module/ModuleBase.php';
-    $pluginManager = ModuleLoader::getInstance();
-} catch (Exception $e) {
-    error_log('Error initializing plugin manager: ' . $e->getMessage());
-    // Fallback: Leeren Plugin-Manager erstellen
-    $pluginManager = new class {
-        public function getEnabledPlugins() { return []; }
-        public function getAllStyles() { return []; }
-        public function getEnabledModules() { return []; }
-    };
+$db = DatabaseManager::getInstance();
+if (isset($_POST['action']) && ($_POST['core'] ?? '') === 'admin') {
+    require_once __DIR__ . '/core/AdminHandler.php'; header('Content-Type: application/json; charset=utf-8');
+    echo HttpSecurity::encode((new AdminHandler())->handleRequest((string) $_POST['action'], $_POST)); exit;
 }
-
-// Handler für Logout
-if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ($_POST['action'] ?? '') === 'logout') {
-    SessionManager::logout();
-    header('Location: login.php');
-    exit;
+if (($_POST['action'] ?? '') === 'email_templates') { require __DIR__ . '/inc/email-templates.php'; exit; }
+require_once __DIR__ . '/module/ModuleBase.php';
+$pluginManager = ModuleLoader::getInstance();
+if (isset($_POST['plugin'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo HttpSecurity::encode($pluginManager->handlePluginRequest((string) $_POST['plugin'], (string) ($_POST['action'] ?? ''), $_POST)); exit;
 }
+if (isset($_POST['action'])) { require __DIR__ . '/handler.php'; exit; }
+$serviceManager = new ServiceManager();
+$session_info = getSessionInfoForJS();
+$lang = LanguageManager::getInstance();
+require_once __DIR__ . '/core/AdminCore.php';
+$adminCore = new AdminCore(); $dashboardStats = $adminCore->getDashboardStats();
+$browserConfig = ['sessionInfo'=>$session_info, 'enabledPlugins'=>array_keys($pluginManager->getEnabledPlugins()),'dashboardStats'=>$dashboardStats,'jsTranslations'=>tMultiple([
 
-// AJAX Handler
-if (isset($_POST['action'])) {
-    // Prüfen ob es sich um die createuser.php oder users.php Seite handelt
-    $isCreateUserPage = isset($_GET['option']) && $_GET['option'] === 'createuser';
-    $isUsersPage = isset($_GET['option']) && $_GET['option'] === 'users';
-    $isCreateUserForm = isset($_POST['createuser_form']);
-    
-    // Wenn es die createuser.php Seite ist und das createuser_form Feld gesetzt ist,
-    // dann nicht als AJAX behandeln
-    if ($isCreateUserPage && $isCreateUserForm) {
-        // Normale Seitenverarbeitung fortsetzen
-    } else {
-        // Error reporting für AJAX-Requests deaktivieren
-        error_reporting(E_ERROR | E_WARNING | E_PARSE);
-        ini_set('display_errors', 0);
-        
-        header('Content-Type: application/json');
-        
-        // Session-Check für AJAX
-        if (!SessionManager::isLoggedIn()) {
-            echo HttpSecurity::encode(['success' => false, 'redirect' => 'login.php']);
-            exit;
-        }
-    
-    // Heartbeat
-    if (isset($_POST['action']) && $_POST['action'] === 'heartbeat') {
-        SessionManager::updateActivity();
-        echo HttpSecurity::encode(['success' => true]);
-        exit;
-    }
-    
-    // Core Admin Actions (direkt verarbeiten)
-    if (isset($_POST['core']) && $_POST['core'] === 'admin') {
-        try {
-            require_once 'core/AdminHandler.php';
-            $adminHandler = new AdminHandler();
-            
-            $result = $adminHandler->handleRequest($_POST['action'] ?? '', $_POST);
-            echo HttpSecurity::encode($result);
-        } catch (Exception $e) {
-            error_log('AdminHandler Exception: ' . $e->getMessage());
-            echo HttpSecurity::encode(['success' => false, 'error' => $e->getMessage()]);
-        }
-        exit;
-    }
-    
-    // Manual Updater Actions
-    if (isset($_GET['option']) && $_GET['option'] === 'manualupdater') {
-        try {
-            require_once 'inc/manualupdater.php';
-            // Der AJAX-Handler ist bereits in der manualupdater.php definiert
-            // und wird hier automatisch ausgeführt
-        } catch (Exception $e) {
-            error_log('ManualUpdater Exception: ' . $e->getMessage());
-            echo HttpSecurity::encode(['success' => false, 'error' => $e->getMessage()]);
-        }
-        exit;
-    }
-    
-    // Email Templates Actions
-    if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
-        try {
-            require_once 'inc/email-templates.php';
-            // Der AJAX-Handler ist bereits in der email-templates.php definiert
-            // und wird hier automatisch ausgeführt
-        } catch (Exception $e) {
-            error_log('EmailTemplates Exception: ' . $e->getMessage());
-            echo HttpSecurity::encode(['success' => false, 'error' => $e->getMessage()]);
-        }
-        exit;
-    }
-    
-    
-    // Users Module AJAX Actions (direkt verarbeiten)
-    if (isset($_GET['option']) && $_GET['option'] === 'users' && isset($_POST['action'])) {
-        $action = $_POST['action'];
-        
-        // Debug-Log
-        error_log("index.php: Users module request - action: $action");
-        
-        // Neue AJAX-Aktionen für erweiterte Dialogfelder
-        if (in_array($action, ['get_user_data', 'get_user_details', 'get_user_system_links', 'get_customer_details', 'edit_system_user', 'delete_system_user', 'edit_customer', 'create_customer', 'get_customers', 'create_system_user', 'edit_user', 'delete_customer', 'delete_user'])) {
-            // Diese Aktionen werden in users.php verarbeitet
-            error_log("index.php: Including users.php for action: $action");
-            include('inc/users.php');
-            exit;
-        } else {
-            error_log("index.php: Action $action not found in users module actions");
-        }
-    }
-    
-    // Plugin Actions
-    if (isset($_POST['plugin'])) {
-        $plugin_key = $_POST['plugin'];
-        $action = $_POST['action'] ?? '';
-        
-        
-        // Daten sammeln
-        $data = $_POST;
-        unset($data['plugin']);
-        unset($data['action']);
-        
-        try {
-            $result = $pluginManager->handlePluginRequest($plugin_key, $action, $data);
-        } catch (Exception $e) {
-            error_log("index.php: Plugin error - " . $e->getMessage());
-            $result = ['success' => false, 'error' => $e->getMessage()];
-        }
-        
-        
-        echo HttpSecurity::encode($result);
-        exit;
-    }
-    
-    // Legacy Support
-    include("handler.php");
-    exit;
-    }
-}
-
-// Früher GET-Handler für Manual Updater Downloads (muss vor jeglichem HTML-Output stehen)
-if (
-    isset($_GET['option']) && $_GET['option'] === 'manualupdater' &&
-    isset($_GET['action']) && $_GET['action'] === 'download_backup'
-) {
-    // Keine Ausgabe vor den Headern zulassen
-    if (ob_get_level()) {
-        @ob_end_clean();
-    }
-    require_once 'inc/manualupdater.php';
-    exit;
-}
-
-// AJAX-Handler für users.php - muss vor HTML-Output stehen
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_GET['ajax']) && isset($_GET['option']) && $_GET['option'] === 'users') {
-    header('Content-Type: application/json');
-    
-    switch ($_POST['action']) {
-        case 'get_user_data':
-            try {
-                $userId = $_POST['user_id'];
-                $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
-                $db->execute($stmt, [$userId]);
-                $user = $db->fetch($stmt);
-                
-                if ($user) {
-                    // System-Verknüpfungen abrufen
-                    $stmt = $db->prepare("SELECT permission_type, resource_id FROM user_permissions WHERE user_id = ?");
-                    $db->execute($stmt, [$userId]);
-                    $systemLinks = $db->fetchAll($stmt);
-                    
-                    echo HttpSecurity::encode([
-                        'success' => true,
-                        'data' => $user,
-                        'system_links' => $systemLinks
-                    ]);
-                } else {
-                    echo HttpSecurity::encode([
-                        'success' => false,
-                        'message' => 'Benutzer nicht gefunden'
-                    ]);
-                }
-            } catch (Exception $e) {
-                echo HttpSecurity::encode([
-                    'success' => false,
-                    'message' => 'Fehler beim Laden der Benutzerdaten: ' . $e->getMessage()
-                ]);
-            }
-            exit;
-            
-        case 'get_user_systems':
-            try {
-                $userId = $_POST['user_id'];
-                $stmt = $db->prepare("SELECT permission_type, resource_id FROM user_permissions WHERE user_id = ?");
-                $db->execute($stmt, [$userId]);
-                $systems = $db->fetchAll($stmt);
-                
-                echo HttpSecurity::encode([
-                    'success' => true,
-                    'systems' => $systems
-                ]);
-            } catch (Exception $e) {
-                echo HttpSecurity::encode([
-                    'success' => false,
-                    'message' => 'Fehler beim Laden der System-Verknüpfungen: ' . $e->getMessage()
-                ]);
-            }
-            exit;
-            
-        case 'get_user_details':
-            try {
-                $userId = $_POST['user_id'];
-                $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
-                $db->execute($stmt, [$userId]);
-                $user = $db->fetch($stmt);
-                
-                if ($user) {
-                    // System-Verknüpfungen abrufen
-                    $stmt = $db->prepare("SELECT permission_type, resource_id FROM user_permissions WHERE user_id = ?");
-                    $db->execute($stmt, [$userId]);
-                    $systemLinks = $db->fetchAll($stmt);
-                    
-                    echo HttpSecurity::encode([
-                        'success' => true,
-                        'data' => $user,
-                        'system_links' => $systemLinks
-                    ]);
-                } else {
-                    echo HttpSecurity::encode([
-                        'success' => false,
-                        'message' => 'Benutzer nicht gefunden'
-                    ]);
-                }
-            } catch (Exception $e) {
-                echo HttpSecurity::encode([
-                    'success' => false,
-                    'message' => 'Fehler beim Laden der Benutzerdetails: ' . $e->getMessage()
-                ]);
-            }
-            exit;
-            
-        case 'get_system_user_data':
-            $systemType = $_POST['system_type'];
-            $systemUserId = $_POST['system_user_id'];
-            
-            $userData = [];
-            try {
-                // Hier können Sie die Logik für verschiedene Systemtypen implementieren
-                switch ($systemType) {
-                    case 'proxmox':
-                        // Proxmox-spezifische Logik
-                        break;
-                    case 'ispconfig':
-                        // ISPConfig-spezifische Logik
-                        break;
-                    case 'ovh':
-                        // OVH-spezifische Logik
-                        break;
-                    default:
-                        throw new Exception('Unbekannter Systemtyp: ' . $systemType);
-                }
-                
-                echo HttpSecurity::encode([
-                    'success' => true,
-                    'data' => $userData
-                ]);
-            } catch (Exception $e) {
-                echo HttpSecurity::encode([
-                    'success' => false,
-                    'message' => 'Fehler beim Laden der System-Benutzerdaten: ' . $e->getMessage()
-                ]);
-            }
-            exit;
-            
-        default:
-            echo HttpSecurity::encode([
-                'success' => false,
-                'message' => 'Unbekannte Aktion: ' . htmlspecialchars($_POST['action'])
-            ]);
-            exit;
-    }
-}
-
-// Session-Informationen
-try {
-    $session_info = getSessionInfoForJS();
-} catch (Exception $e) {
-    error_log('Error getting session info: ' . $e->getMessage());
-    $session_info = [];
-}
-
-// Admin-Statistiken laden
-try {
-    require_once 'core/AdminCore.php';
-    require_once 'core/LanguageManager.php';
-    $adminCore = new AdminCore();
-    $lang = LanguageManager::getInstance();
-    $dashboardStats = $adminCore->getDashboardStats();
-} catch (Exception $e) {
-    error_log('Error loading admin stats: ' . $e->getMessage());
-    $dashboardStats = [];
-}
-
+            'js_network_error', 'js_server_error', 'js_ajax_error', 'js_session_expired',
+            'js_plugin_load_error', 'js_unknown_error', 'js_form_submit_error', 'js_form_success',
+            'js_vm_load_error', 'js_vm_control_success', 'js_vm_control_error', 'js_no_vms_found',
+            'js_website_load_error', 'js_no_websites_found', 'js_domain_load_error', 'js_no_domains_found',
+            'js_no_logs_found', 'js_stats_updating', 'js_cache_clearing', 'js_connections_testing',
+            'js_settings_saved', 'js_loading', 'js_processing', 'js_confirm_delete',
+            'js_confirm_vm_delete', 'js_confirm_website_delete', 'js_confirm_database_delete',
+            'js_confirm_email_delete', 'js_operation_successful', 'js_operation_failed',
+            'js_validation_failed', 'js_access_denied', 'js_timeout_error', 'js_connection_lost',
+            'js_data_load_error', 'js_data_save_error', 'js_data_update_error', 'js_data_delete_error',
+            'js_please_wait', 'js_retry_later', 'js_contact_admin', 'js_debug_info',
+            'js_available_plugins', 'js_session_info', 'js_not_available', 'js_admin_dashboard_initialized',
+            'name', 'domain', 'status', 'actions', 'active', 'inactive', 'edit', 'delete',
+           'check_for_updates', 'start_update', 'nightly_version', 'stable_version', 'yes', 'no',
+           'update_available_msg', 'no_update_available', 'update_check_error', 'select_update_type_error',
+           'update_successful', 'reload_page_info', 'zip_available', 'zip_not_available',
+           'creating_backup', 'backup_successfully_created', 'files_backed_up', 'database_backed_up',
+           'backup_failed', 'backup_error', 'backup_list_error', 'full_backup', 'files_only',
+           'confirm_delete_backup', 'delete_backup_not_implemented', 'create_backup'
+        ])];
 ?>
 <!DOCTYPE html>
 <html lang="<?= getCurrentLanguage() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= t('admin_dashboard') ?> - <?= t('server_management') ?></title>
+    <title><?= htmlspecialchars($system_config['site_title'] ?? Config::FRONTPANEL_SITE_NAME, ENT_QUOTES, 'UTF-8') ?> – Verwaltung</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../public/assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../public/assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/main.css">
      <!-- jQuery -->
-     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+     <script src="../public/assets/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../public/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
     <!-- ACE Editor -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.0/ace.min.js"></script>
+    <script src="../public/assets/vendor/ace/ace.js"></script>
 
+<script type="application/json" id="dashboard-config"><?= json_encode($browserConfig, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR) ?></script><script src="assets/dashboard-config.js"></script>
     <script src="assets/main.js"></script>
     <script src="assets/admin-core.js"></script>
     <script src="assets/session.js"></script>
@@ -517,7 +229,7 @@ try {
         <i class="bi bi-list"></i>
     </button>
     <!-- Hauptinhalt mit Padding für Sidebar -->
-    <div class="container-fluid" style="margin-left: 220px;">
+    <div class="container-fluid main-content">
         <!-- User Info Header (immer sichtbar) -->
         <div class="row mb-4">
             <div class="col-12">
@@ -603,65 +315,7 @@ try {
                                 include('inc/resources.php');
                                 break;
                             case 'users':
-                                // POST-Verarbeitung für Benutzerverwaltungsaktionen
-                                if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-                                    switch ($_POST['action']) {
-                                        case 'activate_customer':
-                                            handleActivateCustomer($serviceManager, $db);
-                                            break;
-                                        case 'merge_users':
-                                            handleMergeUsers($serviceManager, $db);
-                                            break;
-                                        case 'link_existing_user':
-                                            handleLinkExistingUser($serviceManager, $db);
-                                            break;
-                                        case 'grant_access':
-                                            handleGrantAccess($serviceManager, $db);
-                                            break;
-                                        case 'revoke_access':
-                                            handleRevokeAccess($serviceManager, $db);
-                                            break;
-                                        case 'edit_user':
-                                            handleEditUser($db);
-                                            break;
-                                        case 'delete_user':
-                                            handleDeleteUser($serviceManager, $db);
-                                            break;
-                                        case 'update_password':
-                                            handleUpdatePassword($serviceManager, $db);
-                                            break;
-                                        case 'extend_session':
-                                            // Session verlängern - einfache Implementierung
-                                            if (isset($_SESSION['user_id'])) {
-                                                $_SESSION['last_activity'] = time();
-                                                if (isset($_POST['ajax'])) {
-                                                    header('Content-Type: application/json');
-                                                    echo HttpSecurity::encode(['success' => true, 'message' => 'Session verlängert']);
-                                                    exit;
-                                                } else {
-                                                    $_SESSION['success_message'] = "Session erfolgreich verlängert!";
-                                                    header("Location: " . $_SERVER['REQUEST_URI']);
-                                                    exit;
-                                                }
-                                            } else {
-                                                if (isset($_POST['ajax'])) {
-                                                    header('Content-Type: application/json');
-                                                    echo HttpSecurity::encode(['success' => false, 'message' => 'Keine aktive Session']);
-                                                    exit;
-                                                } else {
-                                                    $_SESSION['error_message'] = "Keine aktive Session gefunden!";
-                                                    header("Location: " . $_SERVER['REQUEST_URI']);
-                                                    exit;
-                                                }
-                                            }
-                                        default:
-                                            $_SESSION['error_message'] = "Unbekannte Aktion: " . htmlspecialchars($_POST['action']);
-                                            header("Location: " . $_SERVER['REQUEST_URI']);
-                                            exit;
-                                    }
-                                }
-                                
-                                include('inc/users.php');
+                                include __DIR__ . '/inc/users.php';
                                 break;
                             case 'createuser':
                                 include('inc/createuser.php');
@@ -746,436 +400,7 @@ try {
     </div>
 
    
-    <script>
-        window.sessionInfo = <?= json_encode($session_info ?? []) ?>;
-        window.enabledPlugins = <?= json_encode($pluginManager->getEnabledPlugins() ?? []) ?>;
-        window.dashboardStats = <?= json_encode($dashboardStats ?? []) ?>;
-        window.jsTranslations = <?= json_encode(tMultiple([
-            'js_network_error', 'js_server_error', 'js_ajax_error', 'js_session_expired',
-            'js_plugin_load_error', 'js_unknown_error', 'js_form_submit_error', 'js_form_success',
-            'js_vm_load_error', 'js_vm_control_success', 'js_vm_control_error', 'js_no_vms_found',
-            'js_website_load_error', 'js_no_websites_found', 'js_domain_load_error', 'js_no_domains_found',
-            'js_no_logs_found', 'js_stats_updating', 'js_cache_clearing', 'js_connections_testing',
-            'js_settings_saved', 'js_loading', 'js_processing', 'js_confirm_delete',
-            'js_confirm_vm_delete', 'js_confirm_website_delete', 'js_confirm_database_delete',
-            'js_confirm_email_delete', 'js_operation_successful', 'js_operation_failed',
-            'js_validation_failed', 'js_access_denied', 'js_timeout_error', 'js_connection_lost',
-            'js_data_load_error', 'js_data_save_error', 'js_data_update_error', 'js_data_delete_error',
-            'js_please_wait', 'js_retry_later', 'js_contact_admin', 'js_debug_info',
-            'js_available_plugins', 'js_session_info', 'js_not_available', 'js_admin_dashboard_initialized',
-            'name', 'domain', 'status', 'actions', 'active', 'inactive', 'edit', 'delete',
-           'check_for_updates', 'start_update', 'nightly_version', 'stable_version', 'yes', 'no',
-           'update_available_msg', 'no_update_available', 'update_check_error', 'select_update_type_error',
-           'update_successful', 'reload_page_info', 'zip_available', 'zip_not_available',
-           'creating_backup', 'backup_successfully_created', 'files_backed_up', 'database_backed_up',
-           'backup_failed', 'backup_error', 'backup_list_error', 'full_backup', 'files_only',
-           'confirm_delete_backup', 'delete_backup_not_implemented', 'create_backup'
-        ])) ?>;
+    <script src="assets/index.js"></script>
 
-        // URL-Parameter auswerten
-        function getUrlParameter(name) {
-            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-            const regex = new RegExp('[\?&]' + name + '=([^&#]*)');
-            const results = regex.exec(window.location.search);
-            return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, ' '));
-        }
-
-        // Sidebar-Navigation - Aktive Links hervorheben
-        function highlightActiveNavLink() {
-            const currentOption = getUrlParameter('option');
-            const navLinks = document.querySelectorAll('#sidebarMenu .nav-link');
-            
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                const href = link.getAttribute('href');
-                if (href && href.includes('option=' + currentOption)) {
-                    link.classList.add('active');
-                }
-            });
-        }
-        
-        // Beim Laden aktive Links hervorheben
-        highlightActiveNavLink();
-        
-        // Editor-Funktionen für E-Mail-Templates
-        window.toggleWordWrap = function(editorId) {
-            const textarea = document.getElementById(editorId + "_textarea");
-            if (textarea) {
-                textarea.style.whiteSpace = textarea.style.whiteSpace === 'nowrap' ? 'pre-wrap' : 'nowrap';
-            }
-        };
-        
-        window.toggleLineNumbers = function(editorId) {
-            // Einfache Implementierung für Textarea
-            console.log("Zeilennummern umschalten für Editor:", editorId);
-        };
-        
-        window.changeMode = function(editorId, mode) {
-            const textarea = document.getElementById(editorId + "_textarea");
-            if (textarea) {
-                textarea.setAttribute('data-mode', mode);
-                console.log("Editor-Modus geändert zu:", mode);
-            }
-        };
-        
-        
-        // Vollständige HTML-Struktur aus Body-Inhalt wiederherstellen
-        window.reconstructFullHtml = function(bodyContent) {
-            // Prüfen ob bereits vollständige HTML-Struktur vorhanden ist
-            if (bodyContent.includes('<html') && bodyContent.includes('</html>')) {
-                return bodyContent;
-            }
-            
-            // HTML-Struktur extrahieren aus dem ursprünglichen Textarea-Inhalt
-            const textarea = document.getElementById('ace-editor_textarea');
-            if (textarea && textarea.value) {
-                const originalContent = textarea.value;
-                
-                // Head-Teil extrahieren
-                const headMatch = originalContent.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
-                const headContent = headMatch ? headMatch[0] : '<head><title>E-Mail Template</title></head>';
-                
-                // Body-Teil mit dem bearbeiteten Inhalt ersetzen
-                const bodyStart = originalContent.indexOf('<body');
-                const bodyEnd = originalContent.lastIndexOf('</body>');
-                
-                if (bodyStart !== -1 && bodyEnd !== -1) {
-                    const beforeBody = originalContent.substring(0, bodyStart);
-                    const afterBody = originalContent.substring(bodyEnd + 7);
-                    
-                    // Neuen Body mit bearbeitetem Inhalt erstellen
-                    const newBody = `<body>${bodyContent}</body>`;
-                    
-                    return beforeBody + newBody + afterBody;
-                }
-            }
-            
-            // Fallback: Standard HTML-Struktur
-            return `<!DOCTYPE html>
-<html>
-<head>
-    <title>E-Mail Template</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-${bodyContent}
-</body>
-</html>`;
-        };
-
-        window.saveEditor = function(editorId) {
-            const textarea = document.getElementById(editorId + "_textarea");
-            const preview = document.getElementById("ace-editor_preview");
-            
-            // Inhalt aus dem aktiven Modus holen
-            let content = '';
-            if (textarea && textarea.style.display !== 'none') {
-                content = textarea.value;
-            } else if (preview && preview.style.display !== 'none') {
-                // Vollständige HTML-Struktur wiederherstellen
-                content = reconstructFullHtml(preview.innerHTML);
-            } else if (textarea) {
-                content = textarea.value;
-            } else if (preview) {
-                content = reconstructFullHtml(preview.innerHTML);
-            }
-            
-            if (content) {
-                // Inhalt in das versteckte Input-Feld übertragen
-                const hiddenInput = document.getElementById('template-content');
-                if (hiddenInput) {
-                    hiddenInput.value = content;
-                }
-                
-                console.log("Speichere Inhalt:", content);
-                
-                // Template-ID und Content-Type ermitteln
-                const templateId = document.getElementById('template-id').value;
-                const contentType = document.querySelector('input[name="template_type"]:checked').value;
-                
-                if (templateId) {
-                    // Über AJAX speichern
-                    fetch(window.location.href, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `action=email_templates&subaction=save_editor&template_id=${templateId}&content=${encodeURIComponent(content)}&content_type=${contentType}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert("Template erfolgreich gespeichert!");
-                        } else {
-                            alert("Fehler beim Speichern: " + (data.message || "Unbekannter Fehler"));
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Fehler beim Speichern:", error);
-                        alert("Fehler beim Speichern des Templates");
-                    });
-                } else {
-                    alert("Bitte speichern Sie das Template über das Formular");
-                }
-            }
-        };
-        
-        window.formatCode = function(editorId) {
-            const textarea = document.getElementById(editorId + "_textarea");
-            if (textarea) {
-                const content = textarea.value;
-                // Einfache HTML-Formatierung
-                const formatted = content
-                    .replace(/></g, ">\\n<")
-                    .replace(/^\\s+|\\s+$/g, "");
-                
-                textarea.value = formatted;
-            }
-        };
-    </script>
 </body>
 </html>
-
-<?php
-/**
- * Funktionen für die Kundenaktivierung
- */
-
-/**
- * Kunden aktivieren und in allen Systemen anlegen
- */
-function handleActivateCustomer($serviceManager, $db) {
-    try {
-        if (!isset($_POST['customer_id'])) {
-            throw new Exception('Keine Kunden-ID angegeben');
-        }
-        
-        $customerId = intval($_POST['customer_id']);
-        
-        // Kundendaten abrufen
-        $stmt = $db->prepare("SELECT * FROM customers WHERE id = ? AND status = 'pending'");
-        $stmt->execute([$customerId]);
-        $customer = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$customer) {
-            throw new Exception('Kunde nicht gefunden oder bereits aktiviert');
-        }
-        
-        // Für jedes externe System ein eigenes Passwort generieren
-        $systemPasswords = [];
-        
-        if (Config::ISPCONFIG_USEING) {
-            $systemPasswords['ispconfig'] = bin2hex(random_bytes(8)); // 16 Zeichen
-        }
-        if (Config::OGP_USEING) {
-            $systemPasswords['ogp'] = bin2hex(random_bytes(8)); // 16 Zeichen
-        }
-        if (Config::PROXMOX_USEING) {
-            $systemPasswords['proxmox'] = bin2hex(random_bytes(8)); // 16 Zeichen
-        }
-        
-        // Benutzername aus E-Mail generieren
-        $username = strtolower(explode('@', $customer['email'])[0]);
-        
-        // Benutzer in allen Systemen erstellen
-        $creationResult = $serviceManager->createUserInAllSystems(
-            $username,
-            $systemPasswords,
-            $customer['first_name'],
-            $customer['last_name'],
-            [
-                'email' => $customer['email'],
-                'company' => $customer['company'] ?? '',
-                'phone' => $customer['phone'] ?? ''
-            ]
-        );
-        
-        if ($creationResult['success']) {
-            // Kundenstatus auf aktiv setzen
-            $stmt = $db->prepare("UPDATE customers SET status = 'active', activated_at = NOW(), updated_at = NOW() WHERE id = ?");
-            $stmt->execute([$customerId]);
-            
-            // E-Mail mit System-Anmeldedaten senden
-            $emailSent = sendSystemCredentialsEmail(
-                $customer['email'],
-                $customer['first_name'],
-                $username,
-                $systemPasswords,
-                $creationResult['results']
-            );
-            
-            if ($emailSent) {
-                $_SESSION['success_message'] = "Kunde erfolgreich aktiviert! Systemkonten wurden angelegt und eine E-Mail mit den Anmeldedaten wurde gesendet.";
-            } else {
-                $_SESSION['warning_message'] = "Kunde aktiviert, aber E-Mail konnte nicht gesendet werden. Bitte manuell versenden.";
-            }
-            
-            // Erfolg loggen
-            $db->logAction(
-                'Customer Activation',
-                "Kunde $customerId erfolgreich aktiviert und in allen Systemen angelegt",
-                'success'
-            );
-            
-        } else {
-            throw new Exception('Fehler beim Anlegen der Systemkonten: ' . json_encode($creationResult['errors']));
-        }
-        
-    } catch (Exception $e) {
-        error_log("Customer Activation Error: " . $e->getMessage());
-        $_SESSION['error_message'] = "Fehler bei der Kundenaktivierung: " . $e->getMessage();
-        
-        // Fehler loggen
-        if (isset($db)) {
-            $db->logAction(
-                'Customer Activation Failed',
-                "Fehler bei der Aktivierung von Kunde $customerId: " . $e->getMessage(),
-                'error'
-            );
-        }
-    }
-    
-    // Zurück zur Benutzerverwaltung
-    header("Location: " . $_SERVER['REQUEST_URI']);
-    exit;
-}
-
-/**
- * E-Mail mit System-Anmeldedaten senden
- */
-function sendSystemCredentialsEmail($email, $firstName, $username, $systemPasswords, $systemResults) {
-    try {
-        $to = $email;
-        $subject = "Ihre System-Anmeldedaten - " . Config::FRONTPANEL_SITE_NAME;
-        
-        // Portal-Links aus der Config laden
-        $portalLinks = [];
-        if (Config::ISPCONFIG_USEING) {
-            $portalLinks['ispconfig'] = Config::ISPCONFIG_HOST;
-        }
-        if (Config::OGP_USEING) {
-            $portalLinks['ogp'] = Config::OGP_HOST;
-        }
-        if (Config::PROXMOX_USEING) {
-            $portalLinks['proxmox'] = Config::PROXMOX_HOST;
-        }
-        
-        $message = "
-        <html>
-        <head>
-            <title>System-Anmeldedaten</title>
-        </head>
-        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
-            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                <h2 style='color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px;'>
-                    Ihre System-Anmeldedaten
-                </h2>
-                
-                <p>Hallo {$firstName},</p>
-                
-                <p>Ihr Konto wurde erfolgreich aktiviert! Ihre Benutzerkonten in den folgenden Systemen wurden erfolgreich angelegt:</p>
-                
-                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff;'>
-                    <h3 style='margin-top: 0; color: #007bff;'>🎯 Frontpanel-Anmeldung</h3>
-                    <p><strong>Portal:</strong> <a href='" . Config::FRONTPANEL_SITE_URL . "/public/login.php'>" . Config::FRONTPANEL_SITE_URL . "/public/login.php</a></p>
-                    <p><strong>E-Mail:</strong> {$email}</p>
-                    <p><strong>Passwort:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>Das Passwort, das Sie bei der Registrierung angegeben haben</span></p>
-                </div>
-                
-                <h3 style='color: #28a745;'>🔐 Externe Systeme - Neue Anmeldedaten</h3>
-                <p><strong>Wichtig:</strong> Für jedes externe System wurde ein eigenes Passwort generiert. Bitte ändern Sie diese Passwörter nach dem ersten Login aus Sicherheitsgründen!</p>
-                
-                <div style='margin: 20px 0;'>";
-        
-        // ISPConfig
-        if (isset($systemPasswords['ispconfig']) && isset($portalLinks['ispconfig'])) {
-            $message .= "
-                    <div style='background: #fff3cd; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #ffeaa7;'>
-                        <h4 style='margin-top: 0; color: #856404;'>🌐 ISPConfig - Webhosting-Verwaltung</h4>
-                        <p><strong>Portal:</strong> <a href='{$portalLinks['ispconfig']}'>{$portalLinks['ispconfig']}</a></p>
-                        <p><strong>Benutzername:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$username}</span></p>
-                        <p><strong>Passwort:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$systemPasswords['ispconfig']}</span></p>
-                    </div>";
-        }
-        
-        // OpenGamePanel
-        if (isset($systemPasswords['ogp']) && isset($portalLinks['ogp'])) {
-            $message .= "
-                    <div style='background: #d1ecf1; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #bee5eb;'>
-                        <h4 style='margin-top: 0; color: #0c5460;'>🎮 OpenGamePanel - Spieleserver-Verwaltung</h4>
-                        <p><strong>Portal:</strong> <a href='{$portalLinks['ogp']}'>{$portalLinks['ogp']}</a></p>
-                        <p><strong>Benutzername:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$username}</span></p>
-                        <p><strong>Passwort:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$systemPasswords['ogp']}</span></p>
-                    </div>";
-        }
-        
-        // Proxmox
-        if (isset($systemPasswords['proxmox']) && isset($portalLinks['proxmox'])) {
-            $message .= "
-                    <div style='background: #d4edda; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #c3e6cb;'>
-                        <h4 style='margin-top: 0; color: #155724;'>🖥️ Proxmox - Virtuelle Maschinen</h4>
-                        <p><strong>Portal:</strong> <a href='{$portalLinks['proxmox']}'>{$portalLinks['proxmox']}</a></p>
-                        <p><strong>Benutzername:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$username}</span></p>
-                        <p><strong>Passwort:</strong> <span style='background: #e9ecef; padding: 2px 6px; border-radius: 4px;'>{$systemPasswords['proxmox']}</span></p>
-                    </div>";
-        }
-        
-        $message .= "
-                </div>
-                
-                <div style='background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ffeaa7;'>
-                    <h3 style='margin-top: 0; color: #856404;'>⚠️ WICHTIGER SICHERHEITSHINWEIS</h3>
-                    <p><strong>Bitte ändern Sie die Passwörter in den externen Systemen nach dem ersten Login!</strong></p>
-                    <p>Die generierten Passwörter sind nur für den ersten Login gedacht. Aus Sicherheitsgründen sollten Sie diese sofort durch eigene, sichere Passwörter ersetzen.</p>
-                    <ul>
-                        <li>Verwenden Sie mindestens 12 Zeichen</li>
-                        <li>Kombinieren Sie Groß- und Kleinbuchstaben, Zahlen und Sonderzeichen</li>
-                        <li>Verwenden Sie für jedes System ein unterschiedliches Passwort</li>
-                        <li>Speichern Sie die neuen Passwörter sicher ab</li>
-                    </ul>
-                </div>
-                
-                <div style='text-align: center; margin: 30px 0;'>
-                    <a href='" . Config::FRONTPANEL_SITE_URL . "/public/login.php' 
-                       style='background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;'>
-                        🚀 Jetzt im Frontpanel anmelden
-                    </a>
-                </div>
-                
-                <p>Falls der Button nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:</p>
-                <p style='word-break: break-all; color: #666; background: #f8f9fa; padding: 10px; border-radius: 4px;'>" . Config::FRONTPANEL_SITE_URL . "/public/login.php</p>
-                
-                <p>Falls Sie Fragen haben oder Probleme beim Login haben, kontaktieren Sie uns gerne unter <strong>" . Config::FRONTPANEL_SUPPORT_EMAIL . "</strong></p>
-                
-                <p>Mit freundlichen Grüßen<br>
-                Ihr <strong>" . Config::FRONTPANEL_SITE_NAME . "</strong> Team</p>
-            </div>
-        </body>
-        </html>
-        ";
-        
-        $headers = [
-            'MIME-Version: 1.0',
-            'Content-type: text/html; charset=utf-8',
-            'From: ' . Config::FRONTPANEL_SYSTEM_EMAIL,
-            'Reply-To: ' . Config::FRONTPANEL_SUPPORT_EMAIL,
-            'X-Mailer: PHP/' . phpversion()
-        ];
-        
-        $mailResult = mail($to, $subject, $message, implode("\r\n", $headers));
-        
-        if ($mailResult) {
-            error_log("System credentials email sent successfully to: " . $email);
-        } else {
-            error_log("Failed to send system credentials email to: " . $email);
-        }
-        
-        return $mailResult;
-        
-    } catch (Exception $e) {
-        error_log("Failed to send system credentials email: " . $e->getMessage());
-        return false;
-    }
-}
-?>

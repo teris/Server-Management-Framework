@@ -472,3 +472,7 @@ body {
     font-size: 0.75em;
     padding: 0.2em 0.4em;
 }
+/* One responsive content offset for all backend views. */
+.main-content { margin-left: 220px; width: calc(100% - 220px); }
+@media (max-width: 767.98px) { .main-content { margin-left: 0; width: 100%; padding-top: 4rem; } }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #bd6e00; outline-offset: 3px; }

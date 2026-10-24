@@ -10,7 +10,6 @@
  */
 
 require_once __DIR__ . '/../src/public-bootstrap.php';
-require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
 require_once '../src/core/ActivityLogger.php';
 

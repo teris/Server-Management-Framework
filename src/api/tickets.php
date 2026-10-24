@@ -80,7 +80,7 @@ try {
             ticket_number, subject, message, email, customer_name, 
             priority, status, category, source, ip_address, user_agent, 
             created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     ");
     
     // Ticket-Nummer generieren

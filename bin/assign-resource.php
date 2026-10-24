@@ -2,6 +2,7 @@
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once dirname(__DIR__) . '/src/sys.conf.php';
 require_once dirname(__DIR__) . '/framework.php';
+HttpSecurity::cliBoundary();
 require_once dirname(__DIR__) . '/src/core/ResourceAccess.php';
 $options = getopt('', ['realm:', 'subject:', 'module:', 'type:', 'external-id:', 'node:', 'service:', 'instance-id:', 'group-id:', 'write']);
 $realm = $options['realm'] ?? ''; $subject = (int) ($options['subject'] ?? 0); $module = $options['module'] ?? '';

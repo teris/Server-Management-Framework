@@ -1,4 +1,4 @@
-name: Security regressions
+name: Framework regressions
 on:
   push:
   pull_request:
@@ -13,32 +13,93 @@ jobs:
         php: ['8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
         with:
           php-version: ${{ matrix.php }}
-          extensions: pdo_sqlite, mbstring, simplexml, curl, ctype, tokenizer
+          extensions: pdo_sqlite, sqlite3, mbstring, simplexml, dom, curl, soap, ctype, tokenizer, zip
           ini-values: short_open_tag=0, display_errors=0, log_errors=1
           coverage: none
       - name: Test dependencies
         run: sudo apt-get update -qq && sudo apt-get install -y python3-cryptography
-      - name: PHP and new browser asset syntax
+      - name: Syntax, authorization, schema, SMTPS, signed updates and browser contracts
+        env:
+          SMF_TEST_NATIVE_BACKUP: '1'
+        run: python3 tests/run_all.py --baseline --report /tmp/smf-regressions.json
+  mysql:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['mysql:8.0', 'mariadb:10.11']
+    services:
+      database:
+        image: ${{ matrix.image }}
+        env:
+          MYSQL_ROOT_PASSWORD: isolated-test-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent || mariadb-admin ping --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, simplexml, dom, curl, soap, ctype, tokenizer, zip
+          coverage: none
+      - name: Native database clients
+        run: sudo apt-get update -qq && sudo apt-get install -y mariadb-client
+      - name: Fresh, installer upgrade and full-schema upgrade with native restore
+        env:
+          SMF_TEST_MYSQL_HOST: 127.0.0.1
+          SMF_TEST_MYSQL_USER: root
+          SMF_TEST_MYSQL_PASSWORD: isolated-test-only
+          SMF_TEST_NATIVE_BACKUP: '1'
+        run: python3 tests/test_database_engines.py --engines mysql
+  postgresql:
+    runs-on: ubuntu-24.04
+    services:
+      database:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: '8.3'
+          extensions: pdo_pgsql, mbstring, simplexml, dom, curl, soap, ctype, tokenizer, zip
+          coverage: none
+      - name: Native PostgreSQL clients
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client-16
+      - name: Fresh and both legacy upgrades with native restore
+        env:
+          SMF_TEST_PGSQL_HOST: 127.0.0.1
+          SMF_TEST_PGSQL_USER: postgres
+          SMF_TEST_PGSQL_PASSWORD: isolated-test-only
+          SMF_TEST_NATIVE_BACKUP: '1'
+        run: python3 tests/test_database_engines.py --engines pgsql
+  browser:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3, mbstring, simplexml, dom, curl, soap, ctype, tokenizer, zip
+          coverage: none
+      - name: Isolated browser runtime
         run: |
-          python3 tests/check_syntax.py
-          node --check src/assets/security.js
-          node --check src/assets/session.js
-          node --check src/assets/lazy-loading-main.js
-          node --check public/assets/login.js
-          node tests/test_session_ui.cjs
-          node tests/test_browser_security.cjs
-      - name: Authorization, sessions, tokens and private files
-        run: php tests/run.php
-      - name: HTTP access and isolated provider
-        run: python3 tests/test_http.py
-      - name: TLS rejection cases
-        run: python3 tests/test_tls.py
-      - name: Concurrent limits and single-use tokens
-        run: python3 tests/test_concurrency.py
-      - name: Package exclusions
-        run: python3 tests/test_packaging.py
-      - name: Preserve private configuration and encryption keys
-        run: python3 tests/test_config_migration.py
+          sudo apt-get update -qq && sudo apt-get install -y python3-cryptography
+          npm install --prefix "$RUNNER_TEMP/smf-browser" playwright@1.62.1
+          "$RUNNER_TEMP/smf-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Desktop, mobile, keyboard and operator settings
+        run: SMF_PLAYWRIGHT_MODULE="$RUNNER_TEMP/smf-browser/node_modules/playwright" python3 tests/test_browser_stability.py

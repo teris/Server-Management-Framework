@@ -1,9 +1,9 @@
 import concurrent.futures, json, os, sqlite3, subprocess, tempfile
 from pathlib import Path
-from php_runtime import php_command
+from php_runtime import php_command, fixture_environment
 ROOT=Path(__file__).resolve().parents[1]
 with tempfile.TemporaryDirectory(prefix='smf-concurrency-') as directory:
-    tmp=Path(directory);env=dict(os.environ,SMF_PRIVATE_DIR=str(tmp/'private'))
+    tmp=Path(directory);env=fixture_environment(SMF_PRIVATE_DIR=str(tmp/'private'))
     limit=f"require {json.dumps(str(ROOT/'src/core/Security.php'))};try{{HttpSecurity::rateLimit('concurrent','one-client',3,60);echo 'allowed';}}catch(SecurityViolation $e){{echo 'limited';}}"
     def worker(code):
         result=subprocess.run(php_command()+['-r',code],env=env,text=True,capture_output=True)

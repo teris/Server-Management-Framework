@@ -562,32 +562,16 @@ class AdminHandler {
      * Einstellungen speichern
      */
     private function saveSettings($data) {
-        try {
-            // TODO: Einstellungen in Datenbank speichern
-            $this->log("Settings saved");
+        try { return $this->success(SystemConfiguration::save($data)); } catch (Throwable $e) { return $this->error($e instanceof InvalidArgumentException ? $e->getMessage() : 'Einstellungen konnten nicht gespeichert werden.'); }
             
-            return $this->success(null, 'Einstellungen gespeichert');
-        } catch (Exception $e) {
-            return $this->error($e->getMessage());
-        }
     }
     
     /**
      * Einstellungen abrufen
      */
     private function getSettings() {
-        try {
-            // TODO: Einstellungen aus Datenbank laden
-            $settings = [
-                'debug_mode' => false,
-                'auto_refresh' => true,
-                'session_timeout' => 3600
-            ];
+        return $this->success(SystemConfiguration::get());
             
-            return $this->success($settings);
-        } catch (Exception $e) {
-            return $this->error($e->getMessage());
-        }
     }
     
     /**
@@ -811,24 +795,12 @@ class AdminHandler {
      * Benutzerpasswort zurücksetzen
      */
     private function resetUserPassword($data) {
-        if (!isset($data['id'])) {
-            return $this->error('Fehlende Parameter');
-        }
-
+        if (!isset($data['id'])) return $this->error('Fehlende Parameter');
         try {
-            $result = $this->adminCore->resetUserPassword($data['id']);
-            if ($result['success']) {
-                $this->log("Password reset for user {$data['id']} by admin {$this->user['username']}", 'INFO');
-                return $this->success([
-                    'message' => 'Benutzerpasswort erfolgreich zurückgesetzt',
-                    'password' => $result['data']['password']
-                ]);
-            } else {
-                return $this->error($result['error']);
-            }
-        } catch (Exception $e) {
-            return $this->error('Fehler beim Zurücksetzen des Benutzerpassworts: ' . $e->getMessage());
-        }
+            $result = $this->adminCore->resetUserPassword((int) $data['id']);
+            return $result['success'] ? $this->success(['message'=>'Rücksetzlink angefordert.']) : $this->error($result['message'] ?? 'Versand fehlgeschlagen.');
+        } catch (Throwable $e) { return $this->error('Rücksetzlink konnte nicht angefordert werden.'); }
+
     }
     
     /**
@@ -871,7 +843,7 @@ class AdminHandler {
             $conn = $db->getConnection();
             $stmt = $conn->prepare("
                 UPDATE domain_registrations 
-                SET status = ?, purpose = ?, admin_notes = ?, updated_at = NOW()
+                SET status = ?, purpose = ?, admin_notes = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
             $stmt->execute([
@@ -898,7 +870,7 @@ class AdminHandler {
             $conn = $db->getConnection();
             $stmt = $conn->prepare("
                 UPDATE domain_registrations 
-                SET status = ?, updated_at = NOW()
+                SET status = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
             $stmt->execute([$data['status'], $data['id']]);
@@ -946,7 +918,7 @@ class AdminHandler {
             
             $stmt = $conn->prepare("
                 INSERT INTO domain_extensions (tld, name, active, created_at) 
-                VALUES (?, ?, ?, NOW())
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
             ");
             $stmt->execute([
                 $data['tld'],
@@ -979,7 +951,7 @@ class AdminHandler {
             
             $stmt = $conn->prepare("
                 UPDATE domain_extensions 
-                SET tld = ?, name = ?, active = ?, updated_at = NOW()
+                SET tld = ?, name = ?, active = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
             $stmt->execute([
@@ -1030,7 +1002,7 @@ class AdminHandler {
             
             $stmt = $conn->prepare("
                 UPDATE domain_extensions 
-                SET active = NOT active, updated_at = NOW()
+                SET active = CASE WHEN active=1 THEN 0 ELSE 1 END, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
             $stmt->execute([$data['id']]);

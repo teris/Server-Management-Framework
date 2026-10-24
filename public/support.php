@@ -10,7 +10,6 @@
  */
 
 require_once __DIR__ . '/../src/public-bootstrap.php';
-require_once '../framework.php';
 require_once '../src/core/LanguageManager.php';
 require_once '../src/core/ActivityLogger.php';
 
@@ -88,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'new') {
 
             $stmt = $db->getConnection()->prepare("
                 INSERT INTO support_tickets (ticket_number, customer_id, email, subject, priority, message, status, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, 'open', NOW())
+                VALUES (?, ?, ?, ?, ?, ?, 'open', CURRENT_TIMESTAMP)
             ");
 
             if ($stmt->execute([$ticketNumber, $customerId, $customerEmail, $subject, $priority, $message])) {
@@ -203,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                 // Kunden-Antwort hinzufügen
                 $replyStmt = $db->getConnection()->prepare("
                     INSERT INTO ticket_replies (ticket_id, customer_id, message, is_internal, created_at)
-                    VALUES (?, ?, ?, 0, NOW())
+                    VALUES (?, ?, ?, 0, CURRENT_TIMESTAMP)
                 ");
                 $replyStmt->execute([$replyTicketId, $customerId, $replyMessage]);
 
@@ -224,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                 // Ticket-Status auf "waiting_admin" setzen
                 $updateStmt = $db->getConnection()->prepare("
                     UPDATE support_tickets
-                    SET status = 'waiting_admin', updated_at = NOW()
+                    SET status = 'waiting_admin', updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
                 ");
                 $updateStmt->execute([$replyTicketId]);
@@ -277,17 +276,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
     <title><?= t('support_tickets') ?> - Server Management</title>
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/frontpanel.css">
     <link rel="stylesheet" type="text/css" href="assets/login.css">
 
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="dashboard-page">
     <!-- Navigation -->

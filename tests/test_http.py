@@ -1,6 +1,6 @@
 import contextlib, http.cookiejar, http.server, json, os, re, shutil, socket, sqlite3, ssl, subprocess, tempfile, threading, time, urllib.error, urllib.parse, urllib.request
 from pathlib import Path
-from php_runtime import php_command
+from php_runtime import php_command, fixture_environment
 from tls_helpers import certificate_files
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -53,7 +53,7 @@ with tempfile.TemporaryDirectory(prefix='smf-http-') as tmp:
     configuration=re.sub(r"const PROXMOX_PASSWORD\s*=\s*'[^']+';","const PROXMOX_PASSWORD = 'FAKE-request-secret';",configuration)
     configuration=re.sub(r'const PROXMOX_USEING\s*=\s*false;','const PROXMOX_USEING = true;',configuration)
     config=tmp/'config.php';config.write_text(configuration)
-    env=dict(os.environ,SMF_CONFIG_FILE=str(config),SMF_PRIVATE_DIR=str(tmp/'private'),SMF_CA_FILE=str(certs/'ca.pem'))
+    env=fixture_environment(SMF_CONFIG_FILE=str(config),SMF_PRIVATE_DIR=str(tmp/'private'),SMF_CA_FILE=str(certs/'ca.pem'))
     hashes=json.loads(subprocess.check_output(php_command()+['-r',"echo json_encode([password_hash('Backend test password',PASSWORD_DEFAULT),password_hash('Customer test password',PASSWORD_DEFAULT)]);"],text=True,env=env))
     db=sqlite3.connect(project/'database/http-test.sqlite');db.executescript((project/'install/database-structure-install-sqlite.sql').read_text())
     for uid,username,role in [(1,'admin','admin'),(2,'user','user')]:db.execute("INSERT INTO users (id,username,email,password_hash,full_name,role,active) VALUES (?,?,?,?,?,?,'y')",(uid,username,username+'@example.invalid',hashes[0],username,role))
@@ -94,7 +94,7 @@ with tempfile.TemporaryDirectory(prefix='smf-http-') as tmp:
         prior=len(Provider.calls);check(backend.request('/src/index.php')[0]==403,'normal backend user denied global admin interface');check(len(Provider.calls)==prior,'admin rejection precedes provider initialization')
         check(backend.request('/src/account.php')[0]==200,'normal backend user receives scoped account page')
         administrator=Client(client.base);check(administrator.login('backend','admin','Backend test password')[0]==303,'administrator can login')
-        count=len(Provider.calls);check(administrator.request('/src/index.php?option=manualupdater')[0]==503,'unreviewed updater stays disabled even for administrator')
+        count=len(Provider.calls);check(administrator.request('/src/index.php?option=manualupdater')[0]==200,'administrator receives signature-gated update interface')
         csrf=administrator.token('/src/password_change.php')
         sessionfile=tmp/'private/sessions'/('sess_'+administrator.sid())
         serialized=sessionfile.read_text();serialized=re.sub(r'("last_activity";i:)\d+(;)',lambda m:m[1]+str(int(time.time())-120)+m[2],serialized,count=1);sessionfile.write_text(serialized)
@@ -103,6 +103,7 @@ with tempfile.TemporaryDirectory(prefix='smf-http-') as tmp:
         status,body,_=administrator.request('/src/index.php','POST',{'action':'extend_session','csrf_token':csrf});extended=json.loads(body)
         check(status==200 and extended['remaining']>=extended['timeout']-1,'explicit user activity extends server session')
         check(len(Provider.calls)==count,'session management does not initialize providers')
+        token=administrator.token('/src/password_change.php'); status,body,_=administrator.request('/src/index.php','POST',{'plugin':'proxmox','action':'getContent','csrf_token':token}); check(status==200 and isinstance(json.loads(body).get('content'),str) and 'proxmox-content' in json.loads(body)['content'],'Proxmox rendering returns a string inside valid JSON')
         check(client.request('/public/support.php?debug=1')[0]==404,'customer cannot enable internal support diagnostics')
         check(client.request('/public/dashboard.php?logout=1')[0]==405,'GET cannot log out customer')
         current=client.token('/public/profile.php');check(client.request('/public/dashboard.php','POST',{'action':'logout','csrf_token':current})[0]==303,'POST logout succeeds')

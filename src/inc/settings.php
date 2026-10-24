@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
     try {
         // Modul-Key zu Modul-ID Mapping laden (name und module_name, alles klein)
         $moduleKeyToId = [];
-        $stmt = $db->query("SELECT id, name, module_name FROM modules");
+        $stmt = $db->query("SELECT id, name, name AS module_name FROM modules");
         $results = $db->fetchAll($stmt);
         foreach ($results as $mod) {
             if (isset($mod['name'])) {
@@ -98,24 +98,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                     <div class="col-md-4">
                                         <div class="input-group input-group-sm mb-3">
                                             <span class="input-group-text" id="inputGroup-sizing-sm"><?= t('site_title'); ?>:</span>
-                                            <input type="text" class="form-control" aria-label="Sizing site_title input" aria-describedby="inputGroup-sizing-sm" name="site_title" id="site_title">
+                                            <input type="text" class="form-control" aria-label="Sizing site_title input" aria-describedby="inputGroup-sizing-sm" name="site_title" id="site_title" value="<?= htmlspecialchars(SystemConfiguration::get()['site_title'], ENT_QUOTES, 'UTF-8') ?>" required maxlength="255">
                                         </div>
 
                                         <div class="input-group input-group-sm mb-3">
                                             <span class="input-group-text" id="inputGroup-sizing-sm"><?= t('logo'); ?>:</span>
-                                            <input type="file" name="logo" id="logo formFile" class="form-control" type="file">
+                                            <input type="file" disabled name="logo" id="logo formFile" class="form-control" type="file">
                                         </div>
 
                                         <div class="input-group input-group-sm mb-3">
                                             <span class="input-group-text" id="inputGroup-sizing-sm"><?= t('favicon'); ?>:</span>
-                                            <input type="file" name="favicon" id="favicon formFile" class="form-control" type="file">
+                                            <input type="file" disabled name="favicon" id="favicon formFile" class="form-control" type="file">
                                         </div>
 
                                         <div class="input-group input-group-sm mb-3">
                                             <label class="input-group-text" for="mode"><?= t('mode'); ?>:
                                                 <select name="mode" id="mode" class="form-select">
-                                                    <option value="live"><?= t('live_mode'); ?></option>
-                                                    <option value="database"><?= t('database_mode'); ?></option>
+                                                    <option value="live" <?= SystemConfiguration::get()['mode']==='live'?'selected':'' ?>><?= t('live_mode'); ?></option>
+                                                    <option value="database" <?= SystemConfiguration::get()['mode']==='database'?'selected':'' ?>><?= t('database_mode'); ?></option>
                                                 </select>
                                             </label>
                                         </div>
@@ -127,11 +127,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                     <div class="col-md-2">
                                         <div class="settings-advanced input-group input-group-sm mb-3">
                                             <label class="input-group-text" for="session-timeout"><?= t('session_timeout'); ?>:</label>
-                                            <input type="number" name="session_timeout" id="session-timeout" value="30" min="5" max="480">
+                                            <input type="number" name="session_timeout" id="session-timeout" value="<?= SystemConfiguration::get()['session_timeout'] ?>" min="1" max="1440">
                                         </div>  
                                         <div class="settings-advanced input-group input-group-sm mb-3">
                                             <label class="input-group-text" for="refresh-interval"><?= t('auto_refresh_interval'); ?>:</label>
-                                            <input type="number" name="refresh_interval" id="refresh-interval" value="30" min="10" max="300">
+                                            <input type="number" name="refresh_interval" id="refresh-interval" value="<?= SystemConfiguration::get()['refresh_interval'] ?>" min="10" max="300">
                                         </div>
                                     </div>
                                     <!-- Erweiterung: Systemstatus -->
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                                         <div class="settings-status ">
                                             <strong><?= t('system_status'); ?>:</strong><br>
                                             <span><strong><?= t('cache_status'); ?>:</strong> <span class="badge bg-success ms-2"><?= t('active'); ?></span></span><br>
-                                            <span><strong><?= t('api_connections'); ?>:</strong> <span class="badge bg-success ms-2"><?= t('all_ok'); ?></span></span><br>
+                                            <span><strong><?= t('api_connections'); ?>:</strong> <span class="badge bg-success ms-2">Nicht geprüft</span></span><br>
                                             <span><strong><?= t('last_update'); ?>:</strong> <span class="text-muted ms-2" id="last-update">-</span></span>
                                         </div>
                                         <button type="submit" class="btn btn-primary"><?= t('save_button'); ?></button>
@@ -151,43 +151,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                         <!-- Allgemein Ende -->
                         <!-- API-Zugangsdaten -->
                         <div class="tab-pane fade" id="tab-api" role="tabpanel" aria-labelledby="tab-api-tab">
-                            <form id="api-settings-form" action="?option=submit">
-                                <div id="api-credentials-list" class="row">
-                                    <?php
-                                    try {
-                                        $stmt = $db->query("SELECT * FROM api_credentials");
-                                        $apis = $db->fetchAll($stmt);
-                                        foreach ($apis as $api) {
-                                            $title = '';
-                                            if ($api['service_name'] === 'proxmox') $title = 'Proxmox';
-                                            if ($api['service_name'] === 'ispconfig') $title = 'ISPConfig';
-                                            if ($api['service_name'] === 'ovh') $title = 'OVH';
-                                            ?>
-                                            <div class="mb-4 border rounded col-md-4">
-                                                <h5 class="shadow p-3 mb-5 bg-body rounded"><?= htmlspecialchars($title) ?></h5>
-                                                <div class="input-group mb-3">
-                                                    <label class="input-group-text" for="api_url_<?= $api['id'] ?>">URL/Endpoint: </label>
-                                                    <input type="text" name="api_url_<?= $api['id'] ?>" value="<?= htmlspecialchars($api['endpoint'] ?? '') ?>" class="form-control">
-                                                </div>
-                                                <div class="input-group mb-3">
-                                                    <label class="input-group-text" for="api_user_<?= $api['id'] ?>">Benutzer: </label>
-                                                    <input type="text" name="api_user_<?= $api['id'] ?>" value="<?= htmlspecialchars($api['username'] ?? '') ?>" class="form-control">
-                                                </div>
-                                                <div class="input-group mb-3">
-                                                    <label class="input-group-text" for="api_password_<?= $api['id'] ?>">Passwort: </label>
-                                                    <input type="text" name="api_password_<?= $api['id'] ?>" value="" placeholder="********" class="form-control">
-                                                </div>
-                                            </div>
-                                            <?php
-                                        }
-                                    } catch (Exception $e) {
-                                        echo '<div>' . t('error_loading_api_credentials') . ': ' . htmlspecialchars($e->getMessage()) . '</div>';
-                                    }
-                                    ?>
-                                </div>
-                                <button type="submit" class="btn btn-primary"><?= t('save_button'); ?></button>
-                                <span id="api-settings-status"></span>
-                            </form>
+                            <p>Provider-Verbindungen werden aus der privaten Serverkonfiguration geladen. Zugangsdaten und CA-Dateien werden dort geändert; diese Ansicht schreibt keine Passwörter in die Datenbank.</p>
+                            <div class="table-responsive"><table class="table"><caption>Konfigurierte Provider</caption><thead><tr><th scope="col">Anbieter</th><th scope="col">Adresse</th><th scope="col">Aktiviert</th></tr></thead><tbody>
+                            <?php foreach (['Proxmox'=>['PROXMOX_HOST','PROXMOX_USEING'],'ISPConfig'=>['ISPCONFIG_HOST','ISPCONFIG_USEING'],'OVH'=>['OVH_ENDPOINT','OVH_USEING'],'OGP'=>['OGP_HOST','OGP_USEING']] as $name=>$fields): ?>
+                            <tr><td><?= htmlspecialchars($name) ?></td><td><?= htmlspecialchars((string)constant('Config::'.$fields[0])) ?></td><td><?= constant('Config::'.$fields[1])?'Ja':'Nein' ?></td></tr>
+                            <?php endforeach; ?></tbody></table></div>
                         </div>
                         <!-- API-Zugangsdaten Ende -->
                         <!-- Module -->

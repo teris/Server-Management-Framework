@@ -14,6 +14,7 @@ if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FIL
  */
 require_once __DIR__ . '/../../config/load.php';
 require_once __DIR__ . '/DatabaseManager.php';
+require_once __DIR__ . '/SchemaManager.php';
 
 // =============================================================================
 // DATABASE CLASS (angepasst für neue Abstraktionsschicht)
@@ -53,6 +54,15 @@ class Database {
         return $this->dbManager->clearActivityLogs();
     }
     
+    public function prepare($sql) { return $this->dbManager->prepare($sql); }
+    public function query($sql) { return $this->dbManager->query($sql); }
+    public function exec($sql) { return $this->getConnection()->exec($sql); }
+    public function lastInsertId($name=null) { return $this->getConnection()->lastInsertId($name); }
+    public function beginTransaction() { return $this->getConnection()->beginTransaction(); }
+    public function commit() { return $this->getConnection()->commit(); }
+    public function rollback() { return $this->getConnection()->rollBack(); }
+    public function inTransaction() { return $this->getConnection()->inTransaction(); }
+    public function quote($string, $type=PDO::PARAM_STR) { return $this->getConnection()->quote($string,$type); }
     public function clearActivityLog() {
         return $this->dbManager->clearActivityLogs();
     }
@@ -77,6 +87,12 @@ abstract class Model {
         return $this->db;
     }
     
+    public function toArray() { return $this->data; }
+    public function __get($name) { return $this->data[$name === 'vmid' ? 'vm_id' : $name] ?? null; }
+    private function validFields(array $data) {
+        $columns=SchemaManager::columns($this->db,$this->table);
+        foreach(array_keys($data) as $field) if(!isset($columns[$field])) throw new InvalidArgumentException('Unknown model field');
+    }
     public function getData() {
         return $this->data;
     }
@@ -100,6 +116,7 @@ abstract class Model {
         return $stmt->fetchAll();
     }
     public function insert($data) {
+        $this->validFields($data);
         $fields = array_keys($data);
         $placeholders = array_fill(0, count($fields), '?');
         $sql = "INSERT INTO {$this->table} (" . implode(',', $fields) . ") VALUES (" . implode(',', $placeholders) . ")";
@@ -108,6 +125,7 @@ abstract class Model {
         return $this->db->lastInsertId();
     }
     public function update($id, $data) {
+        $this->validFields($data);
         $fields = array_keys($data);
         $set = implode(', ', array_map(fn($f) => "$f = ?", $fields));
         $sql = "UPDATE {$this->table} SET $set WHERE {$this->primaryKey} = ?";
@@ -189,12 +207,7 @@ class ProxmoxPost extends ProxmoxGet {
         return $stmt->rowCount();
     }
     public function controlVM($vmId, $action) {
-        $model = new VM();
-        // Aktualisiere den Status der VM basierend auf der Aktion
-        $status = $action === 'start' ? 'running' : ($action === 'stop' ? 'stopped' : 'unknown');
-        $stmt = $model->getDb()->prepare("UPDATE vms SET status = ? WHERE vm_id = ?");
-        $stmt->execute([$status, $vmId]);
-        return $stmt->rowCount() > 0;
+        throw new RuntimeException('Database mode cannot control a real VM; use the provider mode.');
     }
     public function deleteVM($vmId) {
         $model = new VM();
@@ -487,20 +500,7 @@ function getEnabledModules() {
  * Gibt die Konfiguration für ein spezifisches Modul zurück (DB)
  */
 function getModuleConfig($module_key) {
-    // DB-gestützt: Hole alle Configs für das Modul
-    $model = new ModuleConfig();
-    $stmt = $model->getDb()->prepare("SELECT * FROM module_configs WHERE module_name = ?");
-    $stmt->execute([$module_key]);
-    $configs = $stmt->fetchAll();
-    $result = [];
-    foreach ($configs as $row) {
-        $result[$row['config_key']] = $row['config_value'];
-    }
-    // Patch: path immer setzen!
-    if (empty($result['path'])) {
-        $result['path'] = __DIR__ . '/../module/' . $module_key;
-    }
-    return $result;
+    return function_exists('getPluginConfig') ? (getPluginConfig($module_key) ?: []) : [];
 }
 /**
  * Prüft ob ein Benutzer auf ein Modul zugreifen darf (DB + Logik)
@@ -648,179 +648,19 @@ class GroupHelper {
 // =============================================================================
 class ServiceManager {
     private $proxmoxGet;
-    private $proxmoxPost;
     private $ispconfigGet;
-    private $ispconfigPost;
     private $ovhGet;
-    private $ovhPost;
-    public function __construct() {
-        $this->proxmoxGet = new ProxmoxGet();
-        $this->proxmoxPost = new ProxmoxPost();
-        $this->ispconfigGet = new ISPConfigGet();
-        $this->ispconfigPost = new ISPConfigPost();
-        $this->ovhGet = new OVHGet();
-        $this->ovhPost = new OVHPost();
-    }
-    // Proxmox
+    public function __construct() { $this->proxmoxGet=new ProxmoxGet(); $this->ispconfigGet=new ISPConfigGet(); $this->ovhGet=new OVHGet(); }
+    public function __call($name, $arguments) { throw new BadMethodCallException('Operation unavailable in database cache mode: ' . $name); }
     public function getProxmoxVMs() { return $this->proxmoxGet->getVMs(); }
-    public function createProxmoxVM($vmData) { return $this->proxmoxPost->createVM($vmData); }
-    public function controlProxmoxVM($vmId, $action) { return $this->proxmoxPost->controlVM($vmId, $action); }
-    public function deleteProxmoxVM($vmId) { return $this->proxmoxPost->deleteVM($vmId); }
-    // ISPConfig
-    public function getISPConfigWebsites() { return $this->ispconfigGet->getWebsites(['active'=>'y']); }
-    public function createISPConfigWebsite($websiteData) { return $this->ispconfigPost->createWebsite($websiteData); }
-    public function deleteISPConfigWebsite($domainId) { return $this->ispconfigPost->deleteWebsite($domainId); }
-    public function getISPConfigDatabases() { return $this->ispconfigGet->getDatabases(['active'=>'y']); }
-    public function createISPConfigDatabase($dbData) { return $this->ispconfigPost->createDatabase($dbData); }
-    public function deleteISPConfigDatabase($databaseId) { return $this->ispconfigPost->deleteDatabase($databaseId); }
-    public function getISPConfigEmails() { return $this->ispconfigGet->getEmailAccounts(['active'=>'y']); }
-    public function createISPConfigEmail($emailData) { return $this->ispconfigPost->createEmailAccount($emailData); }
-    public function deleteISPConfigEmail($mailuserId) { return $this->ispconfigPost->deleteEmailAccount($mailuserId); }
-    // OVH
+    public function getProxmoxVM($node,$vmid) { return $this->proxmoxGet->getVM($node,$vmid); }
+    public function getProxmoxNodes() { return Database::getInstance()->getConnection()->query('SELECT DISTINCT node FROM vms ORDER BY node')->fetchAll(PDO::FETCH_ASSOC); }
+    public function getISPConfigWebsites($filter=[]) { return $this->ispconfigGet->getWebsites($filter); }
+    public function getISPConfigDatabases($filter=[]) { return $this->ispconfigGet->getDatabases($filter); }
+    public function getISPConfigEmails($filter=[]) { return $this->ispconfigGet->getEmailAccounts($filter); }
     public function getOVHDomains() { return $this->ovhGet->getDomains(); }
-    public function orderOVHDomain($domainData) { return $this->ovhPost->orderDomain($domainData); }
-    public function deleteOVHDomain($domain) { return $this->ovhPost->deleteDomain($domain); }
-    public function getOvhIP() {
-        $model = new NetworkConfig();
-        return $model->all();
-    }
-    
-    // OGP Game Server
-    public function getOGPGameServers() {
-        try {
-            // Vereinfachte Implementierung - in Produktion über OGP API
-            return [
-                [
-                    'id' => 1,
-                    'name' => 'Game Server 1',
-                    'status' => 'running',
-                    'players' => 12,
-                    'max_players' => 32,
-                    'map' => 'de_dust2',
-                    'ip' => '192.168.1.100',
-                    'port' => 27015
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Game Server 2',
-                    'status' => 'stopped',
-                    'players' => 0,
-                    'max_players' => 64,
-                    'map' => 'de_mirage',
-                    'ip' => '192.168.1.101',
-                    'port' => 27016
-                ]
-            ];
-        } catch (Exception $e) {
-            error_log("Error getting OGP game servers: " . $e->getMessage());
-            return [];
-        }
-    }
-    
-    // System-Informationen
-    public function getSystemInfo() {
-        try {
-            $systemInfo = [
-                'cpu_usage' => $this->getCPUUsage(),
-                'memory_usage' => $this->getMemoryUsage(),
-                'disk_usage' => $this->getDiskUsage(),
-                'uptime' => $this->getUptime(),
-                'load_average' => $this->getLoadAverage(),
-                'network_status' => $this->getNetworkStatus()
-            ];
-            return $systemInfo;
-        } catch (Exception $e) {
-            error_log("Error getting system info: " . $e->getMessage());
-            return [];
-        }
-    }
-    
-    private function getCPUUsage() {
-        // Einfache CPU-Auslastung über /proc/loadavg
-        if (file_exists('/proc/loadavg')) {
-            $load = file_get_contents('/proc/loadavg');
-            $loads = explode(' ', $load);
-            return [
-                '1min' => floatval($loads[0]),
-                '5min' => floatval($loads[1]),
-                '15min' => floatval($loads[2])
-            ];
-        }
-        return ['1min' => 0, '5min' => 0, '15min' => 0];
-    }
-    
-    private function getMemoryUsage() {
-        // Speicherauslastung über /proc/meminfo
-        if (file_exists('/proc/meminfo')) {
-            $meminfo = file_get_contents('/proc/meminfo');
-            preg_match('/MemTotal:\s+(\d+)/', $meminfo, $total);
-            preg_match('/MemAvailable:\s+(\d+)/', $meminfo, $available);
-            
-            if (isset($total[1]) && isset($available[1])) {
-                $total = intval($total[1]);
-                $available = intval($available[1]);
-                $used = $total - $available;
-                return [
-                    'total' => $total,
-                    'used' => $used,
-                    'available' => $available,
-                    'percentage' => round(($used / $total) * 100, 2)
-                ];
-            }
-        }
-        return ['total' => 0, 'used' => 0, 'available' => 0, 'percentage' => 0];
-    }
-    
-    private function getDiskUsage() {
-        // Festplattenauslastung
-        $disk = disk_free_space('/');
-        $total = disk_total_space('/');
-        $used = $total - $disk;
-        
-        return [
-            'total' => $total,
-            'used' => $used,
-            'free' => $disk,
-            'percentage' => round(($used / $total) * 100, 2)
-        ];
-    }
-    
-    private function getUptime() {
-        // System-Uptime
-        if (file_exists('/proc/uptime')) {
-            $uptime = file_get_contents('/proc/uptime');
-            $uptime = floatval(explode(' ', $uptime)[0]);
-            
-            $days = floor($uptime / 86400);
-            $hours = floor(($uptime % 86400) / 3600);
-            $minutes = floor(($uptime % 3600) / 60);
-            
-            return [
-                'seconds' => $uptime,
-                'formatted' => "{$days}d {$hours}h {$minutes}m"
-            ];
-        }
-        return ['seconds' => 0, 'formatted' => '0d 0h 0m'];
-    }
-    
-    private function getLoadAverage() {
-        // Load Average
-        if (function_exists('sys_getloadavg')) {
-            $load = sys_getloadavg();
-            return [
-                '1min' => $load[0],
-                '5min' => $load[1],
-                '15min' => $load[2]
-            ];
-        }
-        return ['1min' => 0, '5min' => 0, '15min' => 0];
-    }
-    
-    private function getNetworkStatus() {
-        // Netzwerkstatus (vereinfacht)
-        return [
-            'status' => 'online',
-            'timestamp' => date('Y-m-d H:i:s')
-        ];
-    }
+    public function createProxmoxVM($data) { throw new RuntimeException('Provider writes are unavailable in database cache mode.'); }
+    public function controlProxmoxVM($node,$vmid,$action) { throw new RuntimeException('Provider writes are unavailable in database cache mode.'); }
+    public function getOGPGameServers() { throw new RuntimeException('There is no OGP provider or cache adapter in database mode.'); }
+    public function getSystemInfo() { return ['source'=>'local_host','load_average'=>function_exists('sys_getloadavg')?sys_getloadavg():null,'memory_limit'=>ini_get('memory_limit'),'php_version'=>PHP_VERSION]; }
 } 

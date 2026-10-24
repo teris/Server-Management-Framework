@@ -21,8 +21,11 @@ class LanguageManager {
     
     private function __construct() {
         global $system_config;
-        $this->current_language = $system_config['language'] ?? 'de';
-        $this->available_languages = $system_config['available_languages'] ?? ['de'];
+        $available = $system_config['available_languages'] ?? ['de'];
+        if (is_string($available)) $available = explode(',', $available);
+        $this->available_languages = array_values(array_unique(array_filter(array_map('trim', (array) $available), function ($value) { return preg_match('/^[a-z]{2}(?:-[A-Z]{2})?$/D', $value); })));
+        if (!$this->available_languages) $this->available_languages = ['de'];
+        $this->current_language = in_array($system_config['language'] ?? 'de', $this->available_languages, true) ? ($system_config['language'] ?? 'de') : $this->available_languages[0];
     }
     
     public static function getInstance() {
@@ -36,7 +39,7 @@ class LanguageManager {
      * Setzt die aktuelle Sprache
      */
     public function setLanguage($language) {
-        if (in_array($language, $this->available_languages)) {
+        if (is_string($language) && in_array($language, $this->available_languages, true)) {
             $this->current_language = $language;
             // Cache leeren, da sich die Sprache geändert hat
             $this->translations = [];
@@ -74,12 +77,12 @@ class LanguageManager {
         // Versuche zuerst die aktuelle Sprache zu laden
         $xml_file = $this->getLanguageFilePath($module_key, $this->current_language);
         
-        if (file_exists($xml_file)) {
+        if ($xml_file && file_exists($xml_file)) {
             $translations = $this->loadXMLTranslations($xml_file);
         } else {
             // Fallback auf Standardsprache (deutsch)
             $default_xml_file = $this->getLanguageFilePath($module_key, $this->default_language);
-            if (file_exists($default_xml_file)) {
+            if ($default_xml_file && file_exists($default_xml_file)) {
                 $translations = $this->loadXMLTranslations($default_xml_file);
             }
         }
@@ -108,7 +111,7 @@ class LanguageManager {
         }
         
         $module_path = $module_config['path'];
-        return $module_path . '/lang/' . $language . '.xml';
+        return dirname(__DIR__) . '/' . $module_path . '/lang/' . $language . '.xml';
     }
     
     /**
@@ -120,7 +123,7 @@ class LanguageManager {
         }
         
         try {
-            $xml = simplexml_load_file($xml_file);
+            $xml = simplexml_load_file($xml_file, 'SimpleXMLElement', LIBXML_NONET);
             if (!$xml) {
                 error_log("Failed to load XML file: $xml_file");
                 return [];
@@ -155,7 +158,8 @@ class LanguageManager {
         
         // Fallback auf Standardsprache
         if ($this->current_language !== $this->default_language) {
-            $default_translations = $this->loadModuleTranslations($module_key);
+            $default_file = $this->getLanguageFilePath($module_key, $this->default_language);
+            $default_translations = $default_file ? $this->loadXMLTranslations($default_file) : [];
             if (isset($default_translations[$key])) {
                 return $default_translations[$key];
             }

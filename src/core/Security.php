@@ -6,6 +6,7 @@ class SecurityViolation extends RuntimeException {}
 
 final class HttpSecurity {
     private static $connection;
+    private static $deploymentLock;
 
     public static function connection() {
         if (self::$connection instanceof PDO) return self::$connection;
@@ -16,6 +17,36 @@ final class HttpSecurity {
 
     /** Dependency injection for CLI tools and isolated tests, never from a request. */
     public static function useConnection(PDO $connection) { self::$connection = $connection; }
+
+    public static function cliBoundary(): void {
+        if (PHP_SAPI !== 'cli') return;
+        $maintenance = self::privateDirectory('updates') . '/maintenance.json';
+        $job = getenv('SMF_MAINTENANCE_JOB');
+        if ($job && is_file($maintenance) && preg_match('/^[a-f0-9]{32}$/D', $job) && (json_decode(file_get_contents($maintenance), true)['id'] ?? null) === $job) return;
+        if (is_file($maintenance)) throw new RuntimeException('Maintenance is active; database writer must wait');
+        $lockPath = self::privateDirectory('locks') . '/deployment.lock';
+        if (is_link($lockPath)) throw new RuntimeException('Deployment lock symlink rejected');
+        self::$deploymentLock = fopen($lockPath, 'c');
+        if (!self::$deploymentLock || !flock(self::$deploymentLock, LOCK_SH | LOCK_NB)) throw new RuntimeException('Deployment is active; database writer must wait');
+    }
+
+    public static function schemaMaintenance(callable $operation, bool $resume = false) {
+        if (PHP_SAPI !== 'cli') throw new RuntimeException('Schema migration is CLI only');
+        $maintenance = self::privateDirectory('updates') . '/maintenance.json';
+        $existing = is_file($maintenance) ? json_decode(file_get_contents($maintenance), true, 64, JSON_THROW_ON_ERROR) : null;
+        if (is_file($maintenance) && (!is_array($existing) || !isset($existing['id']))) throw new RuntimeException('Invalid maintenance state requires explicit recovery');
+        $job = getenv('SMF_MAINTENANCE_JOB');
+        if ($job && preg_match('/^[a-f0-9]{32}$/D', $job) && ($existing['id'] ?? null) === $job) return $operation();
+        if ($existing && (!$resume || ($existing['type'] ?? '') !== 'schema-migration')) throw new RuntimeException('Maintenance requires explicit recovery; inspect the saved migration state');
+        $path = self::privateDirectory('locks') . '/deployment.lock';
+        if (is_link($path) || is_link($maintenance)) throw new RuntimeException('Maintenance symlink rejected');
+        $lock = fopen($path, 'c');
+        if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) throw new RuntimeException('Requests are still active; stop traffic and retry migration');
+        try {
+            file_put_contents($maintenance, json_encode(['id'=>$existing['id'] ?? bin2hex(random_bytes(16)), 'type'=>'schema-migration', 'since'=>time()]), LOCK_EX); chmod($maintenance, 0600);
+            $result = $operation(); unlink($maintenance); return $result;
+        } finally { flock($lock, LOCK_UN); fclose($lock); }
+    }
 
     public static function privateDirectory($area = '') {
         $root = realpath(dirname(__DIR__, 2));
@@ -100,6 +131,12 @@ final class HttpSecurity {
         if (PHP_SAPI === 'cli') return;
         $localPreview = PHP_SAPI === 'cli-server' && in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);
         if (!self::isHttps() && !$localPreview) throw new SecurityViolation('Für diese Anwendung ist HTTPS erforderlich.', 426);
+        $lockPath = self::privateDirectory('locks') . '/deployment.lock';
+        if (is_link($lockPath)) throw new RuntimeException('Deployment lock symlink rejected');
+        self::$deploymentLock = fopen($lockPath, 'c');
+        if (!self::$deploymentLock || !flock(self::$deploymentLock, LOCK_SH | LOCK_NB)) throw new SecurityViolation('Die Anwendung wird aktualisiert. Bitte später erneut versuchen.', 503);
+        $maintenance = self::privateDirectory('updates') . '/maintenance.json';
+        if (is_file($maintenance) && basename(self::requestScript()) !== 'updates.php') throw new SecurityViolation('Die Anwendung befindet sich im Wartungsmodus.', 503);
         self::session();
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: SAMEORIGIN');
@@ -121,7 +158,7 @@ final class HttpSecurity {
         }
         if ($method === 'POST') {
             $kind = basename($script, '.php');
-            if (in_array($kind, ['register', 'contact', 'tickets'], true)) self::rateLimit('public-' . $kind, $ip, 10, 3600);
+            if (in_array($kind, ['register', 'contact', 'tickets', 'resend-verification', 'reset-password'], true)) self::rateLimit('public-' . $kind, $ip, 10, 3600);
             if ($kind === 'support') self::rateLimit('support', $ip, 30, 3600);
             if ($kind === 'domain-registration') self::rateLimit('domain-check', $ip, 30, 60);
         }

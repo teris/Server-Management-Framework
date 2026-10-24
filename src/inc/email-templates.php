@@ -29,29 +29,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
         
         $db = DatabaseManager::getInstance();
         
-        // Prüfen und erstellen der Tabelle falls nötig
-        $stmt = $db->prepare("SHOW TABLES LIKE 'email_templates'");
-        $db->execute($stmt);
-        $tableExists = $db->fetch($stmt);
-        
-        if (!$tableExists) {
-            // Tabelle erstellen
-            $createTableSQL = "
-            CREATE TABLE IF NOT EXISTS `email_templates` (
-              `id` int(11) NOT NULL AUTO_INCREMENT,
-              `template_name` varchar(255) NOT NULL COMMENT 'Name des Templates',
-              `subject` text NOT NULL COMMENT 'E-Mail-Betreff mit Variablen',
-              `html_content` longtext COMMENT 'HTML-Inhalt des Templates',
-              `raw_content` longtext COMMENT 'Raw-Text-Inhalt des Templates',
-              `variables` text COMMENT 'Verfügbare Variablen (kommagetrennt)',
-              `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-              PRIMARY KEY (`id`),
-              UNIQUE KEY `template_name` (`template_name`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='E-Mail-Templates für das System'
-            ";
-            $db->execute($createTableSQL);
-        }
+        require_once __DIR__ . '/../core/SchemaManager.php';
+        if (!SchemaManager::hasTable($db->getConnection(), 'email_templates')) throw new RuntimeException('Bitte CLI-Migration ausführen.');
         
         switch ($_POST['subaction'] ?? '') {
             case 'test':
@@ -221,7 +200,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                     // Update existing template
                     $stmt = $db->prepare("
                         UPDATE email_templates 
-                        SET template_name = ?, subject = ?, html_content = ?, raw_content = ?, variables = ?, updated_at = NOW() 
+                        SET template_name = ?, subject = ?, html_content = ?, raw_content = ?, variables = ?, updated_at = CURRENT_TIMESTAMP
                         WHERE id = ?
                     ");
                     $result = $db->execute($stmt, [$templateName, $subject, $htmlContent, $rawContent, $variables, $templateId]);
@@ -229,7 +208,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                     // Create new template
                     $stmt = $db->prepare("
                         INSERT INTO email_templates (template_name, subject, html_content, raw_content, variables, created_at, updated_at) 
-                        VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+                        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                     ");
                     $result = $db->execute($stmt, [$templateName, $subject, $htmlContent, $rawContent, $variables]);
                     $templateId = $db->lastInsertId();

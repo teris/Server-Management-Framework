@@ -6,22 +6,10 @@ if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FIL
  * Haupttemplate mit modularen Includes für bessere Wartbarkeit
  */
 
-// Modul initialisieren
-require_once __DIR__ . '/../Module.php';
-$proxmoxModule = new ProxmoxModule('proxmox');
 ?>
 
 <div id="proxmox-content">
-    <!-- Aktionsergebnis anzeigen -->
-    <div id="action-result"><pre>
-    	<?php
-        $serverManager = new ServiceManager();
-        //@get /nodes/{node}/qemu/{vmid}/config
-		//@get nodes/{node}/storage/{storage}/status
-       // $debug =   $serverManager->ProxmoxAPI('get', '/nodes/server/storage/store01/status');
-        //print_r($debug);
-        ?>
-    </pre></div>
+
     
     <?php
     // Prüfe URL-Parameter für verschiedene Ansichten

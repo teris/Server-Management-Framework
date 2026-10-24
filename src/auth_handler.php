@@ -58,7 +58,7 @@ class AuthenticationHandler {
 final class CustomerAuthentication {
     public static function login($email, $password, $remember = false) {
         if (!is_string($email) || !is_string($password) || strlen($email) > 254 || strlen($password) > 4096) return false;
-        $stmt = HttpSecurity::connection()->prepare("SELECT * FROM customers WHERE email = ? AND status = 'active'");
+        $stmt = HttpSecurity::connection()->prepare("SELECT * FROM customers WHERE LOWER(email) = LOWER(?) AND status = 'active'");
         $stmt->execute([$email]); $customer = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$customer || !password_verify($password, $customer['password_hash'])) { HttpSecurity::audit('login.failed', 'customer'); return false; }
         $token = $remember ? RememberTokens::issue($customer) : null;
@@ -89,6 +89,8 @@ final class AccountPasswords {
             $stmt->execute([$hash, $identity['id'], $row['password_hash']]);
             if ($stmt->rowCount() !== 1) throw new SecurityViolation('Zugang wurde zwischenzeitlich geändert.', 409);
             if ($realm === 'customer') RememberTokens::revoke($identity['id']);
+            require_once __DIR__ . '/core/SchemaManager.php';
+            if (SchemaManager::hasTable($db, 'account_tokens')) $db->prepare('DELETE FROM account_tokens WHERE realm=? AND subject_id=? AND purpose=?')->execute([$realm, $identity['id'], 'reset_password']);
             $db->commit(); $row['password_hash'] = $hash;
             Identity::login($realm, $row);
             if ($realm === 'customer') Identity::rememberCookie('', time() - 3600);

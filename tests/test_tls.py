@@ -1,6 +1,6 @@
 import http.server, json, os, ssl, subprocess, tempfile, threading
 from pathlib import Path
-from php_runtime import php_command
+from php_runtime import php_command, fixture_environment
 from tls_helpers import certificate_files
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -19,7 +19,7 @@ with tempfile.TemporaryDirectory(prefix='smf-tls-') as tmp:
             threading.Thread(target=server.serve_forever,daemon=True).start();servers.append(server)
         valid,expired=servers
         def probe(url,trusted):
-            env=dict(os.environ);env.pop('SMF_CA_FILE',None);env.pop('SMF_PROXMOX_CA_FILE',None)
+            env=fixture_environment();env.pop('SMF_CA_FILE',None);env.pop('SMF_PROXMOX_CA_FILE',None)
             if trusted:env['SMF_CA_FILE']=str(certs/'ca.pem')
             result=subprocess.run(php_command()+[str(root/'tls_probe.php'),url],capture_output=True,text=True,env=env,check=True)
             return json.loads(result.stdout)

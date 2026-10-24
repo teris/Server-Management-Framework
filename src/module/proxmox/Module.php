@@ -19,15 +19,8 @@ class ProxmoxModule extends ModuleBase {
             'error_creating_vm', 'error_updating_vm', 'error_deleting_vm'
         ]);
         
-        $template_path = __DIR__ . '/templates/main.php';
+        return $this->render('main', ['translations' => $translations]);
         
-        if (file_exists($template_path)) {
-            $template_data = ['translations' => $translations];
-            extract($template_data);
-            include $template_path;
-        } else {
-            echo "Template not found: main.php";
-        }
     }
     
     public function handleAjaxRequest($action, $data) {

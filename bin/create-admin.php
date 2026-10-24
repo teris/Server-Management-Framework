@@ -1,6 +1,7 @@
 <?php
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once dirname(__DIR__) . '/framework.php';
+HttpSecurity::cliBoundary();
 $options = getopt('', ['username:', 'email:']);
 if (!preg_match('/^[a-zA-Z0-9_.-]{3,100}$/D', $options['username'] ?? '') || !filter_var($options['email'] ?? '', FILTER_VALIDATE_EMAIL)) {
     fwrite(STDERR, "Usage: php bin/create-admin.php --username=name --email=address (password via standard input)\n"); exit(1);
