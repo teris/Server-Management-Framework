@@ -40,6 +40,10 @@ function start_checkout_order(array $customer,array $p,string $domain,string $ch
     assert_customer_can_order((int)$customer['id']);
     if(!isset($options['terms'],$options['privacy'],$options['invoice_pdf']))throw new RuntimeException('Bitte bestätige Vertragsbedingungen, Datenschutz und den Rechnungserhalt als PDF.');
     $quoteId=$component?0:(int)($options['quote_id']??0);if($quoteId)$p=quote_checkout_product($quoteId,(int)$customer['id']);
+    if($p['category']==='gameserver'){
+        (new SMF\Core\ProductRegistry(SMF\Core\Kernel::boot()->modules()))->service('gameserver');
+        $p=SMF\Modules\Gameserver\Catalog::configure($p,$options['gameserver']??[]);
+    }
     if(!$quoteId)$p=domain_select_product($p,$domain);
     if(!$component)$p=purchase_pricing(selected_server_template(configured_product($p,$options['modules']??[]),$options['server_template']??0),(int)$customer['id'],$options);
     $pricing=$p['_purchase_pricing']??null;

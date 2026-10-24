@@ -18,6 +18,7 @@ require_once __DIR__ . '/payments.php';
 require_once __DIR__ . '/packages.php';
 require_once __DIR__ . '/domain-ordering.php';
 require_once __DIR__ . '/provisioning.php';
+foreach(['product.webhosting','product.vps']as$component)if(is_file(dirname(__DIR__,2).'/'.$component.'/provisioning.php'))require_once dirname(__DIR__,2).'/'.$component.'/provisioning.php';
 require_once __DIR__ . '/integration-actions.php';
 require_once __DIR__.'/commerce.php';
 require_once __DIR__.'/offers.php';
@@ -39,21 +40,21 @@ require_once __DIR__.'/admin-payments.php';
 require_once __DIR__.'/order-admin.php';
 require_once __DIR__.'/admin-manual-termination.php';
 require_once __DIR__.'/contract-admin.php';
-require_once __DIR__.'/hosting-options.php';
-require_once __DIR__.'/hosting-panel.php';
-require_once __DIR__.'/hosting-domains.php';
-require_once __DIR__.'/hosting-mail-dns.php';
-require_once __DIR__.'/hosting-features.php';
+if(is_file(dirname(__DIR__,2).'/product.webhosting/hosting-options.php'))require_once dirname(__DIR__,2).'/product.webhosting/hosting-options.php';
+if(is_file(dirname(__DIR__,2).'/product.webhosting/hosting-panel.php'))require_once dirname(__DIR__,2).'/product.webhosting/hosting-panel.php';
+if(is_file(dirname(__DIR__,2).'/product.webhosting/hosting-domains.php'))require_once dirname(__DIR__,2).'/product.webhosting/hosting-domains.php';
+if(is_file(dirname(__DIR__,2).'/product.webhosting/hosting-mail-dns.php'))require_once dirname(__DIR__,2).'/product.webhosting/hosting-mail-dns.php';
+if(is_file(dirname(__DIR__,2).'/product.webhosting/hosting-features.php'))require_once dirname(__DIR__,2).'/product.webhosting/hosting-features.php';
 require_once __DIR__.'/module-catalog.php';
 require_once __DIR__.'/module-subscriptions.php';
 require_once __DIR__.'/zero-base-packages.php';
 require_once __DIR__.'/promotions.php';
 require_once __DIR__.'/promotion-payments.php';
-require_once __DIR__.'/proxmox-options.php';
-require_once __DIR__.'/vps-storage.php';
-require_once __DIR__.'/vps-exports.php';
+if(is_file(dirname(__DIR__,2).'/product.vps/proxmox-options.php'))require_once dirname(__DIR__,2).'/product.vps/proxmox-options.php';
+if(is_file(dirname(__DIR__,2).'/product.vps/vps-storage.php'))require_once dirname(__DIR__,2).'/product.vps/vps-storage.php';
+if(is_file(dirname(__DIR__,2).'/product.vps/vps-exports.php'))require_once dirname(__DIR__,2).'/product.vps/vps-exports.php';
 require_once __DIR__.'/infrastructure.php';
-require_once __DIR__.'/lxc-provisioning.php';
+if(is_file(dirname(__DIR__,2).'/product.vps/lxc-provisioning.php'))require_once dirname(__DIR__,2).'/product.vps/lxc-provisioning.php';
 require_once __DIR__.'/dns-templates.php';
 require_once __DIR__.'/infrastructure-automation.php';
 require_once __DIR__.'/infrastructure-actions.php';
@@ -72,8 +73,9 @@ function admin(): ?array { $actor=Identity::current('backend'); return $actor &&
 function require_user(): array { if (!user()) { $_SESSION['after_login'] = $_SERVER['REQUEST_URI']; redirect('/login'); } return user(); }
 function require_admin(): array { if (!admin()) redirect('/admin/login'); return admin(); }
 function rate_limit(string $name,int $max=8,int $seconds=900): void { HttpSecurity::rateLimit('shop-'.$name,$_SERVER['REMOTE_ADDR']??'local',$max,$seconds); }
-function products(): array { return all('SELECT * FROM shop_products WHERE active = 1 ORDER BY sort_order, id'); }
-function product(string $slug): ?array { return one('SELECT * FROM shop_products WHERE slug = ? AND active = 1', [$slug]); }
+function shop_product_available(array $p):bool { $module=['hosting'=>'product.webhosting','server'=>'product.vps','gameserver'=>'product.gameserver'][$p['category']]??null;return $module===null || is_file(dirname(__DIR__,2).'/'.$module.'/module.json'); }
+function products(): array { return array_values(array_filter(all('SELECT * FROM shop_products WHERE active = 1 ORDER BY sort_order, id'),'shop_product_available')); }
+function product(string $slug): ?array { $p=one('SELECT * FROM shop_products WHERE slug = ? AND active = 1', [$slug]);return $p && shop_product_available($p)?$p:null; }
 function money($cents): string { return number_format((int)$cents / 100, 2, ',', '.') . ' €'; }
 function price(array $p): string { return $p['price_cents'] === null ? 'Auf Anfrage' : money($p['price_cents']); }
 function cycle(string $value): string { return ['month'=>'Monat','months2'=>'2 Monate','months24'=>'24 Monate','quarter'=>'3 Monate','halfyear'=>'6 Monate','year'=>'Jahr','once'=>'einmalig'][$value] ?? 'Monat'; }

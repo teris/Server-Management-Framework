@@ -9,6 +9,7 @@ $groups=[
         '/admin/vertraege'=>['clock','Verträge & Kündigungen'],
     ]],
     'produkte'=>['Produkte & Konfigurator','package',[
+        '/admin/gameserver'=>['server','Gameserver'],
         '/admin/produkte'=>['package','Pakete & Preise'],
         '/admin/module'=>['grid','Zusatzmodule'],
         '/admin/domains'=>['globe','Domainendungen & Preise'],
@@ -18,6 +19,7 @@ $groups=[
         '/admin/support'=>['headset','Support-Tickets'],
     ]],
     'technik'=>['Infrastruktur','server',[
+        '/admin/einrichtung'=>['settings','Einrichtung & Module'],
         '/admin/schnittstellen'=>['settings','Schnittstellen'],
         '/admin/infrastruktur'=>['server','IP, LXC & DNS-Vorlagen'],
         '/admin/automatisierung'=>['bolt','Bereitstellung'],

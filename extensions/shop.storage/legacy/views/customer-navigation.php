@@ -1,7 +1,8 @@
 <?php
 $customerGroups=[
     'produkte'=>['Produkte & Dienste','package',[
-        '/konto/produkte'=>['package','Meine Produkte'],
+        '/konto/gameserver'=>['server','Gameserver'],
+    '/konto/produkte'=>['package','Meine Produkte'],
         '/konto/server'=>['server','Virtuelle Server'],
         '/konto/vps-sicherungen'=>['database','VPS-Sicherungen'],
         '/konto/module'=>['grid','Module & Direktzugänge'],

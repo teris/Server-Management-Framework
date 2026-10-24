@@ -4,8 +4,17 @@ if (PHP_SAPI !== 'cli' && (get_included_files()[0] ?? '') === __FILE__) { http_r
 require_once __DIR__.'/ProviderDetector.php';
 
 final class Installer {
-    public const MODULES = ['shop.storage','shop.catalog','shop.portal','shop.orders','shop.payments','shop.provisioning','shop.billing','shop.contracts','shop.communications','shop.promotions','shop.subscriptions'];
     public function __construct(private string $root, private ?ProviderDetector $detector = null) { $this->root = realpath($root) ?: throw new \RuntimeException('Anwendungsordner fehlt.'); $this->detector ??= new ProviderDetector(); }
+    public function modules(): array {
+        $catalog=[];
+        foreach(glob($this->root.'/extensions/*/module.json')?:[] as$file){
+            if(is_link($file)||is_link(dirname($file)))throw new \RuntimeException('Modulverknüpfung abgewiesen.');
+            $m=json_decode(file_get_contents($file),true,64,JSON_THROW_ON_ERROR);$id=$m['id']??'';
+            if(!is_string($id)||!preg_match('/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/D',$id)||basename(dirname($file))!==$id||!is_array($m['requires']??null))throw new \RuntimeException('Ungültiges Modulmanifest.');
+            $catalog[$id]=$m;
+        }
+        return $catalog;
+    }
     public function available(): bool { return !class_exists('Config',false) && !file_exists($this->root.'/config/config.inc.php') && !is_link($this->root.'/config/config.inc.php') && !getenv('SMF_CONFIG_FILE'); }
     public function keyFile(): string { return $this->root.'/config/setup-access.php'; }
     public function token(): string {
@@ -39,11 +48,24 @@ final class Installer {
         if ($v['mail_mode']==='smtps' && (!preg_match('/^[a-zA-Z0-9.-]{1,253}$/D',$v['smtp_host']) || !ctype_digit($v['smtp_port']) || (int)$v['smtp_port']<1 || (int)$v['smtp_port']>65535)) throw new \InvalidArgumentException('SMTPS-Host und Port prüfen.');
         $v['private_dir']=$this->privatePath($v['private_dir'],false);
         $v['modules']=$input['modules']??['shop.billing','shop.contracts','shop.communications'];
-        if (!is_array($v['modules']) || array_filter($v['modules'],fn($id)=>!is_string($id)||!in_array($id,self::MODULES,true))) throw new \InvalidArgumentException('Unbekanntes Shopmodul.');
-        $selected=array_fill_keys(array_merge(['shop.storage','shop.catalog','shop.portal','shop.orders'],$v['modules']),true);
-        do{$before=count($selected);foreach(array_keys($selected)as$id){$m=json_decode(file_get_contents($this->root.'/extensions/'.$id.'/module.json'),true,64,JSON_THROW_ON_ERROR);foreach(array_keys($m['requires'])as$dependency){if(!in_array($dependency,self::MODULES,true))throw new \RuntimeException('Unbekannte Modulabhängigkeit.');$selected[$dependency]=true;}}}while(count($selected)>$before);
-        $v['modules']=array_values(array_filter(self::MODULES,fn($id)=>isset($selected[$id])));
-        foreach(['ispconfig','ogp']as$id){$row=$input[$id]??[];if(!is_array($row))throw new \InvalidArgumentException('Ungültige Providerdaten.');$v[$id]=[];foreach(['url','username','password','token','ca_file','local_root','server_id']as$key){$value=$row[$key]??($key==='server_id'?'1':'');if(!is_string($value)&&!is_int($value))throw new \InvalidArgumentException('Ungültige Providerdaten.');$v[$id][$key]=str_contains($key,'password')||$key==='token'?(string)$value:trim((string)$value);if(strlen($v[$id][$key])>4096||str_contains($v[$id][$key],"\0"))throw new \InvalidArgumentException('Ungültige Providerdaten.');}if($v[$id]['url']!=='')$v[$id]['url']=ProviderDetector::baseUrl($v[$id]['url']);}
+        $catalog=$this->modules();
+        if(!is_array($v['modules']) || array_filter($v['modules'],fn($id)=>!is_string($id)||!isset($catalog[$id])))throw new \InvalidArgumentException('Unbekanntes Shopmodul.');
+        $selected=array_merge(['shop.storage','shop.catalog','shop.portal','shop.orders','shop.connections'],$v['modules']);
+        foreach(['ispconfig','ogp','proxmox','ovh']as$id){
+            $row=$input[$id]??[];if(!is_array($row))throw new \InvalidArgumentException('Ungültige Providerdaten.');$v[$id]=[];
+            foreach(['url','username','password','token','bridge_key','ca_file','local_root','server_id','mail_server_id','db_server_id','auth_mode','token_id','token_secret','node','pool','endpoint','application_key','application_secret','consumer_key','subsidiary']as$key){
+                $default=match($key){'server_id','mail_server_id','db_server_id'=>'1','auth_mode'=>'password','endpoint'=>'ovh-eu','subsidiary'=>'DE',default=>''};
+                $value=$row[$key]??$default;if(!is_string($value)&&!is_int($value))throw new \InvalidArgumentException('Ungültige Providerdaten.');
+                $v[$id][$key]=in_array($key,['password','token','token_secret','bridge_key','application_secret','consumer_key'],true)?(string)$value:trim((string)$value);
+                if(strlen($v[$id][$key])>4096||str_contains($v[$id][$key],"\0"))throw new \InvalidArgumentException('Ungültige Providerdaten.');
+            }
+            if($v[$id]['url']!=='')$v[$id]['url']=ProviderDetector::baseUrl($v[$id]['url']);
+            if($v[$id]['url']!=='' || ($id==='ovh' && $v[$id]['application_key']!==''))$selected[]='provider.'.$id;
+        }
+        $ordered=[];$visit=function(string$id,array$chain=[])use(&$visit,&$ordered,$catalog){
+            if(isset($ordered[$id]))return;if(in_array($id,$chain,true)||!isset($catalog[$id]))throw new \RuntimeException('Ungültige Modulabhängigkeit.');
+            foreach(array_keys($catalog[$id]['requires'])as$dependency)$visit($dependency,[...$chain,$id]);$ordered[$id]=true;
+        };foreach($selected as$id)$visit($id);$v['modules']=array_keys($ordered);
         if (!ctype_digit($v['ispconfig']['server_id']) || (int)$v['ispconfig']['server_id']<1) throw new \InvalidArgumentException('ISPConfig-Server-ID muss positiv sein.');
         return $v;
     }
@@ -54,7 +76,7 @@ final class Installer {
         $missing=array_values(array_filter($required,fn($id)=>!extension_loaded($id)));
         if(version_compare(PHP_VERSION,'8.3','<')||$missing)throw new \RuntimeException('PHP >=8.3 mit allen benötigten Erweiterungen erforderlich: '.implode(', ',$missing));
         if(!is_writable($this->root.'/config'))throw new \RuntimeException('PHP benötigt Schreibrechte im Ordner config für die abschließende Konfigurationsverknüpfung.');
-        $providers=[];foreach(['ispconfig','ogp']as$id)$providers[$id]=$this->detector->probe($id,$v[$id]);
+        $providers=[];foreach(['ispconfig','ogp','proxmox','ovh']as$id)$providers[$id]=$this->detector->probe($id,$v[$id]);
         $db=$this->connect($v,true);$tables=$this->tables($db);
         $journal=$v['private_dir'].'/setup/installation.json';
         if($tables&&!is_file($journal))throw new \RuntimeException('Die Zieldatenbank ist nicht leer. Bestehende Installationen werden hier nicht überschrieben.');
@@ -81,7 +103,7 @@ final class Installer {
         try{$data=is_array($value)?json_encode($value,JSON_THROW_ON_ERROR|JSON_PRETTY_PRINT)."\n":$value;if(file_put_contents($temp,$data,LOCK_EX)!==strlen($data))throw new \RuntimeException('Privates Schreiben fehlgeschlagen.');chmod($temp,0600);if(!rename($temp,$path))throw new \RuntimeException('Private Aktivierung fehlgeschlagen.');}finally{if(is_file($temp))unlink($temp);}
     }
     private function configuration(array $v,array $report):string{
-        $values=['PRIVATE_STORAGE_DIR'=>$v['private_dir'],'DB_TYPE'=>$v['db_type'],'DB_USEING'=>$v['db_type']==='mysql','DB_SQLITE_USEING'=>$v['db_type']==='sqlite','DB_PGSQL_USEING'=>false,'DB_MONGO_USEING'=>false,'DB_SQLITE_PATH'=>$v['private_dir'].'/data/shop.sqlite','DB_HOST'=>$v['db_host'],'DB_PORT'=>(int)$v['db_port'],'DB_NAME'=>$v['db_name'],'DB_USER'=>$v['db_user'],'DB_PASS'=>$v['db_password'],'DB_SOCKET'=>$v['db_socket'],'PROXMOX_USEING'=>false,'OVH_USEING'=>false,'FRONTPANEL_SITE_NAME'=>$v['site_name'],'FRONTPANEL_SITE_URL'=>$v['site_url'],'FRONTPANEL_SUPPORT_EMAIL'=>$v['support_email'],'FRONTPANEL_SYSTEM_EMAIL'=>$v['system_email'],'FRONTPANEL_ADMIN_EMAIL'=>$v['admin_email'],'ISPCONFIG_USEING'=>$report['providers']['ispconfig']['enabled'],'ISPCONFIG_SERVER_ID'=>(int)$v['ispconfig']['server_id'],'ISPCONFIG_HOST'=>$v['ispconfig']['url'],'ISPCONFIG_USER'=>$v['ispconfig']['username'],'ISPCONFIG_PASSWORD'=>$v['ispconfig']['password'],'OGP_USEING'=>$report['providers']['ogp']['enabled'],'OGP_HOST'=>$v['ogp']['url'],'OGP_USER'=>'','OGP_PASSWORD'=>'','OGP_TOKEN'=>$v['ogp']['token']];
+        $values=['PRIVATE_STORAGE_DIR'=>$v['private_dir'],'DB_TYPE'=>$v['db_type'],'DB_USEING'=>$v['db_type']==='mysql','DB_SQLITE_USEING'=>$v['db_type']==='sqlite','DB_PGSQL_USEING'=>false,'DB_MONGO_USEING'=>false,'DB_SQLITE_PATH'=>$v['private_dir'].'/data/shop.sqlite','DB_HOST'=>$v['db_host'],'DB_PORT'=>(int)$v['db_port'],'DB_NAME'=>$v['db_name'],'DB_USER'=>$v['db_user'],'DB_PASS'=>$v['db_password'],'DB_SOCKET'=>$v['db_socket'],'PROXMOX_USEING'=>$report['providers']['proxmox']['enabled'],'PROXMOX_HOST'=>$v['proxmox']['url'],'PROXMOX_USER'=>$v['proxmox']['username'],'PROXMOX_PASSWORD'=>$v['proxmox']['password'],'OVH_USEING'=>$report['providers']['ovh']['enabled'],'OVH_ENDPOINT'=>$v['ovh']['endpoint'],'OVH_APPLICATION_KEY'=>$v['ovh']['application_key'],'OVH_APPLICATION_SECRET'=>$v['ovh']['application_secret'],'OVH_CONSUMER_KEY'=>$v['ovh']['consumer_key'],'FRONTPANEL_SITE_NAME'=>$v['site_name'],'FRONTPANEL_SITE_URL'=>$v['site_url'],'FRONTPANEL_SUPPORT_EMAIL'=>$v['support_email'],'FRONTPANEL_SYSTEM_EMAIL'=>$v['system_email'],'FRONTPANEL_ADMIN_EMAIL'=>$v['admin_email'],'ISPCONFIG_USEING'=>$report['providers']['ispconfig']['enabled'],'ISPCONFIG_SERVER_ID'=>(int)$v['ispconfig']['server_id'],'ISPCONFIG_HOST'=>$v['ispconfig']['url'],'ISPCONFIG_USER'=>$v['ispconfig']['username'],'ISPCONFIG_PASSWORD'=>$v['ispconfig']['password'],'OGP_USEING'=>$report['providers']['ogp']['enabled'],'OGP_HOST'=>$v['ogp']['url'],'OGP_USER'=>'','OGP_PASSWORD'=>'','OGP_TOKEN'=>$v['ogp']['token']];
         $source=file_get_contents($this->root.'/config/config.example.php');
         foreach($values as$key=>$value){$source=preg_replace_callback('/\bconst '.preg_quote($key,'/').'\s*=\s*[^;]+;/',fn()=> 'const '.$key.' = '.var_export($value,true).';',$source,1,$count);if($count!==1)throw new \RuntimeException('Konfigurationsvorlage unvollständig.');}
         foreach(['ispconfig','ogp']as$id)if($v[$id]['ca_file']!=='')$source.="\nif (getenv('SMF_".strtoupper($id)."_CA_FILE') === false) putenv(".var_export('SMF_'.strtoupper($id).'_CA_FILE='.$v[$id]['ca_file'],true).");\n";
@@ -95,7 +117,7 @@ final class Installer {
         try{
             if(!$this->authorized($token))throw new \RuntimeException('Installation wurde zwischenzeitlich abgeschlossen.');
             $v=$this->validate($input);$report=$this->inspect($v);
-            foreach(['ispconfig','ogp']as$id)if($v[$id]['url']!==''&&!$report['providers'][$id]['enabled']&&empty($input['allow_unverified']))throw new \RuntimeException('Panelprüfung nicht erfolgreich. Zugang korrigieren oder die Einrichtung mit deaktivierter Anbindung ausdrücklich auswählen.');
+            foreach(['ispconfig','ogp','proxmox','ovh']as$id)if(($v[$id]['url']!=='' || ($id==='ovh' && $v[$id]['application_key']!==''))&&!$report['providers'][$id]['enabled']&&empty($input['allow_unverified']))throw new \RuntimeException('Panelprüfung nicht erfolgreich. Zugang korrigieren oder die Einrichtung mit deaktivierter Anbindung ausdrücklich auswählen.');
             $fingerprint=hash('sha256',json_encode($v,JSON_THROW_ON_ERROR).hash('sha256',$token).$this->root);$private=$v['private_dir'];$journalFile=$private.'/setup/installation.json';$journal=is_file($journalFile)?json_decode(file_get_contents($journalFile),true,64,JSON_THROW_ON_ERROR):null;
             if($journal&&(!hash_equals($journal['fingerprint']??'',$fingerprint)||($journal['root']??'')!==$this->root))throw new \RuntimeException('Ein anderer Installationsversuch verwendet diesen Speicher. Für Fortsetzen dieselben Angaben und denselben Startschlüssel verwenden.');
             if(!$journal && is_dir($private) && array_diff(scandir($private),['.','..']))throw new \RuntimeException('Für eine Neuinstallation ein leeres privates Verzeichnis verwenden.');
@@ -109,8 +131,15 @@ final class Installer {
             $keyFile=$private.'/config/shop.key';if(is_link($keyFile))throw new \RuntimeException('Ungültiger Shopschlüssel.');if(!is_file($keyFile)){$keyHandle=fopen($keyFile,'x');if(!$keyHandle)throw new \RuntimeException('Shopschlüssel konnte nicht angelegt werden.');try{chmod($keyFile,0600);$key=bin2hex(random_bytes(32));if(fwrite($keyHandle,$key)!==strlen($key))throw new \RuntimeException('Shopschlüssel unvollständig.');}finally{fclose($keyHandle);}}if(!preg_match('/^[a-f0-9]{64}$/D',file_get_contents($keyFile)))throw new \RuntimeException('Shopschlüssel ungültig.');$keyHash=hash_file('sha256',$keyFile);if(isset($journal['shop_key_hash'])&&!hash_equals($journal['shop_key_hash'],$keyHash))throw new \RuntimeException('Shopschlüssel wurde nach Installationsbeginn geändert.');$journal['shop_key_hash']=$keyHash;$this->save($journalFile,$journal);
             $registry=new \SMF\Core\ModuleRegistry($db,$this->root.'/extensions',\VersionFile::version(file_get_contents($this->root.'/src/sys.conf.php')));
             foreach($v['modules']as$id){$registry->install($id);$registry->enable($id);}
+            \SMF\Core\Kernel::reset();\SMF\Core\ProviderAccounts::bootstrapShop();
+            foreach(['ispconfig','ogp','proxmox','ovh']as$id)if(in_array('provider.'.$id,$v['modules'],true)){
+                $credentials=$v[$id];
+                if($id==='ispconfig'){if($credentials['url']!=='')$credentials['url'].='/remote/json.php';$credentials['reseller_id']='0';$credentials['client_template_id']='0';}
+                $credentials['ca_pem']=$credentials['ca_file']!==''?(string)file_get_contents($credentials['ca_file'],false,null,0,20001):'';
+                \integration_save($id,$credentials,(bool)$report['providers'][$id]['enabled']);
+            }
             $db->beginTransaction();try{$count=(int)$db->query('SELECT COUNT(*) FROM users')->fetchColumn();if($count===0){$db->prepare("INSERT INTO users (username,email,password_hash,full_name,role,active) VALUES (?,?,?,?,'admin','y')")->execute([$v['admin_name'],mb_strtolower($v['admin_email']),password_hash($v['admin_password'],PASSWORD_DEFAULT),$v['admin_name']]);}else{$q=$db->prepare("SELECT password_hash FROM users WHERE username=? AND email=? AND role='admin' AND active='y'");$q->execute([$v['admin_name'],mb_strtolower($v['admin_email'])]);$hash=$q->fetchColumn();if($count!==1||!is_string($hash)||!password_verify($v['admin_password'],$hash))throw new \RuntimeException('Administratorbestand stimmt nicht mit dem begonnenen Versuch überein.');}$db->commit();}catch(\Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
-            $local="<?php\n";foreach(['proxmox'=>false,'ovh'=>false,'ispconfig'=>$report['providers']['ispconfig']['enabled'],'file-editor'=>false]as$id=>$enabled)$local.='$plugins['.var_export($id,true)."][\"enabled\"] = ".var_export($enabled,true).";\n";$this->save($private.'/config/system.local.php',$local);
+            $local="<?php\n";foreach(['proxmox'=>$report['providers']['proxmox']['enabled'],'ovh'=>$report['providers']['ovh']['enabled'],'ispconfig'=>$report['providers']['ispconfig']['enabled'],'file-editor'=>false]as$id=>$enabled)$local.='$plugins['.var_export($id,true)."][\"enabled\"] = ".var_export($enabled,true).";\n";$this->save($private.'/config/system.local.php',$local);
             \SMF\Core\ShopSettings::save(['site_name'=>$v['site_name'],'site_url'=>$v['site_url'],'support_email'=>$v['support_email'],'environment'=>'sandbox']);
             $journal['phase']='complete';$journal['completed_at']=gmdate('c');$journal['report']=$report;$this->save($journalFile,$journal);
             $shim="<?php\nrequire_once ".var_export($runtime,true).";\n";$file=fopen($this->root.'/config/config.inc.php','x');if(!$file)throw new \RuntimeException('Konfiguration wurde zwischenzeitlich angelegt.');try{chmod($this->root.'/config/config.inc.php',0600);if(fwrite($file,$shim)!==strlen($shim))throw new \RuntimeException('Konfigurationsverknüpfung konnte nicht geschrieben werden.');}finally{fclose($file);}

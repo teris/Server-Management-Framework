@@ -33,6 +33,7 @@ final class ProviderDetector {
 
     public function probe(string $id, array $input): array {
         $this->deadline=microtime(true)+8;
+                if(in_array($id,['proxmox','ovh'],true))return $this->extraProvider($id,$input);
         if (!in_array($id, ['ispconfig','ogp'], true)) throw new \InvalidArgumentException('Unbekanntes Panelsystem.');
         if (empty($input['url'])) return ['state'=>'not_configured','enabled'=>false,'message'=>'Nicht ausgewählt.'];
         $url = self::baseUrl($input['url']);
@@ -71,15 +72,55 @@ final class ProviderDetector {
         } catch (\Throwable) { return $this->result('unreachable', 'Verbindung nicht überprüfbar. Adresse, Erreichbarkeit, Zertifikat und gegebenenfalls eigene CA prüfen.'); }
     }
 
+    private function extraProvider(string $id,array $input): array {
+        try{
+            if($id==='proxmox'){
+                if(empty($input['url']))return $this->result('not_configured','Nicht ausgewählt.');
+                $base=self::baseUrl($input['url']);$headers=[];$ca=$input['ca_file']??'';
+                if(($input['auth_mode']??'password')==='token'){
+                    if(empty($input['token_id']) || empty($input['token_secret']))return $this->result('credentials_required','Proxmox-Token-ID und Secret fehlen.');
+                    if(preg_match('/[\r\n]/',$input['token_id'].$input['token_secret']))throw new \RuntimeException('Invalid token header');
+                    $headers[]='Authorization: PVEAPIToken='.$input['token_id'].'='.$input['token_secret'];
+                }else{
+                    if(empty($input['username']) || empty($input['password']))return $this->result('credentials_required','Proxmox-Benutzer einschließlich Realm und Passwort angeben.');
+                    $r=$this->request($base.'/api2/json/access/ticket',['username'=>$input['username'],'password'=>$input['password']],false,$ca);
+                    $data=json_decode($r['body'],true)['data']??[];
+                    if($r['status']!==200 || !is_string($data['ticket']??null) || str_starts_with($data['ticket'],'PVE:!tfa!'))return $this->result('authentication_failed','Proxmox-Anmeldung wurde nicht bestätigt; für Zwei-Faktor-Konten einen API-Token verwenden.');
+                    $headers[]='Cookie: PVEAuthCookie='.rawurlencode($data['ticket']);
+                }
+                $r=$this->request($base.'/api2/json/nodes',[],false,$ca,'GET',$headers);
+                if($r['status']===401)return $this->result('authentication_failed','Proxmox-Zugang wurde abgelehnt.');
+                if($r['status']===403)return $this->result('permission_denied','Proxmox verweigert die Node-Leseberechtigung.');
+                $nodes=json_decode($r['body'],true)['data']??null;
+                if($r['status']!==200 || !is_array($nodes))return $this->result('unrecognized','Keine unterstützte Proxmox-Antwort.');
+                return $this->result('ready','Proxmox-Zugang und Nodeliste geprüft. Ziel-Node, Pool und Produktrechte anschließend separat einrichten.')+['capabilities'=>['authentication','node_read']];
+            }
+            if(empty($input['application_key']))return $this->result('not_configured','Nicht ausgewählt.');
+            if(empty($input['application_secret']) || empty($input['consumer_key']))return $this->result('credentials_required','OVH-Anwendungsschlüssel, Secret und Consumer Key angeben.');
+            $base=['ovh-eu'=>'https://eu.api.ovh.com/1.0','ovh-ca'=>'https://ca.api.ovh.com/1.0','ovh-us'=>'https://api.us.ovhcloud.com/1.0'][$input['endpoint']??'ovh-eu']??throw new \InvalidArgumentException('Invalid OVH endpoint');
+            $r=$this->request($base.'/auth/time',[],false,'','GET');$timestamp=json_decode($r['body'],true);if($r['status']!==200 || !is_int($timestamp))throw new \RuntimeException('OVH clock unavailable');
+            $url=$base.'/domain/zone';$signature='$1$'.sha1($input['application_secret'].'+'.$input['consumer_key'].'+GET+'.$url.'++'.$timestamp);
+            $headers=['X-Ovh-Application: '.$input['application_key'],'X-Ovh-Consumer: '.$input['consumer_key'],'X-Ovh-Timestamp: '.$timestamp,'X-Ovh-Signature: '.$signature];
+            foreach($headers as$header)if(preg_match('/[\r\n]/',$header))throw new \RuntimeException('Invalid OVH header');
+            $r=$this->request($url,[],false,'','GET',$headers);
+            if($r['status']===401)return $this->result('authentication_failed','OVH-Schlüssel wurde nicht bestätigt.');
+            if($r['status']===403)return $this->result('permission_denied','OVH verweigert GET /domain/zone. API-Freigaben prüfen.');
+            if($r['status']!==200 || !is_array(json_decode($r['body'],true)))return $this->result('unrecognized','Keine unterstützte OVH-Zonenliste.');
+            return $this->result('ready','OVH-Zugriff auf die DNS-Zonenliste geprüft. Registrierungen und VPS-Funktionen benötigen separate Freigaben.')+['capabilities'=>['authentication','zone_read']];
+        }catch(\Throwable){return $this->result('unreachable','Provideradresse, Zugang, Zertifikat und Erreichbarkeit prüfen.');}
+    }
+
     private function result(string $state, string $message): array { return ['state'=>$state,'enabled'=>$state === 'ready','message'=>$message]; }
 
-    private function request(string $url, array $data, bool $json, string $ca): array {
-        if ($this->transport) return ($this->transport)($url, $data, $json, $ca);
+    private function request(string $url, array $data, bool $json, string $ca, string $method="POST", array $headers=[]): array {
+        if ($this->transport) return ($this->transport)($url, $data, $json, $ca, $method, $headers);
         if (!extension_loaded('curl')) throw new \RuntimeException('cURL fehlt.');
         if ($ca !== '' && (!is_file($ca) || !is_readable($ca))) throw new \RuntimeException('CA-Datei nicht lesbar.');
         $curl = curl_init($url); $body = '';
         $budget=max(1,min(5000,(int)(($this->deadline-microtime(true))*1000)));
         $options = [CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$json ? json_encode($data, JSON_THROW_ON_ERROR) : http_build_query($data),CURLOPT_HTTPHEADER=>['Content-Type: '.($json ? 'application/json' : 'application/x-www-form-urlencoded')],CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT_MS=>min(2000,$budget),CURLOPT_TIMEOUT_MS=>$budget,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_WRITEFUNCTION=>static function ($handle, $chunk) use (&$body) { if (strlen($body)+strlen($chunk)>1048576) return 0; $body.=$chunk; return strlen($chunk); }];
+        if ($method==='GET'){unset($options[CURLOPT_POST],$options[CURLOPT_POSTFIELDS]);$options[CURLOPT_HTTPGET]=true;}
+        $options[CURLOPT_HTTPHEADER]=array_merge($options[CURLOPT_HTTPHEADER],$headers);
         if ($ca !== '') $options[CURLOPT_CAINFO] = $ca;
         try { curl_setopt_array($curl,$options); if (curl_exec($curl) === false) throw new \RuntimeException('Transport fehlgeschlagen.'); return ['status'=>curl_getinfo($curl,CURLINFO_RESPONSE_CODE),'body'=>$body]; }
         finally { curl_close($curl); }

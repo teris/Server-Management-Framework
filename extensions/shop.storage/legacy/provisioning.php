@@ -22,7 +22,7 @@ function finish_provisioning(array $order,array $job,string $external,array $met
     try{
         $lease=query("UPDATE shop_jobs SET state='committing' WHERE id=? AND lock_token=? AND state IN ('running','waiting') AND locked_until>=?",[$job['id'],$job['lock_token'],time()]);
         if($lease->rowCount()!==1)throw new RuntimeException('Bereitstellungssperre vor Abschluss verloren.');
-        $category=['ispconfig'=>'hosting','proxmox'=>'server','ovh'=>'domain','manual'=>'managed'][$order['provider']];
+        $category=['ispconfig'=>'hosting','proxmox'=>'server','ovh'=>'domain','manual'=>'managed','ogp'=>'gameserver'][$order['provider']];
         $target=provisioning_target_service($order,$job);
         if($target){$serviceId=(int)$target['id'];query("UPDATE shop_services SET status='active',details=?,price_cents=?,billing=? WHERE id=?",['Bereitgestellt aus Bestellung '.$order['reference'],$order['amount_cents'],$order['billing'],$serviceId]);}
         else{query("INSERT INTO shop_services (customer_id,name,category,identifier,status,details,price_cents,billing) VALUES (?,?,?,?,'active',?,?,?)",[$order['customer_id'],$order['product_name'],$category,$identifier,'Bereitgestellt aus Bestellung '.$order['reference'],$order['amount_cents'],$order['billing']]);$serviceId=(int)db()->lastInsertId();}
@@ -30,117 +30,21 @@ function finish_provisioning(array $order,array $job,string $external,array $met
         if($order['provider']==='proxmox'){$type=($metadata['type']??'qemu')==='lxc'?'lxc':'qemu';$metadata=SMF\Core\ShopResourceBindings::physical($metadata,(new ProxmoxProvider())->vmConfig($metadata['node'],(int)$metadata['vmid'],$type),$type);}
         SMF\Core\ShopResourceBindings::grant($serviceId,(int)$order['customer_id'],$order['provider'],$metadata);
         query('INSERT INTO shop_resource_links (service_id,provider,external_id,metadata,credentials,verified_at) VALUES (?,?,?,?,?,CURRENT_TIMESTAMP)',[$serviceId,$order['provider'],$external,json_encode($metadata),$credentials?secret_seal($credentials,'service:'.$serviceId):null]);
+        if($order['provider']==='ogp'){
+            $changed=query("UPDATE smf_game_leases SET service_id=?,state='active',updated_at=? WHERE order_id=? AND marker=? AND connection_id=? AND state='installing'",[$serviceId,time(),$order['id'],$metadata['marker'],$binding]);
+            if($changed->rowCount()!==1)throw new RuntimeException('Gameserverreservierung hat sich vor Abschluss geändert.');
+            query("UPDATE smf_game_ports SET state='active' WHERE order_id=?",[$order['id']]);
+        }
         foreach($children as $child){query('INSERT INTO shop_hosting_children (service_id,kind,external_id,name,metadata) VALUES (?,?,?,?,?)',[$serviceId,$child['kind'],(string)$child['external_id'],$child['name'],json_encode(['state'=>'active']+($child['metadata']??[]))]);if($credentials && ($credentials['username']??'')===$child['name'])save_child_credentials((int)db()->lastInsertId(),$credentials);}
         query("UPDATE shop_jobs SET state='done',last_error=NULL,updated_at=CURRENT_TIMESTAMP WHERE id=? AND lock_token=?",[$job['id'],$job['lock_token']]);
-        query('DELETE FROM shop_storage_reservations WHERE job_id=?',[$job['id']]);
+        if(SchemaManager::hasTable(db(),'shop_storage_reservations'))query('DELETE FROM shop_storage_reservations WHERE job_id=?',[$job['id']]);
         query("UPDATE shop_orders SET fulfillment_status='active',updated_at=CURRENT_TIMESTAMP WHERE id=?",[$order['id']]);admin_order_note_active($order);commerce_event('service:'.$serviceId,'service.ready',['order_id'=>(int)$order['id']]);db()->commit();
     }catch(Throwable $e){if(db()->inTransaction())db()->rollBack();throw $e;}
     queue_default_dns($order);
     audit_event('provision.completed',$order['reference']);
 }
-function provision_ispconfig(array $order,array &$job,array $profile,array $data): void {
-    provisioning_target_service($order,$job);
-    if(in_array($job['phase'],['start','client_ready'],true) && !hosting_domain_provisioning_gate($order,$job,$data))return;
-    $api=new IspconfigProvider();$config=integration_config('ispconfig');$customer=one('SELECT * FROM customers WHERE id=?',[$order['customer_id']]);$domain=valid_domain($order['domain']);
-    if(!$domain)throw new RuntimeException('Für die Webspace-Einrichtung fehlt eine Domain.');
-    if(in_array($job['phase'],['start','client_ready'],true) && isset($profile['website_features_present'])){hosting_capabilities(true);hosting_website_feature_params($profile,true);}
-    if($job['phase']==='start'){
-        $account=one("SELECT * FROM shop_provider_accounts WHERE customer_id=? AND provider='ispconfig'",[$order['customer_id']]);
-        if($account){
-            $data['client_id']=(int)$account['external_id'];$client=$api->client($data['client_id']);
-            if(($client['customer_no']??'')==='OC-'.$customer['id']){
-                $params=hosting_account_limits((int)$customer['id'],$data['client_id'],$api,$profile);$params['password']='';
-                if(!$api->call('client_update',['client_id'=>$data['client_id'],'reseller_id'=>(int)($client['parent_client_id']??0),'params'=>$params]))throw new RuntimeException('Die ISPConfig-Paketlimits konnten nicht aktualisiert werden.');
-            }
-        }
-        else{
-            // Persist intent before a non-idempotent remote call. An ambiguous failure
-            // needs operator review rather than creating the customer a second time.
-            $panelCredentials=['username'=>'oc'.$customer['id'],'password'=>'Oc!'.bin2hex(random_bytes(20))];
-            $data['client_credentials']=secret_seal($panelCredentials,'job:'.$job['id'].':ispconfig');save_job_phase($job,'creating_client',$data,'running');
-            $clientId=(int)$api->call('client_add',['reseller_id'=>0,'params'=>[
-                'username'=>$panelCredentials['username'],'password'=>$panelCredentials['password'],'contact_name'=>$customer['first_name'].' '.$customer['last_name'],'company_name'=>$customer['company']??'','email'=>$customer['email'],'street'=>$customer['address']??'','zip'=>$customer['postal_code']??'','city'=>$customer['city']??'','country'=>strtoupper($customer['country']??'DE'),'language'=>'de','customer_no'=>'OC-'.$customer['id'],
-                'default_webserver'=>(int)$config['server_id'],'default_mailserver'=>(int)$config['mail_server_id'],'default_dbserver'=>(int)$config['db_server_id'],'modules'=>'dashboard,sites,mail,tools','startmodule'=>'dashboard',
-            ]+hosting_profile_client_limits($profile)]);
-            if($clientId<1)throw new ProviderFailure('ispconfig');
-            $data['client_id']=$clientId;query("INSERT INTO shop_provider_accounts (customer_id,provider,external_id) VALUES (?,'ispconfig',?)",[$customer['id'],(string)$clientId]);
-            save_hosting_panel_login((int)$customer['id'],$clientId,$panelCredentials);
-        }
-        save_job_phase($job,'client_ready',$data);
-    }
-    if($job['phase']==='client_ready'){
-        $exists=$api->call('sites_web_domain_get',['primary_id'=>['domain'=>$domain]]);
-        if($exists)throw new RuntimeException('Die Domain existiert bereits in ISPConfig. Bitte manuell zuordnen.');
-        $features=hosting_website_feature_params($profile,isset($profile['website_features_present']));
-        save_job_phase($job,'creating_website',$data,'running');
-        $id=(int)$api->call('sites_web_domain_add',['client_id'=>$data['client_id'],'readonly'=>false,'params'=>array_replace([
-            'server_id'=>(int)$config['server_id'],'ip_address'=>infrastructure_settings()['web_ipv4'],'domain'=>$domain,'type'=>'vhost','parent_domain_id'=>0,'vhost_type'=>'name','http_port'=>80,'https_port'=>443,'hd_quota'=>(int)$profile['storage_mb'],'traffic_quota'=>-1,'cgi'=>!empty($profile['cgi_enabled'])?'y':'n','ssi'=>'n','suexec'=>'y','php'=>($profile['php_enabled']??1)?'php-fpm':'no','ruby'=>'n','active'=>'y','ssl'=>'n','ssl_letsencrypt'=>'n','subdomain'=>'www','errordocs'=>1,'allow_override'=>'All','apache_directives'=>'','nginx_directives'=>'','custom_php_ini'=>'','pm'=>'ondemand','pm_max_children'=>5,'pm_max_requests'=>500,'pm_process_idle_timeout'=>10,'backup_interval'=>'none','backup_copies'=>1,'document_root'=>'','system_user'=>'','system_group'=>'',
-        ],$features)]);
-        if($id<1)throw new ProviderFailure('ispconfig');$data['website_id']=$id;query("UPDATE shop_hosting_domain_verifications SET activated_ts=?,state='active' WHERE order_id=?",[time(),$order['id']]);save_job_phase($job,'website_ready',$data);
-    }
-    if(in_array($job['phase'],['website_ready','ftp_ready'],true)){
-        $site=$api->website((int)$data['website_id']);
-        if(($site['domain']??'')!==$domain || $api->clientIdForGroup((int)$site['sys_groupid'])!==(int)$data['client_id'])throw new RuntimeException('Die erzeugte Website konnte nicht eindeutig zugeordnet werden.');
-        // Every website owns a mail domain and signing key; mailbox quotas stay independent.
-        $mail=$api->mailDomain($domain);
-        if($mail && (int)$mail['sys_groupid']!==(int)$site['sys_groupid'])throw new RuntimeException('Die Maildomain gehört zu einem anderen ISPConfig-Kunden.');
-        if(!$mail){save_job_phase($job,'creating_maildomain',$data,'running');$api->call('mail_domain_add',['client_id'=>$data['client_id'],'params'=>['server_id'=>(int)$config['mail_server_id'],'domain'=>$domain,'active'=>'y']]);save_job_phase($job,'website_ready',$data);}
-        ensure_hosting_dkim($api,(int)$order['customer_id'],(int)$data['client_id'],(int)$site['sys_groupid'],$domain);
-        $credentials=null;$children=[];
-        if(!empty($profile['create_ftp']) && (int)$profile['ftp_limit']>0){
-            if(empty($data['ftp_id'])){
-                if(empty($site['document_root']) || empty($site['system_user']) || empty($site['system_group'])){save_job_phase($job,'website_ready',$data);return;}
-                $credentials=['username'=>'c'.$data['client_id'].'o'.$order['id'].'_web','password'=>bin2hex(random_bytes(18)),'host'=>$domain];
-                $data['ftp_credentials']=secret_seal($credentials,'job:'.$job['id'].':ftp');save_job_phase($job,'creating_ftp',$data,'running');
-                $data['ftp_id']=(int)$api->call('sites_ftp_user_add',['client_id'=>$data['client_id'],'params'=>['server_id'=>(int)$site['server_id'],'parent_domain_id'=>(int)$site['domain_id'],'username'=>$credentials['username'],'password'=>$credentials['password'],'quota_size'=>(int)$site['hd_quota'],'active'=>'y','uid'=>$site['system_user'],'gid'=>$site['system_group'],'dir'=>$site['document_root'],'quota_files'=>-1,'ul_ratio'=>-1,'dl_ratio'=>-1,'ul_bandwidth'=>-1,'dl_bandwidth'=>-1]]);
-                if($data['ftp_id']<1)throw new ProviderFailure('ispconfig');save_job_phase($job,'ftp_ready',$data);
-            }
-            $credentials=secret_open($data['ftp_credentials'],'job:'.$job['id'].':ftp');$children[]=['kind'=>'ftp','external_id'=>$data['ftp_id'],'name'=>$credentials['username']];
-        }
-        finish_provisioning($order,$job,'website/'.$data['website_id'],['website_id'=>$data['website_id'],'client_id'=>$data['client_id'],'group_id'=>(int)$site['sys_groupid'],'domain'=>$domain,'limits'=>['ftp'=>(int)$profile['ftp_limit'],'database'=>(int)$profile['database_limit'],'mail'=>(int)$profile['mail_limit'],'mail_quota_mb'=>(int)$profile['mail_quota_mb'],'cron'=>(int)($profile['cron_limit']??0)],'storage_mb'=>(int)$profile['storage_mb'],'features'=>normalized_hosting_features($profile,$profile),'modules'=>$profile['module_selection']??[]],$domain,$credentials,$children);
-    }
-}
-function provision_proxmox(array $order,array &$job,array $profile,array $data): void {
-    if(!proxmox_has_resource_target())throw new RuntimeException('Proxmox-Bereitstellung benötigt Ziel-Node und Shop-Ressourcenpool.');
-    $api=new ProxmoxProvider();$config=integration_config('proxmox');$node=$config['node'];$templateNode=$profile['template_node']?:$node;
-    if($job['phase']==='start'){
-        $template=$api->vmConfig($templateNode,(int)$profile['template_vmid']);if(empty($template['template']))throw new RuntimeException('Die konfigurierte VM ist kein Proxmox-Template.');
-        $storage=reserve_vps_storage($job,$node,'qemu',vps_storage_required($template,(int)($profile['disk_extra_gb']??0)),$api);
-        $vmid=(int)$api->call('GET','/cluster/nextid');if($vmid<100)throw new ProviderFailure('proxmox');
-        $data=['vmid'=>$vmid,'node'=>$node,'storage'=>$storage,'name'=>'oc-'.$order['id']]+proxmox_disk_configuration($template,(int)($profile['disk_extra_gb']??0));save_job_phase($job,'cloning',$data,'running');
-        $clone=['newid'=>$vmid,'name'=>$data['name'],'full'=>1,'target'=>$node,'pool'=>$config['pool'],'description'=>'Server Management '.$order['reference']];$clone['storage']=$data['storage'];
-        $data['task']=(string)$api->call('POST','/nodes/'.rawurlencode($templateNode).'/qemu/'.(int)$profile['template_vmid'].'/clone',$clone);
-        $data['task_node']=$templateNode;if(!$data['task'])throw new ProviderFailure('proxmox');save_job_phase($job,'clone_wait',$data);return;
-    }
-    if($job['phase']==='clone_wait'){
-        $task=$api->call('GET','/nodes/'.rawurlencode($data['task_node']).'/tasks/'.rawurlencode($data['task']).'/status');
-        if(($task['status']??'')!=='stopped'){save_job_phase($job,'clone_wait',$data);return;}
-        if(($task['exitstatus']??'')!=='OK')throw new RuntimeException('Proxmox hat das Klonen nicht erfolgreich abgeschlossen. Bitte Aufgabe prüfen.');
-        save_job_phase($job,'clone_ready',$data);
-    }
-    if($job['phase']==='clone_ready'){
-        $data['password']=bin2hex(random_bytes(16));
-        // Generated login credentials stay encrypted even while a VM is being configured.
-        $saved=$data;unset($saved['password']);$saved['credentials']=secret_seal(['username'=>$profile['cloud_user'],'password'=>$data['password']],'job:'.$job['id']);
-        save_job_phase($job,'configuring',$saved,'running');
-        $data=$saved;
-    }
-    if($job['phase']==='configuring'){
-        $credentials=secret_open($data['credentials'],'job:'.$job['id']);
-        $api->call('PUT','/nodes/'.rawurlencode($node).'/qemu/'.$data['vmid'].'/config',['cores'=>(int)$profile['cores'],'memory'=>(int)$profile['memory_mb'],'ciuser'=>$profile['cloud_user'],'cipassword'=>$credentials['password'],'ipconfig0'=>$profile['ipconfig0']]);
-        save_job_phase($job,'configured',$data);
-    }
-    if($job['phase']==='disk_resize_wait'){
-        $task=$api->call('GET','/nodes/'.rawurlencode($node).'/tasks/'.rawurlencode($data['disk_resize_task']).'/status');if(($task['status']??'')!=='stopped'){save_job_phase($job,'disk_resize_wait',$data);return;}if(($task['exitstatus']??'')!=='OK')throw new RuntimeException('Proxmox hat die Plattenvergrößerung nicht erfolgreich bestätigt.');$vm=$api->vmConfig($node,(int)$data['vmid']);if(proxmox_disk_gb($vm[$data['disk_device']]??'')<(int)$data['disk_target_gb'])throw new RuntimeException('Die bestätigte Plattengröße stimmt nicht mit der Bestellung überein.');$data['disk_done']=true;save_job_phase($job,'configured',$data);
-    }
-    if($job['phase']==='configured'){
-        if(!provision_proxmox_disk($order,$job,$data,$api,$node))return;
-        $vm=$api->vmConfig($node,(int)$data['vmid']);if(!$api->poolContains($node,(int)$data['vmid']) || ($vm['name']??'')!==$data['name'])throw new RuntimeException('Die neue VM konnte nicht eindeutig dem Auftrag zugeordnet werden.');
-        if(!empty($profile['start_after_clone']) && ($api->vm($node,(int)$data['vmid'])['status']??'')!=='running'){$api->control($node,(int)$data['vmid'],'start');}
-        $credentials=secret_open($data['credentials'],'job:'.$job['id']);
-        finish_provisioning($order,$job,'qemu/'.$data['vmid'],['node'=>$node,'vmid'=>(int)$data['vmid'],'storage'=>$data['storage']??$profile['storage']],$data['name'],$credentials);
-    }
-}
+
+
 function provision_ovh(array $order,array &$job,array $profile,array $data): void {
     $api=new OvhProvider();$domain=valid_domain($order['domain']);
     if($job['phase']==='start'){
@@ -192,7 +96,9 @@ function run_provisioning_jobs(int $limit=3): int {
             $profile=json_decode($order['profile'],true,32,JSON_THROW_ON_ERROR);$data=json_decode($job['payload'],true,32,JSON_THROW_ON_ERROR);
             if(!hash_equals($profile['connection_id']??'',integration_identity($order['provider'])))throw new RuntimeException('Anbieter-Verbindung wurde seit der Bestellung geändert.');
             query("UPDATE shop_orders SET fulfillment_status='provisioning' WHERE id=?",[$order['id']]);
-            if($intent=module_order_intent((int)$order['id']))provision_module_addon($order,$job,$intent);else match($order['provider']){'ispconfig'=>provision_ispconfig($order,$job,$profile,$data),'proxmox'=>(($profile['virtualization']??'qemu')==='lxc'?provision_lxc($order,$job,$profile,$data):provision_proxmox($order,$job,$profile,$data)),'ovh'=>provision_ovh($order,$job,$profile,$data),'manual'=>provision_manual($order,$job),default=>throw new RuntimeException('Keine Bereitstellung für diesen Anbieter.')};
+            if($intent=module_order_intent((int)$order['id']))provision_module_addon($order,$job,$intent);
+            elseif(isset($profile['module_product']))(new SMF\Core\ProductRegistry(SMF\Core\Kernel::boot()->modules()))->service($profile['module_product'])->provision($order,$job,$profile,$data);
+            else match($order['provider']){'ispconfig'=>provision_ispconfig($order,$job,$profile,$data),'proxmox'=>(($profile['virtualization']??'qemu')==='lxc'?provision_lxc($order,$job,$profile,$data):provision_proxmox($order,$job,$profile,$data)),'ovh'=>provision_ovh($order,$job,$profile,$data),'manual'=>provision_manual($order,$job),default=>throw new RuntimeException('Keine Bereitstellung für diesen Anbieter.')};
             $count++;
         }catch(Throwable $e){
             $message=$e instanceof RuntimeException && !($e instanceof PDOException)?$e->getMessage():'Einrichtung konnte nicht abgeschlossen werden. Bitte Anbieterzustand prüfen.';

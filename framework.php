@@ -4552,6 +4552,14 @@ class OGPGet extends BaseAPI {
     }
 
     public function makeRequest($method, $url, $data = null) {
+        $modules=\SMF\Core\Kernel::boot()->modules();
+        if($modules->installed('provider.ogp')) {
+            $modules->assertEnabled('provider.ogp');
+            $client=\SMF\Core\Kernel::boot()->providers()->get('ogp');
+            $reply=$client->response((string)(parse_url($url,PHP_URL_QUERY)??''),is_array($data)?$data:[]);
+            return ['status'=>(string)$reply->status,'message'=>$reply->data];
+        }
+
         $ch = curl_init();
         
         curl_setopt($ch, CURLOPT_URL, $url);

@@ -1,0 +1,72 @@
+{
+  "id": "product.vps",
+  "name": "Virtuelle Server",
+  "version": "1.0.0",
+  "core": ">=3.9.9 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.orders": "^1.0.0",
+    "provider.proxmox": "^1.0.0",
+    "shop.provisioning": "^1.1.0"
+  },
+  "routes": {
+    "/konto/server": "servers",
+    "/konto/vps-sicherungen": "vps_exports",
+    "/admin/vps-sicherungen": "admin_vps_exports",
+    "/admin/infrastruktur": "admin_infrastructure",
+    "/api/infrastructure/runner": "provider_runner"
+  },
+  "jobs": {
+    "product.vps": {
+      "runtime": "worker.php",
+      "replay": "reconcile",
+      "tick": true
+    }
+  },
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": [
+    "migrations/001.php"
+  ],
+  "products": {
+    "vps": {
+      "runtime": "runtime.php",
+      "requires_capabilities": {
+        "proxmox": [
+          "connection.read",
+          "node.read",
+          "pool.read",
+          "vm.create"
+        ]
+      },
+      "schema_contract": {
+        "shared": [
+          "shop_orders",
+          "shop_services",
+          "shop_product_automation"
+        ],
+        "owned": [
+          "shop_storage_reservations",
+          "shop_vps_exports"
+        ]
+      }
+    }
+  },
+  "ui": {
+    "vps_exports": {
+      "pages": [
+        "vps_exports",
+        "admin_vps_exports"
+      ],
+      "view": "exports-view.php"
+    },
+    "vps_infrastructure": {
+      "pages": [
+        "admin_infrastructure"
+      ],
+      "view": "infrastructure-view.php"
+    }
+  }
+}

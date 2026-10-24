@@ -14,7 +14,7 @@ function secret_open(string $value, string $context): array {
     return json_decode($plain,true,32,JSON_THROW_ON_ERROR);
 }
 function integration_definitions(): array {
-    return [
+    $definitions = [
       'ovh'=>['name'=>'OVHcloud','description'=>'Domainverfügbarkeit, Registrierung und DNS-Zonen.','icon'=>'globe','fields'=>[
         'endpoint'=>['API-Region','select',['ovh-eu'=>'Europa','ovh-ca'=>'Kanada','ovh-us'=>'USA']], 'subsidiary'=>['OVH-Vertragsland','text','DE'],
         'application_key'=>['Application Key','secret'], 'application_secret'=>['Application Secret','secret'], 'consumer_key'=>['Consumer Key','secret'],
@@ -36,21 +36,28 @@ function integration_definitions(): array {
         'terms_url'=>['URL deiner Vertragsbedingungen','url',''], 'withdrawal_url'=>['URL deiner Widerrufsinformationen','url',''],
       ]],
     ];
+    foreach(['ovh','proxmox','ispconfig']as$id)if(!is_file(dirname(__DIR__,2).'/provider.'.$id.'/Adapter.php'))unset($definitions[$id]);
+    foreach(SMF\Core\Kernel::boot()->modules()->providers() as $id=>$entry){
+        $definition=$entry['definition'];
+        $definitions[$id]=['name'=>$definition['name']??$id,'description'=>'Modularer Provideranschluss','icon'=>'server','fields'=>$definition['fields']];
+    }
+    return $definitions;
 }
 function integration_row(string $provider): ?array { return one('SELECT * FROM shop_integrations WHERE provider=?',[$provider]); }
 function integration_config(string $provider, bool $requireEnabled=true): array {
     if(!isset(integration_definitions()[$provider]))throw new RuntimeException('Unbekannter Anbieter.');
     $row=integration_row($provider);
-    if(!$row && in_array($provider,['ovh','proxmox','ispconfig'],true)){if($requireEnabled&&!SMF\Core\ProviderAccounts::enabled($provider))throw new RuntimeException('Die Providerverbindung ist deaktiviert.');return SMF\Core\ProviderAccounts::fallback($provider);}
+    if($requireEnabled && !SMF\Core\ProviderAccounts::enabled($provider))throw new RuntimeException('Die Providerverbindung ist deaktiviert.');
+    if(!$row && in_array($provider,['ovh','proxmox','ispconfig','ogp'],true))return SMF\Core\ProviderAccounts::fallback($provider);
     if(!$row || ($requireEnabled && !$row['enabled']))throw new RuntimeException(integration_definitions()[$provider]['name'].' ist noch nicht eingerichtet.');
     return secret_open($row['secret_config'],'provider:'.$provider);
 }
 function integration_ready(string $provider): bool { if($provider==='manual')return true;$row=integration_row($provider);return $row && $row['enabled'] && $row['tested_at'] && $row['test_result']==='ok'; }
 function integration_identity(string $provider,?array $config=null): string {
     if($provider==='manual')return hash('sha256','orga-consult:manual-fulfillment');
-    if($config===null && in_array($provider,['ovh','proxmox','ispconfig'],true) && !integration_row($provider))return ResourceAccess::connectionId($provider);
+    if($config===null && in_array($provider,['ovh','proxmox','ispconfig','ogp'],true) && !integration_row($provider))return ResourceAccess::connectionId($provider);
     $config??=integration_config($provider,false);
-    $keys=match($provider){'ovh'=>['endpoint','application_key','consumer_key'],'proxmox'=>($config['auth_mode']??'token')==='password'?['url','username','pool']:['url','token_id','pool'],'ispconfig'=>['url','username'],'paypal'=>['mode','client_id'],default=>[]};
+    $keys=match($provider){'ovh'=>['endpoint','application_key','consumer_key'],'proxmox'=>($config['auth_mode']??'token')==='password'?['url','username','pool']:['url','token_id','pool'],'ispconfig'=>['url','username'],'ogp'=>['url','token'],'paypal'=>['mode','client_id'],default=>array_keys($config)};
     return hash('sha256',json_encode(array_intersect_key($config,array_flip($keys))));
 }
 function checked_api_url(string $url): string {
@@ -84,24 +91,26 @@ function integration_save(string $provider,array $input,bool $enabled): void {
     $row=integration_row($provider);$old=$row?secret_open($row['secret_config'],'provider:'.$provider):[];$config=[];
     if($provider==='proxmox')$input['auth_mode']??=$old['auth_mode']??'token';
     foreach($definition['fields'] as $key=>$field){
-        $value=(string)($input[$key]??($provider==='paypal' && in_array($key,['terms_url','withdrawal_url'],true)?($old[$key]??''):''));if(!($provider==='proxmox' && $key==='password'))$value=trim($value);$type=$field[1];
+        $value=(string)($input[$key]??($provider==='paypal' && in_array($key,['terms_url','withdrawal_url'],true)?($old[$key]??''):(in_array($field[1],['number','integer'],true)?($field[2]??''):'')));if(!($provider==='proxmox' && $key==='password'))$value=trim($value);$type=$field[1];
         if(strlen($value)>20000)throw new RuntimeException('Ein Konfigurationsfeld ist zu lang.');
         if($type==='secret' && $value==='')$value=$old[$key]??'';
         if($type==='select' && !array_key_exists($value,$field[2]))throw new RuntimeException('Bitte eine gültige Auswahl treffen.');
         if($type==='url' && $value!=='')$value=checked_api_url($value);
         if($type==='host')$value=proxmox_host_url($value);
         if($type==='number' && $value!=='' && (!preg_match('/^\d+$/D',$value) || (int)$value<1))throw new RuntimeException('Server-IDs müssen positive Zahlen sein.');
+        if($type==='integer' && !preg_match('/^\d{1,9}$/D',$value))throw new RuntimeException('Bitte eine nichtnegative ganze Zahl eintragen.');
         if($type==='pem' && $value!==''){
             $cert=openssl_x509_read($value);
             if(!$cert)throw new RuntimeException('Das CA-Zertifikat ist kein gültiges PEM-Zertifikat.');
         }
-        $optional=in_array($key,['ca_pem','web_ip','webhook_id','terms_url','withdrawal_url'],true);
+        $optional=($field[3]??false)===true || in_array($key,['ca_pem','web_ip','webhook_id','terms_url','withdrawal_url'],true);
         if($provider==='proxmox')$optional=$optional || in_array($key,['node','pool'],true) || in_array($key,$input['auth_mode']==='password'?['token_id','token_secret']:['username','password'],true);
         if($enabled && !$optional && $value==='')throw new RuntimeException('Bitte alle erforderlichen Zugangsdaten ausfüllen.');
         if(preg_match('/[\r\n]/',$value) && $type!=='pem')throw new RuntimeException('Einzeilige Konfigurationsfelder dürfen keine Zeilenumbrüche enthalten.');
         $config[$key]=$value;
     }
     if($provider==='ovh' && !preg_match('/^[A-Z]{2}$/D',$config['subsidiary']))throw new RuntimeException('Bitte ein zweistelliges OVH-Vertragsland eintragen, zum Beispiel DE.');
+    if($provider==='ogp' && $enabled && !preg_match('/^[a-f0-9]{64}$/Di',$config['token']))throw new RuntimeException('OGP benötigt einen vorhandenen API-Token mit 64 Hexzeichen.');
     if($provider==='proxmox'){
         if($config['auth_mode']==='password' && $config['username']!=='')$config['username']=proxmox_username($config['username']);
         if($enabled && $config['auth_mode']==='token' && !preg_match('/^[a-zA-Z0-9_.-]+@[^!\s]+![a-zA-Z0-9_.-]+$/D',$config['token_id']))throw new RuntimeException('Die Token-ID hat das Format benutzer@realm!tokenname.');
@@ -110,6 +119,7 @@ function integration_save(string $provider,array $input,bool $enabled): void {
     $encrypted=secret_seal($config,'provider:'.$provider);
     if($row)query('UPDATE shop_integrations SET enabled=?,secret_config=?,tested_at=NULL,test_result=NULL,updated_at=CURRENT_TIMESTAMP WHERE provider=?',[$enabled?1:0,$encrypted,$provider]);
     else query('INSERT INTO shop_integrations (provider,enabled,secret_config) VALUES (?,?,?)',[$provider,$enabled?1:0,$encrypted]);
+    SMF\Core\Kernel::boot()->providers()->invalidate($provider);
     audit_event('integration.save',$provider,'ok');
 }
 function audit_event(string $action,string $resource='',string $result='ok'): void {

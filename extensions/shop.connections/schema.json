@@ -1,0 +1,16 @@
+{
+  "version": "20261024_connections_01",
+  "tables": {
+    "smf_provider_diagnostics": {
+      "columns": {
+        "provider": "varchar(80) NOT NULL PRIMARY KEY",
+        "connection_id": "varchar(64) NOT NULL",
+        "capabilities": "text NOT NULL",
+        "details": "text NOT NULL",
+        "checked_at": "bigint NOT NULL"
+      },
+      "indexes": {},
+      "constraints": []
+    }
+  }
+}

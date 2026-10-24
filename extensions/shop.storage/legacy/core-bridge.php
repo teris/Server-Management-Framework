@@ -33,13 +33,18 @@ function shop_brand(): string {
 function shop_provider_guard(string $provider,string $method,string $url,?string $body): void {
     global $modus_type;
     if(in_array($modus_type['modus']??'api',['database','mysql'],true))throw new SecurityViolation('Providerzugriffe sind im Datenbank-Cachemodus deaktiviert.',503);
-    if(!in_array($provider,['ovh','proxmox','ispconfig'],true))return;
+    if(isset(Kernel::boot()->modules()->catalog()['provider.'.$provider]) && Kernel::boot()->modules()->installed('provider.'.$provider)){
+        Kernel::boot()->modules()->assertEnabled('provider.'.$provider);
+        if(!SMF\Core\ProviderAccounts::enabled($provider))throw new SecurityViolation('Provideranschluss ist deaktiviert.',403);
+    }
+    if(!in_array($provider,['ovh','proxmox','ispconfig','ogp'],true))return;
     $read=strtoupper($method)==='GET';
     if($provider==='proxmox' && strtoupper($method)==='POST' && (parse_url($url,PHP_URL_PATH)?:'')==='/api2/json/access/ticket')$read=true;
     // ISPConfig JSON authenticates and reads over POST; allow only named read methods.
     if($provider==='ispconfig') {
         $path=rawurldecode(parse_url($url,PHP_URL_QUERY)?:'');
-        $read=(bool)preg_match('~^(?:login|logout|[a-z0-9_]+_get(?:_[a-z0-9_]+)?)$~D',$path);
+        $read=$path==='get_function_list' || (bool)preg_match('~^(?:login|logout|[a-z0-9_]+_get(?:_[a-z0-9_]+)?)$~D',$path);
     }
+    if($provider==='ogp')$read=in_array(parse_url($url,PHP_URL_QUERY)?:'',['token/test','server/list','server/status','server/list_ips','user_games/list_games','user_games/list_servers','user_admin/list','user_admin/get','user_admin/list_assigned','litefm/list','litefm/get','setting/get','bridge/capabilities','bridge/status','bridge/ports','bridge/log','bridge/definition'],true);
     if(!$read && !ShopSettings::allowLive())throw new SecurityViolation('Provider-Schreibzugriff ist im Testbetrieb gesperrt.',403);
 }

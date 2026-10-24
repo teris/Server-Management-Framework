@@ -10,7 +10,7 @@ def git(*args):return subprocess.check_output(['git',*args],cwd=ROOT)
 def safe_path(path):
     return (isinstance(path,str) and re.fullmatch(r'[a-zA-Z0-9_.-]+(?:/[a-zA-Z0-9_.-]+)*',path)
         and all(p not in ['.','..'] and (not p.startswith('.') or p=='.htaccess') for p in path.split('/'))
-        and not re.search(r'^(?:tests|private|var|cache|logs|backups|node_modules)/|(?:^|/)(?:config\.inc\.php|setup-access\.php|sys\.conf\.local\.php|\.encryption_key)$|\.(?:db|sqlite3?|log|bnk|bak|zip|pem|key|env|tar|tgz|gz|7z|rar)(?:[.-]|$)',path,re.I))
+        and not re.search(r'^(?:tests|private|var|cache|logs|backups|node_modules)/|(?:^|/)(?:config\.inc\.php|setup-access\.php|smf_ogp_bridge_config\.php|smf-ogp-bridge\.json|sys\.conf\.local\.php|\.encryption_key)$|\.(?:db|sqlite3?|log|bnk|bak|zip|pem|key|env|tar|tgz|gz|7z|rar)(?:[.-]|$)',path,re.I))
 def build(ref,output,key_file):
     commit=git('rev-parse','--verify',ref+'^{commit}').decode().strip()
     inventory=json.loads(git('show',commit+':deploy/package-files.json'))
@@ -44,10 +44,32 @@ def build(ref,output,key_file):
         for path,data in [('manifest.json',raw),('manifest.sig',signature),*sorted(payload.items())]:
             info=zipfile.ZipInfo(path,timestamp);info.create_system=3;info.external_attr=0o100644<<16;info.compress_type=zipfile.ZIP_DEFLATED
             archive.writestr(info,data,compress_type=zipfile.ZIP_DEFLATED,compresslevel=9)
+    # Separately signed components always originate from exactly the same committed tree.
+    modules={name.split('/')[1]:json.loads(data) for name,data in payload.items() if re.fullmatch(r'extensions/[^/]+/module.json',name)}
+    groups={'framework.core':{p:b for p,b in payload.items() if not p.startswith('extensions/') and not p.startswith('public/assets/shop/')},'commerce.shop':{p:b for p,b in payload.items() if p.startswith('extensions/shop.') or p.startswith('public/assets/shop/')}}
+    for module in modules:
+        if not module.startswith('shop.'):groups[module]={p:b for p,b in payload.items() if p.startswith('extensions/'+module+'/')}
+    components=[]
+    def component_zip(filename,metadata,content):
+        document=metadata|{'files':{p:hashlib.sha256(b).hexdigest() for p,b in sorted(content.items())}}
+        document_raw=(json.dumps(document,sort_keys=True,separators=(',',':'))+'\n').encode()
+        document_sig=base64.b64encode(key.sign(document_raw,padding.PKCS1v15(),hashes.SHA256()))+b'\n'
+        with zipfile.ZipFile(output/filename,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9)as archive:
+            for path,data in [('manifest.json',document_raw),('manifest.sig',document_sig),*sorted(content.items())]:
+                entry=zipfile.ZipInfo(path,timestamp);entry.create_system=3;entry.external_attr=0o100644<<16;entry.compress_type=zipfile.ZIP_DEFLATED;archive.writestr(entry,data,compress_type=zipfile.ZIP_DEFLATED,compresslevel=9)
+        return {'id':metadata.get('id',metadata['type']),'package':filename,'files':len(content),'sha256':hashlib.sha256((output/filename).read_bytes()).hexdigest()}
+    for identity,content in groups.items():
+        included={mid:{'version':m['version'],'requires':m['requires'],'core':m['core'],'php':m['php']}for mid,m in modules.items() if 'extensions/'+mid+'/module.json' in content}
+        metadata={'format':2,'type':'component','id':identity,'version':version if identity in ['framework.core','commerce.shop'] else modules[identity]['version'],'release_version':version,'commit':commit,'php_min':'8.3','core':'>='+version+' <4.0.0','modules':included}
+        if identity=='framework.core':content=content|{'deploy/package-files.json':(json.dumps(sorted(content),indent=2)+'\n').encode()}
+        components.append(component_zip('server-management-framework-'+version+'-'+identity+'.zip',metadata,content))
+    # Existing core updater overlays these files while preserving installed customer/provider components.
+    core_update={p:b for p,b in groups['framework.core'].items() if p!='deploy/package-files.json' and not p.startswith(('public/','src/module/'))}
+    components.append(component_zip('server-management-framework-'+version+'-core-update.zip',{'format':1,'type':'core','version':version,'commit':commit,'schema_version':schema,'php_min':'8.3'},core_update))
     (output/'manifest.json').write_bytes(raw);(output/'manifest.sig').write_bytes(signature)
     (output/'smf-release-public.pem').write_bytes(public.public_bytes(serialization.Encoding.PEM,serialization.PublicFormat.SubjectPublicKeyInfo))
     (output/'RELEASE-NOTES.md').write_bytes(payload['docs/releases/'+version+'.md'])
-    info={'version':version,'commit':commit,'schema_version':schema,'package':name,'package_files':len(payload),'key_fingerprint_sha256':hashlib.sha256(public_der).hexdigest(),'archive_sha256':hashlib.sha256((output/name).read_bytes()).hexdigest()}
+    info={'version':version,'commit':commit,'schema_version':schema,'package':name,'package_files':len(payload),'components':components,'key_fingerprint_sha256':hashlib.sha256(public_der).hexdigest(),'archive_sha256':hashlib.sha256((output/name).read_bytes()).hexdigest()}
     (output/'build-info.json').write_text(json.dumps(info,indent=2)+'\n')
     checksums=''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in sorted(output.iterdir()))
     (output/'SHA256SUMS').write_text(checksums)

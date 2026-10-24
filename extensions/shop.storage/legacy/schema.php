@@ -53,13 +53,12 @@ function shop_migrate(PDO $db): void {
     shop_migrate_notifications($db);
     require_once __DIR__.'/order-admin.php';
     shop_migrate_order_admin($db);
-    require_once __DIR__.'/vps-storage.php';
-    shop_migrate_vps_lifecycle($db);
+    foreach(['product.webhosting','product.vps']as$component){$migration=dirname(__DIR__,2).'/'.$component.'/migrations/001.php';if(is_file($migration)){($apply=require $migration)($db);}}
     $seeded=$db->query("SELECT meta_value FROM shop_meta WHERE meta_key='catalog_seeded'")->fetchColumn();
     if(!$seeded){
         if((int)$db->query('SELECT COUNT(*) FROM shop_products')->fetchColumn()===0){
             $insert=$db->prepare('INSERT INTO shop_products (slug,name,eyebrow,category,icon,description,features,featured,sort_order) VALUES (?,?,?,?,?,?,?,?,?)');
-            foreach(require __DIR__.'/catalog.php' as $i=>$p)$insert->execute([$p['slug'],$p['name'],$p['eyebrow'],$p['category'],$p['icon'],$p['description'],json_encode($p['features'],JSON_UNESCAPED_UNICODE),$p['featured'],$i]);
+            foreach(require __DIR__.'/catalog.php' as $i=>$p){if(($p['category']==='hosting' && !is_file(dirname(__DIR__,2).'/product.webhosting/module.json')) || ($p['category']==='server' && !is_file(dirname(__DIR__,2).'/product.vps/module.json')))continue;$insert->execute([$p['slug'],$p['name'],$p['eyebrow'],$p['category'],$p['icon'],$p['description'],json_encode($p['features'],JSON_UNESCAPED_UNICODE),$p['featured'],$i]);}
         }
         $db->exec("INSERT INTO shop_meta (meta_key,meta_value) VALUES ('catalog_seeded','1')");
     }

@@ -20,7 +20,7 @@ function product_options(array $p): array {
 }
 function product_tax(array $p): array {if(isset($p['_contract_tax']))return $p['_contract_tax'];$o=product_options($p);$gross=(int)($p['price_cents']??0);return $o['net_cents']!==null && vat_from_net((int)$o['net_cents'],(int)$o['tax_bps'])['gross_cents']===$gross?vat_from_net((int)$o['net_cents'],(int)$o['tax_bps']):vat_from_gross($gross,(int)$o['tax_bps']);}
 function product_sale_mode(array $p): string {return isset($p['_quote_id'])?'direct':product_options($p)['sale_mode'];}
-function product_notice(array $p,string $kind='provisioning'): string {$o=product_options($p);$s=commerce_settings();return $kind==='dns'?($o['dns_notice']?:$s['notice_dns']):($o['provisioning_notice']?:$s['notice_'.$p['category']]);}
+function product_notice(array $p,string $kind='provisioning'): string {$o=product_options($p);$s=commerce_settings();return $kind==='dns'?($o['dns_notice']?:$s['notice_dns']):($o['provisioning_notice']?:($s['notice_'.$p['category']]??'Bereitstellung nach erfolgreicher Installation.'));}
 function save_product_options(int $id,array $input,?int $net): void {
     $mode=(string)($input['sale_mode']??($net!==null?'direct':'request'));if(!in_array($mode,['direct','request'],true))throw new RuntimeException('Bitte Direktkauf oder Angebot auf Anfrage auswählen.');
     $delivery=trim((string)($input['provisioning_notice']??''));$dns=trim((string)($input['dns_notice']??''));if(strlen($delivery)>3000 || strlen($dns)>3000)throw new RuntimeException('Die Bereitstellungshinweise sind zu lang.');

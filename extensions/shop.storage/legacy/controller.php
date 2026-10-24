@@ -109,6 +109,7 @@ if(isset($contractRoutes[$path]))$view='contracts';
 if(isset($optionRoutes[$path]))$view='documents';
 if(in_array($page,['notifications','admin_notifications'],true))$view='notifications';
 if(in_array($page,['vps_exports','admin_vps_exports'],true))$view='vps-exports';
-require __DIR__ . '/views/' . $view . '.php';
+$moduleView=null;$moduleRegistry=SMF\Core\Kernel::boot()->modules();foreach($moduleRegistry->ui()as$contribution){$definition=$contribution['definition'];if(in_array($page,$definition['pages']??[],true)){$moduleView=$moduleRegistry->file($contribution['module'],$definition['view']);break;}}
+require $moduleView??(__DIR__.'/views/'.$view.'.php');
 require __DIR__ . '/views/layout-end.php';
 ob_end_flush();

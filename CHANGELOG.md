@@ -4,6 +4,21 @@ Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei
 
 
 
+## [3.10.0] - 2026-10-24
+
+AP31 und AP35–AP46: eigenständige Provider-/Produktmodule und vollständiger Gameserverweg.
+
+- Deklarierte Provider-/Produkt-/UI-/Workerbeiträge; gemeinsame verschlüsselte Anschlüsse und begrenzte Fähigkeitsnachweise für OGP, ISPConfig, Proxmox und OVH.
+- Gameserverangebote mit geprüften Spiel-/Moddefinitionen, Startkarte, Slots, Preisberechnung und exklusiven Portkontingenten. Bestätigte Bereitstellung, Kundensteuerung/RCON, Verlängerung, Sperre und gezielte Beendigung im gemeinsamen Zahlungs-/Rechnungs-/Vertragsweg.
+- Optionale GPL-lizenzierte OGP-Erweiterung für Installationsstatus, physische Identität, zufällige Spielverzeichnisse, begrenzte Logs und bestätigte Homeentfernung. Initialisierte Startparameter umgehen den PHP-8-Fehler leerer nativer OGP-Parameter, ohne bestehende OGP-Dateien zu ersetzen.
+- Physische Trennung von Webhosting- und VPS-Fachlogik, Schema, Worker- und UI-Beiträgen. Reduzierte Hosting- und Gameserverinstallationen benötigen die jeweils fremden Providerdateien nicht.
+- Gemeinsame Einrichtung mit SMTP-Test an eigene Adresse und echtem Workerheartbeat; angemeldeter Upgrade-/Recoveryweg mit nativer Datenbank- und privater Konfigurationssicherung.
+- Reproduzierbare, separat signierte Kern-/Commerce-/Provider-/Produktpakete. CLI prüft Schlüssel-Fingerprint, Signatur, Dateiinhalte und alle Abhängigkeiten vor Installation; fehlerhafte Modulmigrationen rollen Quelle und Datenbank zurück.
+- ISPConfig-DKIM ist optional; verfügbare Funktionen und ausdrücklich hinterlegte Benutzerfreigaben bleiben getrennt. Proxmox-/OVH-Schreibfähigkeiten folgen den jeweiligen Berechtigungen. Deaktivierte oder geänderte Anschlüsse sperren alte Adapter vor Zugriffen.
+- Reale, begrenzte OGP-/SteamCMD-Abnahme einschließlich laufender Half-Life-Testleistung, RCON und kontrollierter Entfernung; die ursprünglichen fünf Homes bleiben unverändert. Kein echter Zahlungsumsatz. Andere Provider-Neuanlagen sind nicht Teil dieser Liveabnahme.
+
+Upgradehinweise, Paketprüfung, API-Grenzen und Prüfdetails: [Modulbetrieb](docs/pruefung-2026-10-24/MODULE-AP31-AP46.md). Linux/SteamCMD ist der freigegebene OGP-Direktweg; Windows, Rsync und nicht durchsetzbare RAM-/Disk-/CPU-Garantien bleiben Anfragebetrieb. Sandbox bleibt Standard.
+
 ## [3.9.9] - 2026-10-24
 
 Öffentliches Sammelrelease des modularen Shops (AP18–AP27) und der geschützten Erstinstallation (AP32–AP34). Der bisherige interne Stand 3.3.0 wurde nicht separat veröffentlicht.

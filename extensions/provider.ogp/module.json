@@ -1,0 +1,68 @@
+{
+  "version": "1.0.0",
+  "core": ">=3.9.9 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.connections": "^1.0.0"
+  },
+  "routes": {},
+  "jobs": {},
+  "permissions": [
+    "backend:admin"
+  ],
+  "migrations": [],
+  "id": "provider.ogp",
+  "name": "OpenGamePanel",
+  "providers": {
+    "ogp": {
+      "runtime": "runtime.php",
+      "name": "OGP",
+      "fields": {
+        "url": [
+          "OGP-Panel-URL",
+          "url",
+          ""
+        ],
+        "token": [
+          "API-Token",
+          "secret"
+        ],
+        "ca_pem": [
+          "Eigene CA (optional)",
+          "pem"
+        ],
+        "bridge_key": [
+          "Schl\u00fcssel der optionalen OGP-Erweiterung",
+          "secret",
+          "",
+          true
+        ]
+      },
+      "capabilities": [
+        "connection.read",
+        "agent.read",
+        "game.read",
+        "home.read",
+        "user.read",
+        "user.create",
+        "home.create",
+        "home.expire",
+        "game.install",
+        "game.control",
+        "game.files",
+        "game.rcon",
+        "installation.status",
+        "home.delete",
+        "home.identity",
+        "home.log",
+        "port.read",
+        "game.definition",
+        "home.configure"
+      ],
+      "resources": [
+        "gamehome"
+      ],
+      "api_contract": "ogp_api.php-body-v1"
+    }
+  }
+}

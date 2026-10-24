@@ -2,12 +2,12 @@
 function handle_action(string $action): void {
     HttpSecurity::requireCsrf();
     shop_require_action($action);
-    if (handle_vps_export_action($action)) return;
+    if (function_exists('handle_vps_export_action') && handle_vps_export_action($action)) return;
     if (handle_account_deletion_action($action)) return;
     if (handle_notification_action($action)) return;
     if (handle_order_admin_action($action)) return;
     if (handle_promotion_action($action)) return;
-    if (handle_hosting_domain_action($action)) return;
+    if (function_exists('handle_hosting_domain_action') && handle_hosting_domain_action($action)) return;
     if (handle_infrastructure_action($action)) return;
     if (handle_shop_option_action($action)) return;
     if (handle_domain_action($action)) return;

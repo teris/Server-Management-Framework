@@ -10,20 +10,7 @@ function cancel_contract_paypal(array $order,array $c,bool $verifyTestSubscripti
     $paypal->call('POST','/v1/billing/subscriptions/'.rawurlencode($order['payment_id']).'/cancel',['reason'=>'Kündigung zum vereinbarten Vertragsende im Orga-Consult-Shop.'],'cancel-'.$order['reference']);
     $s=checked_subscription($order,$paypal);if(!in_array($s['status']??'',['CANCELLED','EXPIRED'],true))throw new RuntimeException('PayPal hat das Ende der wiederkehrenden Abbuchungen noch nicht bestätigt.');return true;
 }
-function end_hosting_service(array $service): void {
-    $api=new IspconfigProvider();$site=hosting_site($service,$api);$client=(int)$service['meta']['client_id'];
-    if(($site['active']??'')!=='n'){$site['active']='n';$api->call('sites_web_domain_update',['client_id'=>$client,'primary_id'=>(int)$site['domain_id'],'params'=>['active'=>'n']]);}
-    foreach(all('SELECT * FROM shop_hosting_children WHERE service_id=?',[$service['id']]) as $child){
-        if(!ctype_digit((string)$child['external_id']))throw new RuntimeException('Ein noch unklarer Hosting-Zugang muss vor der Vertragsbeendigung geprüft werden.');
-        if($child['kind']==='cron'){$record=$api->call('sites_cron_get',['cron_id'=>(int)$child['external_id']]);if(!is_array($record) || (int)($record['parent_domain_id']??0)!==(int)$site['domain_id'])throw new RuntimeException('Die Zuordnung eines Cronjobs hat sich geändert.');if(($record['active']??'')!=='n')$api->call('sites_cron_update',['client_id'=>$client,'cron_id'=>(int)$child['external_id'],'params'=>['active'=>'n']]);continue;}
-        $method=['ftp'=>'sites_ftp_user','database'=>'sites_database','mail'=>'mail_user'][$child['kind']]??null;if(!$method)continue;
-        $record=$api->call($method.'_get',['primary_id'=>(int)$child['external_id']]);
-        if(!is_array($record) || ($child['kind']!=='mail' && (int)($record['parent_domain_id']??0)!==(int)$site['domain_id']) || ($child['kind']==='mail' && (int)($record['sys_groupid']??0)!==(int)$site['sys_groupid']))throw new RuntimeException('Die Zuordnung eines Hosting-Zugangs hat sich geändert. Keine fremden Ressourcen werden gesperrt.');
-        if(($record['active']??'')!=='n'){unset($record['password'],$record['database_password']);$record['active']='n';$api->call($method.'_update',['client_id'=>$client,'primary_id'=>(int)$child['external_id'],'params'=>['active'=>'n']]);}
-    }
-    $domain=$api->mailDomain($service['meta']['domain']);
-    if($domain){if((int)($domain['sys_groupid']??0)!==(int)$site['sys_groupid'])throw new RuntimeException('Die Maildomain ist einem anderen Kunden zugeordnet.');if(($domain['active']??'')!=='n'){$domain['active']='n';$api->call('mail_domain_update',['client_id'=>$client,'primary_id'=>(int)$domain['domain_id'],'params'=>['active'=>'n']]);}}
-}
+
 function disable_domain_renewal(array $service): void {
     $api=new OvhProvider();$path='/domain/'.rawurlencode($service['meta']['zone']).'/serviceInfos';$info=$api->call('GET',$path);
     if(!isset($info['renew']) || !is_array($info['renew']) || !array_key_exists('automatic',$info['renew']))throw new RuntimeException('Die OVH-Domainverlängerung muss im Anbieterbereich geprüft werden.');
@@ -36,14 +23,15 @@ function disable_domain_renewal(array $service): void {
 function stop_contract_service(array $order,array $c): bool {
     if(admin_provider_manually_ended($c) || admin_provider_manually_ended(one('SELECT end_payload FROM shop_contracts WHERE order_id=?',[$order['id']])))return true;
     if($intent=module_order_intent((int)$order['id']))return end_module_addon($intent);
-    $service=service_for_order((int)$order['id'],(int)$order['customer_id']);if(!$service){$unused=one("SELECT id FROM shop_jobs WHERE order_id=? AND phase='start' AND state='cancelled'",[$order['id']]);if($unused)query('DELETE FROM shop_storage_reservations WHERE job_id=?',[$unused['id']]);return true;}
+    if($order['provider']==='ogp')return (new SMF\Core\ProductRegistry(SMF\Core\Kernel::boot()->modules()))->service('gameserver')->end($order);
+    $service=service_for_order((int)$order['id'],(int)$order['customer_id']);if(!$service){$unused=one("SELECT id FROM shop_jobs WHERE order_id=? AND phase='start' AND state='cancelled'",[$order['id']]);if($unused && SchemaManager::hasTable(db(),'shop_storage_reservations'))query('DELETE FROM shop_storage_reservations WHERE job_id=?',[$unused['id']]);return true;}
     $service=bound_service((int)$service['id'],(int)$order['customer_id']);
     return resource_mutex((int)$service['id'],function()use($order,$c,$service){
         if($order['paypal_mode']!=='live' && !test_order($order))return true;
         if($service['provider']==='ispconfig'){end_hosting_service($service);return true;}
         if($service['provider']==='ovh'){disable_domain_renewal($service);return true;}
         if($service['provider']==='manual'){throw new RuntimeException('Diese persönlich bereitgestellte Leistung muss im Adminbereich auch beim Anbieter beendet werden.');}
-        if($export=one('SELECT * FROM shop_vps_exports WHERE order_id=?',[$order['id']]))return process_vps_export($export);
+        if(SchemaManager::hasTable(db(),'shop_vps_exports') && ($export=one('SELECT * FROM shop_vps_exports WHERE order_id=?',[$order['id']])))return process_vps_export($export);
         $api=new ProxmoxProvider();verify_proxmox_resource($service,$api);$node=$service['meta']['node'];$vmid=(int)$service['meta']['vmid'];
         if(!$api->poolContains($node,$vmid,proxmox_service_type($service)))throw new RuntimeException('Die VM befindet sich nicht mehr im zugeordneten Shop-Pool.');
         $state=$api->vm($node,$vmid,proxmox_service_type($service));if(($state['status']??'')==='stopped'){$api->call('PUT','/nodes/'.rawurlencode($node).'/'.proxmox_service_type($service).'/'.$vmid.'/config',['onboot'=>0]);return queue_vps_export($order,$service);}

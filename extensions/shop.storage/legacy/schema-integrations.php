@@ -12,7 +12,6 @@ function shop_migrate_integrations(PDO $db, string $id, bool $sqlite): void {
         "shop_paypal_plans (fingerprint VARCHAR(64) PRIMARY KEY, product_id INT NOT NULL, paypal_mode VARCHAR(10) NOT NULL, plan_id VARCHAR(100) NOT NULL)",
         "shop_jobs (id $id, order_id INT NOT NULL UNIQUE, state VARCHAR(30) NOT NULL DEFAULT 'queued', phase VARCHAR(50) NOT NULL DEFAULT 'start', payload TEXT NOT NULL, lock_token VARCHAR(64), locked_until INT NOT NULL DEFAULT 0, attempts INT NOT NULL DEFAULT 0, last_error VARCHAR(500), updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(order_id) REFERENCES shop_orders(id))",
         "shop_audit (id $id, actor_type VARCHAR(20) NOT NULL, actor_id INT, action VARCHAR(80) NOT NULL, resource VARCHAR(150), result VARCHAR(30) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
-        "shop_hosting_children (id $id, service_id INT NOT NULL, kind VARCHAR(20) NOT NULL, external_id VARCHAR(100) NOT NULL, name VARCHAR(255) NOT NULL, metadata TEXT NOT NULL, UNIQUE(kind,external_id), FOREIGN KEY(service_id) REFERENCES shop_services(id))",
         "shop_resource_locks (service_id INT PRIMARY KEY, lock_token VARCHAR(64), locked_until INT NOT NULL DEFAULT 0)",
     ];
     foreach ($tables as $table) $db->exec('CREATE TABLE IF NOT EXISTS '.$table.$suffix);

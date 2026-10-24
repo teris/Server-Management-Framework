@@ -53,6 +53,7 @@ function configured_mailer(): PHPMailer\PHPMailer\PHPMailer {
     $s=smtp_settings();$m=new PHPMailer\PHPMailer\PHPMailer(true);$m->isSMTP();$m->Host=$s['host'];$m->Port=(int)$s['port'];$m->SMTPSecure=$s['security'];$m->SMTPAuth=$s['username']!=='';$m->Username=$s['username'];$m->Password=$s['password'];$m->CharSet='UTF-8';$m->Timeout=12;$m->SMTPDebug=0;
     $smtp=new ShopSmtpConnection();$smtp->Timelimit=12;$m->setSMTPInstance($smtp);
     $m->SMTPOptions=['ssl'=>['verify_peer'=>true,'verify_peer_name'=>true,'allow_self_signed'=>false]];
+    $ca=getenv('SMF_SMTP_CA_FILE');if($ca){if(is_link($ca)||!is_file($ca)||!is_readable($ca))throw new RuntimeException('Private SMTP-CA nicht lesbar.');$m->SMTPOptions['ssl']['cafile']=$ca;}
     $m->setFrom($s['from_email'],$s['from_name']);if($s['reply_to'])$m->addReplyTo($s['reply_to']);return $m;
 }
 function test_smtp_connection(): void {

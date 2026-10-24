@@ -1,0 +1,70 @@
+{
+  "version": "20261024_gameserver_01",
+  "tables": {
+    "smf_game_offers": {
+      "columns": {
+        "product_id": "INTEGER PRIMARY KEY",
+        "enabled": "INTEGER NOT NULL DEFAULT 0",
+        "policy": "TEXT NOT NULL",
+        "revision": "VARCHAR(64) NOT NULL",
+        "updated_at": "BIGINT NOT NULL"
+      },
+      "constraints": [
+        "FOREIGN KEY(product_id) REFERENCES shop_products(id)"
+      ],
+      "indexes": {}
+    },
+    "smf_game_ports": {
+      "columns": {
+        "connection_id": "VARCHAR(64) NOT NULL",
+        "agent_id": "INTEGER NOT NULL",
+        "ip": "VARCHAR(45) NOT NULL",
+        "port": "INTEGER NOT NULL",
+        "order_id": "INTEGER NOT NULL",
+        "state": "VARCHAR(24) NOT NULL DEFAULT 'reserved'"
+      },
+      "constraints": [
+        "PRIMARY KEY(connection_id,agent_id,ip,port)",
+        "FOREIGN KEY(order_id) REFERENCES shop_orders(id)"
+      ],
+      "indexes": {}
+    },
+    "smf_game_accounts": {
+      "columns": {
+        "connection_id": "VARCHAR(64) NOT NULL",
+        "customer_id": "INTEGER NOT NULL",
+        "user_id": "INTEGER",
+        "username": "VARCHAR(80) NOT NULL",
+        "email": "VARCHAR(255) NOT NULL",
+        "marker": "VARCHAR(64) NOT NULL",
+        "state": "VARCHAR(24) NOT NULL DEFAULT 'creating'",
+        "credentials": "TEXT NOT NULL"
+      },
+      "constraints": [
+        "PRIMARY KEY(connection_id,customer_id)",
+        "UNIQUE(connection_id,user_id)",
+        "FOREIGN KEY(customer_id) REFERENCES customers(id)"
+      ],
+      "indexes": {}
+    },
+    "smf_game_leases": {
+      "columns": {
+        "order_id": "INTEGER PRIMARY KEY",
+        "service_id": "INTEGER",
+        "connection_id": "VARCHAR(64) NOT NULL",
+        "marker": "VARCHAR(64) NOT NULL UNIQUE",
+        "state": "VARCHAR(24) NOT NULL DEFAULT 'reserved'",
+        "home_id": "INTEGER",
+        "metadata": "TEXT NOT NULL",
+        "retire_after": "BIGINT NOT NULL DEFAULT 0",
+        "updated_at": "BIGINT NOT NULL",
+        "generation": "INTEGER NOT NULL DEFAULT 0"
+      },
+      "constraints": [
+        "FOREIGN KEY(order_id) REFERENCES shop_orders(id)",
+        "FOREIGN KEY(service_id) REFERENCES shop_services(id)"
+      ],
+      "indexes": {}
+    }
+  }
+}

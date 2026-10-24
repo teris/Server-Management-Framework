@@ -10,7 +10,7 @@ final class Kernel {
         $this->container->bind('modules', fn($c) => new ModuleRegistry($c->get('database'), dirname(__DIR__,2) . '/extensions', \VersionFile::version(file_get_contents(dirname(__DIR__) . '/sys.conf.php'))));
         $this->container->bind('audit', fn($c) => new AuditLog($c->get('database')));
         $this->container->bind('jobs', fn($c) => new JobQueue($c->get('database'), $c->get('modules'), $c->get('audit')));
-        $this->container->bind('providers', fn() => new ProviderRegistry());
+        $this->container->bind('providers', fn($c) => new ProviderRegistry($c->get('modules')));
     }
     public static function boot(): self { return self::$instance ??= new self(); }
     public static function reset(): void { self::$instance = null; }

@@ -74,6 +74,8 @@ final class HttpSecurity {
     }
 
     public static function requestScript() {
+        // The built-in preview server keeps its router in the include list when serving a PHP file.
+        if(PHP_SAPI==='cli-server' && is_file($_SERVER['SCRIPT_FILENAME']??''))return str_replace('\\','/',realpath($_SERVER['SCRIPT_FILENAME']));
         // SCRIPT_FILENAME can contain PATH_INFO under some PHP handlers.
         // The first included file is the actual executed entry point.
         return str_replace('\\', '/', get_included_files()[0] ?? ($_SERVER['SCRIPT_FILENAME'] ?? ''));
@@ -137,7 +139,7 @@ final class HttpSecurity {
         self::$deploymentLock = fopen($lockPath, 'c');
         if (!self::$deploymentLock || !flock(self::$deploymentLock, LOCK_SH | LOCK_NB)) throw new SecurityViolation('Die Anwendung wird aktualisiert. Bitte später erneut versuchen.', 503);
         $maintenance = self::privateDirectory('updates') . '/maintenance.json';
-        if (is_file($maintenance) && basename(self::requestScript()) !== 'updates.php') throw new SecurityViolation('Die Anwendung befindet sich im Wartungsmodus.', 503);
+        if (is_file($maintenance) && (!realpath(self::requestScript()) || !in_array(realpath(self::requestScript()),[realpath(dirname(__DIR__).'/api/updates.php'),realpath(dirname(__DIR__,2).'/upgrade.php')],true))) throw new SecurityViolation('Die Anwendung befindet sich im Wartungsmodus.', 503);
         self::session();
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: SAMEORIGIN');

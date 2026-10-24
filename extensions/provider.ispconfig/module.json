@@ -1,0 +1,96 @@
+{
+  "version": "1.0.0",
+  "core": ">=3.9.9 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.connections": "^1.0.0"
+  },
+  "routes": {},
+  "jobs": {},
+  "permissions": [
+    "backend:admin"
+  ],
+  "migrations": [],
+  "id": "provider.ispconfig",
+  "name": "ISPConfig",
+  "providers": {
+    "ispconfig": {
+      "runtime": "runtime.php",
+      "name": "ISPCONFIG",
+      "fields": {
+        "url": [
+          "Remote-API-URL",
+          "url",
+          ""
+        ],
+        "username": [
+          "Remote-Benutzer",
+          "text",
+          ""
+        ],
+        "password": [
+          "Remote-Passwort",
+          "secret"
+        ],
+        "server_id": [
+          "Webserver-ID",
+          "number",
+          "1"
+        ],
+        "mail_server_id": [
+          "Mailserver-ID",
+          "number",
+          "1"
+        ],
+        "db_server_id": [
+          "Datenbankserver-ID",
+          "number",
+          "1"
+        ],
+        "reseller_id": [
+          "Reseller-ID (0 für Direktkunde)",
+          "integer",
+          "0"
+        ],
+        "client_template_id": [
+          "Kundenvorlage (0 ohne)",
+          "integer",
+          "0"
+        ],
+        "web_ip": [
+          "Webserver-IP",
+          "text",
+          "*"
+        ],
+        "ca_pem": [
+          "Eigene CA (optional)",
+          "pem"
+        ],
+        "allowed_functions": [
+          "Freigegebene Remote-Funktionen (kommagetrennt)",
+          "text",
+          "",
+          true
+        ]
+      },
+      "capabilities": [
+        "connection.read",
+        "web.read",
+        "mail.read",
+        "database.read",
+        "client.read",
+        "web.create",
+        "mail.create",
+        "database.create",
+        "client.create",
+        "dkim.ensure"
+      ],
+      "resources": [
+        "website",
+        "mail",
+        "database"
+      ],
+      "api_contract": "existing-adapter-v1"
+    }
+  }
+}

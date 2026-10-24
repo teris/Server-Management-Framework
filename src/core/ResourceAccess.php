@@ -29,7 +29,7 @@ final class ResourceAccess {
         if(class_exists('SMF\\Core\\ProviderAccounts')){ $shared=\SMF\Core\ProviderAccounts::connectionId($provider);if($shared!==null)return $shared; }
         $fields = [
             'proxmox' => ['PROXMOX_HOST', 'PROXMOX_USER'], 'ispconfig' => ['ISPCONFIG_HOST', 'ISPCONFIG_USER'],
-            'ovh' => ['OVH_ENDPOINT', 'OVH_APPLICATION_KEY', 'OVH_CONSUMER_KEY'], 'ogp' => ['OGP_HOST', 'OGP_USER']
+            'ovh' => ['OVH_ENDPOINT', 'OVH_APPLICATION_KEY', 'OVH_CONSUMER_KEY'], 'ogp' => ['OGP_HOST', 'OGP_USER', 'OGP_TOKEN']
         ];
         if (!isset($fields[$provider])) throw new SecurityViolation('Unbekannter Anbieter.', 403);
         $values = [$provider];

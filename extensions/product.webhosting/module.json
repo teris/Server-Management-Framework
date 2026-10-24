@@ -1,0 +1,50 @@
+{
+  "id": "product.webhosting",
+  "name": "Webhosting",
+  "version": "1.0.0",
+  "core": ">=3.9.9 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.orders": "^1.0.0",
+    "provider.ispconfig": "^1.0.0"
+  },
+  "routes": {},
+  "jobs": {
+    "product.webhosting": {
+      "runtime": "worker.php",
+      "replay": "reconcile",
+      "tick": true
+    }
+  },
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": [
+    "migrations/001.php"
+  ],
+  "products": {
+    "webhosting": {
+      "runtime": "runtime.php",
+      "requires_capabilities": {
+        "ispconfig": [
+          "connection.read",
+          "web.read",
+          "client.create",
+          "web.create"
+        ]
+      },
+      "schema_contract": {
+        "shared": [
+          "shop_orders",
+          "shop_services",
+          "shop_product_automation"
+        ],
+        "owned": [
+          "shop_hosting_children",
+          "shop_hosting_domain_verifications"
+        ]
+      }
+    }
+  }
+}

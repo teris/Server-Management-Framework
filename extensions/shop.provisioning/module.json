@@ -1,6 +1,6 @@
 {
   "id": "shop.provisioning",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "Bereitstellung und Ressourcen",
   "core": ">=3.3.0 <4.0.0",
   "php": ">=8.3.0",
@@ -9,15 +9,10 @@
   },
   "routes": {
     "/konto/verwalten": "manage_resource",
-    "/konto/server": "servers",
     "/admin/schnittstellen": "admin_integrations",
     "/admin/automatisierung": "admin_automation",
     "/admin/ressourcen": "admin_resources",
-    "/admin/infrastruktur": "admin_infrastructure",
-    "/konto/vps-sicherungen": "vps_exports",
-    "/admin/vps-sicherungen": "admin_vps_exports",
-    "/admin/domains": "admin_domains",
-    "/api/infrastructure/runner": "provider_runner"
+    "/admin/domains": "admin_domains"
   },
   "jobs": {
     "shop.provisioning": {

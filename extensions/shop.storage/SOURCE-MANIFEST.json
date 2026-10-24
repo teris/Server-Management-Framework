@@ -381,7 +381,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.webhosting/hosting-domains.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/hosting-features.php",
@@ -398,7 +402,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.webhosting/hosting-features.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/hosting-mail-dns.php",
@@ -415,7 +423,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.webhosting/hosting-mail-dns.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/hosting-options.php",
@@ -432,7 +444,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.webhosting/hosting-options.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/hosting-panel.php",
@@ -449,7 +465,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.webhosting/hosting-panel.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/infrastructure-actions.php",
@@ -755,7 +775,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.vps/lxc-provisioning.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/mail.php",
@@ -1044,7 +1068,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.vps/proxmox-options.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/receivables.php",
@@ -1656,7 +1684,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.vps/infrastructure-view.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/views/infrastructure-automation-admin.php",
@@ -1673,7 +1705,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.vps/infrastructure-automation-admin.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/views/integrations-admin.php",
@@ -2064,7 +2100,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.vps/template-builds-admin.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/views/ticket-thread.php",
@@ -2115,7 +2155,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.vps/exports-view.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/vps-exports.php",
@@ -2132,7 +2176,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.vps/vps-exports.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/vps-storage.php",
@@ -2149,7 +2197,11 @@
         ".codex/contracts-tests.php",
         ".codex/proxmox-auth-tests.php",
         ".codex/hosting-access-tests.php"
-      ]
+      ],
+      "moved_to": [
+        "extensions/product.vps/vps-storage.php"
+      ],
+      "extraction_release": "3.10.0"
     },
     {
       "source": "shop-app/worker.php",

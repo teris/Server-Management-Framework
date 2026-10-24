@@ -14,7 +14,7 @@ function admin_manual_end_local(array $order,array $contract,int $administrator,
     query("UPDATE shop_contracts SET state='ended',cancel_requested_at=CASE WHEN cancel_requested_at=0 THEN ? ELSE cancel_requested_at END,cancel_at=?,end_state='done',end_payload=?,paypal_cancel_state=CASE WHEN paypal_cancel_state='done' THEN 'done' ELSE 'pending' END,last_error=NULL,next_check_at=2147483647 WHERE order_id=?",[$now,$effective,json_encode($payload),$order['id']]);
     query("UPDATE shop_cancellations SET effective_ts=CASE WHEN effective_ts=0 THEN ? ELSE effective_ts END,state='completed' WHERE order_id=? AND state IN ('review','scheduled')",[$effective,$order['id']]);
     query("UPDATE shop_module_intents SET state='ended',last_error=NULL WHERE order_id=? OR (parent_order_id=? AND order_id IS NULL)",[$order['id'],$order['id']]);
-    query('DELETE FROM shop_storage_reservations WHERE job_id IN (SELECT id FROM shop_jobs WHERE order_id=?)',[$order['id']]);
+    if(SchemaManager::hasTable(db(),'shop_storage_reservations'))query('DELETE FROM shop_storage_reservations WHERE job_id IN (SELECT id FROM shop_jobs WHERE order_id=?)',[$order['id']]);
     foreach(all('SELECT id,notes FROM shop_network_addresses WHERE order_id=?',[$order['id']]) as $address)query("UPDATE shop_network_addresses SET state='review',order_id=NULL,service_id=NULL,notes=? WHERE id=?",[mb_substr('Manuell beendeter Vertrag '.$order['reference'].': Nutzung vor erneuter Freigabe prüfen. '.$address['notes'],0,1000),$address['id']]);
     if($linked=service_for_order((int)$order['id'],(int)$order['customer_id'])){
         $row=one('SELECT provider,external_id,metadata FROM shop_resource_links WHERE service_id=?',[$linked['id']]);$meta=json_decode($row['metadata'],true)?:[];
@@ -22,7 +22,7 @@ function admin_manual_end_local(array $order,array $contract,int $administrator,
         query('UPDATE shop_resource_links SET external_id=?,metadata=?,credentials=NULL WHERE service_id=?',['retired:'.$order['id'].':'.hash('sha256',$row['provider'].'|'.$row['external_id']),json_encode($meta),$linked['id']]);
         query("UPDATE shop_services SET status='cancelled' WHERE id=?",[$linked['id']]);
     }
-    $export=one('SELECT * FROM shop_vps_exports WHERE order_id=?',[$order['id']]);
+    $export=SchemaManager::hasTable(db(),'shop_vps_exports')?one('SELECT * FROM shop_vps_exports WHERE order_id=?',[$order['id']]):null;
     if($export){$p=json_decode($export['payload'],true)?:[];$p['admin_provider_ended']=$payload['admin_provider_ended'];query('UPDATE shop_vps_exports SET state=?,payload=?,last_error=NULL,updated_ts=? WHERE order_id=?',[$export['state']==='ready'?'ready':'cancelled',json_encode($p),$now,$order['id']]);}
     if(($intent=module_order_intent((int)$order['id'])) && $intent['applied_at']){
         $parent=one('SELECT * FROM shop_orders WHERE id=? AND customer_id=?',[$intent['parent_order_id'],$order['customer_id']]);$pc=$parent?one('SELECT * FROM shop_contracts WHERE order_id=?',[$parent['id']]):null;

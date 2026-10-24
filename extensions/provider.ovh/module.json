@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "core": ">=3.9.9 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.connections": "^1.0.0"
+  },
+  "routes": {},
+  "jobs": {},
+  "permissions": [
+    "backend:admin"
+  ],
+  "migrations": [],
+  "id": "provider.ovh",
+  "name": "OVHcloud",
+  "providers": {
+    "ovh": {
+      "runtime": "runtime.php",
+      "name": "OVH",
+      "fields": {
+        "endpoint": [
+          "API-Region",
+          "select",
+          {
+            "ovh-eu": "Europa",
+            "ovh-ca": "Kanada",
+            "ovh-us": "USA"
+          }
+        ],
+        "subsidiary": [
+          "Vertragsland",
+          "text",
+          "DE"
+        ],
+        "application_key": [
+          "Application Key",
+          "secret"
+        ],
+        "application_secret": [
+          "Application Secret",
+          "secret"
+        ],
+        "consumer_key": [
+          "Consumer Key",
+          "secret"
+        ]
+      },
+      "capabilities": [
+        "connection.read",
+        "zone.read",
+        "domain.read",
+        "vps.read",
+        "zone.write",
+        "domain.order"
+      ],
+      "resources": [
+        "zone",
+        "domain",
+        "vps"
+      ],
+      "api_contract": "existing-adapter-v1"
+    }
+  }
+}

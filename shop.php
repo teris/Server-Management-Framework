@@ -10,7 +10,10 @@ try {
     $routes=$registry->routes();
     if(!isset($routes[$path]))throw new SecurityViolation('Nicht gefunden.',404);
     $registry->assertEnabled($routes[$path]['module']);
-    require __DIR__.'/extensions/shop.storage/legacy/controller.php';
+    if(is_array($routes[$path]['definition'])){
+        $controller=$routes[$path]['definition']['controller']??'';
+        require $registry->file($routes[$path]['module'],$controller);
+    }else require __DIR__.'/extensions/shop.storage/legacy/controller.php';
 } catch(Throwable $exception) {
     error_log('Shop request failed: '.get_class($exception).' at '.$exception->getFile().':'.$exception->getLine());
     while(ob_get_level())ob_end_clean();

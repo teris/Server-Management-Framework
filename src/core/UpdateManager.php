@@ -37,7 +37,7 @@ final class UpdateManager {
     public static function safePath(string $path): bool {
         if (!preg_match('~^[a-zA-Z0-9_.-]+(?:/[a-zA-Z0-9_.-]+)*$~D',$path)) return false;
         foreach (explode('/',$path) as $part) if (in_array($part,['.','..'],true) || ($part[0] === '.' && $part !== '.htaccess')) return false;
-        return !preg_match('~^(?:private|var|cache|logs|backups|tests|vendor|node_modules)/|(?:^|/)(?:config\.inc\.php|setup-access\.php|sys\.conf\.local\.php|\.encryption_key)$|\.(?:sqlite3?|db|log|bak|bnk|zip|tar|gz|pem|key|env)(?:[.-]|$)~i',$path);
+        return !preg_match('~^(?:private|var|cache|logs|backups|tests|vendor|node_modules)/|(?:^|/)(?:config\.inc\.php|setup-access\.php|smf_ogp_bridge_config\.php|smf-ogp-bridge\.json|sys\.conf\.local\.php|\.encryption_key)$|\.(?:sqlite3?|db|log|bak|bnk|zip|tar|gz|pem|key|env)(?:[.-]|$)~i',$path);
     }
     private function inspect(string $package): array {
         if (!class_exists('ZipArchive') || !is_file($package) || is_link($package) || filesize($package)>67108864) throw new RuntimeException('Invalid update archive or missing ZIP extension');
@@ -116,6 +116,10 @@ final class UpdateManager {
         }
         $zip=new ZipArchive();$zip->open($package);
         try{foreach($manifest['files']as$path=>$hash){$file=$target.'/'.$path;if(!is_dir(dirname($file)))mkdir(dirname($file),0755,true);$stream=$zip->getStream($path);$output=fopen($file,'wb');if(!$output||!$stream)throw new RuntimeException('Release extraction failed');$length=stream_copy_to_stream($stream,$output,8388609);fclose($stream);fclose($output);chmod($file,0644);if($length>8388608||!hash_equals($hash,hash_file('sha256',$file)))throw new RuntimeException('Extracted checksum mismatch');}}finally{$zip->close();}
+        if($manifest['type']==='core'){
+            $inventory=array_values(array_unique([...$inventory,...array_keys($manifest['files'])]));sort($inventory);
+            file_put_contents($target.'/deploy/package-files.json',json_encode($inventory,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n");
+        }
         $legacyLocal=$job['source_root'].'/src/sys.conf.local.php';
         if(is_file($legacyLocal)){
             if(is_link($legacyLocal))throw new RuntimeException('Legacy settings symlink rejected');

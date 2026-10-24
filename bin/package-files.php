@@ -6,7 +6,7 @@ if (!is_array($manifest) || !$manifest || count($manifest) !== count(array_uniqu
 foreach ($manifest as $path) {
     if (!is_string($path) || !preg_match('~^[a-zA-Z0-9_.-]+(?:/[a-zA-Z0-9_.-]+)*$~D', $path)
         || in_array('..', explode('/', $path), true)
-        || preg_match('~(?:^|/)(?:config\.inc\.php|setup-access\.php|sys\.conf\.local\.php|\.env[^/]*|\.encryption_key)$|\.(?:db|sqlite3?|log|bnk|bak|zip|pem|key|tar|tgz|gz|7z|rar)(?:[.-]|$)~i', $path))
+        || preg_match('~(?:^|/)(?:config\.inc\.php|setup-access\.php|smf_ogp_bridge_config\.php|smf-ogp-bridge\.json|sys\.conf\.local\.php|\.env[^/]*|\.encryption_key)$|\.(?:db|sqlite3?|log|bnk|bak|zip|pem|key|tar|tgz|gz|7z|rar)(?:[.-]|$)~i', $path))
         throw new RuntimeException('Unsafe package manifest entry');
     $candidate = $root;
     foreach (explode('/', $path) as $part) {

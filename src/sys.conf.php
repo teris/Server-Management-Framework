@@ -7,7 +7,7 @@ require_once dirname(__DIR__).'/config/load.php';
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.9.9
+ * @version 3.10.0
  */
 
 // LanguageManager einbinden (falls verfügbar)
@@ -164,7 +164,7 @@ $plugins = array (
 
 // --- SYSTEM_CONFIG START ---
 $system_config = array (
-  'version' => '3.9.9',
+  'version' => '3.10.0',
   'theme' => 'default',
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',

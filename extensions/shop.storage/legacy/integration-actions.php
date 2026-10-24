@@ -95,7 +95,7 @@ function handle_integration_action(string $action): bool {
         exit;
       case 'integration_test':
         require_admin();rate_limit('integration_test',20,900);$provider=text_field('provider',30);
-        try{$result=provider_client($provider)->test();query("UPDATE shop_integrations SET tested_at=CURRENT_TIMESTAMP,test_result='ok' WHERE provider=?",[$provider]);audit_event('integration.test',$provider);flash($result['message']);}
+        try{$result=isset(SMF\Core\Kernel::boot()->modules()->providers()[$provider])?SMF\Core\ProviderDiagnostics::check($provider):provider_client($provider)->test();query("UPDATE shop_integrations SET tested_at=CURRENT_TIMESTAMP,test_result='ok' WHERE provider=?",[$provider]);audit_event('integration.test',$provider);flash($result['message']);}
         catch(Throwable $e){query("UPDATE shop_integrations SET tested_at=NULL,test_result='failed' WHERE provider=?",[$provider]);audit_event('integration.test',$provider,'failed');throw $e;}
         redirect('/admin/schnittstellen?anbieter='.rawurlencode($provider));
       case 'automation_save':

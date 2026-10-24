@@ -1,5 +1,5 @@
 <?php
-function package_provider(string $category): string {return ['hosting'=>'ispconfig','server'=>'proxmox','domain'=>'ovh','managed'=>'manual'][$category]??'manual';}
+function package_provider(string $category): string {return ['hosting'=>'ispconfig','server'=>'proxmox','domain'=>'ovh','managed'=>'manual','gameserver'=>'ogp'][$category]??'manual';}
 function package_price_valid(array $p): bool {if(isset($p['_purchase_pricing']) && (int)$p['price_cents']===0 && ($p['_purchase_pricing']['coupon'] || $p['_purchase_pricing']['reward_id']))return true;return $p['price_cents']!==null && ((int)$p['price_cents']>0 || ((int)$p['price_cents']===0 && in_array($p['category'],['hosting','server'],true)));}
 function provider_label(string $provider): string {return $provider==='manual'?'Persönliche Bereitstellung':(integration_definitions()[$provider]['name']??$provider);}
 function checkout_documents(): array {
@@ -27,6 +27,15 @@ function package_requirements(array $p): array {
         'withdrawal'=>['Widerrufsinformationen verlinkt',!empty($documents['withdrawal_url']),'/admin/produkte#bestellunterlagen'],
         'worker'=>['Automatische Auftragsverarbeitung erreichbar',($payment['mode']??'sandbox')!=='live' || ($worker && (int)$worker['meta_value']>=time()-300),'/admin/automatisierung'],
     ];
+    $productModule=['hosting'=>'webhosting','server'=>'vps','gameserver'=>'gameserver'][$p['category']]??null;
+    if($productModule){
+        $registry=SMF\Core\Kernel::boot()->modules();
+        $items['product_module']=['Produktmodul aktiviert',$registry->enabled('product.'.$productModule),'/admin/einrichtung'];
+        $types=new SMF\Core\ProductRegistry($registry);$required=[];foreach($registry->providers()as$id=>$entry)$required[$id]=SMF\Core\ProviderDiagnostics::capabilities($id);
+        $items['product_capabilities']=['Erforderliche Produkt- und Providerfähigkeiten geprüft',!$types->blockers($productModule,$required),'/admin/einrichtung'];
+        if($productModule==='webhosting')foreach(['mail_limit'=>['mail.read','mail.create'],'database_limit'=>['database.read','database.create']]as$field=>$caps)if((int)($settings[$field]??0)>0)$items['capability_'.$field]=['Providerkontingent für '.$field.' geprüft',!array_diff($caps,$required['ispconfig']??[]),'/admin/einrichtung'];
+        if($productModule==='gameserver')$items['game_capabilities']=['Gameserverfähigkeiten und Anschluss geprüft',class_exists('SMF\\Modules\\Gameserver\\Catalog') && !SMF\Modules\Gameserver\Catalog::blockers($p),'/admin/gameserver'];
+    }
     if(isset($p['_domain_tld_id']))$items['domain_extension']=['Domainendung freigegeben',(bool)$p['_tld_enabled'],'/admin/domains?id='.$p['_domain_tld_id']];
     if($provider==='ovh')$items['domain_cost']=['OVH-Einkaufsgrenze hinterlegt',(int)($settings['max_purchase_cents']??0)>0,isset($p['_domain_tld_id'])?'/admin/domains?id='.$p['_domain_tld_id']:'/admin/produkte?id='.$p['id']];
     if($provider==='ovh')$items['domain_billing']=['Domainpreis für ein Registrierungsjahr',in_array($p['billing'],['year','once'],true),'/admin/produkte?id='.$p['id']];

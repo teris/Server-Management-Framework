@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__.'/components.php';
+require_once dirname(__DIR__).'/shop.storage/legacy/views/components.php';
 $exports=$isAdmin?all('SELECT e.*,o.reference,o.product_name,c.last_error AS contract_error FROM shop_vps_exports e JOIN shop_orders o ON o.id=e.order_id LEFT JOIN shop_contracts c ON c.order_id=e.order_id ORDER BY e.updated_ts DESC LIMIT 100'):all('SELECT e.*,o.reference,o.product_name FROM shop_vps_exports e JOIN shop_orders o ON o.id=e.order_id WHERE e.customer_id=? ORDER BY e.updated_ts DESC LIMIT 100',[(int)user()['id']]);
 $states=['queued'=>'Sicherung vorgemerkt','building'=>'Sicherung wird vorbereitet','ready'=>'Download bereit','deleting'=>'VPS-Löschung angefragt','delete_wait'=>'VPS wird gelöscht','cleanup'=>'Sicherung wird entfernt','done'=>'Abschluss erledigt','needs_action'=>'Prüfung erforderlich'];
 ?>

@@ -48,7 +48,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
         with:
           php-version: '8.3'
-          extensions: pdo_mysql, mbstring, simplexml, dom, curl, soap, ctype, tokenizer, zip
+          extensions: pdo_mysql, pdo_sqlite, sqlite3, mbstring, simplexml, dom, curl, soap, ctype, tokenizer, zip
           coverage: none
       - name: Native database clients
         run: sudo apt-get update -qq && sudo apt-get install -y mariadb-client
@@ -61,6 +61,10 @@ jobs:
         run: |
           python3 tests/test_database_engines.py --engines mysql
           python3 tests/test_modular_database.py
+          python3 tests/test_modular_database.py --suite provider_modules
+          python3 tests/test_modular_database.py --suite provider_matrix
+          python3 tests/test_modular_database.py --suite gameserver
+          SMF_TEST_SETUP_NATIVE=1 python3 tests/test_setup.py
   postgresql:
     runs-on: ubuntu-24.04
     services:
@@ -104,7 +108,11 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/smf-browser" playwright@1.62.1
           "$RUNNER_TEMP/smf-browser/node_modules/.bin/playwright" install --with-deps chromium
       - name: Desktop, mobile, keyboard and operator settings
-        run: SMF_PLAYWRIGHT_MODULE="$RUNNER_TEMP/smf-browser/node_modules/playwright" python3 tests/test_browser_stability.py
+        run: |
+          export SMF_PLAYWRIGHT_MODULE="$RUNNER_TEMP/smf-browser/node_modules/playwright"
+          python3 tests/test_browser_stability.py
+          python3 tests/test_setup_browser.py
+          python3 tests/test_modules_browser.py
   release_package:
     runs-on: ubuntu-24.04
     needs: [regressions, mysql, postgresql, browser]

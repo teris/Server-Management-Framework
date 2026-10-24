@@ -1,6 +1,6 @@
 # Server Management Framework
 
-PHP-Anwendung für Proxmox, ISPConfig, OVH und OGP mit Verwaltung und Kundenportal. Release **[3.9.9](docs/releases/3.9.9.md)** enthält den modularen Kern, elf optionale Shop-Erweiterungen und einen geschützten Installationsassistenten. Das veröffentlichte Vorgängerrelease ist [3.2.8](docs/releases/3.2.8.md). PHP mindestens 8.3 und eine explizite Datenbankmigration sind erforderlich.
+PHP-Anwendung für Proxmox, ISPConfig, OVH und OGP mit Verwaltung und Kundenportal. Release **[3.10.0](docs/releases/3.10.0.md)** ergänzt eigenständige Provider- und Produktmodule, Gameserverbereitstellung über OGP, Einrichtung/Upgrade und signierte Teilpakete. [3.9.9](docs/releases/3.9.9.md) bleibt als vorheriges Sammelrelease verfügbar. PHP mindestens 8.3 und eine explizite Datenbankmigration sind erforderlich.
 
 [Modularer Betrieb und Migration](docs/pruefung-2026-10-24/BETRIEB-AP18-AP27.md) · [Umsetzung und Testbereitstellung](docs/pruefung-2026-10-24/UMSETZUNG-AP18-AP27.md) · [Changelog](CHANGELOG.md)
 
@@ -34,3 +34,5 @@ python3 tests/run_all.py --report /tmp/smf-regressions.json
 ```
 
 Benötigt werden PHP mit den Testextensions, Python 3 mit cryptography und Node.js. Der Browserlauf benötigt zusätzlich Playwright; Einzelheiten und native Datenbanktests stehen in der Betriebsanleitung. Die [Umsetzungsübersicht AP10–AP17](docs/pruefung-2026-10-24/UMSETZUNG-AP10-AP17.md) verlinkt die Ergebnisse und bekannten Grenzen. Die GitHub-Actions-Konfiguration ist vorbereitet; ohne Push ist kein entfernter CI-Lauf belegt.
+
+Modulbetrieb, reduzierte Pakete und Bestandsupgrade: [AP31/AP35–AP46](docs/pruefung-2026-10-24/MODULE-AP31-AP46.md). OGP-Erweiterung: [Installation und Grenzen](integrations/ogp/README.md).

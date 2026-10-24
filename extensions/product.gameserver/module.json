@@ -1,0 +1,63 @@
+{
+  "id": "product.gameserver",
+  "name": "Gameserver",
+  "version": "1.0.0",
+  "core": ">=3.9.9 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.orders": "^1.0.0",
+    "shop.provisioning": "^1.0.0",
+    "shop.contracts": "^1.0.0",
+    "provider.ogp": "^1.0.0"
+  },
+  "routes": {
+    "/gameserver": {
+      "controller": "controller.php"
+    },
+    "/konto/gameserver": {
+      "controller": "controller.php"
+    },
+    "/admin/gameserver": {
+      "controller": "controller.php"
+    }
+  },
+  "jobs": {
+    "product.gameserver": {
+      "runtime": "worker.php",
+      "replay": "reconcile",
+      "tick": true
+    }
+  },
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": [
+    "migrations/001.php"
+  ],
+  "products": {
+    "gameserver": {
+      "runtime": "runtime.php",
+      "requires_capabilities": {
+        "ogp": [
+          "connection.read",
+          "home.read",
+          "home.create",
+          "game.install",
+          "game.control",
+          "installation.status",
+          "home.identity",
+          "home.delete",
+          "port.read",
+          "game.definition",
+          "home.configure"
+        ]
+      }
+    }
+  },
+  "migration_inputs": {
+    "migrations/001.php": [
+      "schema.json"
+    ]
+  }
+}

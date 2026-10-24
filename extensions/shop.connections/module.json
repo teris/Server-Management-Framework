@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "core": ">=3.9.9 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.storage": "^1.0.0"
+  },
+  "routes": {
+    "/admin/einrichtung": {
+      "controller": "onboarding.php"
+    }
+  },
+  "jobs": {},
+  "permissions": [
+    "backend:admin"
+  ],
+  "migrations": [
+    "migrations/001.php"
+  ],
+  "id": "shop.connections",
+  "name": "Provideranschlüsse und Einrichtung",
+  "migration_inputs": {
+    "migrations/001.php": [
+      "schema.json"
+    ]
+  }
+}

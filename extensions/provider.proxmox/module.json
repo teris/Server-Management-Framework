@@ -1,0 +1,82 @@
+{
+  "version": "1.0.0",
+  "core": ">=3.9.9 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.connections": "^1.0.0"
+  },
+  "routes": {},
+  "jobs": {},
+  "permissions": [
+    "backend:admin"
+  ],
+  "migrations": [],
+  "id": "provider.proxmox",
+  "name": "Proxmox VE",
+  "providers": {
+    "proxmox": {
+      "runtime": "runtime.php",
+      "name": "PROXMOX",
+      "fields": {
+        "auth_mode": [
+          "Anmeldung",
+          "select",
+          {
+            "password": "Benutzername & Passwort",
+            "token": "API-Token"
+          }
+        ],
+        "url": [
+          "Proxmox-Host",
+          "host",
+          ""
+        ],
+        "username": [
+          "Benutzername",
+          "text",
+          ""
+        ],
+        "password": [
+          "Passwort",
+          "secret"
+        ],
+        "token_id": [
+          "API-Token-ID",
+          "text",
+          ""
+        ],
+        "token_secret": [
+          "API-Token-Secret",
+          "secret"
+        ],
+        "node": [
+          "Ziel-Node",
+          "text",
+          ""
+        ],
+        "pool": [
+          "Shop-Pool",
+          "text",
+          ""
+        ],
+        "ca_pem": [
+          "Eigene CA (optional)",
+          "pem"
+        ]
+      },
+      "capabilities": [
+        "connection.read",
+        "node.read",
+        "pool.read",
+        "vm.read",
+        "vm.create",
+        "vm.control"
+      ],
+      "resources": [
+        "qemu",
+        "lxc"
+      ],
+      "api_contract": "existing-adapter-v1"
+    }
+  }
+}

@@ -7,13 +7,17 @@ final class ShopResourceBindings {
     public static function grantId(int $service): string {return substr(hash('sha256','smf:shop-service:'.$service),0,32);}
     public static function grant(int $service,int $customer,string $provider,array $metadata,bool $write=true): void {
         if($provider==='manual')return;
-        [$type,$external]=match($provider){'proxmox'=>[($metadata['type']??'qemu')==='lxc'?'lxc':'qemu',(string)($metadata['vmid']??'')],'ispconfig'=>['website',(string)($metadata['website_id']??'')],'ovh'=>['zone',(string)($metadata['zone']??'')],default=>throw new RuntimeException('Unknown shop provider')};
+        [$type,$external]=match($provider){'proxmox'=>[($metadata['type']??'qemu')==='lxc'?'lxc':'qemu',(string)($metadata['vmid']??'')],'ispconfig'=>['website',(string)($metadata['website_id']??'')],'ovh'=>['zone',(string)($metadata['zone']??'')],'ogp'=>['gamehome',(string)($metadata['home_id']??'')],default=>throw new RuntimeException('Unknown shop provider')};
         $core=['shop_service_id'=>$service];
         if($provider==='proxmox'){
             $core+=['node'=>$metadata['node']??'','instance_id'=>$metadata['core_instance_id']??''];
             if($type==='lxc')$core['ownership_marker']=$metadata['ownership_marker']??'';
             if(!preg_match($type==='qemu'?'/^[a-f0-9-]{36}$/Di':'/^[a-f0-9]{32}$/D',$core['instance_id']))throw new RuntimeException('Physical VM identity required before binding');
         }elseif($provider==='ispconfig')$core['group_id']=(int)($metadata['group_id']??0);
+        elseif($provider==='ogp'){
+            if(!preg_match('/^[a-f0-9]{64}$/D',$metadata['physical_id']??'') || !preg_match('/^SMF-[a-f0-9]{32}$/D',$metadata['marker']??''))throw new RuntimeException('Physical game-home identity required');
+            $core+=array_intersect_key($metadata,array_flip(['home_id','agent_id','home_cfg_id','mod_cfg_id','mod_key','ip','port','user_id','physical_id','marker']));
+        }
         $db=\HttpSecurity::connection();$id=self::grantId($service);$connection=$metadata['connection_id']??'';
         if(!hash_equals(\ResourceAccess::connectionId($provider),$connection))throw new RuntimeException('Provider account changed before binding');
         $q=$db->prepare('SELECT * FROM security_resource_assignments WHERE id=?');$q->execute([$id]);$old=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
@@ -39,6 +43,11 @@ final class ShopResourceBindings {
         if(!hash_equals($grant['connection_id'],$meta['connection_id']??''))return false;
         if($grant['provider']==='proxmox')return ($grant['resource_type']===($meta['type']??'qemu'))&&$grant['external_id']===(string)($meta['vmid']??'')&&($metadata['node']??'')===($meta['node']??'')&&hash_equals($metadata['instance_id']??'',(string)($meta['core_instance_id']??''));
         if($grant['provider']==='ispconfig')return $grant['external_id']===(string)($meta['website_id']??'')&&(int)($metadata['group_id']??0)===(int)($meta['group_id']??0);
+        if($grant['provider']==='ogp'){
+            if($grant['resource_type']!=='gamehome' || $grant['external_id']!==(string)($meta['home_id']??''))return false;
+            foreach(['agent_id','home_cfg_id','mod_cfg_id','mod_key','ip','port','user_id','physical_id','marker'] as $key)if(!isset($metadata[$key],$meta[$key]) || (string)$metadata[$key] !== (string)$meta[$key])return false;
+            return true;
+        }
         return $grant['external_id']===(string)($meta['zone']??'');
     }
     public static function revoke(int $service): void {
