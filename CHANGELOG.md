@@ -4,6 +4,15 @@ Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei
 
 
 
+## Unveröffentlichte Weiterentwicklung: Installation und OpenGamePanel
+
+- Neuer Arbeitsplan AP31–AP46 für eigenständige Provider-/Produktmodule und den vollständigen Gameserver-Verkaufsablauf über OpenGamePanel.
+- Geschützter Browserassistent für neue Shops ohne vorbereitete Konfiguration: Datenbank, privater Speicher, Administrator, Mailverfahren, Modulauswahl und Sandbox. CLI-Einstieg und FTP-Freigabedatei mit eigenem HTTP-Schutz.
+- Lokale Installationshinweise und gezielte HTTPS-Prüfungen von ISPConfig/OGP mit bestehenden Zugangsdaten. Nicht überprüfbare Systeme werden nicht als fehlende Installation ausgegeben; ungeprüfte Anschlüsse bleiben aus.
+- Wiederaufnahme nach Installationsabbruch, Schutz vorhandener Datenbanken/Konten und Ausschluss privater Installationsschlüssel aus Update-/Releasepaketen.
+- Bestehende OGP-Tokenprüfung und explizite Tokenanlage übertragen Geheimnisse im POST-Body; eine fehlgeschlagene Anmeldung wird nicht als gültiger Token übernommen.
+- Automatische OGP-Gameserverbereitstellung bleibt Teil der noch offenen Fachpakete. Keine erneute Installation des bestehenden Testsystems.
+
 ## [3.3.0] - in Vorbereitung
 
 AP18–AP27: modularer Kern und Übernahme des vorhandenen Online Shops. Auf dem eigenen Testsystem am 24.10.2026 aktiviert und abgenommen; die öffentliche GitHub-Veröffentlichung ist ein eigener Schritt.

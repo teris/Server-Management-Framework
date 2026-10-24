@@ -103,6 +103,10 @@ Ein Shop-Zuwachs muss keinen dringenden Sicherheitshotfix verzögern. Kernversio
 
 GitHub unterstützt unveränderbare Releases und zugehörige Release-Attestierungen. Sinnvoller Ablauf: Entwurf erstellen, alle Pakete anhängen, erst danach veröffentlichen. Quelle: [GitHub – Immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases), geprüft am 24.10.2026. Diese Funktion wird für das Zielrepository erst bei Umsetzung eingerichtet; sie wurde in dieser Prüfung nicht verändert.
 
+## Weiterentwicklung: modulare Provider und Installation
+
+Der neue [Arbeitsplan AP31–AP46](ARBEITSPLAN-OGP-INSTALLER.md) behandelt eigenständige Provider-/Produktmodule, OpenGamePanel und die geführte Shopinstallation. Die [Installer-Anleitung](INSTALLATION-SHOP.md) dokumentiert den neuen Erstinstallationsweg und seine Grenzen.
+
 ## Nächster Veröffentlichungsschritt
 
 AP18–AP27 sind auf dem Testsystem abgenommen. Für 3.3.0 stehen die öffentliche GitHub-Veröffentlichung mit signierten Paketen und eine gesonderte produktive Umschaltung aus. Der ursprüngliche Online Shop bleibt bis zu seinem eigenen gesicherten Umschalttermin in Betrieb. Der Testupload nach `remote.orga-consult.eu` erfolgte auf ausdrücklichen Benutzerwunsch per FTP auf Port 21; die allgemeine Empfehlung eines verschlüsselten Produktivuploads bleibt bestehen.

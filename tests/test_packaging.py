@@ -3,7 +3,7 @@ from pathlib import Path
 from php_runtime import php_command
 root=Path(__file__).resolve().parents[1]
 files=json.loads(subprocess.check_output(php_command()+[str(root/'bin/package-files.php')],text=True));checks=0
-for forbidden in ['config/config.inc.php','src/install.php','src/setup.php','src/debug.php','src/debug/index.php','src/info.php','src/auth.php','src/ajax_ip_mac_reverse.php','test.php','config/framework-mongodb.js','install/database-structure-install-mongodb.js']:
+for forbidden in ['config/setup-access.php','config/config.inc.php','src/install.php','src/setup.php','src/debug.php','src/debug/index.php','src/info.php','src/auth.php','src/ajax_ip_mac_reverse.php','test.php','config/framework-mongodb.js','install/database-structure-install-mongodb.js']:
     assert forbidden not in files,forbidden
     checks+=1
 assert all(not name.endswith(('.db','.sqlite','.pem','.key','.zip','.log','.bak','.bnk','.tar.gz')) for name in files);checks+=1
@@ -25,5 +25,7 @@ with tempfile.TemporaryDirectory(prefix='smf-package-') as directory:
     target.touch();manifest.write_text(json.dumps(files+['../outside.txt']))
     assert select().returncode!=0;checks+=1
     manifest.write_text(json.dumps(files+['archive.tar.gz']))
+    assert select().returncode!=0;checks+=1
+    manifest.write_text(json.dumps(files+['config/setup-access.php']));(fixture/'config/setup-access.php').write_text('fixture-private-start-key')
     assert select().returncode!=0;checks+=1
 print(json.dumps({'checks':checks,'files_selected':len(files),'failed':0}))

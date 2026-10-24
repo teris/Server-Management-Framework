@@ -1,0 +1,203 @@
+{
+  "date": "2026-10-24",
+  "php_version": "8.3.6",
+  "node_version": "v24.22.1",
+  "suites": {
+    "php_syntax": {
+      "php_files": 324,
+      "short_open_tag": [
+        "Off",
+        "On"
+      ],
+      "errors": []
+    },
+    "authorization_sessions_files": {
+      "checks": 119,
+      "failed": 0,
+      "failures": []
+    },
+    "modular_shop": {
+      "checks": 86,
+      "failed": 0,
+      "failures": []
+    },
+    "shop_migration": {
+      "checks": 12,
+      "failed": 0,
+      "restore_verified": true,
+      "key_rotation_verified": true
+    },
+    "guided_setup": {
+      "checks": 77,
+      "failed": 0,
+      "provider_writes": 0,
+      "tested": [
+        "verified TLS detection",
+        "interrupted CLI resume",
+        "foreign database preservation",
+        "guided browser install",
+        "administrator login",
+        "completed installer lock"
+      ]
+    },
+    "shop_node_runners": {
+      "checks": 13,
+      "failed": 0,
+      "provider_writes": 0
+    },
+    "database_sqlite": {
+      "checks": 235,
+      "failed": 0,
+      "engines": [
+        {
+          "driver": "sqlite",
+          "server_version": "3.45.1",
+          "legacy": false,
+          "fixture": "fresh",
+          "static_queries_checked": 233,
+          "legacy_ddl_adjustments": [],
+          "checks": 75,
+          "failed": 0
+        },
+        {
+          "driver": "sqlite",
+          "server_version": "3.45.1",
+          "legacy": true,
+          "fixture": "legacy",
+          "static_queries_checked": 233,
+          "legacy_ddl_adjustments": [],
+          "checks": 80,
+          "failed": 0
+        },
+        {
+          "driver": "sqlite",
+          "server_version": "3.45.1",
+          "legacy": true,
+          "fixture": "legacy_full",
+          "static_queries_checked": 233,
+          "legacy_ddl_adjustments": [],
+          "checks": 80,
+          "failed": 0
+        }
+      ]
+    },
+    "changed_browser_syntax": {
+      "files": 54,
+      "failed": 0,
+      "errors": []
+    },
+    "core_invariants": {
+      "checks": 333,
+      "failed": 0,
+      "schema_snapshots": 9,
+      "cache_provider_writes": "rejected",
+      "utf8": "valid"
+    },
+    "user_provider_contracts": {
+      "checks": 43,
+      "failed": 0,
+      "live_provider_mutations": 0
+    },
+    "signed_updates": {
+      "checks": 42,
+      "failed": 0,
+      "engine": "SQLite 3",
+      "signed_packages": true,
+      "real_cli_migration": true
+    },
+    "registration_install_smtps": {
+      "checks": 27,
+      "failed": 0,
+      "mail_transport": "real local SMTPS",
+      "live_provider_mutations": 0
+    },
+    "http": {
+      "checks": 47,
+      "failed": 0,
+      "provider_calls": 8
+    },
+    "shop_http": {
+      "checks": 54,
+      "failed": 0
+    },
+    "tls": {
+      "checks": 5,
+      "failed": []
+    },
+    "concurrency": {
+      "checks": 2,
+      "failed": 0,
+      "parallel_requests": 30
+    },
+    "package_selection": {
+      "checks": 21,
+      "files_selected": 510,
+      "failed": 0
+    },
+    "private_config_migration": {
+      "checks": 6,
+      "failed": 0
+    },
+    "session_browser": {
+      "checks": 2,
+      "failed": 0
+    },
+    "csrf_browser": {
+      "checks": 4,
+      "failed": 0
+    }
+  },
+  "limitations": [
+    "Current remote test installation unchanged",
+    "OGP game product and automatic provisioning remain planned in AP35-AP39",
+    "Provider API behavior tested with local TLS fixtures; no real OGP agent or ISPConfig installation acceptance",
+    "SMTP delivery and actual cron setup remain operator checks",
+    "No new public GitHub release or remote Actions run"
+  ],
+  "scope": "New shop installer, ISPConfig/OGP discovery and modular integration plan",
+  "status": "passed",
+  "deployed": false,
+  "native_mysql_installer": {
+    "checks": 84,
+    "failed": 0,
+    "provider_writes": 0,
+    "tested": [
+      "verified TLS detection",
+      "interrupted CLI resume",
+      "foreign database preservation",
+      "guided browser install",
+      "administrator login",
+      "completed installer lock"
+    ]
+  },
+  "installer_browser": {
+    "checks": 12,
+    "failed": 0,
+    "passed": [
+      "installer opens without configuration",
+      "mobile installer has no horizontal overflow",
+      "wizard advances to panel discovery: {\"alerts\":[],\"invalid\":[],\"headings\":[\"Vorhandene Panels erkennen\"]}",
+      "shop works without external panels",
+      "desktop installer has no horizontal overflow",
+      "installation has a concrete final review",
+      "guided installation completes in browser",
+      "completion reports actual scheduler status",
+      "chosen administrator signs into installed application",
+      "completed installation cannot be reopened",
+      "no uncaught browser errors",
+      "installer assets load successfully"
+    ],
+    "browser": "135.0.7049.115",
+    "viewports": [
+      "390x844",
+      "1440x1000"
+    ]
+  },
+  "security": {
+    "existing_database_overwrite": "rejected",
+    "completed_installer_reopen": "rejected",
+    "bootstrap_secret_in_release": "rejected",
+    "legacy_ogp_credentials_in_url": "removed",
+    "provider_resource_mutations": 0
+  }
+}

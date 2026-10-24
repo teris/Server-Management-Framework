@@ -60,6 +60,7 @@ class Config {
     const ISPCONFIG_USER 		= 'user';										//ISPConfig 3 User
     const ISPCONFIG_PASSWORD 	= 'password';									//ISPConfig 3 Password
     const ISPCONFIG_USEING 		= false;											//ISPConfig Useing
+    const ISPCONFIG_SERVER_ID = 1; // Default webserver for the shared ISPConfig adapter
 
     const OVH_APPLICATION_KEY 	= '';											//OVH Application Key
     const OVH_APPLICATION_SECRET = '';											//OVH Application Secret

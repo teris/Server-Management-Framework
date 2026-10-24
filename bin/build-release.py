@@ -10,7 +10,7 @@ def git(*args):return subprocess.check_output(['git',*args],cwd=ROOT)
 def safe_path(path):
     return (isinstance(path,str) and re.fullmatch(r'[a-zA-Z0-9_.-]+(?:/[a-zA-Z0-9_.-]+)*',path)
         and all(p not in ['.','..'] and (not p.startswith('.') or p=='.htaccess') for p in path.split('/'))
-        and not re.search(r'^(?:tests|private|var|cache|logs|backups|node_modules)/|(?:^|/)(?:config\.inc\.php|sys\.conf\.local\.php|\.encryption_key)$|\.(?:db|sqlite3?|log|bnk|bak|zip|pem|key|env|tar|tgz|gz|7z|rar)(?:[.-]|$)',path,re.I))
+        and not re.search(r'^(?:tests|private|var|cache|logs|backups|node_modules)/|(?:^|/)(?:config\.inc\.php|setup-access\.php|sys\.conf\.local\.php|\.encryption_key)$|\.(?:db|sqlite3?|log|bnk|bak|zip|pem|key|env|tar|tgz|gz|7z|rar)(?:[.-]|$)',path,re.I))
 def build(ref,output,key_file):
     commit=git('rev-parse','--verify',ref+'^{commit}').decode().strip()
     inventory=json.loads(git('show',commit+':deploy/package-files.json'))

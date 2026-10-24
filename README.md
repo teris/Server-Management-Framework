@@ -4,9 +4,11 @@ PHP-Anwendung für Proxmox, ISPConfig, OVH und OGP mit Verwaltung und Kundenport
 
 [Modularer Betrieb und Migration](docs/pruefung-2026-10-24/BETRIEB-AP18-AP27.md) · [Umsetzung und Testbereitstellung](docs/pruefung-2026-10-24/UMSETZUNG-AP18-AP27.md) · [Changelog](CHANGELOG.md)
 
-Lizenz: **Apache License 2.0**, siehe [LICENSE](LICENSE). Es gibt keine vorgegebenen Zugangsdaten und keinen Webinstaller.
+Lizenz: **Apache License 2.0**, siehe [LICENSE](LICENSE). Es gibt keine vorgegebenen Zugangsdaten. Neue Shops verwenden den geschützten Installationsassistenten unter `/setup.php`; der historische Webinstaller bleibt gesperrt.
 
 ## Installation und Upgrade
+
+Für neue Shops: [Geführte Browser-/FTP-Installation](docs/pruefung-2026-10-24/INSTALLATION-SHOP.md). Der [Arbeitsplan AP31–AP46](docs/pruefung-2026-10-24/ARBEITSPLAN-OGP-INSTALLER.md) beschreibt den weiteren Ausbau zu eigenständigen Providermodulen und zum OpenGamePanel-Gameserververkauf. Der Installer erkennt und prüft ISPConfig/OGP; ein geprüftes OGP-Panel ist noch keine automatische Gameserverbereitstellung.
 
 Die verbindliche [Installations- und Betriebsanleitung](docs/pruefung-2026-10-24/BETRIEB-AP10-AP17.md) beschreibt private Konfiguration, Datenbank, Administratoranlage, Mailversand, Webserver und Updates. Für bestehende Installationen zuerst den Abschnitt „Upgrade von 3.2.7“ lesen. Alte Anleitungen zum direkten SQL-Import oder zum Aufruf von `src/install.php`/`src/setup.php` sind überholt.
 

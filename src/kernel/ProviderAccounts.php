@@ -19,7 +19,7 @@ final class ProviderAccounts {
         $value=fn($name,$default='')=>defined('Config::'.$name)?constant('Config::'.$name):$default;
         return match($provider) {
             'proxmox'=>['url'=>rtrim($value('PROXMOX_HOST'),'/'),'auth_mode'=>'password','username'=>$value('PROXMOX_USER'),'password'=>$value('PROXMOX_PASSWORD'),'node'=>'','pool'=>''],
-            'ispconfig'=>['url'=>rtrim($value('ISPCONFIG_HOST'),'/').'/remote/json.php','username'=>$value('ISPCONFIG_USER'),'password'=>$value('ISPCONFIG_PASSWORD'),'server_id'=>1,'mail_server_id'=>1,'db_server_id'=>1,'web_ip'=>'*'],
+            'ispconfig'=>['url'=>rtrim($value('ISPCONFIG_HOST'),'/').'/remote/json.php','username'=>$value('ISPCONFIG_USER'),'password'=>$value('ISPCONFIG_PASSWORD'),'server_id'=>(int)$value('ISPCONFIG_SERVER_ID',1),'mail_server_id'=>1,'db_server_id'=>1,'web_ip'=>'*'],
             'ovh'=>['endpoint'=>$value('OVH_ENDPOINT','ovh-eu'),'application_key'=>$value('OVH_APPLICATION_KEY'),'application_secret'=>$value('OVH_APPLICATION_SECRET'),'consumer_key'=>$value('OVH_CONSUMER_KEY'),'subsidiary'=>'DE'],
             default=>throw new \RuntimeException('Provider has no shared fallback')
         };

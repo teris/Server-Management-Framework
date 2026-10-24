@@ -4,7 +4,7 @@ DirectoryIndex index.php public/index.php
 RewriteEngine On
 RewriteRule ^(?:produkte|konfigurieren|konfigurator|login|registrieren|hilfe|konto(?:/.*)?|admin(?:/.*)?|bestellen|paypal(?:/.*)?|api/(?:paypal/webhook|infrastructure/runner|domain-check)|domain-pruefen|module|faq|dokumente|kuendigen)/?$ shop.php [L,QSA]
 RewriteRule ^(?:config|database|install|docs|tests|bin|deploy|extensions|logs|backups|cache|var|\.git|\.github|\.codex)(?:/|$) - [F,L,NC]
-RewriteRule ^src/(?:core|inc|module|kernel)(?:/|$).*\.php(?:/|$) - [F,L,NC]
+RewriteRule ^src/(?:core|inc|module|kernel|setup)(?:/|$).*\.php(?:/|$) - [F,L,NC]
 RewriteRule ^(?:framework|test)\.php(?:/|$) - [F,L,NC]
 RewriteRule ^src/(?:debug(?:/.*)?|auth|info|install|setup|handler|auth_handler|sys\.conf)\.php(?:/|$) - [F,L,NC]
 RewriteRule (?:^|/)\.[^/]+ - [F,L]

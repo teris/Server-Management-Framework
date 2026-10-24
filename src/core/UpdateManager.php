@@ -37,7 +37,7 @@ final class UpdateManager {
     public static function safePath(string $path): bool {
         if (!preg_match('~^[a-zA-Z0-9_.-]+(?:/[a-zA-Z0-9_.-]+)*$~D',$path)) return false;
         foreach (explode('/',$path) as $part) if (in_array($part,['.','..'],true) || ($part[0] === '.' && $part !== '.htaccess')) return false;
-        return !preg_match('~^(?:private|var|cache|logs|backups|tests|vendor|node_modules)/|(?:^|/)(?:config\.inc\.php|sys\.conf\.local\.php|\.encryption_key)$|\.(?:sqlite3?|db|log|bak|bnk|zip|tar|gz|pem|key|env)(?:[.-]|$)~i',$path);
+        return !preg_match('~^(?:private|var|cache|logs|backups|tests|vendor|node_modules)/|(?:^|/)(?:config\.inc\.php|setup-access\.php|sys\.conf\.local\.php|\.encryption_key)$|\.(?:sqlite3?|db|log|bak|bnk|zip|tar|gz|pem|key|env)(?:[.-]|$)~i',$path);
     }
     private function inspect(string $package): array {
         if (!class_exists('ZipArchive') || !is_file($package) || is_link($package) || filesize($package)>67108864) throw new RuntimeException('Invalid update archive or missing ZIP extension');

@@ -23,6 +23,7 @@ $signature=$testRoot.'/bad-signature.zip';copy($full,$signature);$zip=new ZipArc
 $corrupt=$testRoot.'/corrupt.zip';copy($full,$corrupt);$zip=new ZipArchive();$zip->open($corrupt);$zip->addFromString('framework.php','tampered');$zip->close();rejectPackage($manager,$corrupt,'tampered payload rejected');
 $unsafe=$new;$unsafe['../outside.php']='fixture';rejectPackage($manager,updatePackage($unsafe,'full','3.2.8'),'ZIP traversal rejected');
 $unsafe=$new;$unsafe['config/config.inc.php']='fixture-private';rejectPackage($manager,updatePackage($unsafe,'full','3.2.8'),'runtime config overwrite rejected');
+$unsafe=$new;$unsafe['config/setup-access.php']='fixture-private-start-key';rejectPackage($manager,updatePackage($unsafe,'full','3.2.8'),'installation start key in release rejected');
 $unsafe=$new;$unsafe['src/Foo.php']='a';$unsafe['src/foo.php']='b';rejectPackage($manager,updatePackage($unsafe,'full','3.2.8'),'case collision rejected');
 $symlink=$testRoot.'/symlink.zip';copy($full,$symlink);$zip=new ZipArchive();$zip->open($symlink);$zip->setExternalAttributesName('framework.php',ZipArchive::OPSYS_UNIX,0120777<<16);$zip->close();rejectPackage($manager,$symlink,'ZIP symlink rejected');
 rejectPackage($manager,updatePackage($new,'full','3.2.7'),'same or older version rejected');rejectPackage($manager,updatePackage($new,'full','3.2.8',['php_min'=>'99.0']),'incompatible PHP rejected');

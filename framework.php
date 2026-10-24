@@ -4440,10 +4440,10 @@ class OGPGet extends BaseAPI {
 
     protected function authenticate() {
         // Token erstellen fÃ¼r OGP API
-        $url = $this->host . "/ogp_api.php?token/create/" . urlencode($this->user) . "/" . urlencode($this->password);
-        $response = $this->makeRequest('GET', $url);
+        $url = $this->host . "/ogp_api.php?token/create";
+        $response = $this->makeRequest('POST', $url, ['user'=>$this->user, 'password'=>$this->password]);
         
-        if ($response && isset($response['message'])) {
+        if (is_array($response) && (string)($response['status'] ?? '') === '200' && is_string($response['message'] ?? null) && preg_match('/^[a-f0-9]{64}$/D', $response['message'])) {
             $this->token = $response['message'];
         } else {
             throw new Exception("OGP Authentifizierung fehlgeschlagen");
@@ -4451,9 +4451,8 @@ class OGPGet extends BaseAPI {
     }
 
     public function testToken() {
-        $url = $this->host . "/ogp_api.php?token/test/" . urlencode($this->token);
-        $response = $this->makeRequest('GET', $url);
-        //$this->logRequest('token/test', 'GET', $response !== false);
+        $url = $this->host . "/ogp_api.php?token/test";
+        $response = $this->makeRequest('POST', $url, ['token'=>$this->token]);
         return $response;
     }
 

@@ -1,5 +1,7 @@
 # Local configuration and secrets
 /config/config.inc.php
+/config/.setup.lock
+/config/setup-access.php
 /src/sys.conf.local.php
 .env
 .env.*
