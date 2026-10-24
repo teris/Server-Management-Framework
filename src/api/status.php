@@ -14,10 +14,11 @@ error_reporting(0);
 ini_set('display_errors', 0);
 
 require_once '../sys.conf.php';
-require_once '../../framework.php';
+require_once __DIR__ . '/../../framework.php';
+Identity::requireIdentity('backend', true);
 
 // CORS Headers
-header('Access-Control-Allow-Origin: *');
+// Internal status is same-origin and administrator-only.
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json; charset=utf-8');
@@ -125,7 +126,7 @@ try {
     $statusData['performance_metrics'] = calculatePerformanceMetrics($statusData);
     
     // Cache-Header für Performance
-    header('Cache-Control: public, max-age=30'); // 30 Sekunden Cache
+    header('Cache-Control: private, no-store'); // 30 Sekunden Cache
     header('ETag: "' . md5(json_encode($statusData)) . '"');
     
     // Erfolgsantwort

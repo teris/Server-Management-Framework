@@ -1,641 +1,484 @@
--- =============================================================================
--- OPTIMIERTE DATENBANKSTRUKTUR FÜR SERVER MANAGEMENT SYSTEM
--- =============================================================================
--- Erstellt: 2025-09-03
--- Version: 2.0
--- Beschreibung: Optimierte SQL-Struktur basierend auf Systemanalyse
--- Unterstützte Datenbanken: MySQL, MariaDB, PostgreSQL, SQLite
--- =============================================================================
-
--- MySQL/MariaDB spezifische Einstellungen
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
--- =============================================================================
--- DATENBANK ERSTELLEN
--- =============================================================================
-CREATE DATABASE IF NOT EXISTS `server_management` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `server_management`;
-
--- =============================================================================
--- BENUTZER-TABELLEN
--- =============================================================================
-
--- Admin-Benutzer
-CREATE TABLE `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(100) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `full_name` varchar(255) DEFAULT NULL,
-  `role` varchar(255) DEFAULT NULL,
-  `active` enum('y','n') DEFAULT 'y',
-  `last_login` timestamp NULL DEFAULT NULL,
-  `failed_login_attempts` int(11) DEFAULT 0,
-  `locked_until` timestamp NULL DEFAULT NULL,
-  `password_changed_at` timestamp NULL DEFAULT current_timestamp(),
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_username` (`username`),
-  UNIQUE KEY `unique_email` (`email`),
-  KEY `idx_role` (`role`),
-  KEY `idx_active` (`active`),
-  KEY `idx_last_login` (`last_login`)
+-- Generated from database/schema.json by bin/export-schema.php. No accounts or operator data.
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `username` VARCHAR(100) NOT NULL UNIQUE,
+  `email` VARCHAR(255) NOT NULL UNIQUE,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `full_name` VARCHAR(255),
+  `role` VARCHAR(20) NOT NULL DEFAULT 'user',
+  `active` VARCHAR(1) NOT NULL DEFAULT 'y',
+  `last_login` TIMESTAMP,
+  `failed_login_attempts` INTEGER NOT NULL DEFAULT 0,
+  `locked_until` TIMESTAMP,
+  `password_changed_at` TIMESTAMP,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `group_id` INTEGER
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Kunden-Benutzer
-CREATE TABLE `customers` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `first_name` varchar(100) NOT NULL,
-  `last_name` varchar(100) NOT NULL,
-  `full_name` varchar(255) DEFAULT NULL,
-  `email` varchar(255) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `company` varchar(255) DEFAULT NULL,
-  `phone` varchar(50) DEFAULT NULL,
-  `address` text DEFAULT NULL,
-  `city` varchar(100) DEFAULT NULL,
-  `postal_code` varchar(20) DEFAULT NULL,
-  `country` varchar(100) DEFAULT NULL,
-  `status` enum('pending','active','suspended','deleted') DEFAULT 'pending',
-  `email_verified_at` timestamp NULL DEFAULT NULL,
-  `last_login` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`),
-  KEY `idx_status` (`status`),
-  KEY `idx_email_verified` (`email_verified_at`)
+CREATE INDEX `idx_users_role` ON `users` (role);
+CREATE INDEX `idx_users_active` ON `users` (active);
+CREATE INDEX `idx_users_last_login` ON `users` (last_login);
+CREATE TABLE IF NOT EXISTS `customers` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `first_name` VARCHAR(100) NOT NULL,
+  `last_name` VARCHAR(100) NOT NULL,
+  `full_name` VARCHAR(255),
+  `email` VARCHAR(255) NOT NULL UNIQUE,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `company` VARCHAR(255),
+  `phone` VARCHAR(50),
+  `address` TEXT,
+  `city` VARCHAR(100),
+  `postal_code` VARCHAR(20),
+  `country` VARCHAR(100),
+  `status` VARCHAR(20) NOT NULL DEFAULT 'pending',
+  `email_verified_at` TIMESTAMP,
+  `last_login` TIMESTAMP,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `activated_at` TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =============================================================================
--- AUTHENTIFIZIERUNG UND SICHERHEIT
--- =============================================================================
-
--- Benutzerberechtigungen
-CREATE TABLE `user_permissions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `permission_type` enum('proxmox','ispconfig','ovh','ogp','admin','readonly') NOT NULL,
-  `resource_id` varchar(255) DEFAULT NULL,
-  `granted_by` int(11) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `expires_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_user_permission` (`user_id`,`permission_type`,`resource_id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_permission_type` (`permission_type`),
-  KEY `idx_granted_by` (`granted_by`),
-  CONSTRAINT `user_permissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `user_permissions_ibfk_2` FOREIGN KEY (`granted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+CREATE INDEX `idx_customers_status` ON `customers` (status);
+CREATE INDEX `idx_customers_email_verified_at` ON `customers` (email_verified_at);
+CREATE TABLE IF NOT EXISTS `user_permissions` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `user_id` INTEGER NOT NULL,
+  `permission_type` VARCHAR(20) NOT NULL,
+  `resource_id` VARCHAR(255),
+  `granted_by` INTEGER,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES `users`(id) ON DELETE CASCADE,
+  FOREIGN KEY (granted_by) REFERENCES `users`(id) ON DELETE SET NULL,
+  UNIQUE(user_id, permission_type, resource_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Benutzersitzungen
-CREATE TABLE `user_sessions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `session_id` varchar(128) NOT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `last_activity` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `expires_at` timestamp NOT NULL,
-  `is_active` enum('y','n') DEFAULT 'y',
-  `logout_reason` enum('manual','timeout','forced') DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_session_id` (`session_id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_active` (`is_active`),
-  KEY `idx_expires` (`expires_at`),
-  CONSTRAINT `user_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+CREATE INDEX `idx_user_permissions_user_id` ON `user_permissions` (user_id);
+CREATE INDEX `idx_user_permissions_permission_type` ON `user_permissions` (permission_type);
+CREATE TABLE IF NOT EXISTS `user_sessions` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `user_id` INTEGER NOT NULL,
+  `session_id` VARCHAR(128) NOT NULL UNIQUE,
+  `ip_address` VARCHAR(45),
+  `user_agent` TEXT,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_activity` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` TIMESTAMP NOT NULL,
+  `is_active` VARCHAR(1) NOT NULL DEFAULT 'y',
+  `logout_reason` VARCHAR(20),
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES `users`(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Login-Versuche
-CREATE TABLE `login_attempts` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(100) DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `success` enum('y','n') NOT NULL,
-  `failure_reason` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_username` (`username`),
-  KEY `idx_ip` (`ip_address`),
-  KEY `idx_success` (`success`),
-  KEY `idx_created_at` (`created_at`)
+CREATE INDEX `idx_user_sessions_user_id` ON `user_sessions` (user_id);
+CREATE INDEX `idx_user_sessions_is_active` ON `user_sessions` (is_active);
+CREATE INDEX `idx_user_sessions_expires_at` ON `user_sessions` (expires_at);
+CREATE TABLE IF NOT EXISTS `login_attempts` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `username` VARCHAR(100) NOT NULL,
+  `ip_address` VARCHAR(45),
+  `user_agent` TEXT,
+  `success` VARCHAR(1) NOT NULL,
+  `failure_reason` VARCHAR(255),
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Kunden-Login-Logs
-CREATE TABLE `customer_login_logs` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `customer_id` int(11) NOT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `success` tinyint(1) DEFAULT 0,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_customer_id` (`customer_id`),
-  KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `customer_login_logs_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
+CREATE INDEX `idx_login_attempts_username` ON `login_attempts` (username);
+CREATE INDEX `idx_login_attempts_ip_address` ON `login_attempts` (ip_address);
+CREATE INDEX `idx_login_attempts_success` ON `login_attempts` (success);
+CREATE INDEX `idx_login_attempts_created_at` ON `login_attempts` (created_at);
+CREATE TABLE IF NOT EXISTS `customer_login_logs` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `customer_id` INTEGER NOT NULL,
+  `ip_address` VARCHAR(45),
+  `user_agent` TEXT,
+  `success` INTEGER NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (customer_id) REFERENCES `customers`(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Verifizierungstoken
-CREATE TABLE `verification_tokens` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `customer_id` int(11) NOT NULL,
-  `token` varchar(255) NOT NULL,
-  `type` enum('email_verification','password_reset') NOT NULL DEFAULT 'email_verification',
-  `expires_at` datetime NOT NULL,
-  `used_at` datetime DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `token` (`token`),
-  KEY `idx_customer_id` (`customer_id`),
-  KEY `idx_type` (`type`),
-  KEY `idx_expires_at` (`expires_at`),
-  CONSTRAINT `fk_verification_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS `verification_tokens` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `customer_id` INTEGER NOT NULL,
+  `token` VARCHAR(255) NOT NULL,
+  `type` VARCHAR(20) NOT NULL,
+  `expires_at` TIMESTAMP NOT NULL,
+  `used_at` TIMESTAMP,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (customer_id) REFERENCES `customers`(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Kunden-Remember-Token
-CREATE TABLE `customer_remember_tokens` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `customer_id` int(11) NOT NULL,
-  `token` varchar(64) NOT NULL,
-  `expires_at` timestamp NOT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `token` (`token`),
-  KEY `idx_customer_id` (`customer_id`),
-  CONSTRAINT `customer_remember_tokens_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS `customer_remember_tokens` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `customer_id` INTEGER NOT NULL,
+  `token` VARCHAR(64) NOT NULL,
+  `expires_at` TIMESTAMP NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (customer_id) REFERENCES `customers`(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =============================================================================
--- AKTIVITÄTS- UND LOGGING-TABELLEN
--- =============================================================================
-
--- Aktivitätsprotokoll
-CREATE TABLE `activity_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `action` varchar(255) NOT NULL,
-  `details` text DEFAULT NULL,
-  `status` enum('success','error','pending','info') NOT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_action` (`action`),
-  KEY `idx_status` (`status`),
-  KEY `idx_created_at` (`created_at`)
+CREATE TABLE IF NOT EXISTS `activity_log` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `action` VARCHAR(255) NOT NULL,
+  `details` TEXT,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'info',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Benutzeraktivitäten
-CREATE TABLE `user_activities` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `user_type` enum('customer', 'admin') NOT NULL DEFAULT 'customer',
-  `activity_type` varchar(50) NOT NULL,
-  `description` text NOT NULL,
-  `related_id` int(11) DEFAULT NULL,
-  `related_table` varchar(50) DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `created_at` timestamp DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_user_activities_user` (`user_id`, `user_type`),
-  KEY `idx_user_activities_type` (`activity_type`),
-  KEY `idx_user_activities_created` (`created_at`),
-  KEY `idx_user_activities_related` (`related_table`, `related_id`)
+CREATE TABLE IF NOT EXISTS `user_activities` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `user_id` INTEGER NOT NULL,
+  `user_type` VARCHAR(20) NOT NULL,
+  `activity_type` VARCHAR(100) NOT NULL,
+  `description` TEXT NOT NULL,
+  `related_id` INTEGER,
+  `related_table` VARCHAR(100),
+  `ip_address` VARCHAR(45),
+  `user_agent` TEXT,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =============================================================================
--- SUPPORT-SYSTEM
--- =============================================================================
-
--- Support-Tickets
-CREATE TABLE `support_tickets` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `customer_id` int(11) DEFAULT NULL,
-  `ticket_number` varchar(20) NOT NULL DEFAULT 'TEMP',
-  `subject` varchar(255) NOT NULL,
-  `message` text NOT NULL,
-  `email` varchar(255) NOT NULL DEFAULT '',
-  `customer_name` varchar(255) DEFAULT NULL,
-  `phone` varchar(50) DEFAULT NULL,
-  `priority` enum('low','medium','high','urgent') DEFAULT 'medium',
-  `status` enum('open','in_progress','waiting_customer','waiting_admin','resolved','closed') DEFAULT 'open',
-  `category` enum('technical','billing','general','feature_request','bug_report','account') DEFAULT 'general',
-  `assigned_to` int(11) DEFAULT NULL,
-  `department` enum('support','billing','technical','sales') DEFAULT 'support',
-  `source` enum('web','email','phone','chat') DEFAULT 'web',
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `estimated_resolution_time` int(11) DEFAULT NULL COMMENT 'in hours',
-  `actual_resolution_time` int(11) DEFAULT NULL COMMENT 'in hours',
-  `customer_satisfaction` tinyint(1) DEFAULT NULL COMMENT '1-5 rating',
-  `internal_notes` text DEFAULT NULL,
-  `tags` varchar(500) DEFAULT NULL COMMENT 'comma-separated tags',
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `resolved_at` timestamp NULL DEFAULT NULL,
-  `closed_at` timestamp NULL DEFAULT NULL,
-  `due_date` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `ticket_number` (`ticket_number`),
-  KEY `idx_email` (`email`),
-  KEY `idx_status` (`status`),
-  KEY `idx_priority` (`priority`),
-  KEY `idx_category` (`category`),
-  KEY `idx_assigned_to` (`assigned_to`),
-  KEY `idx_department` (`department`),
-  KEY `idx_created_at` (`created_at`),
-  KEY `idx_due_date` (`due_date`),
-  KEY `idx_status_priority` (`status`,`priority`),
-  KEY `idx_email_status` (`email`,`status`),
-  KEY `idx_customer_id` (`customer_id`),
-  CONSTRAINT `fk_support_tickets_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+CREATE TABLE IF NOT EXISTS `support_tickets` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `customer_id` INTEGER,
+  `ticket_number` VARCHAR(20) NOT NULL UNIQUE,
+  `subject` VARCHAR(255) NOT NULL,
+  `message` TEXT NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `customer_name` VARCHAR(255),
+  `phone` VARCHAR(50),
+  `priority` VARCHAR(20) NOT NULL DEFAULT 'medium',
+  `status` VARCHAR(20) NOT NULL DEFAULT 'open',
+  `category` VARCHAR(20) NOT NULL DEFAULT 'general',
+  `assigned_to` INTEGER,
+  `department` VARCHAR(20) DEFAULT 'support',
+  `source` VARCHAR(20) NOT NULL DEFAULT 'web',
+  `ip_address` VARCHAR(45),
+  `user_agent` TEXT,
+  `estimated_resolution_time` INTEGER,
+  `actual_resolution_time` INTEGER,
+  `customer_satisfaction` INTEGER,
+  `internal_notes` TEXT,
+  `tags` TEXT,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `resolved_at` TIMESTAMP,
+  `closed_at` TIMESTAMP,
+  `due_date` TIMESTAMP,
+  `name` VARCHAR(255),
+  `reply_count` INTEGER NOT NULL DEFAULT 0,
+  `last_reply_at` TIMESTAMP,
+  `last_reply_by` VARCHAR(24),
+  FOREIGN KEY (customer_id) REFERENCES `customers`(id) ON DELETE SET NULL,
+  FOREIGN KEY (assigned_to) REFERENCES `users`(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Ticket-Antworten
-CREATE TABLE `ticket_replies` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ticket_id` int(11) NOT NULL,
-  `customer_id` int(11) DEFAULT NULL,
-  `admin_id` int(11) DEFAULT NULL,
-  `message` text NOT NULL,
-  `is_internal` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_ticket_id` (`ticket_id`),
-  KEY `idx_customer_id` (`customer_id`),
-  KEY `idx_admin_id` (`admin_id`),
-  KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `fk_replies_admin` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_replies_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_replies_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `support_tickets` (`id`) ON DELETE CASCADE
+CREATE INDEX `idx_support_tickets_email` ON `support_tickets` (email);
+CREATE INDEX `idx_support_tickets_status` ON `support_tickets` (status);
+CREATE INDEX `idx_support_tickets_priority` ON `support_tickets` (priority);
+CREATE INDEX `idx_support_tickets_category` ON `support_tickets` (category);
+CREATE INDEX `idx_support_tickets_assigned_to` ON `support_tickets` (assigned_to);
+CREATE INDEX `idx_support_tickets_created_at` ON `support_tickets` (created_at);
+CREATE INDEX `idx_support_tickets_status_priority` ON `support_tickets` (status, priority);
+CREATE TABLE IF NOT EXISTS `ticket_replies` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `ticket_id` INTEGER NOT NULL,
+  `customer_id` INTEGER,
+  `admin_id` INTEGER,
+  `message` TEXT NOT NULL,
+  `is_internal` INTEGER NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user_id` INTEGER,
+  `user_type` VARCHAR(24),
+  `author_name` VARCHAR(255),
+  `author_email` VARCHAR(255),
+  FOREIGN KEY (ticket_id) REFERENCES `support_tickets`(id) ON DELETE CASCADE,
+  FOREIGN KEY (customer_id) REFERENCES `customers`(id) ON DELETE SET NULL,
+  FOREIGN KEY (admin_id) REFERENCES `users`(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Kontaktnachrichten
-CREATE TABLE `contact_messages` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `subject` varchar(255) NOT NULL,
-  `message` text NOT NULL,
-  `customer_id` int(11) DEFAULT NULL,
-  `status` enum('new','read','replied','archived') DEFAULT 'new',
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_customer_id` (`customer_id`),
-  KEY `idx_status` (`status`),
-  KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `fk_contact_messages_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+CREATE TABLE IF NOT EXISTS `contact_messages` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `subject` VARCHAR(255) NOT NULL,
+  `message` TEXT NOT NULL,
+  `customer_id` INTEGER,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'new',
+  `ip_address` VARCHAR(45),
+  `user_agent` TEXT,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `phone` VARCHAR(50),
+  FOREIGN KEY (customer_id) REFERENCES `customers`(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =============================================================================
--- DOMAIN-MANAGEMENT
--- =============================================================================
-
--- Domain-Registrierungen
-CREATE TABLE `domain_registrations` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `domain` varchar(255) NOT NULL,
-  `purpose` varchar(50) NOT NULL DEFAULT 'other',
-  `notes` text DEFAULT NULL,
-  `status` enum('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
-  `admin_notes` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_domain` (`domain`),
-  KEY `idx_status` (`status`),
-  KEY `idx_created_at` (`created_at`),
-  KEY `idx_domain_registrations_status_created` (`status`,`created_at`),
-  KEY `idx_domain_registrations_user_status` (`user_id`,`status`),
-  CONSTRAINT `domain_registrations_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS `domain_registrations` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `user_id` INTEGER,
+  `domain` VARCHAR(255) NOT NULL,
+  `purpose` TEXT NOT NULL,
+  `notes` TEXT,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'pending',
+  `admin_notes` TEXT,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `customer_id` INTEGER,
+  `domain_name` VARCHAR(255),
+  `registration_type` VARCHAR(50),
+  FOREIGN KEY (user_id) REFERENCES `users`(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Domains
-CREATE TABLE `domains` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `domain_name` varchar(255) NOT NULL,
-  `registrar` varchar(100) DEFAULT 'OVH',
-  `registration_date` date DEFAULT NULL,
-  `expiration_date` date DEFAULT NULL,
-  `auto_renew` enum('y','n') DEFAULT 'y',
-  `nameservers` text DEFAULT NULL,
-  `status` varchar(20) DEFAULT 'active',
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_domain` (`domain_name`),
-  KEY `idx_status` (`status`),
-  KEY `idx_expiration` (`expiration_date`)
+CREATE TABLE IF NOT EXISTS `domains` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `domain_name` VARCHAR(255) NOT NULL UNIQUE,
+  `registrar` VARCHAR(100),
+  `registration_date` DATE,
+  `expiration_date` DATE,
+  `auto_renew` VARCHAR(1) NOT NULL DEFAULT 'y',
+  `nameservers` TEXT,
+  `status` VARCHAR(100),
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =============================================================================
--- INFRASTRUKTUR-TABELLEN
--- =============================================================================
-
--- Virtuelle Maschinen
-CREATE TABLE `vms` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `vm_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `node` varchar(100) NOT NULL,
-  `status` enum('running','stopped','suspended') DEFAULT 'stopped',
-  `memory` int(11) NOT NULL,
-  `cores` int(11) NOT NULL,
-  `disk_size` int(11) NOT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `mac_address` varchar(17) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_vm_id` (`vm_id`),
-  KEY `idx_name` (`name`),
-  KEY `idx_status` (`status`),
-  KEY `idx_ip_address` (`ip_address`)
+CREATE INDEX `idx_domains_status` ON `domains` (status);
+CREATE INDEX `idx_domains_expiration_date` ON `domains` (expiration_date);
+CREATE TABLE IF NOT EXISTS `vms` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `vm_id` INTEGER NOT NULL UNIQUE,
+  `name` VARCHAR(255) NOT NULL,
+  `node` VARCHAR(100) NOT NULL,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'stopped',
+  `memory` INTEGER NOT NULL,
+  `cores` INTEGER NOT NULL,
+  `disk_size` INTEGER NOT NULL,
+  `ip_address` VARCHAR(45),
+  `mac_address` VARCHAR(17),
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `vm_type` VARCHAR(16) NOT NULL DEFAULT 'qemu',
+  `uptime` BIGINT,
+  `cpu_usage` REAL,
+  `memory_usage` BIGINT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Websites
-CREATE TABLE `websites` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `domain` varchar(255) NOT NULL,
-  `ip_address` varchar(45) NOT NULL,
-  `system_user` varchar(100) NOT NULL,
-  `system_group` varchar(100) NOT NULL,
-  `document_root` varchar(500) DEFAULT NULL,
-  `hd_quota` int(11) DEFAULT 1000,
-  `traffic_quota` int(11) DEFAULT 10000,
-  `active` enum('y','n') DEFAULT 'y',
-  `ssl_enabled` enum('y','n') DEFAULT 'n',
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_domain` (`domain`),
-  KEY `idx_ip` (`ip_address`),
-  KEY `idx_active` (`active`)
+CREATE INDEX `idx_vms_name` ON `vms` (name);
+CREATE INDEX `idx_vms_status` ON `vms` (status);
+CREATE INDEX `idx_vms_ip_address` ON `vms` (ip_address);
+CREATE TABLE IF NOT EXISTS `websites` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `domain` VARCHAR(255) NOT NULL UNIQUE,
+  `ip_address` VARCHAR(45) NOT NULL,
+  `system_user` VARCHAR(100) NOT NULL,
+  `system_group` VARCHAR(100) NOT NULL,
+  `document_root` VARCHAR(255),
+  `hd_quota` INTEGER,
+  `traffic_quota` INTEGER,
+  `active` VARCHAR(1) NOT NULL DEFAULT 'y',
+  `ssl_enabled` VARCHAR(1) NOT NULL DEFAULT 'n',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Datenbanken
-CREATE TABLE `sm_databases` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `database_name` varchar(255) NOT NULL,
-  `database_user` varchar(255) NOT NULL,
-  `database_type` enum('mysql','postgresql') DEFAULT 'mysql',
-  `server_id` int(11) DEFAULT 1,
-  `charset` varchar(50) DEFAULT 'utf8',
-  `remote_access` enum('y','n') DEFAULT 'n',
-  `active` enum('y','n') DEFAULT 'y',
-  `website_id` int(11) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_db_name` (`database_name`),
-  KEY `idx_user` (`database_user`),
-  KEY `idx_active` (`active`),
-  KEY `idx_website_id` (`website_id`),
-  CONSTRAINT `sm_databases_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE SET NULL
+CREATE INDEX `idx_websites_ip_address` ON `websites` (ip_address);
+CREATE INDEX `idx_websites_active` ON `websites` (active);
+CREATE TABLE IF NOT EXISTS `sm_databases` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `database_name` VARCHAR(100) NOT NULL,
+  `database_user` VARCHAR(100) NOT NULL,
+  `database_type` VARCHAR(20) NOT NULL DEFAULT 'mysql',
+  `server_id` INTEGER,
+  `charset` VARCHAR(50) DEFAULT 'utf8mb4',
+  `remote_access` VARCHAR(1) NOT NULL DEFAULT 'n',
+  `active` VARCHAR(1) NOT NULL DEFAULT 'y',
+  `website_id` INTEGER,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (website_id) REFERENCES `websites`(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- E-Mail-Konten
-CREATE TABLE `email_accounts` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `email_address` varchar(255) NOT NULL,
-  `login_name` varchar(255) NOT NULL,
-  `password_hash` varchar(255) DEFAULT NULL,
-  `full_name` varchar(255) DEFAULT NULL,
-  `domain` varchar(255) NOT NULL,
-  `quota_mb` int(11) DEFAULT 1000,
-  `active` enum('y','n') DEFAULT 'y',
-  `autoresponder` enum('y','n') DEFAULT 'n',
-  `autoresponder_text` text DEFAULT NULL,
-  `forward_to` varchar(255) DEFAULT NULL,
-  `spam_filter` enum('y','n') DEFAULT 'y',
-  `website_id` int(11) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_email` (`email_address`),
-  KEY `idx_domain` (`domain`),
-  KEY `idx_active` (`active`),
-  KEY `idx_website_id` (`website_id`),
-  CONSTRAINT `email_accounts_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE SET NULL
+CREATE TABLE IF NOT EXISTS `email_accounts` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `email_address` VARCHAR(255) NOT NULL,
+  `login_name` VARCHAR(100) NOT NULL,
+  `password_hash` VARCHAR(255),
+  `full_name` VARCHAR(255),
+  `domain` VARCHAR(255) NOT NULL,
+  `quota_mb` INTEGER,
+  `active` VARCHAR(1) NOT NULL DEFAULT 'y',
+  `autoresponder` VARCHAR(1) NOT NULL DEFAULT 'n',
+  `autoresponder_text` TEXT,
+  `forward_to` VARCHAR(255),
+  `spam_filter` VARCHAR(1) NOT NULL DEFAULT 'y',
+  `website_id` INTEGER,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (website_id) REFERENCES `websites`(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- SSL-Zertifikate
-CREATE TABLE `ssl_certificates` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `domain` varchar(255) NOT NULL,
-  `certificate_path` varchar(500) DEFAULT NULL,
-  `private_key_path` varchar(500) DEFAULT NULL,
-  `certificate_authority` varchar(100) DEFAULT NULL,
-  `issue_date` date DEFAULT NULL,
-  `expiration_date` date DEFAULT NULL,
-  `auto_renew` enum('y','n') DEFAULT 'y',
-  `status` enum('valid','expired','revoked','pending') DEFAULT 'pending',
-  `website_id` int(11) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_website_id` (`website_id`),
-  KEY `idx_domain` (`domain`),
-  KEY `idx_expiration` (`expiration_date`),
-  CONSTRAINT `ssl_certificates_ibfk_1` FOREIGN KEY (`website_id`) REFERENCES `websites` (`id`) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS `ssl_certificates` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `domain` VARCHAR(255) NOT NULL,
+  `certificate_path` VARCHAR(255),
+  `private_key_path` VARCHAR(255),
+  `certificate_authority` VARCHAR(100),
+  `issue_date` DATE,
+  `expiration_date` DATE,
+  `auto_renew` VARCHAR(1) NOT NULL DEFAULT 'y',
+  `status` VARCHAR(20) NOT NULL DEFAULT 'pending',
+  `website_id` INTEGER,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (website_id) REFERENCES `websites`(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- IP-Adressen
-CREATE TABLE `ips` (
-  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `subnet` varchar(64) NOT NULL,
-  `ip_reverse` varchar(64) NOT NULL,
-  `reverse` varchar(255) DEFAULT NULL,
-  `ttl` int(11) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `subnet` (`subnet`,`ip_reverse`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- =============================================================================
--- SYSTEM-KONFIGURATION
--- =============================================================================
-
--- API-Zugangsdaten
-CREATE TABLE `api_credentials` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `service_name` varchar(100) NOT NULL,
-  `endpoint` varchar(500) DEFAULT NULL,
-  `username` varchar(255) DEFAULT NULL,
-  `password_encrypted` text DEFAULT NULL,
-  `api_key_encrypted` text DEFAULT NULL,
-  `additional_config` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`additional_config`)),
-  `active` enum('y','n') DEFAULT 'y',
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_service` (`service_name`)
+CREATE TABLE IF NOT EXISTS `ips` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `subnet` VARCHAR(18) NOT NULL,
+  `ip_reverse` VARCHAR(255) NOT NULL,
+  `reverse` VARCHAR(255),
+  `ttl` INTEGER,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Module
-CREATE TABLE `modules` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_name` (`name`)
+CREATE TABLE IF NOT EXISTS `api_credentials` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `service_name` VARCHAR(100) NOT NULL,
+  `endpoint` VARCHAR(255),
+  `username` VARCHAR(100),
+  `password_encrypted` TEXT,
+  `api_key_encrypted` TEXT,
+  `additional_config` TEXT,
+  `active` VARCHAR(1) NOT NULL DEFAULT 'y',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Systemeinstellungen
-CREATE TABLE `system_settings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `setting_key` varchar(100) NOT NULL,
-  `setting_value` text DEFAULT NULL,
-  `setting_type` enum('string','integer','boolean','json') DEFAULT 'string',
-  `description` text DEFAULT NULL,
-  `is_public` enum('y','n') DEFAULT 'n',
-  `updated_by` int(11) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_setting_key` (`setting_key`),
-  KEY `idx_updated_by` (`updated_by`),
-  CONSTRAINT `system_settings_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+CREATE TABLE IF NOT EXISTS `modules` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL UNIQUE,
+  `is_active` INTEGER NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Einstellungen
-CREATE TABLE `settings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `site_title` varchar(255) NOT NULL DEFAULT 'Meine Seite',
-  `logo_path` varchar(255) DEFAULT NULL,
-  `favicon_path` varchar(255) DEFAULT NULL,
-  `mode` enum('live','database') NOT NULL DEFAULT 'live',
-  PRIMARY KEY (`id`)
+CREATE TABLE IF NOT EXISTS `system_settings` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `setting_key` VARCHAR(100) NOT NULL UNIQUE,
+  `setting_value` TEXT NOT NULL,
+  `setting_type` VARCHAR(20) NOT NULL DEFAULT 'string',
+  `description` TEXT,
+  `is_public` VARCHAR(1) NOT NULL DEFAULT 'n',
+  `updated_by` INTEGER,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (updated_by) REFERENCES `users`(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =============================================================================
--- VIEWS FÜR ÜBERSICHTEN
--- =============================================================================
-
--- Benutzeraktivitäts-Übersicht
-CREATE VIEW `user_activity_overview` AS
-SELECT 
-    u.id,
-    u.username,
-    u.full_name,
-    u.email,
-    u.role,
-    u.active,
-    u.last_login,
-    u.failed_login_attempts,
-    u.locked_until,
-    COUNT(DISTINCT s.id) AS active_sessions,
-    COUNT(DISTINCT la.id) AS total_login_attempts,
-    SUM(CASE WHEN la.success = 'n' THEN 1 ELSE 0 END) AS failed_attempts_today,
-    u.created_at
-FROM users u
-LEFT JOIN user_sessions s ON u.id = s.user_id AND s.is_active = 'y' AND s.expires_at > CURRENT_TIMESTAMP()
-LEFT JOIN login_attempts la ON u.username = la.username AND CAST(la.created_at AS DATE) = CURDATE()
-GROUP BY u.id;
-
--- VM-Übersicht
-CREATE VIEW `vm_overview` AS
-SELECT 
-    v.id,
-    v.vm_id,
-    v.name,
-    v.node,
-    v.status,
-    v.memory,
-    v.cores,
-    v.ip_address,
-    v.mac_address,
-    w.domain AS website_domain,
-    COUNT(DISTINCT d.id) AS database_count,
-    COUNT(DISTINCT e.id) AS email_count,
-    v.created_at,
-    v.updated_at
-FROM vms v
-LEFT JOIN websites w ON v.ip_address = w.ip_address
-LEFT JOIN sm_databases d ON w.id = d.website_id
-LEFT JOIN email_accounts e ON w.id = e.website_id
-GROUP BY v.id;
-
--- Website-Übersicht
-CREATE VIEW `website_overview` AS
-SELECT 
-    w.id,
-    w.domain,
-    w.ip_address,
-    w.system_user,
-    w.active,
-    v.name AS vm_name,
-    v.status AS vm_status,
-    COUNT(DISTINCT d.id) AS database_count,
-    COUNT(DISTINCT e.id) AS email_count,
-    s.status AS ssl_status,
-    s.expiration_date AS ssl_expires,
-    w.created_at,
-    w.updated_at
-FROM websites w
-LEFT JOIN vms v ON w.ip_address = v.ip_address
-LEFT JOIN sm_databases d ON w.id = d.website_id
-LEFT JOIN email_accounts e ON w.id = e.website_id
-LEFT JOIN ssl_certificates s ON w.id = s.website_id
-GROUP BY w.id;
-
--- =============================================================================
--- GRUNDDATEN EINFÜGEN
--- =============================================================================
-
--- Standard-Admin-Benutzer
-INSERT INTO `users` (`username`, `email`, `password_hash`, `full_name`, `role`, `active`) VALUES
-('admin', 'admin@your-server.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System Administrator', 'admin', 'y');
-
--- Standard-Module
-INSERT INTO `modules` (`name`, `is_active`) VALUES
-('admin', 1),
-('proxmox', 1),
-('ispconfig', 1),
-('ovh', 1),
-('database', 1),
-('email', 1),
-('dns', 1),
-('network', 1),
-('support-tickets', 1),
-('virtual-mac', 1),
-('endpoints', 1);
-
--- Standard-Systemeinstellungen
-INSERT INTO `system_settings` (`setting_key`, `setting_value`, `setting_type`, `description`, `is_public`) VALUES
-('site_name', 'Server Management System', 'string', 'Name der Website', 'y'),
-('site_url', 'https://yourserver.com', 'string', 'URL der Website', 'y'),
-('support_email', 'support@yourserver.com', 'string', 'Support-E-Mail-Adresse', 'y'),
-('system_email', 'system@yourserver.com', 'string', 'System-E-Mail-Adresse', 'n'),
-('admin_email', 'admin@yourserver.com', 'string', 'Admin-E-Mail-Adresse', 'n'),
-('max_login_attempts', '5', 'integer', 'Maximale Login-Versuche', 'n'),
-('session_timeout', '3600', 'integer', 'Session-Timeout in Sekunden', 'n'),
-('password_min_length', '8', 'integer', 'Mindestlänge für Passwörter', 'n'),
-('enable_registration', 'true', 'boolean', 'Registrierung aktiviert', 'y'),
-('maintenance_mode', 'false', 'boolean', 'Wartungsmodus aktiviert', 'y');
-
--- Standard-Einstellungen
-INSERT INTO `settings` (`site_title`, `logo_path`, `favicon_path`, `mode`) VALUES
-('Server Management System', NULL, NULL, 'live');
-
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+CREATE INDEX `idx_system_settings_setting_key` ON `system_settings` (setting_key);
+CREATE TABLE IF NOT EXISTS `settings` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `site_title` VARCHAR(255) NOT NULL,
+  `logo_path` VARCHAR(255),
+  `favicon_path` VARCHAR(255),
+  `mode` VARCHAR(20) NOT NULL DEFAULT 'live'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `groups` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL UNIQUE,
+  `description` TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `module_configs` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `module_name` VARCHAR(100) NOT NULL,
+  `config` TEXT,
+  `enabled` INTEGER NOT NULL DEFAULT 0,
+  `config_key` VARCHAR(100) NOT NULL,
+  `config_value` TEXT,
+  UNIQUE (module_name, config_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `module_permissions` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `module_name` VARCHAR(100) NOT NULL,
+  `required_role` VARCHAR(24) NOT NULL,
+  UNIQUE (module_name, required_role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `active_modules` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `module_id` INTEGER,
+  `module_name` VARCHAR(100) UNIQUE,
+  `enabled` INTEGER NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `module_dependencies` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `module_id` INTEGER NOT NULL,
+  `dependency_id` INTEGER NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `group_module_permissions` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `group_id` INTEGER NOT NULL,
+  `module_id` INTEGER NOT NULL,
+  `can_access` INTEGER NOT NULL DEFAULT 0,
+  UNIQUE (group_id, module_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `backup_jobs` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `type` VARCHAR(50) NOT NULL,
+  `status` VARCHAR(32) NOT NULL DEFAULT 'pending',
+  `config` TEXT,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `network_config` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `vm_id` INTEGER,
+  `node` VARCHAR(100),
+  `ip_address` VARCHAR(45),
+  `mac_address` VARCHAR(17),
+  `config` TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `server_resources` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `vm_id` INTEGER,
+  `node` VARCHAR(100),
+  `cpu_usage` REAL,
+  `memory_usage` BIGINT,
+  `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `domain_extensions` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `tld` VARCHAR(100) NOT NULL UNIQUE,
+  `name` VARCHAR(255) NOT NULL,
+  `active` INTEGER NOT NULL DEFAULT 1,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `email_templates` (
+  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `template_name` VARCHAR(255) NOT NULL UNIQUE,
+  `subject` TEXT NOT NULL,
+  `html_content` TEXT,
+  `raw_content` TEXT,
+  `variables` TEXT,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `account_tokens` (
+  `token_hash` VARCHAR(64) PRIMARY KEY,
+  `realm` VARCHAR(16) NOT NULL,
+  `subject_id` INTEGER NOT NULL,
+  `purpose` VARCHAR(32) NOT NULL,
+  `expires_at` BIGINT NOT NULL,
+  `used_at` BIGINT,
+  `created_at` BIGINT NOT NULL,
+  `credential` VARCHAR(64) NOT NULL,
+  UNIQUE (realm, subject_id, purpose)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE INDEX `idx_account_tokens_subject` ON `account_tokens` (realm, subject_id, purpose);
+CREATE TABLE IF NOT EXISTS `schema_migrations` (
+  `version` VARCHAR(80) PRIMARY KEY,
+  `checksum` VARCHAR(64) NOT NULL,
+  `applied_at` VARCHAR(32) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `security_migrations` (
+  `version` VARCHAR(80) PRIMARY KEY,
+  `applied_at` VARCHAR(32) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `security_remember_tokens` (
+  `selector` VARCHAR(24) PRIMARY KEY,
+  `customer_id` INTEGER NOT NULL,
+  `token_hash` VARCHAR(64) NOT NULL,
+  `credential` VARCHAR(64) NOT NULL,
+  `expires_at` BIGINT NOT NULL,
+  FOREIGN KEY (customer_id) REFERENCES `customers`(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `security_resource_assignments` (
+  `id` VARCHAR(32) PRIMARY KEY,
+  `subject_realm` VARCHAR(16) NOT NULL,
+  `subject_id` INTEGER NOT NULL,
+  `provider` VARCHAR(32) NOT NULL,
+  `connection_id` VARCHAR(64) NOT NULL,
+  `resource_type` VARCHAR(32) NOT NULL,
+  `external_id` VARCHAR(255) NOT NULL,
+  `metadata` TEXT NOT NULL,
+  `can_write` INTEGER NOT NULL DEFAULT 0,
+  `expires_at` BIGINT,
+  UNIQUE (subject_realm, subject_id, provider, connection_id, resource_type, external_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

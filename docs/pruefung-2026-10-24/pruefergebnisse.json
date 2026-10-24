@@ -1,0 +1,801 @@
+{
+  "date": "2026-10-24",
+  "reviewed_version": "3.2.7",
+  "findings": [
+    {
+      "id": "F01",
+      "priority": "P0",
+      "title": "Zentrale Admin-Prüfung lässt normale Benutzer durch",
+      "verification": "Lokal reproduziert",
+      "sources": [
+        {
+          "path": "src/core/AdminHandler.php",
+          "line": 27
+        },
+        {
+          "path": "src/index.php",
+          "line": 84
+        }
+      ],
+      "problem": "Der AdminHandler protokolliert eine falsche Rolle lediglich; die ablehnende Exception ist auskommentiert. index.php leitet angemeldete Benutzer an diesen Handler weiter. Der Konstruktor ließ im isolierten Test einen Benutzer mit Rolle user passieren.",
+      "impact": "Administrative Aktionen können mit einem normalen Backend-Konto erreichbar sein, darunter Ressourcensteuerung und Kundenverwaltung.",
+      "remedy": "Admin-Rechte vor Initialisierung von Datenbank-/Provider-Diensten erzwingen und jeden administrativen Einstieg zentral absichern.",
+      "acceptance": "Nicht angemeldet: 401; normale Rolle: 403; Admin: berechtigter Aufruf. Abgewiesene Anfragen verursachen keinerlei Provider-Aufruf.",
+      "tasks": "AP02, AP04"
+    },
+    {
+      "id": "F02",
+      "priority": "P0",
+      "title": "Admin-Markierungen der Module werden nicht durchgesetzt",
+      "verification": "Lokal reproduziert",
+      "sources": [
+        {
+          "path": "framework.php",
+          "line": 7656
+        },
+        {
+          "path": "src/sys.conf.php",
+          "line": 67
+        },
+        {
+          "path": "src/module/ModuleBase.php",
+          "line": 33
+        }
+      ],
+      "problem": "Die Konfiguration verwendet require_admin. canAccessModule() prüft stattdessen permissions; ohne diesen Schlüssel wird Zugriff erlaubt. Ein normales Konto durfte deshalb im Test auf den als Admin-Modul markierten Dateieditor zugreifen. Die klassische Navigation umgeht den ModuleLoader teilweise zusätzlich.",
+      "impact": "Dateieditor und Supportverwaltung sind trotz Admin-Markierung nicht verlässlich auf Administratoren beschränkt.",
+      "remedy": "Einheitliche Richtlinien für Rolle, Modulaktivierung und konkrete Aktion verwenden. Fehlende Freigaben müssen ablehnen; Anzeige und Request-Handler müssen dieselbe Regel verwenden.",
+      "acceptance": "Alle 14 Module erhalten eine Zugriffs-Matrix; Admin-Module sind für normale Konten auch über direkte AJAX-Aufrufe gesperrt.",
+      "tasks": "AP04, AP05"
+    },
+    {
+      "id": "F03",
+      "priority": "P0",
+      "title": "Dateieditor liest und schreibt außerhalb des Projekts",
+      "verification": "Lokal reproduziert",
+      "sources": [
+        {
+          "path": "src/module/file-editor/Module.php",
+          "line": 53
+        },
+        {
+          "path": "src/module/file-editor/Module.php",
+          "line": 86
+        },
+        {
+          "path": "src/module/file-editor/Module.php",
+          "line": 249
+        }
+      ],
+      "problem": "Dateipfade aus Requests werden unmittelbar an file_get_contents(), file_put_contents() und unlink() gegeben. Die Prüfung berücksichtigt lediglich Dateisystemrechte. Eine harmlose Markerdatei außerhalb des Projektordners ließ sich im Test lesen und ändern.",
+      "impact": "Je nach Rechten des PHP-Prozesses können Konfigurationen offengelegt oder ausführbare PHP-Dateien verändert werden. Zusammen mit F02 entsteht ein besonders kritischer Zugriffspfad.",
+      "remedy": "Dateieditor zunächst standardmäßig deaktivieren. Für eine spätere Freigabe erlaubte Verzeichnisse und Dateitypen festlegen, kanonische Pfade und Symlinks prüfen und Geheimnisse sowie Anwendungscode vom Schreiben ausschließen.",
+      "acceptance": "Absolute Fremdpfade, ../, Symlinks, Konfigurationsdateien und PHP-Schreibversuche werden abgewiesen; erlaubte Inhaltsdateien bleiben bearbeitbar.",
+      "tasks": "AP02, AP06"
+    },
+    {
+      "id": "F04",
+      "priority": "P0",
+      "title": "Updater besitzt einen direkt aufrufbaren ungeschützten Handler",
+      "verification": "Im Quellcode belegt; keine Installation ausgeführt",
+      "sources": [
+        {
+          "path": "src/inc/manualupdater.php",
+          "line": 11
+        },
+        {
+          "path": "src/inc/manualupdater.php",
+          "line": 1883
+        },
+        {
+          "path": "src/inc/manualupdater.php",
+          "line": 860
+        }
+      ],
+      "problem": "manualupdater.php setzt seine Schutzkonstante selbst. Vor den POST-/GET-Handlern fehlen Login- und Rollenprüfungen. Auch über index.php genügt zunächst ein Login. Beim Backup-Download wird ein übergebener Name ohne kanonische Verzeichnisbindung zusammengesetzt; nur die ZIP-Endung wird geprüft.",
+      "impact": "Bei erreichbarem src/inc-Verzeichnis können Update- und Backup-Aktionen ohne passende Rechte aufgerufen werden; fremde ZIP-Dateien können über Pfadwechsel als Download angesprochen werden.",
+      "remedy": "Direkte Include-Dateien per Webserver und Bootstrap sperren; Updateaktionen nur mit Admin-Rechten und CSRF-Schutz. Backup-Dateien über serverseitige IDs und sichere Pfadauflösung auswählen.",
+      "acceptance": "Direktaufrufe liefern 403/404. Normale Konten können weder Backups verwalten noch Updates anstoßen. Fremdpfade und nicht registrierte Archive werden abgewiesen.",
+      "tasks": "AP02, AP06, AP15"
+    },
+    {
+      "id": "F05",
+      "priority": "P0",
+      "title": "Diagnose- und Datenendpunkte sind ohne Anmeldung erreichbar",
+      "verification": "Im Quellcode belegt; Erreichbarkeit hängt vom Webserver ab",
+      "sources": [
+        {
+          "path": "src/debug/index.php",
+          "line": 29
+        },
+        {
+          "path": "src/ajax_ip_mac_reverse.php",
+          "line": 11
+        },
+        {
+          "path": "src/api/status.php",
+          "line": 20
+        },
+        {
+          "path": "src/download_zone.php",
+          "line": 23
+        }
+      ],
+      "problem": "Die Debug-Zentrale bietet unter anderem Logzugriff, clear_logs und quick_fix ohne requireLogin(). Der IP/MAC-Endpunkt hat nur auskommentierten Zugriffsschutz. Die Status-API veröffentlicht Infrastrukturinformationen. download_zone.php liest und löscht passende .txt-Dateien aus dem gemeinsamen temporären Verzeichnis ohne Nutzerbindung.",
+      "impact": "Informationen über Infrastruktur und Logs können offengelegt und Diagnose-/Dateiaktionen unberechtigt ausgelöst werden.",
+      "remedy": "Diagnosewerkzeuge aus Produktionspaketen entfernen oder strikt auf Admin/CLI begrenzen. Öffentlichen Status ausdrücklich auf freigegebene Aggregate beschränken. Exporte nutzergebunden und mit Ablaufzeit verwalten.",
+      "acceptance": "Ein HTTP-Test ohne Cookie erreicht keine internen Daten oder mutierenden Diagnoseaktionen; ein fremder Nutzer kann keinen Export lesen oder löschen.",
+      "tasks": "AP02, AP06, AP20"
+    },
+    {
+      "id": "F06",
+      "priority": "P1",
+      "title": "CSRF-Schutz und Begrenzung von Anfragen sind nicht wirksam angebunden",
+      "verification": "Konfigurationsfehler lokal reproduziert; Aufrufpfade statisch geprüft",
+      "sources": [
+        {
+          "path": "src/handler.php",
+          "line": 249
+        },
+        {
+          "path": "src/handler.php",
+          "line": 211
+        },
+        {
+          "path": "src/sys.conf.php",
+          "line": 230
+        },
+        {
+          "path": "src/auth_handler.php",
+          "line": 181
+        }
+      ],
+      "problem": "validateCSRFToken() fragt isFeatureEnabled() ab, obwohl csrf_protection in security_config liegt. Es gibt keine Aufrufer der Prüf-Funktion in den untersuchten PHP-Dateien. Gleiches gilt für checkRateLimit(); dessen Schalter liegt wiederum in api_config. Loginversuche werden protokolliert, aber die konfigurierte Sperre wird im Loginpfad nicht umgesetzt.",
+      "impact": "Konfigurationswerte vermitteln einen Schutz, den die Request-Verarbeitung tatsächlich nicht erzwingt. Schreibaktionen und Anmeldungen bleiben unzureichend abgesichert.",
+      "remedy": "CSRF-, Methoden- und Rate-Limit-Prüfungen zentral vor dem Dispatch anwenden; öffentliche Formulare und beide Loginbereiche einbeziehen. Rate-Limits nebenläufigkeitssicher speichern.",
+      "acceptance": "Fehlende/falsche CSRF-Tokens führen zu 403; wiederholte Login-/Ticketanfragen zu einer definierten Begrenzung. Änderungen der Konfiguration wirken nachweisbar.",
+      "tasks": "AP07"
+    },
+    {
+      "id": "F07",
+      "priority": "P1",
+      "title": "Provider-Verbindungen deaktivieren Zertifikatsprüfung",
+      "verification": "Im Quellcode belegt",
+      "sources": [
+        {
+          "path": "framework.php",
+          "line": 652
+        },
+        {
+          "path": "framework.php",
+          "line": 937
+        },
+        {
+          "path": "framework.php",
+          "line": 4554
+        }
+      ],
+      "problem": "Proxmox-, ISPConfig- und OGP-Transportpfade schalten die TLS-Zertifikatsprüfung teilweise vollständig aus.",
+      "impact": "Verbindungen prüfen die Gegenstelle nicht zuverlässig; administrative Zugangsdaten und Antworten können dadurch gefährdet werden.",
+      "remedy": "Zertifikats- und Hostnamenprüfung aktivieren. Für eigene Server eine bewusst hinterlegte CA unterstützen; Zertifikatsfehler nachvollziehbar melden.",
+      "acceptance": "Gültige öffentliche/eigene CA funktioniert; falscher Hostname, unbekannte CA und abgelaufenes Zertifikat werden in lokalen Transporttests abgewiesen.",
+      "tasks": "AP08, AP19"
+    },
+    {
+      "id": "F08",
+      "priority": "P1",
+      "title": "Session-Format und Laufzeiten widersprechen sich",
+      "verification": "Lokal reproduziert",
+      "sources": [
+        {
+          "path": "src/auth_handler.php",
+          "line": 75
+        },
+        {
+          "path": "src/module/ModuleBase.php",
+          "line": 21
+        },
+        {
+          "path": "src/auth_handler.php",
+          "line": 10
+        },
+        {
+          "path": "src/sys.conf.php",
+          "line": 170
+        }
+      ],
+      "problem": "Der Login schreibt user_id und role direkt in die Session; ModuleBase erwartet user[id] und user[role]. Im Test blieb die Modulrolle null. Der SessionManager verwendet fest 600 Sekunden, während die Konfiguration 3600 vorgibt.",
+      "impact": "Module mit eigener Rollenprüfung verweigern auch Administratoren den Zugriff; andere Module verwenden eine falsche Identität. Angezeigte und wirksame Sitzungslaufzeit können abweichen.",
+      "remedy": "Einen zentralen Benutzerkontext für Backend und Shop festlegen; Rollen und Status aus verlässlichen Daten ableiten. Timeout und Heartbeat nur über eine gemeinsame Konfiguration steuern.",
+      "acceptance": "Admin-Login ergibt in jedem Modul dieselbe Benutzer-ID/Rolle. Inaktivitätsablauf, Kontosperre, Logout und konfigurierte Laufzeit sind getestet.",
+      "tasks": "AP04, AP09"
+    },
+    {
+      "id": "F09",
+      "priority": "P1",
+      "title": "Kundenanmeldung verwendet unrotierte Session- und Remember-Tokens",
+      "verification": "Im Quellcode belegt",
+      "sources": [
+        {
+          "path": "public/login.php",
+          "line": 56
+        },
+        {
+          "path": "public/login.php",
+          "line": 67
+        },
+        {
+          "path": "public/login.php",
+          "line": 111
+        }
+      ],
+      "problem": "Nach Kundenlogin und Wiederanmeldung wird keine Session-ID erneuert. Remember-Tokens werden im Klartext gespeichert und beim Einlösen nicht ersetzt. Backend und Kundenbereich verwenden unterschiedliche Sessionmechanismen.",
+      "impact": "Es fehlt eine einheitliche Absicherung gegen Session-Fixation und die Wiederverwendung entwendeter Langzeittokens.",
+      "remedy": "Session-ID bei Anmeldung erneuern; Remember-Tokens gehasht speichern, nach Nutzung rotieren und bei Logout/Passwortwechsel widerrufen. Sichere Cookie-Einstellungen zentral setzen.",
+      "acceptance": "Vorherige Session-ID und bereits eingelöste Tokens funktionieren nach Login/Rotation nicht mehr; Passwortänderung widerruft bestehende Langzeitzugänge.",
+      "tasks": "AP09"
+    },
+    {
+      "id": "F10",
+      "priority": "P1",
+      "title": "Registrierung und E-Mail-Verifizierung passen nicht zusammen",
+      "verification": "Imports und Schema im Quellcode belegt; Teilbefund lokal geprüft",
+      "sources": [
+        {
+          "path": "public/register.php",
+          "line": 90
+        },
+        {
+          "path": "public/verify.php",
+          "line": 42
+        },
+        {
+          "path": "src/core/EmailTemplateManager.php",
+          "line": 177
+        },
+        {
+          "path": "database/database-structure-sqlite.sql",
+          "line": 114
+        }
+      ],
+      "problem": "register.php verwendet EmailTemplateManager ohne die Klasse zu laden; in den tatsächlichen Basisimports ist sie nicht vorhanden. Der dadurch mögliche Error wird von catch(Exception) nicht abgefangen. Versand und Verifizierung erwarten customer_verification_tokens, die vollständigen Installationsschemata liefern verification_tokens. Der Rückgabewert des Mailversands wird nicht ausgewertet.",
+      "impact": "Ein Kunde kann als pending gespeichert werden, während Registrierung/Versand abbrechen; eine angezeigte Erfolgsmeldung belegt keinen versendeten Aktivierungslink.",
+      "remedy": "Klasse über gemeinsamen Bootstrap laden, ein einheitliches Token-Schema migrieren und Versandfehler mit wiederholbarem Versand behandeln. Aktivierung und Provider-Bereitstellung entkoppeln; Benutzerpasswörter nicht an E-Mail-Templates übergeben.",
+      "acceptance": "Registrieren → genau ein Token → Versand/erneuter Versand → einmalige Aktivierung → Login funktioniert. Ablauf, Doppelklick und SMTP-Fehler sind abgedeckt.",
+      "tasks": "AP10, AP11"
+    },
+    {
+      "id": "F11",
+      "priority": "P1",
+      "title": "Datenbankschemata decken die aufgerufenen Funktionen nicht ab",
+      "verification": "Schemavergleich durchgeführt",
+      "sources": [
+        {
+          "path": "src/core/DatabaseOnlyFramework.php",
+          "line": 123
+        },
+        {
+          "path": "src/core/DatabaseOnlyFramework.php",
+          "line": 124
+        },
+        {
+          "path": "src/core/EmailTemplateManager.php",
+          "line": 258
+        },
+        {
+          "path": "src/install.php",
+          "line": 207
+        }
+      ],
+      "problem": "Das MySQL-Installationsschema enthält 25 Tabellen, aber weder module_configs noch module_permissions noch email_templates. Diese werden von Datenbankmodus und Mailverwaltung erwartet. Das Mail-Schema liegt getrennt vor, wird vom Installer jedoch nicht als Migration ausgeführt.",
+      "impact": "Eine formal erfolgreiche Installation garantiert keine lauffähigen Module. Mehrere SQL-Dateisätze und Modelle können auseinanderlaufen.",
+      "remedy": "Eine versionierte Migrationshistorie als verbindliche Quelle einführen. Frische Installation und Upgrade verwenden dieselben Migrationen; Schema-Version vor dem Start prüfen.",
+      "acceptance": "Frische und von 3.2.7 migrierte Datenbanken bestehen dieselben Schema- und Funktionsprüfungen, einschließlich Modulkonfiguration und Mailvorlagen.",
+      "tasks": "AP11, AP12"
+    },
+    {
+      "id": "F12",
+      "priority": "P1",
+      "title": "SQLite-Erstimport und datenbankübergreifende SQL-Nutzung sind fehlerhaft",
+      "verification": "Lokal reproduziert; PostgreSQL-Abweichungen statisch belegt",
+      "sources": [
+        {
+          "path": "config/framework-sqlite.sql",
+          "line": 61
+        },
+        {
+          "path": "src/core/DatabaseManager.php",
+          "line": 631
+        },
+        {
+          "path": "src/core/EmailTemplateManager.php",
+          "line": 258
+        },
+        {
+          "path": "src/update.php",
+          "line": 159
+        }
+      ],
+      "problem": "Der im README empfohlene leere SQLite-Import bricht mit no such table: main.users ab. Das vollständige SQLite-Schema importiert, aber DatabaseManager::logAction() scheitert an NOW(). Weitere MySQL-Ausdrücke wie SHOW TABLES und ON DUPLICATE KEY stehen auch in als datenbankübergreifend verwendeten Pfaden.",
+      "impact": "SQLite und PostgreSQL sind nicht als vollständig unterstützte Alternativen belegt; Anmeldung, Logging, Vorlagen und Synchronisation können je nach Datenbank ausfallen.",
+      "remedy": "Zunächst MySQL/MariaDB als produktiven Referenzpfad und SQLite als ausdrücklich getesteten lokalen Pfad festlegen. Dialektabhängige SQL-Anteile kapseln. PostgreSQL erst nach eigener Integrationsmatrix freigeben.",
+      "acceptance": "Logging und Kernabläufe laufen auf jeder beworbenen Datenbank. Alle dokumentierten Installationsbefehle funktionieren auf einer leeren Instanz.",
+      "tasks": "AP11, AP12"
+    },
+    {
+      "id": "F13",
+      "priority": "P1",
+      "title": "MongoDB-Implementierung enthält Erfolg meldende Platzhalter",
+      "verification": "Im Quellcode belegt; keine MongoDB-Instanz getestet",
+      "sources": [
+        {
+          "path": "src/core/DatabaseManager.php",
+          "line": 24
+        },
+        {
+          "path": "src/core/DatabaseManager.php",
+          "line": 73
+        },
+        {
+          "path": "src/core/DatabaseManager.php",
+          "line": 378
+        }
+      ],
+      "problem": "Dummy-Klassen ersetzen bei noch nicht geladener MongoDB-Library echte Klassennamen. Teile des Treibers geben Erfolg oder leere Ergebnisse zurück, obwohl keine entsprechende Datenoperation stattfindet. Die überwiegend SQL-basierten Geschäftsabläufe besitzen keinen gleichwertigen MongoDB-Pfad.",
+      "impact": "Datenverlust oder fehlende Ergebnisse können als erfolgreiche Verarbeitung erscheinen. Eine Erweiterungsprüfung allein stellt die tatsächliche Library nicht sicher.",
+      "remedy": "MongoDB bis zu einer vollständigen Implementierung als nicht unterstützt ausweisen und bei Auswahl eindeutig abbrechen. Dummys aus produktivem Code entfernen; echte Adapter nur mit Integrationstests freigeben.",
+      "acceptance": "Fehlender Treiber/fehlende Library führt zu einem klaren Startfehler. Keine Schreiboperation darf ohne gespeicherte Daten Erfolg melden.",
+      "tasks": "AP12"
+    },
+    {
+      "id": "F14",
+      "priority": "P1",
+      "title": "Benutzerverwaltung ruft zehn nicht vorhandene Service-Methoden auf",
+      "verification": "Mit Reflection und Aufrufsuche geprüft",
+      "sources": [
+        {
+          "path": "src/inc/users.php",
+          "line": 175
+        },
+        {
+          "path": "src/inc/users.php",
+          "line": 232
+        },
+        {
+          "path": "src/inc/users.php",
+          "line": 1142
+        }
+      ],
+      "problem": "Im API-Framework fehlen unter anderem getISPConfigUsers, editOGPUser, editProxmoxUser, editISPConfigUser, deleteOGPUser, deleteISPConfigUser, createISPConfigUser und drei update…UserPassword-Methoden. Die vollständige Liste steht in pruefergebnisse.json. Ein __call-Fallback existiert nicht.",
+      "impact": "Die entsprechenden Verwaltungs- und Passwortaktionen brechen mit einem PHP Error ab; catch(Exception) behandelt diese Fehler nicht.",
+      "remedy": "Die vorgesehenen Provider-Funktionen und ihre Signaturen abgleichen, Aufrufer an vorhandene Verträge anpassen oder fehlende Operationen gezielt implementieren. Nicht unterstützte Aktionen explizit ausblenden/ablehnen.",
+      "acceptance": "Jede sichtbare Benutzeraktion besitzt eine passende Implementierung und einen Test mit simuliertem Provider; keine Undefined-method-Fehler.",
+      "tasks": "AP13, AP19"
+    },
+    {
+      "id": "F15",
+      "priority": "P1",
+      "title": "Updater verliert Update-Typ und Zielversion zwischen Anfragen",
+      "verification": "Zustandsfluss und Ersetzungsmuster im Quellcode belegt",
+      "sources": [
+        {
+          "path": "src/inc/manualupdater.php",
+          "line": 24
+        },
+        {
+          "path": "src/inc/manualupdater.php",
+          "line": 1914
+        },
+        {
+          "path": "src/inc/manualupdater.php",
+          "line": 1573
+        }
+      ],
+      "problem": "Download und Installation erzeugen jeweils einen neuen ManualUpdater. updateType wird nur beim Download gesetzt; Installation fällt wieder auf framework zurück. githubVersion wird ebenfalls nicht verlässlich übernommen. Der Versions-Regex trifft 15 version-Felder in sys.conf.php, darunter die 14 Pluginversionen.",
+      "impact": "Ein gewünschtes Vollupdate wird unvollständig installiert, die Zielversion kann falsch erfasst werden und unabhängige Pluginversionen werden überschrieben.",
+      "remedy": "Ein serverseitig gespeichertes Updatevorhaben mit ID, Typ, Zielversion, Commit und Paketprüfsumme verwenden. Nur die Framework-Version gezielt aktualisieren; Pluginversionen separat verwalten.",
+      "acceptance": "Vollupdate funktioniert über getrennte HTTP-Anfragen; Framework-/Modulversionen bleiben korrekt und unterbrochene Anfragen können sicher fortgesetzt werden.",
+      "tasks": "AP15"
+    },
+    {
+      "id": "F16",
+      "priority": "P1",
+      "title": "Updateinstallation überschreibt Konfiguration und ist nicht atomar",
+      "verification": "Im Quellcode und Release-Metadaten belegt",
+      "sources": [
+        {
+          "path": "src/inc/manualupdater.php",
+          "line": 1482
+        },
+        {
+          "path": "src/inc/manualupdater.php",
+          "line": 1524
+        },
+        {
+          "path": "src/inc/manualupdater.php",
+          "line": 226
+        }
+      ],
+      "problem": "Das Framework-Paket schließt config/ ein; beim Vollupdate wird nur sys.conf.php ausgespart. Laufzeitkonfigurationen können überschrieben werden. Es fehlen eine überprüfte Paketidentität, ein verbindlicher Migrationsschritt, sichere ZIP-Eintragsgrenzen und atomare Aktivierung. Für das aktuelle Release 3.2.7 existiert zudem kein zusätzliches Vollupdate-ZIP-Asset, obwohl der Updater dieses erwartet.",
+      "impact": "Updates können eine inkonsistente Installation oder verlorene Konfiguration hinterlassen. Ein vorhandenes Dateibackup allein garantiert keine wiederherstellbare Datenbank.",
+      "remedy": "Geheimnisse und Laufzeitdateien aus Paketen ausschließen. Pakete vorab in einem Staging-Verzeichnis prüfen; Pfadwechsel, Symlinks und Größenlimits kontrollieren. Datenbankmigration, Wartungsmodus, Aktivierung und Rückrollplan verbindlich definieren.",
+      "acceptance": "Fehlgeschlagene Pakete ändern den aktiven Stand nicht. Konfiguration/Schlüssel/Kundendaten bleiben erhalten; Dateirestore und Datenbankrestore werden praktisch geprüft.",
+      "tasks": "AP15, AP28, AP30"
+    },
+    {
+      "id": "F17",
+      "priority": "P2",
+      "title": "Sprachwechsel bricht wegen falschem Datentyp ab",
+      "verification": "Lokal reproduziert",
+      "sources": [
+        {
+          "path": "src/sys.conf.php",
+          "line": 166
+        },
+        {
+          "path": "src/core/LanguageManager.php",
+          "line": 37
+        }
+      ],
+      "problem": "available_languages ist eine CSV-Zeichenkette; der LanguageManager erwartet ein Array. setLanguage(en) wirft unter PHP 8.3 einen TypeError. Tatsächlich liegen überwiegend nur DE-/EN-Dateien vor.",
+      "impact": "Der Sprachwechsel funktioniert nicht zuverlässig, und angekündigte Sprachen besitzen keine vollständige Übersetzung.",
+      "remedy": "Konfiguration auf eine Liste normalisieren, verfügbare Sprachdateien auswerten und Rückfallregeln definieren.",
+      "acceptance": "DE ↔ EN funktioniert für Kern und Module ohne Warnung/Fehler; unbekannte und fehlende Sprachen werden kontrolliert behandelt.",
+      "tasks": "AP14"
+    },
+    {
+      "id": "F18",
+      "priority": "P1",
+      "title": "Gemeinsame Validierung verwechselt Zahlenbereiche mit Textlängen",
+      "verification": "Lokal reproduziert",
+      "sources": [
+        {
+          "path": "src/module/ModuleBase.php",
+          "line": 154
+        },
+        {
+          "path": "src/module/email/Module.php",
+          "line": 48
+        }
+      ],
+      "problem": "min und max prüfen immer strlen(). Die gültige Mailquote 1024 wird bei min:10 als zu kurzer Text verworfen. required prüft nur das Vorhandensein eines Schlüssels; ein vorhandener leerer String besteht diese Regel.",
+      "impact": "Gültige Eingaben werden zurückgewiesen, leere Pflichtfelder können akzeptiert werden und fachliche Grenzen werden falsch geprüft.",
+      "remedy": "Typabhängige Regeln für Integer, Zahlenbereich, Textlänge, Pflichtwert und erlaubte Werte einführen; alle Module an derselben Semantik ausrichten.",
+      "acceptance": "1024 MB besteht den numerischen Mindestwert 10; 9 MB und negative Werte scheitern. Leere Pflichtwerte und falsch typisierte Arrays werden sauber abgelehnt.",
+      "tasks": "AP14"
+    },
+    {
+      "id": "F19",
+      "priority": "P2",
+      "title": "Proxmox-Rendering hält den Modulvertrag nicht ein",
+      "verification": "Im Quellcode belegt",
+      "sources": [
+        {
+          "path": "src/module/proxmox/Module.php",
+          "line": 10
+        },
+        {
+          "path": "src/module/ModuleBase.php",
+          "line": 379
+        }
+      ],
+      "problem": "ProxmoxModule::getContent() gibt das Template direkt aus und liefert null zurück. Der AJAX-Loader erwartet HTML als Rückgabewert und baut daraus JSON.",
+      "impact": "Beim Lazy Loading kann HTML vor der JSON-Antwort ausgegeben werden oder der Inhalt fehlen. Die klassische Include-Ansicht kann dieses Problem verdecken.",
+      "remedy": "Alle Module über einen einheitlichen Renderer ausgeben und das Rückgabeformat der AJAX-Aktionen verbindlich machen.",
+      "acceptance": "Der getContent-Aufruf produziert genau eine gültige JSON-Antwort mit HTML im vorgesehenen Feld und ohne vorangestellte Ausgabe.",
+      "tasks": "AP16"
+    },
+    {
+      "id": "F20",
+      "priority": "P2",
+      "title": "Netzwerkmodul ignoriert die angeforderte IP und erzwingt Node pve",
+      "verification": "Im Quellcode belegt; Provider nicht aufgerufen",
+      "sources": [
+        {
+          "path": "src/module/network/Module.php",
+          "line": 37
+        }
+      ],
+      "problem": "updateVMNetwork() verlangt eine IP-Adresse, schreibt jedoch nur net0/MAC/Bridge. Die IP wird lediglich protokolliert. Der API-Pfad enthält fest /nodes/pve/ statt des tatsächlichen Nodes.",
+      "impact": "Die Erfolgsmeldung kann eine nicht ausgeführte IP-Konfiguration suggerieren; Systeme mit anderem Nodenamen werden falsch angesprochen.",
+      "remedy": "Tatsächlichen Ressourcen-Node verwenden; Bridge und MAC prüfen. IP-Verwaltung über unterstützte Cloud-Init-/Gastagent-Funktionen ausdrücklich implementieren oder als nicht unterstützt kennzeichnen.",
+      "acceptance": "Ein anderer Nodename funktioniert im Adaptertest; Erfolg bedeutet nachprüfbar angewendete Konfiguration. Nicht unterstützte IP-Änderungen werden nicht als erfolgreich gemeldet.",
+      "tasks": "AP19"
+    },
+    {
+      "id": "F21",
+      "priority": "P2",
+      "title": "Unbeabsichtigte Ausgabe und PHP-Kurz-Tags stören die Auslieferung",
+      "verification": "Lokal reproduziert",
+      "sources": [
+        {
+          "path": "framework.php",
+          "line": 1
+        },
+        {
+          "path": "src/module/file-editor/templates/main.php",
+          "line": 684
+        }
+      ],
+      "problem": "framework.php beginnt mit UTF-8-BOM und erzeugt beim bloßen Laden die Bytes efbbbf. Ohne passende Pufferung stört das Header und Sessions; in JSON-Antworten sind es zusätzliche Bytes. Mit short_open_tag=1 wird ein XML-String im Dateieditor als PHP interpretiert und verursacht einen Parse Error.",
+      "impact": "Header, Cookies, Downloads und JSON-Verarbeitung können abhängig von Servereinstellungen fehlschlagen.",
+      "remedy": "PHP-Dateien ohne BOM speichern und ungewollte Ausgaben vermeiden. XML-Öffnung konfliktfrei zusammensetzen; Zeichencodierung und relevante PHP-Einstellungen dokumentieren.",
+      "acceptance": "Das Laden des Frameworks erzeugt null Bytes; JSON-/Downloadantworten haben keine Präfixe. Der Dateieditor lässt sich mit beiden Kurz-Tag-Einstellungen parsen.",
+      "tasks": "AP14, AP16"
+    },
+    {
+      "id": "F22",
+      "priority": "P2",
+      "title": "Statische JavaScript-Datei enthält unverarbeitetes PHP",
+      "verification": "Syntaxfehler lokal reproduziert; aktuell nicht eingebunden",
+      "sources": [
+        {
+          "path": "src/assets/index.js",
+          "line": 1
+        },
+        {
+          "path": "src/index.php",
+          "line": 741
+        }
+      ],
+      "problem": "index.js enthält PHP-Templateausdrücke und ist als statisches JavaScript ungültig. Der aktuelle index.php stellt die betreffende Initialisierung bereits inline bereit; eine Einbindung von assets/index.js wurde dort nicht gefunden.",
+      "impact": "Die Datei ist ein fehlerhafter, derzeit offenbar ungenutzter Parallelstand und würde bei statischer Einbindung im Browser abbrechen.",
+      "remedy": "Initialisierungsdaten bewusst über JSON im PHP-Template ausgeben; JavaScript selbst rein statisch halten. Unbenutzte Parallelstände und .bak-Dateien entfernen.",
+      "acceptance": "Alle ausgelieferten Browser-JavaScript-Dateien bestehen die Syntaxprüfung; es existiert nur ein verwendeter Initialisierungspfad.",
+      "tasks": "AP16"
+    },
+    {
+      "id": "F23",
+      "priority": "P1",
+      "title": "Manuelle Vollschemata liefern ein vorgegebenes Admin-Konto mit",
+      "verification": "Im Quellcode belegt; betrifft nicht den kontoarmen Installer-Schemensatz",
+      "sources": [
+        {
+          "path": "database/database-structure-optimized.sql",
+          "line": 604
+        },
+        {
+          "path": "database/database-structure-sqlite.sql",
+          "line": 730
+        }
+      ],
+      "problem": "Die manuellen Vollschemata legen ein Admin-Konto mit fest hinterlegtem Passwort-Hash an. Der reguläre Installer verwendet andere Schemadateien und erzeugt sein eigenes Passwort; das Risiko betrifft insbesondere manuelle Imports.",
+      "impact": "Unterschiedliche Installationswege besitzen unterschiedliche Sicherheitsmerkmale; ein öffentlich bekannter Ausgangszugang kann bestehen bleiben.",
+      "remedy": "Vorbelegte administrative Konten aus Produktivmigrationen entfernen. Erstinstallation über einmaligen sicheren Bootstrap durchführen; bestehende Instanzen auf unveränderte Beispielkonten prüfen.",
+      "acceptance": "Keine Neuinstallation enthält ein bekanntes oder fest vorgegebenes administratives Passwort. Der Bootstrap kann nach Abschluss nicht erneut offen ausgeführt werden.",
+      "tasks": "AP02, AP11"
+    },
+    {
+      "id": "F24",
+      "priority": "P2",
+      "title": "Dokumentation, Versions- und Lizenzangaben sind widersprüchlich",
+      "verification": "Im Dateibestand belegt",
+      "sources": [
+        {
+          "path": "README.md",
+          "line": 6
+        },
+        {
+          "path": "LICENSE",
+          "line": 1
+        },
+        {
+          "path": "README.md",
+          "line": 5
+        },
+        {
+          "path": "PROJECT_OVERVIEW.md",
+          "line": 9
+        }
+      ],
+      "problem": "Das README nennt MIT, die LICENSE-Datei Apache 2.0. Dort wird PHP >=7.4 beworben, obwohl der Code neuere Sprachmittel verwendet; die letzte Version wird teils als 3.1.0 beschrieben. PROJECT_OVERVIEW nennt eine nicht vorhandene conf.inc.php. Einige Installationspfade stimmen nicht mit dem Dateibestand überein.",
+      "impact": "Installation, Erweiterungsentwicklung und spätere Veröffentlichung bauen auf uneindeutigen Anforderungen auf.",
+      "remedy": "Eine verbindliche Lizenzangabe entsprechend der vorhandenen Projektlizenz führen und die gewünschte Lizenz bei einer Änderung gesondert klären. Runtime-, Versions-, Installations- und Funktionsangaben aus dem überprüften Stand ableiten.",
+      "acceptance": "Alle Installationsanweisungen sind nachgebaut; Projektmetadaten nennen dieselbe Version/Lizenz und nur tatsächlich getestete PHP-/Datenbankkombinationen.",
+      "tasks": "AP17, AP29"
+    },
+    {
+      "id": "F25",
+      "priority": "P2",
+      "title": "Reproduzierbare Tests und ein Release-Prozess fehlen",
+      "verification": "Im Dateibestand belegt",
+      "sources": [
+        {
+          "path": "test.php",
+          "line": 31
+        },
+        {
+          "path": ".gitignore",
+          "line": 21
+        }
+      ],
+      "problem": "Das lokale Projekt ist kein Git-Checkout. .github enthält Vorlagen, aber keine CI-Workflows; composer.json und ein automatisiertes Testpaket fehlen. test.php führt einen echten Provider-Aufruf aus und ist kein isolierter Regressionstest. framework.php umfasst 7.686 Zeilen; API- und Datenbankmodus pflegen teilweise parallele Klassen.",
+      "impact": "Fehlerbehebungen, Upgrades und Veröffentlichungen lassen sich bisher nicht zuverlässig reproduzieren oder auf unbeabsichtigte Änderungen prüfen.",
+      "remedy": "Archiv mit Upstream abgleichen, versionierte Arbeitsbasis herstellen, isolierte Tests/CI und explizite Release-Dateilisten einführen. Kern und Provider schrittweise hinter geprüften Verträgen aufteilen.",
+      "acceptance": "Ein frischer Checkout kann prüfen, testen und Pakete erzeugen, ohne produktive Zugangsdaten oder externe Schreibzugriffe zu benötigen.",
+      "tasks": "AP01, AP03, AP18, AP28"
+    }
+  ],
+  "priority_counts": {
+    "P0": 5,
+    "P1": 13,
+    "P2": 7
+  },
+  "lint": {
+    "php": {
+      "count": 118,
+      "errors": [],
+      "runtime": "PHP 8.3.6 Ubuntu package 8.3.6-0ubuntu0.24.04.13",
+      "configuration": "-n -d short_open_tag=0",
+      "additional_short_open_tag_on_failure": {
+        "file": "src/module/file-editor/templates/main.php",
+        "line": 684,
+        "error": "Literal XML opening tag is interpreted as PHP when short_open_tag=1"
+      }
+    },
+    "javascript": {
+      "runtime": "Node.js 24.22.1",
+      "count": 40,
+      "errors": [
+        {
+          "file": "src/assets/index.js",
+          "error": "[stdin]:1\nwindow.sessionInfo = <?= json_encode($session_info ?? []) ?>;\n                     ^\n\nSyntaxError: Unexpected token '<'"
+        }
+      ],
+      "scope": "37 browser assets; 3 MongoDB shell scripts excluded from the Node.js verdict",
+      "browser_asset_count": 37,
+      "excluded_shell_scripts": [
+        "config/framework-mongodb.js",
+        "database/mongodb/database-structure-mongodb.js",
+        "install/database-structure-install-mongodb.js"
+      ]
+    }
+  },
+  "static_checks": {
+    "sqlite": {
+      "config/framework-sqlite.sql": {
+        "ok": false,
+        "error": "no such table: main.users"
+      },
+      "database/database-structure-sqlite.sql": {
+        "ok": true,
+        "tables": [
+          "users",
+          "sqlite_sequence",
+          "customers",
+          "user_permissions",
+          "user_sessions",
+          "login_attempts",
+          "customer_login_logs",
+          "verification_tokens",
+          "customer_remember_tokens",
+          "activity_log",
+          "user_activities",
+          "support_tickets",
+          "ticket_replies",
+          "contact_messages",
+          "domain_registrations",
+          "domains",
+          "vms",
+          "websites",
+          "sm_databases",
+          "email_accounts",
+          "ssl_certificates",
+          "ips",
+          "api_credentials",
+          "modules",
+          "system_settings",
+          "settings",
+          "sqlite_stat1"
+        ]
+      },
+      "install/database-structure-install-sqlite.sql": {
+        "ok": true,
+        "tables": [
+          "users",
+          "sqlite_sequence",
+          "customers",
+          "user_permissions",
+          "user_sessions",
+          "login_attempts",
+          "customer_login_logs",
+          "verification_tokens",
+          "customer_remember_tokens",
+          "activity_log",
+          "user_activities",
+          "support_tickets",
+          "ticket_replies",
+          "contact_messages",
+          "domain_registrations",
+          "domains",
+          "vms",
+          "websites",
+          "sm_databases",
+          "email_accounts",
+          "ssl_certificates",
+          "ips",
+          "api_credentials",
+          "modules",
+          "system_settings",
+          "settings"
+        ]
+      }
+    },
+    "xml_errors": [],
+    "xml_count": 30,
+    "php_bom": [
+      "framework.php"
+    ]
+  },
+  "isolated_runtime_probes": {
+    "framework_output_hex": "efbbbf",
+    "email_template_class_loaded_by_registration_imports": false,
+    "normal_user_can_access_admin_file_editor": true,
+    "module_role_from_login_shaped_session": null,
+    "file_editor_reads_outside_project": true,
+    "file_editor_writes_outside_project": true,
+    "language_switch": "TypeError: in_array(): Argument #2 ($haystack) must be of type array, string given",
+    "sqlite_log_action": false,
+    "database_wrapper_has_execute": false,
+    "admin_handler_constructed_for_user": true,
+    "session_timeout_seconds": 600,
+    "configured_session_timeout_seconds": "3600",
+    "missing_service_manager_methods": {
+      "getISPConfigUsers": [
+        "src/inc/users.php"
+      ],
+      "editOGPUser": [
+        "src/inc/users.php"
+      ],
+      "editProxmoxUser": [
+        "src/inc/users.php"
+      ],
+      "editISPConfigUser": [
+        "src/inc/users.php"
+      ],
+      "deleteOGPUser": [
+        "src/inc/users.php",
+        "src/inc/users.php"
+      ],
+      "deleteISPConfigUser": [
+        "src/inc/users.php"
+      ],
+      "createISPConfigUser": [
+        "src/inc/users.php"
+      ],
+      "updateOGPUserPassword": [
+        "src/inc/users.php"
+      ],
+      "updateProxmoxUserPassword": [
+        "src/inc/users.php"
+      ],
+      "updateISPConfigUserPassword": [
+        "src/inc/users.php"
+      ]
+    },
+    "numeric_quota_1024_validation": {
+      "quota": "Field must be at least 10 characters"
+    },
+    "required_empty_validation": [],
+    "security_csrf_enabled_but_feature_disabled": true
+  },
+  "limitations": [
+    "No production system tested",
+    "No live provider mutations executed",
+    "No complete MySQL/MariaDB/PostgreSQL/MongoDB integration",
+    "No full browser acceptance",
+    "Isolated test fixture uses SQLite and disabled providers"
+  ],
+  "upstream": {
+    "repository": "teris/Server-Management-Framework",
+    "default_branch": "main",
+    "latest_release": "3.2.7",
+    "published_at": "2025-09-12T12:50:55Z",
+    "release_url": "https://github.com/teris/Server-Management-Framework/releases/tag/3.2.7",
+    "attached_assets": [
+      "framework-standalone.zip"
+    ],
+    "retrieved_on": "2026-10-24",
+    "source": "Connected GitHub API"
+  }
+}

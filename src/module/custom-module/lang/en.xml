@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <module_title>Custom Module</module_title>
+    <custom_feature>Custom Feature</custom_feature>
+    <add_item>Add Item</add_item>
+    <edit_item>Edit Item</edit_item>
+    <delete_item>Delete Item</delete_item>
+    <item_name>Name</item_name>
+    <status>Status</status>
+    <actions>Actions</actions>
+    <save>Save</save>
+    <cancel>Cancel</cancel>
+    <edit>Edit</edit>
+    <delete>Delete</delete>
+    <create>Create</create>
+    <refresh>Refresh</refresh>
+    <operation_successful>Operation successful</operation_successful>
+    <operation_failed>Operation failed</operation_failed>
+    <validation_failed>Validation failed</validation_failed>
+    <confirm_delete>Do you really want to delete?</confirm_delete>
+    <loading>Loading...</loading>
+    <test_successful>Test successful</test_successful>
+    <unknown_action>Unknown action</unknown_action>
+    <unknown_error>Unknown error</unknown_error>
+    <custom_module_description>This is a custom module for testing and development.</custom_module_description>
+    <test_button>Run Test</test_button>
+    <welcome_message>Welcome to the custom module</welcome_message>
+</translations> 

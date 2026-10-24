@@ -1,4 +1,11 @@
 <?php 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+/**
+ * Server Management Framework
+ * 
+ * @author Teris
+ * @version 3.1.2
+ */
 require_once 'framework.php';
 
 session_start();

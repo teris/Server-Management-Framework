@@ -244,11 +244,11 @@ async function deleteWebsite(domainId) {
 
 // Plugin Management
 function openPlugin(pluginKey) {
-    PluginManager.open(pluginKey);
+    window.location.assign('?option=modules&mod=' + encodeURIComponent(pluginKey));
 }
 
 function closePlugin() {
-    PluginManager.close();
+    window.location.assign('index.php');
 }
 
 async function togglePlugin(pluginKey, enable) {
@@ -348,24 +348,14 @@ function showNotification(message, type = 'info') {
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', function() {
-    // Prevent double initialization when script is included multiple times
-    if (window.__adminCoreInitialized) {
-        return;
+    // Load initial stats
+    refreshAllStats();
+    
+    // Auto-refresh stats if enabled
+    if (window.dashboardConfig && window.dashboardConfig.refresh_interval) {
+        setInterval(refreshAllStats, window.dashboardConfig.refresh_interval * 1000);
     }
-    window.__adminCoreInitialized = true;
-
-    // Only refresh stats on pages that actually show dashboard stats
-    const hasStatsUI = document.querySelector('[data-stat]') || document.querySelector('.stat-card');
-    if (hasStatsUI) {
-        // Load initial stats
-        refreshAllStats();
-
-        // Auto-refresh stats if enabled
-        if (window.dashboardConfig && window.dashboardConfig.refresh_interval) {
-            setInterval(refreshAllStats, window.dashboardConfig.refresh_interval * 1000);
-        }
-    }
-
+    
     // Initialize tooltips, charts, etc.
     console.log('Admin Dashboard initialized');
 });

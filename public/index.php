@@ -10,8 +10,7 @@
  * Zeigt Server-Status, Kundenlogin und Ticket-System
  */
 
-require_once '../src/sys.conf.php';
-require_once '../framework.php';
+require_once __DIR__ . '/../src/public-bootstrap.php';
 require_once '../src/core/LanguageManager.php';
 
 // Sprache setzen
@@ -19,7 +18,7 @@ $lang = LanguageManager::getInstance();
 $currentLang = $lang->getCurrentLanguage();
 
 // ServiceManager für Server-Status
-$serviceManager = new ServiceManager();
+$serviceManager = null; // Infrastructure listings are private.
 
 // Hilfsfunktion für sichere Array-Anzeige
 function safeDisplay($value, $default = 'N/A') {
@@ -37,21 +36,8 @@ function safeDisplay($value, $default = 'N/A') {
     return htmlspecialchars($value ?? $default);
 }
 
-// Server-Status abrufen
-try {
-    $proxmoxVMs = $serviceManager->getProxmoxVMs();
-    $proxmoxLXCs = $serviceManager->getProxmoxLXCs();
-    $gameServers = $serviceManager->getOGPGameServers();
-    $systemInfo = $serviceManager->getSystemInfo();
-} catch (Exception $e) {
-    $proxmoxVMs = [];
-    $proxmoxLXCs = [];
-    $gameServers = [];
-    $systemInfo = [];
-    error_log("Frontpanel Error: " . $e->getMessage());
-}
-
-// Übersetzungsfunktion wird von sys.conf.php bereitgestellt
+// Internal infrastructure is available only through authenticated resource endpoints.
+$proxmoxVMs = []; $proxmoxLXCs = []; $gameServers = ['message' => []]; $systemInfo = [];
 ?>
 <!DOCTYPE html>
 <html lang="<?= $currentLang ?>">
@@ -61,17 +47,17 @@ try {
     <title><?= t('frontpanel_title') ?> - Server Management</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/frontpanel.css">
     
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">

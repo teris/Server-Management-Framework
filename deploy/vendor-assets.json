@@ -1,0 +1,127 @@
+[
+  {
+    "file": "public/assets/vendor/bootstrap/bootstrap.min.css",
+    "source": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css",
+    "sha256": "3017df4a76db5f01c2b99b603d88b03106df13bcfe18e67b7c13c2341d3a67df"
+  },
+  {
+    "file": "public/assets/vendor/bootstrap/bootstrap.bundle.min.js",
+    "source": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js",
+    "sha256": "82f64f62bb03c1bc1824b0f9c9e05f70dba33e146818e63cdf5c306c8cf3dedd"
+  },
+  {
+    "file": "public/assets/vendor/bootstrap/LICENSE",
+    "source": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/LICENSE",
+    "sha256": "3d0b0c88216e4752b9afd3d24e36faaf27873b5a45a61458bb3c83e794c26832"
+  },
+  {
+    "file": "public/assets/vendor/bootstrap-icons/bootstrap-icons.min.css",
+    "source": "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css",
+    "sha256": "e8c36e8eb75b57467b4bddbb3f350c5ce98c2f090a76c743ed7225ff0f3d1cc4"
+  },
+  {
+    "file": "public/assets/vendor/bootstrap-icons/fonts/bootstrap-icons.woff2",
+    "source": "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/fonts/bootstrap-icons.woff2",
+    "sha256": "bacd70afda7da1deac2bbd49b5717a4dd133bcd59c379525d705b8492f678e95"
+  },
+  {
+    "file": "public/assets/vendor/bootstrap-icons/fonts/bootstrap-icons.woff",
+    "source": "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/fonts/bootstrap-icons.woff",
+    "sha256": "4d4572ef314e1b734cdd6485f913b0396d81bedf4d216a47cfde0cdf32a9316e"
+  },
+  {
+    "file": "public/assets/vendor/bootstrap-icons/LICENSE",
+    "source": "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/LICENSE",
+    "sha256": "0623348b57e817b6897c41b6065380b599d5befe2839d83270566c605e430441"
+  },
+  {
+    "file": "public/assets/vendor/jquery/jquery.min.js",
+    "source": "https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js",
+    "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+  },
+  {
+    "file": "public/assets/vendor/jquery/LICENSE",
+    "source": "https://cdn.jsdelivr.net/npm/jquery@3.7.1/LICENSE.txt",
+    "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+  },
+  {
+    "file": "public/assets/vendor/ace/ace.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/ace.js",
+    "sha256": "b8a9f6cb7a4bffd8bb96922fd129664911c9142878a0222bdbee9b7a743f2421"
+  },
+  {
+    "file": "public/assets/vendor/ace/LICENSE",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/LICENSE",
+    "sha256": "850f545c5254e8c08204edb2a6d50bbb72727c38a82982c17a84bebf6064cdf8"
+  },
+  {
+    "file": "public/assets/vendor/ace/mode-html.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/mode-html.js",
+    "sha256": "0170f13bb3c9f54f567c294488ca569e5926d2752a6a88e0b59495a13f8923f9"
+  },
+  {
+    "file": "public/assets/vendor/ace/mode-xml.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/mode-xml.js",
+    "sha256": "7f3d21c5079ec0f15fc5fdb983be4f489970041bc4c005861d80a0917792a173"
+  },
+  {
+    "file": "public/assets/vendor/ace/mode-css.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/mode-css.js",
+    "sha256": "c5a546ddcf7cf0f8035ae6891b1539e7c7a4d4f6519ff768a49e3c72ff261af1"
+  },
+  {
+    "file": "public/assets/vendor/ace/mode-javascript.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/mode-javascript.js",
+    "sha256": "3cbefb0df860503543d4ddd34090ec8b9e3191fccdd1c7d13fa36655e6c7d11d"
+  },
+  {
+    "file": "public/assets/vendor/ace/mode-json.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/mode-json.js",
+    "sha256": "010feab73fd75cfcdee30cdc71bdcc868e4f914465a59a7141c5ee4983a8afec"
+  },
+  {
+    "file": "public/assets/vendor/ace/theme-github.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/theme-github.js",
+    "sha256": "1931c7f9c49d94a9b3ac8f4389698d3fc1a3387c9716a6bdf5c722a5d8ff696f"
+  },
+  {
+    "file": "public/assets/vendor/ace/theme-monokai.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/theme-monokai.js",
+    "sha256": "418b51182005d851256bdc39a7095a1202afb9fdd2100aa4f9075b9623fb1c15"
+  },
+  {
+    "file": "public/assets/vendor/ace/theme-chrome.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/theme-chrome.js",
+    "sha256": "2131ded9bfd8835cab931b89f67f0d1cea4f7abf4b67515a9b069f74231354ce"
+  },
+  {
+    "file": "public/assets/vendor/ace/ext-language_tools.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/ext-language_tools.js",
+    "sha256": "b039b0925f0b3f8f943d71f8ed3c62accd78e5f9a9e8a36bc7a0b8d546f55d09"
+  },
+  {
+    "file": "public/assets/vendor/ace/worker-html.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/worker-html.js",
+    "sha256": "2a7dd0e31bd739a8bedf2a01231868c3bfea4e485468a38548282cd3a92b8260"
+  },
+  {
+    "file": "public/assets/vendor/ace/worker-css.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/worker-css.js",
+    "sha256": "44e0ede71374c32a1492de76a4b394e39e8726b466c1241b91537d0dcd6bf466"
+  },
+  {
+    "file": "public/assets/vendor/ace/worker-javascript.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/worker-javascript.js",
+    "sha256": "0afac114aa21889bace4c6826d282a4de8643678c7a90e80f787b0eaac2fa529"
+  },
+  {
+    "file": "public/assets/vendor/ace/worker-json.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/worker-json.js",
+    "sha256": "a1036213cd0d011afbb36c00f7dd7155c4d0841d595696b279ed3538d25c8a28"
+  },
+  {
+    "file": "public/assets/vendor/ace/worker-xml.js",
+    "source": "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/worker-xml.js",
+    "sha256": "7939875ea466185b5d949f72628db6aa225149706242be290a37182d8b351020"
+  }
+]

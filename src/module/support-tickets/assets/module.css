@@ -1,0 +1,314 @@
+/* Support Tickets Module Styles */
+
+.support-tickets-module {
+    padding: 20px 0;
+}
+
+.support-tickets-module .card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.support-tickets-module .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+}
+
+.support-tickets-module .table {
+    margin-bottom: 0;
+}
+
+.support-tickets-module .table th {
+    border-top: none;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+}
+
+.support-tickets-module .table td {
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+}
+
+.support-tickets-module .badge {
+    font-size: 0.75em;
+    padding: 0.375em 0.75em;
+}
+
+.support-tickets-module .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.support-tickets-module .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.support-tickets-module .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Priority Colors */
+.support-tickets-module .badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.support-tickets-module .badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529;
+}
+
+.support-tickets-module .badge.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.support-tickets-module .badge.bg-dark {
+    background-color: #343a40 !important;
+}
+
+/* Status Colors */
+.support-tickets-module .badge.bg-primary {
+    background-color: #007bff !important;
+}
+
+.support-tickets-module .badge.bg-info {
+    background-color: #17a2b8 !important;
+}
+
+.support-tickets-module .badge.bg-secondary {
+    background-color: #6c757d !important;
+}
+
+/* Modal Styles */
+.support-tickets-module .modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.support-tickets-module .modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.support-tickets-module .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Ticket Details */
+.support-tickets-module .ticket-info {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.support-tickets-module .ticket-replies {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.support-tickets-module .reply-item {
+    border-left: 3px solid #007bff;
+    padding-left: 15px;
+    margin-bottom: 15px;
+}
+
+.support-tickets-module .reply-item.internal {
+    border-left-color: #ffc107;
+    background-color: #fff3cd;
+}
+
+.support-tickets-module .reply-item.customer {
+    border-left-color: #28a745;
+    background-color: #d4edda;
+}
+
+/* Bulk Actions */
+.support-tickets-module .bulk-actions {
+    background-color: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.support-tickets-module .bulk-actions .btn {
+    margin-right: 5px;
+}
+
+/* Statistics */
+.support-tickets-module .stat-card {
+    text-align: center;
+    padding: 20px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-bottom: 20px;
+}
+
+.support-tickets-module .stat-card h3 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.support-tickets-module .stat-card h6 {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* Filters */
+.support-tickets-module .filters-section {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.support-tickets-module .filters-section .form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Pagination */
+.support-tickets-module .pagination {
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.support-tickets-module .pagination .page-link {
+    color: #007bff;
+    border: 1px solid #dee2e6;
+}
+
+.support-tickets-module .pagination .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* Loading States */
+.support-tickets-module .loading {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.support-tickets-module .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .support-tickets-module .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .support-tickets-module .btn-group-sm .btn {
+        padding: 0.125rem 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .support-tickets-module .modal-dialog {
+        margin: 10px;
+    }
+    
+    .support-tickets-module .filters-section .row > div {
+        margin-bottom: 10px;
+    }
+}
+
+/* Custom Scrollbar */
+.support-tickets-module ::-webkit-scrollbar {
+    width: 8px;
+}
+
+.support-tickets-module ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.support-tickets-module ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.support-tickets-module ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Animation Effects */
+.support-tickets-module .fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.support-tickets-module .slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Hover Effects */
+.support-tickets-module .table tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+.support-tickets-module .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+/* Focus States */
+.support-tickets-module .btn:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.support-tickets-module .form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Print Styles */
+@media print {
+    .support-tickets-module .btn,
+    .support-tickets-module .modal,
+    .support-tickets-module .bulk-actions {
+        display: none !important;
+    }
+    
+    .support-tickets-module .table {
+        border-collapse: collapse;
+    }
+    
+    .support-tickets-module .table th,
+    .support-tickets-module .table td {
+        border: 1px solid #000;
+        padding: 8px;
+    }
+}

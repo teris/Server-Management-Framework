@@ -1,0 +1,4 @@
+* text=auto eol=lf
+# Keep upstream assets and historical DDL byte-for-byte, including their whitespace.
+public/assets/vendor/** -text -whitespace
+tests/fixtures/** -text -whitespace

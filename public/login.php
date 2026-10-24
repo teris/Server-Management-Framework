@@ -1,136 +1,15 @@
 <?php
-/**
- * Server Management Framework
- * 
- * @author Teris
- * @version 3.1.2
- */
-/**
- * Kundenlogin - Authentifizierung für Kunden
- */
-
-require_once '../src/sys.conf.php';
-require_once '../framework.php';
-require_once '../src/core/LanguageManager.php';
-require_once '../src/core/ActivityLogger.php';
-
-// Sprache setzen
-$lang = LanguageManager::getInstance();
-$currentLang = $lang->getCurrentLanguage();
-
-// Übersetzungsfunktion wird von sys.conf.php bereitgestellt
-
-// Session starten
-session_start();
-
-// Bereits eingeloggt?
-if (isset($_SESSION['customer_logged_in']) && $_SESSION['customer_logged_in'] === true) {
-    header('Location: dashboard.php');
-    exit;
-}
-
-$error = '';
-$success = '';
-
-// Login verarbeiten
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $remember = isset($_POST['remember']);
-    
-    if (empty($email) || empty($password)) {
-        $error = t('please_fill_all_fields');
-    } else {
-        try {
-            // Datenbankverbindung
-            $db = Database::getInstance();
-            $pdo = $db->getConnection();
-            
-            // Kunde in der Datenbank suchen
-            $stmt = $pdo->prepare("SELECT id, email, password_hash, first_name, last_name, status FROM customers WHERE email = ? AND status = 'active'");
-            $stmt->execute([$email]);
-            $customer = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($customer && password_verify($password, $customer['password_hash'])) {
-                // Login erfolgreich
-                $_SESSION['customer_logged_in'] = true;
-                $_SESSION['customer_id'] = $customer['id'];
-                $_SESSION['customer_email'] = $customer['email'];
-                $_SESSION['customer_name'] = $customer['first_name'] . ' ' . $customer['last_name'];
-                $_SESSION['login_time'] = time();
-                
-                // Remember Me
-                if ($remember) {
-                    $token = bin2hex(random_bytes(32));
-                    $expires = date('Y-m-d H:i:s', strtotime('+30 days'));
-                    
-                    $stmt = $pdo->prepare("INSERT INTO customer_remember_tokens (customer_id, token, expires_at) VALUES (?, ?, ?)");
-                    $stmt->execute([$customer['id'], $token, $expires]);
-                    
-                    setcookie('remember_token', $token, strtotime('+30 days'), '/', '', true, true);
-                }
-                
-                // Login-Log
-                $stmt = $pdo->prepare("INSERT INTO customer_login_logs (customer_id, ip_address, user_agent, success) VALUES (?, ?, ?, 1)");
-                $stmt->execute([$customer['id'], $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '']);
-                
-                // Aktivität loggen
-                try {
-                    $activityLogger = ActivityLogger::getInstance();
-                    $activityLogger->logCustomerActivity(
-                        $customer['id'], 
-                        'login', 
-                        'Erfolgreiche Anmeldung', 
-                        null, 
-                        null
-                    );
-                } catch (Exception $e) {
-                    error_log("Activity Logging Error: " . $e->getMessage());
-                }
-                
-                header('Location: dashboard.php');
-                exit;
-            } else {
-                // Login fehlgeschlagen
-                $error = t('email_or_password_is_incorrect');
-                
-                // Fehlgeschlagener Login-Log (falls Kunde existiert)
-                if ($customer) {
-                    $stmt = $pdo->prepare("INSERT INTO customer_login_logs (customer_id, ip_address, user_agent, success) VALUES (?, ?, ?, 0)");
-                    $stmt->execute([$customer['id'], $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '']);
-                }
-            }
-        } catch (Exception $e) {
-            error_log("Login Error: " . $e->getMessage());
-            $error = t('an_error_occurred') . ' ' . t('please_try_again_later');
-        }
+require_once __DIR__ . '/../src/public-bootstrap.php';
+$lang = LanguageManager::getInstance(); $currentLang = $lang->getCurrentLanguage();
+$error = ''; $success = '';
+if (Identity::current('customer')) { header('Location: dashboard.php', true, 303); exit; }
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    if (CustomerAuthentication::login(trim((string) ($_POST['email'] ?? '')), $_POST['password'] ?? '', filter_var($_POST['remember'] ?? false, FILTER_VALIDATE_BOOLEAN))) {
+        header('Location: dashboard.php', true, 303); exit;
     }
-}
-
-// Remember Me Token prüfen
-if (empty($error) && empty($_POST) && isset($_COOKIE['remember_token'])) {
-    try {
-        $db = Database::getInstance();
-        $pdo = $db->getConnection();
-        $stmt = $pdo->prepare("SELECT c.id, c.email, c.first_name, c.last_name, c.status FROM customers c 
-                              JOIN customer_remember_tokens crt ON c.id = crt.customer_id 
-                              WHERE crt.token = ? AND crt.expires_at > NOW() AND c.status = 'active'");
-        $stmt->execute([$_COOKIE['remember_token']]);
-        $customer = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($customer) {
-            $_SESSION['customer_logged_in'] = true;
-            $_SESSION['customer_id'] = $customer['id'];
-            $_SESSION['customer_email'] = $customer['email'];
-            $_SESSION['customer_name'] = $customer['first_name'] . ' ' . $customer['last_name'];
-            $_SESSION['login_time'] = time();
-            
-            header('Location: dashboard.php');
-            exit;
-        }
-    } catch (Exception $e) {
-        error_log("Remember Me Error: " . $e->getMessage());
-    }
+    $error = t('email_or_password_is_incorrect');
+} elseif (isset($_COOKIE['remember_token']) && CustomerAuthentication::remember($_COOKIE['remember_token'])) {
+    header('Location: dashboard.php', true, 303); exit;
 }
 ?>
 <!DOCTYPE html>
@@ -141,18 +20,18 @@ if (empty($error) && empty($_POST) && isset($_COOKIE['remember_token'])) {
     <title><?= t('customer_login') ?> - Server Management</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/frontpanel.css">
     <link rel="stylesheet" type="text/css" href="assets/login.css">
     
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="login-page">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -194,7 +73,7 @@ if (empty($error) && empty($_POST) && isset($_COOKIE['remember_token'])) {
                             </div>
                         <?php endif; ?>
 
-                        <form method="POST" action="" id="login-form">
+                        <form method="POST" action="" id="login-form"><?php echo HttpSecurity::csrfField(); ?>
                             <div class="mb-3">
                                 <label for="email" class="form-label">
                                     <i class="bi bi-envelope"></i> <?= t('email') ?>

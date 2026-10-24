@@ -1,0 +1,317 @@
+{
+  "date": "2026-10-24",
+  "php_version": "8.3.6",
+  "node_version": "v24.22.1",
+  "suites": {
+    "php_syntax": {
+      "php_files": 162,
+      "short_open_tag": [
+        "Off",
+        "On"
+      ],
+      "errors": []
+    },
+    "authorization_sessions_files": {
+      "checks": 119,
+      "failed": 0,
+      "failures": []
+    },
+    "database_sqlite": {
+      "checks": 247,
+      "failed": 0,
+      "engines": [
+        {
+          "driver": "sqlite",
+          "server_version": "3.45.1",
+          "legacy": false,
+          "fixture": "fresh",
+          "static_queries_checked": 194,
+          "legacy_ddl_adjustments": [],
+          "checks": 79,
+          "failed": 0
+        },
+        {
+          "driver": "sqlite",
+          "server_version": "3.45.1",
+          "legacy": true,
+          "fixture": "legacy",
+          "static_queries_checked": 194,
+          "legacy_ddl_adjustments": [],
+          "checks": 84,
+          "failed": 0
+        },
+        {
+          "driver": "sqlite",
+          "server_version": "3.45.1",
+          "legacy": true,
+          "fixture": "legacy_full",
+          "static_queries_checked": 194,
+          "legacy_ddl_adjustments": [],
+          "checks": 84,
+          "failed": 0
+        }
+      ]
+    },
+    "changed_browser_syntax": {
+      "files": 53,
+      "failed": 0,
+      "errors": []
+    },
+    "core_invariants": {
+      "checks": 297,
+      "failed": 0,
+      "schema_snapshots": 9,
+      "cache_provider_writes": "rejected",
+      "utf8": "valid"
+    },
+    "user_provider_contracts": {
+      "checks": 39,
+      "failed": 0,
+      "live_provider_mutations": 0
+    },
+    "signed_updates": {
+      "checks": 41,
+      "failed": 0,
+      "engine": "SQLite 3",
+      "signed_packages": true,
+      "real_cli_migration": true
+    },
+    "registration_install_smtps": {
+      "checks": 27,
+      "failed": 0,
+      "mail_transport": "real local SMTPS",
+      "live_provider_mutations": 0
+    },
+    "http": {
+      "checks": 47,
+      "failed": 0,
+      "provider_calls": 8
+    },
+    "tls": {
+      "checks": 5,
+      "failed": []
+    },
+    "concurrency": {
+      "checks": 2,
+      "failed": 0,
+      "parallel_requests": 30
+    },
+    "package_selection": {
+      "checks": 19,
+      "files_selected": 307,
+      "failed": 0
+    },
+    "private_config_migration": {
+      "checks": 6,
+      "failed": 0
+    },
+    "session_browser": {
+      "checks": 2,
+      "failed": 0
+    },
+    "csrf_browser": {
+      "checks": 4,
+      "failed": 0
+    },
+    "baseline_negative_control": {
+      "negative_control": "tag 3.2.7",
+      "security_checks": [
+        {
+          "check": "diagnostic page must be closed",
+          "expected": 404,
+          "baseline_status": 200,
+          "passes": false
+        },
+        {
+          "check": "updater must reject anonymous request",
+          "expected": 404,
+          "baseline_status": 200,
+          "passes": false
+        },
+        {
+          "check": "internal status must require login",
+          "expected": 401,
+          "baseline_status": 200,
+          "passes": false
+        },
+        {
+          "check": "public form must require CSRF",
+          "expected": 403,
+          "baseline_status": 200,
+          "passes": false
+        },
+        {
+          "check": "temporary file must require owner",
+          "expected": 401,
+          "baseline_status": 200,
+          "passes": false
+        }
+      ],
+      "expected_failures": 5
+    }
+  },
+  "limitations": [
+    "No production deployment",
+    "No live provider mutations",
+    "Native SQL and headless browser suites are reported separately",
+    "Production webserver acceptance pending in AP30",
+    "GitHub Actions configured but not run remotely before push"
+  ],
+  "native_sql_servers": {
+    "checks": 494,
+    "failed": 0,
+    "engines": [
+      {
+        "driver": "mysql",
+        "server_version": "10.11.14-MariaDB-0ubuntu0.24.04.1",
+        "legacy": false,
+        "fixture": "fresh",
+        "static_queries_checked": 194,
+        "legacy_ddl_adjustments": [],
+        "checks": 79,
+        "failed": 0
+      },
+      {
+        "driver": "mysql",
+        "server_version": "10.11.14-MariaDB-0ubuntu0.24.04.1",
+        "legacy": true,
+        "fixture": "legacy",
+        "static_queries_checked": 194,
+        "legacy_ddl_adjustments": [],
+        "checks": 84,
+        "failed": 0
+      },
+      {
+        "driver": "mysql",
+        "server_version": "10.11.14-MariaDB-0ubuntu0.24.04.1",
+        "legacy": true,
+        "fixture": "legacy_full",
+        "static_queries_checked": 194,
+        "legacy_ddl_adjustments": [],
+        "checks": 84,
+        "failed": 0
+      },
+      {
+        "driver": "pgsql",
+        "server_version": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+        "legacy": false,
+        "fixture": "fresh",
+        "static_queries_checked": 194,
+        "legacy_ddl_adjustments": [],
+        "checks": 79,
+        "failed": 0
+      },
+      {
+        "driver": "pgsql",
+        "server_version": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+        "legacy": true,
+        "fixture": "legacy",
+        "static_queries_checked": 194,
+        "legacy_ddl_adjustments": [],
+        "checks": 84,
+        "failed": 0
+      },
+      {
+        "driver": "pgsql",
+        "server_version": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+        "legacy": true,
+        "fixture": "legacy_full",
+        "static_queries_checked": 194,
+        "legacy_ddl_adjustments": [
+          "psql routing removed",
+          "reserved identifier quoted by adapter",
+          "two invalid aggregate views excluded from fixture import"
+        ],
+        "checks": 84,
+        "failed": 0
+      }
+    ]
+  },
+  "mysql8": {
+    "checks": 247,
+    "failed": 0,
+    "engines": [
+      {
+        "driver": "mysql",
+        "server_version": "8.0.46-0ubuntu0.24.04.4",
+        "legacy": false,
+        "fixture": "fresh",
+        "static_queries_checked": 194,
+        "legacy_ddl_adjustments": [],
+        "checks": 79,
+        "failed": 0
+      },
+      {
+        "driver": "mysql",
+        "server_version": "8.0.46-0ubuntu0.24.04.4",
+        "legacy": true,
+        "fixture": "legacy",
+        "static_queries_checked": 194,
+        "legacy_ddl_adjustments": [],
+        "checks": 84,
+        "failed": 0
+      },
+      {
+        "driver": "mysql",
+        "server_version": "8.0.46-0ubuntu0.24.04.4",
+        "legacy": true,
+        "fixture": "legacy_full",
+        "static_queries_checked": 194,
+        "legacy_ddl_adjustments": [],
+        "checks": 84,
+        "failed": 0
+      }
+    ]
+  },
+  "headless_browser": {
+    "checks": 21,
+    "failed": 0,
+    "browser": "135.0.7049.115",
+    "viewports": [
+      "1440x1000",
+      "390x844"
+    ],
+    "external_requests": 0
+  },
+  "private_configuration": {
+    "backup_integrity": true,
+    "local_configuration": [
+      {
+        "file": "config/config.inc.php",
+        "unchanged": true
+      }
+    ]
+  },
+  "native_backups": true,
+  "live_provider_mutations": 0,
+  "remote_ci_executed": false,
+  "source": {
+    "branch": "stability/ap10-ap17",
+    "base_commit": "b433a09647a344527628d3bb6aa11f320b92ddff",
+    "application_version": "3.2.7",
+    "schema": "20261024_core_01"
+  },
+  "clean_checkout": {
+    "passed": true,
+    "suite_count": 15,
+    "local_runtime_configuration_present": false,
+    "results_match_workspace": true
+  },
+  "summary": {
+    "workspace_suites": 16,
+    "clean_checkout_suites": 15,
+    "sql_database_checks": 988,
+    "engines": [
+      "SQLite 3.45.1",
+      "MySQL 8.0.46",
+      "MariaDB 10.11.14",
+      "PostgreSQL 16.15"
+    ],
+    "php_files_linted_twice": 162,
+    "javascript_files_parsed": 53,
+    "updater_checks": 41,
+    "browser_checks": 21,
+    "package_files": 307,
+    "baseline_expected_failures": 5
+  }
+}

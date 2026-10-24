@@ -1,13 +1,10 @@
 // Session-Informationen werden global als window.sessionInfo erwartet
 let sessionTimer;
 let warningShown = false;
-let __sessionInitialized = false;
 
 // Session-Timer initialisieren
 function initSessionTimer() {
     if (!window.sessionInfo) return;
-    if (__sessionInitialized) return;
-    __sessionInitialized = true;
     updateSessionDisplay();
     // Timer jede Sekunde aktualisieren
     sessionTimer = setInterval(() => {
@@ -62,36 +59,41 @@ function showSessionWarning() {
 
 function showSessionExpired() {
     clearInterval(sessionTimer);
-    document.getElementById('sessionExpired').style.display = 'flex';
+    const expired = document.getElementById('sessionExpired');
+    if (expired) expired.style.display = 'flex';
     setTimeout(() => {
         window.location.href = 'login.php';
     }, 5000);
 }
 
+let extendingSession = false;
+let lastSessionExtension = Date.now();
 function extendSession() {
+    if (extendingSession || !window.sessionInfo) return;
+    extendingSession = true;
     fetch('', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'action=extend_session'
-    }).then(() => {
-        window.sessionInfo.timeRemaining = window.sessionInfo.timeout;
+    }).then(async response => {
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            if (response.status === 401) window.location.href = 'login.php';
+            return;
+        }
+        window.sessionInfo.timeRemaining = result.remaining;
+        window.sessionInfo.timeout = result.timeout;
+        lastSessionExtension = Date.now();
         warningShown = false;
-        if (typeof showNotification === 'function') showNotification('Session verlängert');
-    });
+        updateSessionDisplay();
+    }).catch(() => {
+        if (typeof showNotification === 'function') showNotification('Sitzung konnte nicht verlängert werden', 'error');
+    }).finally(() => { extendingSession = false; });
 }
 
-// Session bei jeder Benutzeraktivität verlängern
-let activityTimer;
-function resetActivityTimer() {
-    clearTimeout(activityTimer);
-    activityTimer = setTimeout(() => {
-        extendSession();
-    }, 30000); // Alle 30 Sekunden bei Aktivität
-}
+// Throttle real user activity; continuous mouse movement must not postpone it forever.
 ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-    // Avoid adding the same listener multiple times
-    document.removeEventListener(event, resetActivityTimer, true);
-    document.addEventListener(event, resetActivityTimer, true);
+    document.addEventListener(event, () => {
+        if (Date.now() - lastSessionExtension >= 30000) extendSession();
+    }, true);
 });

@@ -1,7 +1,7 @@
 <?php
 /**
  * Server Management Framework
- * 
+ *
  * @author Teris
  * @version 3.1.2
  */
@@ -9,8 +9,7 @@
  * Support-Tickets-Seite für Kunden
  */
 
-require_once '../src/sys.conf.php';
-require_once '../framework.php';
+require_once __DIR__ . '/../src/public-bootstrap.php';
 require_once '../src/core/LanguageManager.php';
 require_once '../src/core/ActivityLogger.php';
 
@@ -19,7 +18,7 @@ $lang = LanguageManager::getInstance();
 $currentLang = $lang->getCurrentLanguage();
 
 // Session starten
-session_start();
+HttpSecurity::session();
 
 // Prüfen ob Kunde eingeloggt ist
 if (!isset($_SESSION['customer_logged_in']) || $_SESSION['customer_logged_in'] !== true) {
@@ -41,7 +40,7 @@ try {
     $stmt = $db->getConnection()->prepare("SELECT * FROM customers WHERE id = ? AND status = 'active'");
     $stmt->execute([$customerId]);
     $customer = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if (!$customer) {
         // Kunde nicht gefunden oder inaktiv - Session löschen
         session_destroy();
@@ -58,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'new') {
     $subject = trim($_POST['subject'] ?? '');
     $priority = $_POST['priority'] ?? 'medium';
     $message = trim($_POST['message'] ?? '');
-    
+
     // Validierung
     if (empty($subject)) {
         $error = t('please_enter_a_subject');
@@ -69,45 +68,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'new') {
             // Eindeutige Ticket-Nummer generieren
             do {
                 $ticketNumber = 'TIC-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
-                
+
                 // Prüfen ob Ticket-Nummer bereits existiert
                 $checkStmt = $db->getConnection()->prepare("SELECT COUNT(*) FROM support_tickets WHERE ticket_number = ?");
                 $checkStmt->execute([$ticketNumber]);
                 $exists = $checkStmt->fetchColumn() > 0;
             } while ($exists);
-            
+
             // E-Mail-Adresse des Kunden holen
             $customerEmail = $customer['email'] ?? $_SESSION['customer_email'] ?? '';
-            
+
             // Falls E-Mail immer noch leer ist, aus der Datenbank holen
             if (empty($customerEmail) && $customerId) {
                 $emailStmt = $db->getConnection()->prepare("SELECT email FROM customers WHERE id = ?");
                 $emailStmt->execute([$customerId]);
                 $customerEmail = $emailStmt->fetchColumn() ?: '';
             }
-            
+
             $stmt = $db->getConnection()->prepare("
-                INSERT INTO support_tickets (ticket_number, customer_id, email, subject, priority, message, status, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, 'open', NOW())
+                INSERT INTO support_tickets (ticket_number, customer_id, email, subject, priority, message, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'open', CURRENT_TIMESTAMP)
             ");
-            
+
             if ($stmt->execute([$ticketNumber, $customerId, $customerEmail, $subject, $priority, $message])) {
                 $ticketId = $db->getConnection()->lastInsertId();
-                
+
                 // Aktivität loggen
                 try {
                     $activityLogger = ActivityLogger::getInstance();
                     $activityLogger->logCustomerActivity(
-                        $customerId, 
-                        'ticket_create', 
-                        "Support-Ticket erstellt: $subject", 
-                        $ticketId, 
+                        $customerId,
+                        'ticket_create',
+                        "Support-Ticket erstellt: $subject",
+                        $ticketId,
                         'support_tickets'
                     );
                 } catch (Exception $e) {
                     error_log("Activity Logging Error: " . $e->getMessage());
                 }
-                
+
                 $success = t('your_support_ticket_has_been_successfully_submitted');
                 $action = 'list'; // Zurück zur Ticket-Liste
             } else {
@@ -124,8 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'new') {
 if ($action === 'list' || $action === 'view') {
     try {
         $stmt = $db->getConnection()->prepare("
-            SELECT * FROM support_tickets 
-            WHERE customer_id = ? 
+            SELECT * FROM support_tickets
+            WHERE customer_id = ?
             ORDER BY created_at DESC
         ");
         $stmt->execute([$customerId]);
@@ -143,25 +142,25 @@ if ($action === 'view' && isset($_GET['id'])) {
     $ticketId = (int)$_GET['id'];
     try {
         $stmt = $db->getConnection()->prepare("
-            SELECT * FROM support_tickets 
+            SELECT * FROM support_tickets
             WHERE id = ? AND customer_id = ?
         ");
         $stmt->execute([$ticketId, $customerId]);
         $currentTicket = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if (!$currentTicket) {
             $error = t('ticket_not_found');
             $action = 'list';
         } else {
             // Ticket-Replies laden (nur nicht-interne Antworten für Kunden)
             $repliesStmt = $db->getConnection()->prepare("
-                SELECT tr.*, 
-                       CASE 
+                SELECT tr.*,
+                       CASE
                            WHEN tr.customer_id IS NOT NULL THEN CONCAT(c.first_name, ' ', c.last_name)
                            WHEN tr.admin_id IS NOT NULL THEN CONCAT(u.full_name, ' (Support Team)')
                            ELSE 'System'
                        END as author_name,
-                       CASE 
+                       CASE
                            WHEN tr.customer_id IS NOT NULL THEN 'customer'
                            WHEN tr.admin_id IS NOT NULL THEN 'admin'
                            ELSE 'system'
@@ -171,42 +170,13 @@ if ($action === 'view' && isset($_GET['id'])) {
                 FROM ticket_replies tr
                 LEFT JOIN customers c ON tr.customer_id = c.id
                 LEFT JOIN users u ON tr.admin_id = u.id
-                WHERE tr.ticket_id = ? 
+                WHERE tr.ticket_id = ?
                 AND tr.is_internal = 0
                 ORDER BY tr.created_at ASC
             ");
             $repliesStmt->execute([$ticketId]);
             $ticketReplies = $repliesStmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            // Debugging: Log der gefundenen Antworten
-            error_log("Support Debug: Found " . count($ticketReplies) . " replies for ticket " . $ticketId);
-            foreach ($ticketReplies as $reply) {
-                error_log("Support Debug: Reply ID " . $reply['id'] . " - Type: " . $reply['author_type'] . ", Admin ID: " . ($reply['admin_id'] ?? 'NULL') . ", Customer ID: " . ($reply['customer_id'] ?? 'NULL'));
-            }
-            
-            // Debug: Alle Antworten überprüfen (auch interne)
-            if (isset($_GET['debug']) && $_GET['debug'] === '1') {
-                $debugStmt = $db->getConnection()->prepare("
-                    SELECT tr.*, 
-                           CASE 
-                               WHEN tr.customer_id IS NOT NULL THEN CONCAT(c.first_name, ' ', c.last_name)
-                               WHEN tr.admin_id IS NOT NULL THEN CONCAT(u.full_name, ' (Support Team)')
-                               ELSE 'System'
-                           END as author_name,
-                           tr.is_internal
-                    FROM ticket_replies tr
-                    LEFT JOIN customers c ON tr.customer_id = c.id
-                    LEFT JOIN users u ON tr.admin_id = u.id
-                    WHERE tr.ticket_id = ?
-                    ORDER BY tr.created_at ASC
-                ");
-                $debugStmt->execute([$ticketId]);
-                $allReplies = $debugStmt->fetchAll(PDO::FETCH_ASSOC);
-                error_log("Support Debug: Total replies (including internal): " . count($allReplies));
-                foreach ($allReplies as $reply) {
-                    error_log("Support Debug: All Reply ID " . $reply['id'] . " - Internal: " . $reply['is_internal'] . ", Author: " . $reply['author_name']);
-                }
-            }
+
         }
     } catch (Exception $e) {
         error_log("Ticket View Error: " . $e->getMessage());
@@ -219,7 +189,7 @@ if ($action === 'view' && isset($_GET['id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST['ticket_id']) && isset($_POST['message'])) {
     $replyTicketId = (int)$_POST['ticket_id'];
     $replyMessage = trim($_POST['message']);
-    
+
     if (empty($replyMessage)) {
         $error = t('please_enter_a_message');
     } else {
@@ -227,52 +197,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
             // Prüfen ob das Ticket dem Kunden gehört
             $checkStmt = $db->getConnection()->prepare("SELECT id FROM support_tickets WHERE id = ? AND customer_id = ?");
             $checkStmt->execute([$replyTicketId, $customerId]);
-            
+
             if ($checkStmt->fetch()) {
                 // Kunden-Antwort hinzufügen
                 $replyStmt = $db->getConnection()->prepare("
-                    INSERT INTO ticket_replies (ticket_id, customer_id, message, is_internal, created_at) 
-                    VALUES (?, ?, ?, 0, NOW())
+                    INSERT INTO ticket_replies (ticket_id, customer_id, message, is_internal, created_at)
+                    VALUES (?, ?, ?, 0, CURRENT_TIMESTAMP)
                 ");
                 $replyStmt->execute([$replyTicketId, $customerId, $replyMessage]);
-                
+
                 // Aktivität loggen
                 try {
                     $activityLogger = ActivityLogger::getInstance();
                     $activityLogger->logCustomerActivity(
-                        $customerId, 
-                        'ticket_reply', 
-                        t('ticket_reply_sent'), 
-                        $replyTicketId, 
+                        $customerId,
+                        'ticket_reply',
+                        t('ticket_reply_sent'),
+                        $replyTicketId,
                         'ticket_replies'
                     );
                 } catch (Exception $e) {
                     error_log("Activity Logging Error: " . $e->getMessage());
                 }
-                
+
                 // Ticket-Status auf "waiting_admin" setzen
                 $updateStmt = $db->getConnection()->prepare("
-                    UPDATE support_tickets 
-                    SET status = 'waiting_admin', updated_at = NOW() 
+                    UPDATE support_tickets
+                    SET status = 'waiting_admin', updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
                 ");
                 $updateStmt->execute([$replyTicketId]);
-                
+
                 $success = t('your_reply_has_been_successfully_sent');
-                
+
                 // Ticket und Replies neu laden
                 $stmt = $db->getConnection()->prepare("SELECT * FROM support_tickets WHERE id = ? AND customer_id = ?");
                 $stmt->execute([$replyTicketId, $customerId]);
                 $currentTicket = $stmt->fetch(PDO::FETCH_ASSOC);
-                
+
                 $repliesStmt = $db->getConnection()->prepare("
-                    SELECT tr.*, 
-                           CASE 
+                    SELECT tr.*,
+                           CASE
                                WHEN tr.customer_id IS NOT NULL THEN CONCAT(c.first_name, ' ', c.last_name)
                                WHEN tr.admin_id IS NOT NULL THEN CONCAT(u.full_name, ' (Support Team)')
                                ELSE 'System'
                            END as author_name,
-                           CASE 
+                           CASE
                                WHEN tr.customer_id IS NOT NULL THEN 'customer'
                                WHEN tr.admin_id IS NOT NULL THEN 'admin'
                                ELSE 'system'
@@ -282,7 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                     FROM ticket_replies tr
                     LEFT JOIN customers c ON tr.customer_id = c.id
                     LEFT JOIN users u ON tr.admin_id = u.id
-                    WHERE tr.ticket_id = ? 
+                    WHERE tr.ticket_id = ?
                     AND tr.is_internal = 0
                     ORDER BY tr.created_at ASC
                 ");
@@ -304,20 +274,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= t('support_tickets') ?> - Server Management</title>
-    
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/frontpanel.css">
     <link rel="stylesheet" type="text/css" href="assets/login.css">
-    
+
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="dashboard-page">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -325,11 +295,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
             <a class="navbar-brand" href="index.php">
                 <i class="bi bi-server"></i> <?= Config::FRONTPANEL_SITE_NAME ?>
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
@@ -348,7 +318,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                         </a>
                     </li>
                 </ul>
-                
+
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
@@ -362,9 +332,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                 <i class="bi bi-key"></i> <?= t('change_password') ?>
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="dashboard.php?logout=1">
+                            <li><form method="post" action="dashboard.php" class="d-inline"><?php echo HttpSecurity::csrfField(); ?><input type="hidden" name="action" value="logout"><button type="submit" class="dropdown-item" style="background:none;border:0">
                                 <i class="bi bi-box-arrow-right"></i> <?= t('logout') ?>
-                            </a></li>
+                            </button></form></li>
                         </ul>
                     </li>
                 </ul>
@@ -380,7 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
-        
+
         <?php if ($error): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="bi bi-exclamation-triangle"></i> <?= htmlspecialchars($error) ?>
@@ -395,7 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h3 class="card-title mb-0">
-                                <i class="bi bi-plus-circle text-primary"></i> 
+                                <i class="bi bi-plus-circle text-primary"></i>
                                 <?= t('submit_ticket') ?>
                             </h3>
                             <a href="support.php" class="btn btn-outline-secondary btn-sm">
@@ -403,13 +373,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                             </a>
                         </div>
                         <div class="card-body">
-                            <form method="POST" action="support.php?action=new">
+                            <form method="POST" action="support.php?action=new"><?php echo HttpSecurity::csrfField(); ?>
                                 <div class="mb-3">
                                     <label for="subject" class="form-label"><?= t('subject') ?> *</label>
-                                    <input type="text" class="form-control" id="subject" name="subject" 
+                                    <input type="text" class="form-control" id="subject" name="subject"
                                            value="<?= htmlspecialchars($_POST['subject'] ?? '') ?>" required>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="priority" class="form-label"><?= t('priority') ?></label>
                                     <select class="form-select" id="priority" name="priority">
@@ -427,12 +397,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                         </option>
                                     </select>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="message" class="form-label"><?= t('message') ?> *</label>
                                     <textarea class="form-control" id="message" name="message" rows="8" required><?= htmlspecialchars($_POST['message'] ?? '') ?></textarea>
                                 </div>
-                                
+
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                     <a href="support.php" class="btn btn-secondary me-md-2">
                                         <i class="bi bi-x-lg"></i> <?= t('cancel') ?>
@@ -454,7 +424,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h3 class="card-title mb-0">
-                                <i class="bi bi-ticket-detailed text-info"></i> 
+                                <i class="bi bi-ticket-detailed text-info"></i>
                                 Ticket #<?= $currentTicket['id'] ?>
                             </h3>
                             <div>
@@ -486,10 +456,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                     </span>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <strong><?= t('status') ?>:</strong> 
+                                    <strong><?= t('status') ?>:</strong>
                                     <?php
                                     $statusColors = [
                                         'open' => 'success',
@@ -507,27 +477,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                     </span>
                                 </div>
                                 <div class="col-md-6 text-end">
-                                    <strong><?= t('created') ?>:</strong> 
+                                    <strong><?= t('created') ?>:</strong>
                                     <?= date('d.m.Y H:i:s', strtotime($currentTicket['created_at'])) ?>
                                 </div>
                             </div>
-                            
+
                             <hr>
-                            
+
                             <div class="mb-4">
                                 <h5><?= t('message') ?>:</h5>
                                 <div class="border rounded p-3 bg-light">
                                     <?= nl2br(htmlspecialchars($currentTicket['message'])) ?>
                                 </div>
                             </div>
-                            
+
                             <?php if ($currentTicket['updated_at'] && $currentTicket['updated_at'] !== $currentTicket['created_at']): ?>
                                 <div class="text-muted small">
-                                    <i class="bi bi-clock"></i> 
+                                    <i class="bi bi-clock"></i>
                                     <?= t('last_updated') ?>: <?= date('d.m.Y H:i:s', strtotime($currentTicket['updated_at'])) ?>
                                 </div>
                             <?php endif; ?>
-                            
+
                             <!-- Antworten anzeigen -->
                             <?php if (!empty($ticketReplies)): ?>
                                 <hr>
@@ -554,9 +524,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                             <!-- Debug-Informationen (nur für Entwickler sichtbar) -->
                                             <?php if (isset($_GET['debug']) && $_GET['debug'] === '1'): ?>
                                                 <div class="mt-2 p-2 bg-warning text-dark small">
-                                                    <strong>Debug:</strong> 
-                                                    Type: <?= htmlspecialchars($reply['author_type']) ?>, 
-                                                    Admin ID: <?= htmlspecialchars($reply['admin_id'] ?? 'NULL') ?>, 
+                                                    <strong>Debug:</strong>
+                                                    Type: <?= htmlspecialchars($reply['author_type']) ?>,
+                                                    Admin ID: <?= htmlspecialchars($reply['admin_id'] ?? 'NULL') ?>,
                                                     Customer ID: <?= htmlspecialchars($reply['customer_id'] ?? 'NULL') ?>
                                                 </div>
                                             <?php endif; ?>
@@ -570,21 +540,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                     <p class="mb-0"><?= t('no_replies_yet') ?></p>
                                     <?php if (isset($_GET['debug']) && $_GET['debug'] === '1'): ?>
                                         <div class="mt-2 p-2 bg-info text-white small">
-                                            <strong><?= t('debug_info') ?>:</strong> <?= t('no_replies_found') ?> 
+                                            <strong><?= t('debug_info') ?>:</strong> <?= t('no_replies_found') ?>
                                             <?= t('ticket_id') ?>: <?= $currentTicket['id'] ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
                             <?php endif; ?>
-                            
+
                             <!-- Antwort-Formular (nur wenn Ticket nicht geschlossen ist) -->
                             <?php if ($currentTicket['status'] !== 'closed'): ?>
                                 <hr>
                                 <h5><?= t('reply_message') ?>:</h5>
-                                <form method="POST" action="support.php?action=reply">
+                                <form method="POST" action="support.php?action=reply"><?php echo HttpSecurity::csrfField(); ?>
                                     <input type="hidden" name="ticket_id" value="<?= $currentTicket['id'] ?>">
                                     <div class="mb-3">
-                                        <textarea class="form-control" name="message" rows="4" 
+                                        <textarea class="form-control" name="message" rows="4"
                                                   placeholder="<?= t('enter_your_reply') ?>" required></textarea>
                                     </div>
                                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -596,7 +566,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                             <?php else: ?>
                                 <hr>
                                 <div class="alert alert-info">
-                                    <i class="bi bi-info-circle"></i> 
+                                    <i class="bi bi-info-circle"></i>
                                     <?= t('ticket_closed_message') ?>
                                 </div>
                             <?php endif; ?>
@@ -612,7 +582,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h3 class="card-title mb-0">
-                                <i class="bi bi-headset text-primary"></i> 
+                                <i class="bi bi-headset text-primary"></i>
                                 <?= t('support_tickets') ?>
                             </h3>
                             <a href="support.php?action=new" class="btn btn-primary">
@@ -649,7 +619,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                                         <strong>#<?= $ticket['id'] ?></strong>
                                                     </td>
                                                     <td>
-                                                        <a href="support.php?action=view&id=<?= $ticket['id'] ?>" 
+                                                        <a href="support.php?action=view&id=<?= $ticket['id'] ?>"
                                                            class="text-decoration-none">
                                                             <?= htmlspecialchars($ticket['subject']) ?>
                                                         </a>
@@ -689,7 +659,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                                                         <?= date('d.m.Y H:i', strtotime($ticket['created_at'])) ?>
                                                     </td>
                                                     <td>
-                                                        <a href="support.php?action=view&id=<?= $ticket['id'] ?>" 
+                                                        <a href="support.php?action=view&id=<?= $ticket['id'] ?>"
                                                            class="btn btn-sm btn-outline-primary">
                                                             <i class="bi bi-eye"></i> <?= t('view') ?>
                                                         </a>
@@ -705,118 +675,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reply' && isset($_POST
                 </div>
             </div>
         <?php endif; ?>
-        
-        <!-- Debug-Informationen (nur für Entwickler sichtbar) -->
-        <?php if (isset($_GET['debug']) && $_GET['debug'] === '1'): ?>
-            <div class="mt-3 p-3 bg-warning text-dark">
-                <h6><i class="bi bi-bug"></i> <?= t('debug_information') ?></h6>
-                <p><strong><?= t('ticket_id') ?>:</strong> <?= $currentTicket['id'] ?? 'N/A' ?></p>
-                <p><strong><?= t('found_replies') ?>:</strong> <?= count($ticketReplies) ?></p>
-                <p><strong><?= t('ticket_status') ?>:</strong> <?= $currentTicket['status'] ?? 'N/A' ?></p>
-                <p><strong><?= t('customer_id') ?>:</strong> <?= $customerId ?></p>
-                
-                <?php if (!empty($ticketReplies)): ?>
-                    <h6><?= t('reply_details') ?>:</h6>
-                    <ul>
-                        <?php foreach ($ticketReplies as $reply): ?>
-                            <li>
-                                <?= t('id') ?>: <?= $reply['id'] ?>, 
-                                <?= t('type') ?>: <?= $reply['author_type'] ?>, 
-                                <?= t('admin_id') ?>: <?= $reply['admin_id'] ?? 'NULL' ?>, 
-                                <?= t('customer_id') ?>: <?= $reply['customer_id'] ?? 'NULL' ?>,
-                                <?= t('internal') ?>: <?= $reply['is_internal'] ?? 'N/A' ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php endif; ?>
-                
-                <!-- Überprüfung der gesamten Datenbank -->
-                <?php
-                try {
-                    $adminRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE admin_id IS NOT NULL");
-                    $adminRepliesCount->execute();
-                    $totalAdminReplies = $adminRepliesCount->fetchColumn();
-                    
-                    $customerRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE customer_id IS NOT NULL");
-                    $customerRepliesCount->execute();
-                    $totalCustomerReplies = $customerRepliesCount->fetchColumn();
-                    
-                    $internalRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE is_internal = 1");
-                    $internalRepliesCount->execute();
-                    $totalInternalReplies = $internalRepliesCount->fetchColumn();
-                } catch (Exception $e) {
-                    $totalAdminReplies = 'Error';
-                    $totalCustomerReplies = 'Error';
-                    $totalInternalReplies = 'Error';
-                }
-                ?>
-                <h6><?= t('database_overview') ?>:</h6>
-                <ul>
-                    <li><strong><?= t('total_admin_replies') ?>:</strong> <?= $totalAdminReplies ?></li>
-                    <li><strong><?= t('total_customer_replies') ?>:</strong> <?= $totalCustomerReplies ?></li>
-                    <li><strong><?= t('internal_replies') ?>:</strong> <?= $totalInternalReplies ?></li>
-                </ul>
-                
-                <!-- Überprüfung des aktuellen Tickets
-                <?php
-                try {
-                    $ticketAdminRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE ticket_id = ? AND admin_id IS NOT NULL");
-                    $ticketAdminRepliesCount->execute([$currentTicket['id']]);
-                    $ticketAdminReplies = $ticketAdminRepliesCount->fetchColumn();
-                    
-                    $ticketCustomerRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE ticket_id = ? AND customer_id IS NOT NULL");
-                    $ticketCustomerRepliesCount->execute([$currentTicket['id']]);
-                    $ticketCustomerReplies = $ticketCustomerRepliesCount->fetchColumn();
-                    
-                    $ticketInternalRepliesCount = $db->getConnection()->prepare("SELECT COUNT(*) FROM ticket_replies WHERE ticket_id = ? AND is_internal = 1");
-                    $ticketInternalRepliesCount->execute([$currentTicket['id']]);
-                    $ticketInternalReplies = $ticketInternalRepliesCount->fetchColumn();
-                } catch (Exception $e) {
-                    $ticketAdminReplies = 'Error';
-                    $ticketCustomerReplies = 'Error';
-                    $ticketInternalReplies = 'Error';
-                }
-                ?>
-                <h6><?= t('ticket_specific_overview') ?>:</h6>
-                <ul>
-                    <li><strong><?= t('admin_replies_for_this_ticket') ?>:</strong> <?= $ticketAdminReplies ?></li>
-                    <li><strong><?= t('customer_replies_for_this_ticket') ?>:</strong> <?= $ticketCustomerReplies ?></li>
-                    <li><strong><?= t('internal_replies_for_this_ticket') ?>:</strong> <?= $ticketInternalReplies ?></li>
-                </ul>
-                
-                <!-- Detaillierte Überprüfung der Admin-Antworten -->
-                <?php
-                try {
-                    $detailedAdminReplies = $db->getConnection()->prepare("
-                        SELECT tr.*, u.full_name, u.username
-                        FROM ticket_replies tr
-                        LEFT JOIN users u ON tr.admin_id = u.id
-                        WHERE tr.ticket_id = ? AND tr.admin_id IS NOT NULL
-                        ORDER BY tr.created_at ASC
-                    ");
-                    $detailedAdminReplies->execute([$currentTicket['id']]);
-                    $adminRepliesDetails = $detailedAdminReplies->fetchAll(PDO::FETCH_ASSOC);
-                } catch (Exception $e) {
-                    $adminRepliesDetails = [];
-                }
-                ?>
-                <h6><?= t('detailed_admin_replies') ?>:</h6>
-                <?php if (!empty($adminRepliesDetails)): ?>
-                    <ul>
-                        <?php foreach ($adminRepliesDetails as $adminReply): ?>
-                            <li>
-                                <?= t('id') ?>: <?= $adminReply['id'] ?>, 
-                                <?= t('admin') ?>: <?= htmlspecialchars($adminReply['full_name'] ?? $adminReply['username'] ?? 'Unbekannt') ?>, 
-                                <?= t('internal') ?>: <?= $adminReply['is_internal'] ? 'Ja' : 'Nein' ?>,
-                                <?= t('date') ?>: <?= date('d.m.Y H:i:s', strtotime($adminReply['created_at'])) ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php else: ?>
-                    <p class="text-muted"><?= t('no_admin_replies_found_for_this_ticket') ?></p>
-                <?php endif; ?>
-            </div>
-        <?php endif; ?>
+
+
     </div>
 
     <!-- Footer -->

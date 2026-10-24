@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -7,7 +9,7 @@
  */
 
 require_once dirname(__DIR__) . '/sys.conf.php';
-require_once dirname(__DIR__) . '/../config/config.inc.php';
+require_once dirname(__DIR__) . '/../config/load.php';
 
 // Prüfe, ob der Nutzer eingeloggt ist
 if (!isset($_SESSION['user_id'])) {
@@ -41,12 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['profile_update'])) {
             if (!$row || !password_verify($old_password, $row['password_hash'])) {
                 throw new Exception('Das alte Passwort ist nicht korrekt.');
             }
-            $pw_hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $db->prepare('UPDATE users SET full_name=?, email=?, password_hash=?, password_changed_at=NOW(), updated_at=NOW() WHERE id=?');
-            $db->execute($stmt, [$full_name, $email, $pw_hash, $user_id]);
+            require_once dirname(__DIR__) . '/auth_handler.php';
+            $changed = AccountPasswords::change('backend', Identity::requireIdentity('backend'), $old_password, $password);
+            if (!$changed['success']) throw new RuntimeException($changed['message']);
+            $stmt = $db->prepare('UPDATE users SET full_name=?, email=?, updated_at=CURRENT_TIMESTAMP WHERE id=?');
+            $db->execute($stmt, [$full_name, $email, $user_id]);
         } elseif (empty($password) && empty($old_password)) {
             // Nur Name und E-Mail ändern, updated_at aktualisieren
-            $stmt = $db->prepare('UPDATE users SET full_name=?, email=?, updated_at=NOW() WHERE id=?');
+            $stmt = $db->prepare('UPDATE users SET full_name=?, email=?, updated_at=CURRENT_TIMESTAMP WHERE id=?');
             $db->execute($stmt, [$full_name, $email, $user_id]);
         } else {
             // Ein Passwortfeld ist leer, das ist nicht erlaubt
@@ -88,7 +92,7 @@ function tcore($key, $default = null) {
             </div>
             <div class="card-body">
                 <?= $message ?>
-                <form method="post" autocomplete="off">
+                <form method="post" autocomplete="off"><?php echo HttpSecurity::csrfField(); ?>
                     <div class="mb-3">
                         <label for="username" class="form-label"><?= tcore('benutzername') ?></label>
                         <input type="text" class="form-control" id="username" name="username" value="<?= htmlspecialchars($user['username']) ?>" readonly>

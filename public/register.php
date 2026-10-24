@@ -9,8 +9,7 @@
  * Kundenregistrierung - Neue Kunden können sich hier registrieren
  */
 
-require_once '../src/sys.conf.php';
-require_once '../framework.php';
+require_once __DIR__ . '/../src/public-bootstrap.php';
 require_once '../src/core/LanguageManager.php';
 // TODO: E-Mail-Template-System ist jetzt über EmailTemplateManager verfügbar
 require_once '../src/core/EmailTemplateManager.php';
@@ -22,10 +21,10 @@ $currentLang = $lang->getCurrentLanguage();
 // Übersetzungsfunktion wird von sys.conf.php bereitgestellt
 
 // Session starten
-session_start();
+HttpSecurity::session();
 
 // Bereits eingeloggt?
-if (isset($_SESSION['customer_logged_in']) && $_SESSION['customer_logged_in'] === true) {
+if (Identity::current('customer')) {
     header('Location: dashboard.php');
     exit;
 }
@@ -33,78 +32,15 @@ if (isset($_SESSION['customer_logged_in']) && $_SESSION['customer_logged_in'] ==
 $error = '';
 $success = '';
 
-// Registrierung verarbeiten
+// Registration writes local state only; delivery and activation are retryable.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $firstName = trim($_POST['first_name'] ?? '');
-    $lastName = trim($_POST['last_name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
-    $company = trim($_POST['company'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
-    $acceptTerms = isset($_POST['accept_terms']);
-    
-    // Validierung
-    if (empty($firstName) || empty($lastName) || empty($email) || empty($password)) {
-        $error = t('please_fill_all_required_fields');
-    } elseif (strlen($password) < 8) {
-        $error = t('the_password_must_be_at_least_8_characters_long');
-    } elseif ($password !== $confirmPassword) {
-        $error = t('the_passwords_do_not_match');
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = t('please_enter_a_valid_email_address');
-    } elseif (!$acceptTerms) {
-        $error = t('you_must_accept_the_terms_of_service');
-    } else {
-        try {
-            // Datenbankverbindung
-            $db = Database::getInstance();
-            $pdo = $db->getConnection();
-            
-            // Prüfen ob E-Mail bereits existiert
-            $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = ?");
-            $stmt->execute([$email]);
-            
-            if ($stmt->fetch()) {
-                $error = t('this_email_address_is_already_registered');
-            } else {
-                // Passwort hashen
-                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-                
-                // Kunde in Datenbank speichern
-                $stmt = $pdo->prepare("
-                    INSERT INTO customers (
-                        first_name, last_name, email, password_hash, company, phone, 
-                        status, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW(), NOW())
-                ");
-                
-                $result = $stmt->execute([
-                    $firstName, $lastName, $email, $passwordHash, $company, $phone
-                ]);
-                
-                if ($result) {
-                    $customerId = $pdo->lastInsertId();
-                    
-                    // TODO: Verifikations-E-Mail senden - ausschließlich über Template-System
-                    $emailTemplateManager = EmailTemplateManager::getInstance();
-                    $emailTemplateManager->sendCustomerVerificationEmail($email, $firstName, $customerId, $password);
-                    
-                    // Erfolgs-Nachricht
-                    $success = t('registration_successful') . ' ' . t('please_verify_your_email_address');
-                    
-                    // Formular zurücksetzen
-                    $_POST = [];
-                } else {
-                    $error = t('registration_failed') . ' ' . t('please_try_again_later');
-                }
-            }
-        } catch (Exception $e) {
-            error_log("Registration Error: " . $e->getMessage());
-            $error = t('an_error_occurred') . ' ' . t('please_try_again_later');
-        }
-    }
+    try {
+        $result = (new RegistrationService())->register($_POST);
+        if ($result['success']) { $success = $result['message']; $_POST = []; }
+        else $error = $result['message'];
+    } catch (Throwable $e) { error_log('Registration failed: ' . get_class($e)); $error = 'Die Registrierung kann gerade nicht verarbeitet werden. Bitte später erneut versuchen.'; }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="<?= $currentLang ?>">
@@ -114,18 +50,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title><?= t('customer_registration') ?> - Server Management</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/frontpanel.css">
     <link rel="stylesheet" type="text/css" href="assets/login.css">
     
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="../src/assets/security.js"></script></head>
 <body class="login-page">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -170,7 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         <?php endif; ?>
 
-                        <form method="POST" action="" id="registration-form">
+                        <p><a href="resend-verification.php">Bestätigungslink erneut anfordern</a></p>
+                        <form method="POST" action="" id="registration-form"><?php echo HttpSecurity::csrfField(); ?>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="first_name" class="form-label">
@@ -205,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <i class="bi bi-lock"></i> <?= t('password') ?> *
                                     </label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control form-control-lg" id="password" name="password" 
+                                        <input type="password" class="form-control form-control-lg" id="password" name="password" minlength="12" maxlength="4096"
                                                required placeholder="<?= t('enter_password') ?>">
                                         <button class="btn btn-outline-secondary" type="button" id="toggle-password">
                                             <i class="bi bi-eye"></i>

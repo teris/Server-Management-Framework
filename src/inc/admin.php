@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -7,7 +9,7 @@
  */
 
 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-    require_once dirname(__DIR__) . '/../config/config.inc.php';
+    require_once dirname(__DIR__) . '/../config/load.php';
     require_once dirname(__DIR__) . '/../core/DatabaseManager.php';
     header('Content-Type: application/json');
     try {
@@ -15,19 +17,19 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
         if ($_POST['action'] === 'delete_user' && isset($_POST['user_id'])) {
             $stmt = $db->prepare('DELETE FROM users WHERE id = ?');
             $db->execute($stmt, [$_POST['user_id']]);
-            echo json_encode(['success' => true]);
+            echo HttpSecurity::encode(['success' => true]);
             exit;
         }
         if ($_POST['action'] === 'delete_group' && isset($_POST['group_id'])) {
             $stmt = $db->prepare('DELETE FROM groups WHERE id = ?');
             $db->execute($stmt, [$_POST['group_id']]);
-            echo json_encode(['success' => true]);
+            echo HttpSecurity::encode(['success' => true]);
             exit;
         }
-        echo json_encode(['success' => false, 'error' => 'Unbekannte Aktion oder fehlende Parameter.']);
+        echo HttpSecurity::encode(['success' => false, 'error' => 'Unbekannte Aktion oder fehlende Parameter.']);
         exit;
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        echo HttpSecurity::encode(['success' => false, 'error' => $e->getMessage()]);
         exit;
     }
 }

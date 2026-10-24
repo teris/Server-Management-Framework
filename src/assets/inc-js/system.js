@@ -11,20 +11,8 @@ $(function() {
     });
     
     // Beim Laden: richtigen Tab anzeigen (wenn per URL ?tab=... gesetzt)
-    var initialTab = (new URLSearchParams(window.location.search)).get('tab') || 'system_config';
+    var initialTab = (new URLSearchParams(window.location.search)).get('tab') || 'plugins';
     $('#systemTabs .nav-link[data-tab="' + initialTab + '"]').trigger('click');
     
-    // AJAX-Formular-Submit (delegiert)
-    $('#systemTabContent').on('submit', 'form', function(e) {
-        e.preventDefault();
-        var $form = $(this);
-        var formData = $form.serialize();
-        
-        $.post('inc/system.php', formData, function(response) {
-            // Nur den Tab-Inhalt ersetzen
-            var tab = $form.find('input[name=active_tab]').val();
-            var html = $(response).find('#tab-' + tab).html();
-            $('#tab-' + tab).html(html);
-        });
-    });
+    // Forms use the authenticated index route and its normal CSRF handling.
 });

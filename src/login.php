@@ -6,13 +6,14 @@
  * @version 3.1.2
  */
 
-require_once '../framework.php';
+require_once __DIR__ . '/sys.conf.php';
+require_once __DIR__ . '/../framework.php';
 require_once 'auth_handler.php';
 require_once 'sys.conf.php';
 
 // Wenn bereits eingeloggt, zur Hauptseite weiterleiten
 if (SessionManager::isLoggedIn()) {
-    header('Location: index.php');
+    header('Location: ' . (SessionManager::isAdmin() ? 'index.php' : 'account.php'), true, 303);
     exit;
 }
 
@@ -31,7 +32,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'login') {
         
         if ($login_result['success']) {
             // Login erfolgreich, zur Hauptseite weiterleiten
-            header('Location: index.php');
+            header('Location: ' . (SessionManager::isAdmin() ? 'index.php' : 'account.php'), true, 303);
             exit;
         } else {
             $error_message = $login_result['message'];
@@ -46,7 +47,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'login') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= t('login_title') ?> - <?= t('server_management') ?></title>
 	<link rel="stylesheet" type="text/css" href="assets/login.css">
-</head>
+<meta name="csrf-token" content="<?php echo HttpSecurity::csrfToken(); ?>"><script src="assets/security.js"></script></head>
 <body>
     <div class="login-container">
         <div class="login-header">
@@ -60,15 +61,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'login') {
             </div>
         <?php endif; ?>
         
-        <!-- Demo Credentials (Remove in production) -->
-        <div class="demo-credentials">
-            <h4>🔧 <?= t('demo_credentials') ?>:</h4>
-            <p><strong><?= t('username') ?>:</strong> admin</p>
-            <p><strong><?= t('password') ?>:</strong> admin123</p>
-            <p style="color: #dc2626; font-weight: 500; margin-top: 8px;">⚠️ <?= t('change_after_first_login') ?>!</p>
-        </div>
-        
-        <form method="POST" id="loginForm">
+<form method="POST" id="loginForm"><?php echo HttpSecurity::csrfField(); ?>
             <input type="hidden" name="action" value="login">
             
             <div class="form-group">
@@ -92,7 +85,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'login') {
         
         <div class="login-footer">
             <p>© 2025 Server Management Framework</p>
-            <p>Session-Timeout: 10 Minuten bei Inaktivität</p>
+            <p>Session-Timeout: <?= (int) (HttpSecurity::timeout() / 60) ?> Minuten bei Inaktivität</p>
         </div>
     </div>
 

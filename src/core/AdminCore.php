@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * Server Management Framework
  * 
@@ -9,6 +11,8 @@
  * AdminCore - Kern-Funktionalität des Admin Dashboards
  * Nutzt das modulare System aus framework.php
  */
+
+require_once __DIR__ . '/UserAdministration.php';
 
 class AdminCore {
     private $db;
@@ -1013,52 +1017,13 @@ class AdminCore {
 
     // --- API-Zugangsdaten ---
     public function getApiCredentials() {
-        try {
-            $connection = $this->getSafeDbConnection();
-            $stmt = $connection->query("SELECT * FROM api_credentials");
-            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            // Werte aus config/config.inc.php holen
-            require_once dirname(__DIR__) . '/config/config.inc.php';
-            $config = [
-                'proxmox' => [
-                    'endpoint' => Config::PROXMOX_HOST,
-                    'username' => Config::PROXMOX_USER,
-                    'password' => Config::PROXMOX_PASSWORD
-                ],
-                'ispconfig' => [
-                    'endpoint' => Config::ISPCONFIG_HOST,
-                    'username' => Config::ISPCONFIG_USER,
-                    'password' => Config::ISPCONFIG_PASSWORD
-                ],
-                'ovh' => [
-                    'endpoint' => Config::OVH_ENDPOINT,
-                    'application_key' => Config::OVH_APPLICATION_KEY,
-                    'application_secret' => Config::OVH_APPLICATION_SECRET,
-                    'consumer_key' => Config::OVH_CONSUMER_KEY
-                ]
-            ];
-            return ['success' => true, 'data' => $data, 'config' => $config];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        $stmt = $this->getSafeDbConnection()->query('SELECT id,service_name,endpoint,username,active FROM api_credentials');
+        return ['success'=>true,'data'=>$stmt->fetchAll(PDO::FETCH_ASSOC),'config'=>['source'=>'private_configuration']];
+
     }
     public function saveApiCredentials($data) {
-        try {
-            $db = $this->getSafeDbConnection();
-            foreach ($data as $key => $value) {
-                if (preg_match('/^api_url_(\d+)$/', $key, $m)) {
-                    $id = $m[1];
-                    $url = $value;
-                    $user = $data['api_user_' . $id] ?? '';
-                    $pass = $data['api_password_' . $id] ?? '';
-                    $stmt = $db->prepare("UPDATE api_credentials SET api_url=?, api_user=?, api_password=? WHERE id=?");
-                    $stmt->execute([$url, $user, $pass, $id]);
-                }
-            }
-            return ['success' => true];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        return ['success'=>false,'error'=>'PRIVATE_CONFIGURATION_REQUIRED','message'=>'Provider-Zugangsdaten werden in der privaten Serverkonfiguration geändert.'];
+
     }
     // --- Module ---
     public function getModules() {
@@ -1213,117 +1178,39 @@ class AdminCore {
         }
     }
     public function saveUser($data) {
-        try {
-            $db = $this->getSafeDbConnection();
-            $id = $data['user_id'] ?? null;
-            $username = $data['username'] ?? '';
-            $full_name = $data['full_name'] ?? '';
-            $email = $data['email'] ?? '';
-            $group_id = $data['group_id'] ?? null;
-            $role = $data['role'] ?? 'user';
-            if ($group_id) {
-                $stmt_group = $db->prepare("SELECT name FROM groups WHERE id = ?");
-                $stmt_group->execute([$group_id]);
-                $role = $stmt_group->fetchColumn() ?: $role;
-            }
-            $active = isset($data['active']) && $data['active'] === 'y' ? 'y' : 'n';
-            $password = $data['password'] ?? '';
-            if ($id) {
-                // Update
-                if ($password) {
-                    $hash = password_hash($password, PASSWORD_DEFAULT);
-                    $stmt = $db->prepare("UPDATE users SET username=?, full_name=?, email=?, role=?, active=?, password_hash=?, group_id=? WHERE id=?");
-                    $stmt->execute([$username, $full_name, $email, $role, $active, $hash, $group_id, $id]);
-                } else {
-                    $stmt = $db->prepare("UPDATE users SET username=?, full_name=?, email=?, role=?, active=?, group_id=? WHERE id=?");
-                    $stmt->execute([$username, $full_name, $email, $role, $active, $group_id, $id]);
-                }
-            } else {
-                // Insert
-                $hash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $db->prepare("INSERT INTO users (username, full_name, email, role, active, password_hash, group_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$username, $full_name, $email, $role, $active, $hash, $group_id]);
-            }
-            return ['success' => true];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        return (new UserAdministration($this->getSafeDbConnection(), $this->serviceManager))->save('backend', $data);
+
     }
     public function deleteUser($id) {
-        try {
-            $connection = $this->getSafeDbConnection();
-            $stmt = $connection->prepare("DELETE FROM users WHERE id=?");
-            $stmt->execute([$id]);
-            return ['success' => true];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        return (new UserAdministration($this->getSafeDbConnection(), $this->serviceManager))->delete('backend', (int) $id);
+
     }
     
     /**
      * Kunde speichern (erstellen oder aktualisieren)
      */
     public function saveCustomer($data) {
-        try {
-            $db = $this->getSafeDbConnection();
-            $id = $data['customer_id'] ?? null;
-            $firstName = $data['first_name'] ?? '';
-            $lastName = $data['last_name'] ?? '';
-            $email = $data['email'] ?? '';
-            $status = $data['status'] ?? 'active';
-            $password = $data['password'] ?? '';
+        return (new UserAdministration($this->getSafeDbConnection(), $this->serviceManager))->save('customer', $data);
             
-            if ($id) {
-                // Update
-                if ($password) {
-                    $hash = password_hash($password, PASSWORD_DEFAULT);
-                    $stmt = $db->prepare("UPDATE customers SET first_name=?, last_name=?, email=?, status=?, password_hash=?, updated_at=NOW() WHERE id=?");
-                    $stmt->execute([$firstName, $lastName, $email, $status, $hash, $id]);
-                } else {
-                    $stmt = $db->prepare("UPDATE customers SET first_name=?, last_name=?, email=?, status=?, updated_at=NOW() WHERE id=?");
-                    $stmt->execute([$firstName, $lastName, $email, $status, $id]);
-                }
-            } else {
-                // Insert
-                if (!$password) {
-                    return ['success' => false, 'error' => 'Passwort ist erforderlich für neue Kunden'];
-                }
-                $hash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $db->prepare("INSERT INTO customers (first_name, last_name, email, status, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())");
-                $stmt->execute([$firstName, $lastName, $email, $status, $hash]);
-            }
-            return ['success' => true];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
     }
     
     /**
      * Kunde löschen
      */
     public function deleteCustomer($id) {
-        try {
-            $connection = $this->getSafeDbConnection();
-            $stmt = $connection->prepare("DELETE FROM customers WHERE id=?");
-            $stmt->execute([$id]);
-            return ['success' => true];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        return (new UserAdministration($this->getSafeDbConnection(), $this->serviceManager))->delete('customer', (int) $id);
+
     }
     
     /**
      * Kunde Status ändern
      */
     public function toggleCustomerStatus($id) {
-        try {
-            $db = $this->getSafeDbConnection();
-            $stmt = $db->prepare("UPDATE customers SET status = CASE WHEN status = 'active' THEN 'inactive' ELSE 'active' END, updated_at = NOW() WHERE id = ?");
-            $stmt->execute([$id]);
-            return ['success' => true];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        $db = $this->getSafeDbConnection(); $stmt = $db->prepare('SELECT * FROM customers WHERE id=?'); $stmt->execute([$id]); $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) throw new InvalidArgumentException('Konto nicht gefunden');
+        $row['customer_id'] = $id; $row['status'] = $row['status'] === 'active' ? 'suspended' : 'active';
+        return (new UserAdministration($db, $this->serviceManager))->save('customer', $row);
+
     }
     // --- Gruppen ---
     public function getGroups() {
@@ -1447,47 +1334,15 @@ class AdminCore {
     }
     
     public function toggleUserStatus($userId, $status = null) {
-        try {
-            $db = $this->getSafeDbConnection();
+        $db = $this->getSafeDbConnection(); $stmt = $db->prepare('SELECT * FROM users WHERE id=?'); $stmt->execute([$userId]); $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) throw new InvalidArgumentException('Konto nicht gefunden');
+        $row['user_id'] = $userId; $row['active'] = $status === null ? ($row['active'] === 'y' ? 'n' : 'y') : $status;
+        return (new UserAdministration($db, $this->serviceManager))->save('backend', $row);
             
-            // Wenn kein Status angegeben, aktuellen Status umschalten
-            if ($status === null) {
-                $stmt = $db->prepare("SELECT active FROM users WHERE id = ?");
-                $stmt->execute([$userId]);
-                $currentStatus = $stmt->fetchColumn();
-                $newStatus = $currentStatus === 'y' ? 'n' : 'y';
-            } else {
-                $newStatus = $status === 'active' ? 'y' : 'n';
-            }
-            
-            $stmt = $db->prepare("UPDATE users SET active = ? WHERE id = ?");
-            $stmt->execute([$newStatus, $userId]);
-            
-            return ['success' => true, 'data' => ['active' => $newStatus]];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
     }
     
     public function resetUserPassword($userId) {
-        try {
-            $db = $this->getSafeDbConnection();
-            
-            // Generiere ein sicheres Passwort
-            $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-            $password = '';
-            for ($i = 0; $i < 12; $i++) {
-                $password .= $chars[random_int(0, strlen($chars) - 1)];
-            }
-            
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
-            $stmt->execute([$hash, $userId]);
-            
-            return ['success' => true, 'data' => ['password' => $password]];
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        return (new UserAdministration($this->getSafeDbConnection(), $this->serviceManager))->requestReset('backend', (int) $userId);
+
     }
 }
-?>

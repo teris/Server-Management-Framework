@@ -9,13 +9,12 @@
  * Aktivitäten löschen - Löscht alle Aktivitäten des Benutzers
  */
 
-require_once '../src/sys.conf.php';
-require_once '../framework.php';
+require_once __DIR__ . '/../src/public-bootstrap.php';
 require_once '../src/core/LanguageManager.php';
 require_once '../src/core/ActivityLogger.php';
 
 // Session starten
-session_start();
+HttpSecurity::session();
 
 // Prüfen ob Kunde eingeloggt ist
 if (!isset($_SESSION['customer_logged_in']) || $_SESSION['customer_logged_in'] !== true) {

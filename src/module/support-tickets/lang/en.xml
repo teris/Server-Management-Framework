@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <module_title>Support Tickets</module_title>
+    <tickets>Tickets</tickets>
+    <new_tickets>New Ticket</new_tickets>
+    <open_tickets>Open Tickets</open_tickets>
+    <closed_tickets>Closed Tickets</closed_tickets>
+    <ticket_id>Ticket ID</ticket_id>
+    <customer>Customer</customer>
+    <subject>Subject</subject>
+    <priority>Priority</priority>
+    <status>Status</status>
+    <created>Created</created>
+    <updated>Updated</updated>
+    <actions>Actions</actions>
+    <view>View</view>
+    <edit>Edit</edit>
+    <delete>Delete</delete>
+    <reply>Reply</reply>
+    <close>Close</close>
+    <reopen>Reopen</reopen>
+    <change_priority>Change Priority</change_priority>
+    <low>Low</low>
+    <medium>Medium</medium>
+    <high>High</high>
+    <urgent>Urgent</urgent>
+    <open>Open</open>
+    <in_progress>In Progress</in_progress>
+    <waiting_customer>Waiting Customer</waiting_customer>
+    <waiting_admin>Waiting Admin</waiting_admin>
+    <resolved>Resolved</resolved>
+    <closed>Closed</closed>
+    <message>Message</message>
+    <reply_message>Reply to Ticket</reply_message>
+    <send_reply>Send Reply</send_reply>
+    <confirm_delete>Are you sure you want to delete this ticket?</confirm_delete>
+    <confirm_close>Are you sure you want to close this ticket?</confirm_close>
+    <confirm_reopen>Are you sure you want to reopen this ticket?</confirm_reopen>
+    <loading>Loading...</loading>
+    <no_tickets>No tickets found</no_tickets>
+    <filter_by_status>Filter by Status</filter_by_status>
+    <filter_by_priority>Filter by Priority</filter_by_priority>
+    <search_tickets>Search Tickets</search_tickets>
+    <all_tickets>All Tickets</all_tickets>
+    <customer_name>Customer Name</customer_name>
+    <email>Email</email>
+    <phone>Phone</phone>
+    <company>Company</company>
+    <ticket_number>Ticket Number</ticket_number>
+    <category>Category</category>
+    <assigned_to>Assigned To</assigned_to>
+    <department>Department</department>
+    <source>Source</source>
+    <estimated_resolution_time>Estimated Resolution Time</estimated_resolution_time>
+    <actual_resolution_time>Actual Resolution Time</actual_resolution_time>
+    <customer_satisfaction>Customer Satisfaction</customer_satisfaction>
+    <internal_notes>Internal Notes</internal_notes>
+    <tags>Tags</tags>
+    <due_date>Due Date</due_date>
+    <resolved_at>Resolved At</resolved_at>
+    <closed_at>Closed At</closed_at>
+    <last_reply>Last Reply</last_reply>
+    <replies_count>Replies Count</replies_count>
+    <attachments>Attachments</attachments>
+    <add_attachment>Add Attachment</add_attachment>
+    <remove_attachment>Remove Attachment</remove_attachment>
+    <file_size_limit>File Size Limit</file_size_limit>
+    <allowed_file_types>Allowed File Types</allowed_file_types>
+    <upload_progress>Upload Progress</upload_progress>
+    <upload_success>Upload Success</upload_success>
+    <upload_error>Upload Error</upload_error>
+    <save_changes>Save Changes</save_changes>
+    <cancel>Cancel</cancel>
+    <back>Back</back>
+    <refresh>Refresh</refresh>
+    <export>Export</export>
+    <import>Import</import>
+    <bulk_actions>Bulk Actions</bulk_actions>
+    <select_all>Select All</select_all>
+    <deselect_all>Deselect All</deselect_all>
+    <bulk_close>Bulk Close</bulk_close>
+    <bulk_delete>Bulk Delete</bulk_delete>
+    <bulk_assign>Bulk Assign</bulk_assign>
+    <bulk_change_priority>Bulk Change Priority</bulk_change_priority>
+    <bulk_change_status>Bulk Change Status</bulk_change_status>
+    <bulk_export>Bulk Export</bulk_export>
+    <bulk_import>Bulk Import</bulk_import>
+    <statistics>Statistics</statistics>
+    <tickets_by_status>Tickets by Status</tickets_by_status>
+    <tickets_by_priority>Tickets by Priority</tickets_by_priority>
+    <tickets_by_department>Tickets by Department</tickets_by_department>
+    <average_resolution_time>Average Resolution Time</average_resolution_time>
+    <customer_satisfaction_avg>Average Customer Satisfaction</customer_satisfaction_avg>
+    <tickets_per_day>Tickets per Day</tickets_per_day>
+    <tickets_per_week>Tickets per Week</tickets_per_week>
+    <tickets_per_month>Tickets per Month</tickets_per_month>
+    <response_time_avg>Average Response Time</response_time_avg>
+    <escalation_rate>Escalation Rate</escalation_rate>
+    <auto_assignment>Auto Assignment</auto_assignment>
+    <auto_escalation>Auto Escalation</auto_escalation>
+    <auto_notification>Auto Notification</auto_notification>
+    <auto_reminder>Auto Reminder</auto_reminder>
+    <settings>Settings</settings>
+    <general_settings>General Settings</general_settings>
+    <notification_settings>Notification Settings</notification_settings>
+    <escalation_settings>Escalation Settings</escalation_settings>
+    <auto_assignment_settings>Auto Assignment Settings</auto_assignment_settings>
+    <template_settings>Template Settings</template_settings>
+    <email_templates>Email Templates</email_templates>
+    <sms_templates>SMS Templates</sms_templates>
+    <webhook_settings>Webhook Settings</webhook_settings>
+    <api_settings>API Settings</api_settings>
+    <integration_settings>Integration Settings</integration_settings>
+    <custom_fields>Custom Fields</custom_fields>
+    <add_custom_field>Add Custom Field</add_custom_field>
+    <edit_custom_field>Edit Custom Field</edit_custom_field>
+    <delete_custom_field>Delete Custom Field</delete_custom_field>
+    <field_name>Field Name</field_name>
+    <field_type>Field Type</field_type>
+    <field_required>Field Required</field_required>
+    <field_options>Field Options</field_options>
+    <field_default>Default Value</field_default>
+    <field_validation>Field Validation</field_validation>
+    <field_help_text>Help Text</field_help_text>
+    <field_order>Field Order</field_order>
+    <field_active>Field Active</field_active>
+    <reports>Reports</reports>
+    <generate_report>Generate Report</generate_report>
+    <report_type>Report Type</report_type>
+    <report_period>Report Period</report_period>
+    <report_format>Report Format</report_format>
+    <report_columns>Report Columns</report_columns>
+    <report_filters>Report Filters</report_filters>
+    <report_schedule>Report Schedule</report_schedule>
+    <report_email>Report Email</report_email>
+    <report_recipients>Report Recipients</report_recipients>
+    <report_frequency>Report Frequency</report_frequency>
+    <daily>Daily</daily>
+    <weekly>Weekly</weekly>
+    <monthly>Monthly</monthly>
+    <quarterly>Quarterly</quarterly>
+    <yearly>Yearly</yearly>
+    <custom>Custom</custom>
+    <report_name>Report Name</report_name>
+    <report_description>Report Description</report_description>
+    <save_report>Save Report</save_report>
+    <load_report>Load Report</load_report>
+    <delete_report>Delete Report</delete_report>
+    <share_report>Share Report</share_report>
+    <export_report>Export Report</export_report>
+    <print_report>Print Report</print_report>
+    <email_report>Email Report</email_report>
+    <schedule_report>Schedule Report</schedule_report>
+    <unschedule_report>Unschedule Report</unschedule_report>
+    <report_history>Report History</report_history>
+    <report_logs>Report Logs</report_logs>
+    <report_errors>Report Errors</report_errors>
+    <report_success>Report Success</report_success>
+    <help>Help</help>
+    <documentation>Documentation</documentation>
+    <faq>FAQ</faq>
+    <contact_support>Contact Support</contact_support>
+    <feedback>Feedback</feedback>
+    <bug_report>Bug Report</bug_report>
+    <feature_request>Feature Request</feature_request>
+    <improvement_suggestion>Improvement Suggestion</improvement_suggestion>
+    <rate_module>Rate Module</rate_module>
+    <module_reviews>Module Reviews</module_reviews>
+    <module_rating>Module Rating</module_rating>
+    <module_comments>Module Comments</module_comments>
+    <module_suggestions>Module Suggestions</module_suggestions>
+    <module_bugs>Module Bugs</module_bugs>
+    <module_features>Module Features</module_features>
+    <module_improvements>Module Improvements</module_improvements>
+    <module_help>Module Help</module_help>
+    <module_docs>Module Documentation</module_docs>
+    <module_tutorial>Module Tutorial</module_tutorial>
+    <module_video>Module Video</module_video>
+    <module_screenshots>Module Screenshots</module_screenshots>
+    <module_examples>Module Examples</module_examples>
+    <module_templates>Module Templates</module_templates>
+    <module_themes>Module Themes</module_themes>
+    <module_plugins>Module Plugins</module_plugins>
+    <module_extensions>Module Extensions</module_extensions>
+    <module_updates>Module Updates</module_updates>
+    <module_version>Module Version</module_version>
+    <module_changelog>Module Changelog</module_changelog>
+    <module_license>Module License</module_license>
+    <module_author>Module Author</module_author>
+    <module_website>Module Website</module_website>
+    <module_support>Module Support</module_support>
+    <module_donation>Module Donation</module_donation>
+    <module_affiliate>Module Affiliate</module_affiliate>
+    <module_partner>Module Partner</module_partner>
+    <module_reseller>Module Reseller</module_reseller>
+    <module_developer>Module Developer</module_developer>
+    <module_contributor>Module Contributor</module_contributor>
+    <module_translator>Module Translator</module_translator>
+    <module_designer>Module Designer</module_designer>
+    <module_tester>Module Tester</module_tester>
+    <module_reviewer>Module Reviewer</module_reviewer>
+    <module_moderator>Module Moderator</module_moderator>
+    <module_admin>Module Administrator</module_admin>
+    <module_super_admin>Module Super Administrator</module_super_admin>
+    <ticket_details>Ticket Details</ticket_details>
+    <ticket_information>Ticket Information</ticket_information>
+    <replies>Replies</replies>
+    <quick_actions>Quick Actions</quick_actions>
+    <internal_reply>Internal reply (not visible to customer)</internal_reply>
+    <add_note>Add Note</add_note>
+    <add_internal_note>Add Internal Note</add_internal_note>
+    <selected>selected</selected>
+    <create>Create</create>
+    <select_customer>Select Customer</select_customer>
+    <error_loading_module>Error loading module</error_loading_module>
+    <error_getting_tickets>Error getting tickets</error_getting_tickets>
+    <error_getting_ticket>Error getting ticket</error_getting_ticket>
+    <error_updating_ticket>Error updating ticket</error_updating_ticket>
+    <error_deleting_ticket>Error deleting ticket</error_deleting_ticket>
+    <error_adding_reply>Error adding reply</error_adding_reply>
+    <error_closing_ticket>Error closing ticket</error_closing_ticket>
+    <error_reopening_ticket>Error reopening ticket</error_reopening_ticket>
+    <error_changing_priority>Error changing priority</error_changing_priority>
+    <error_changing_status>Error changing status</error_changing_status>
+    <error_creating_ticket>Error creating ticket</error_creating_ticket>
+    <error_assigning_ticket>Error assigning ticket</error_assigning_ticket>
+    <error_getting_replies>Error getting replies</error_getting_replies>
+    <error_adding_note>Error adding note</error_adding_note>
+    <error_getting_statistics>Error getting statistics</error_getting_statistics>
+    <error_bulk_action>Error performing bulk action</error_bulk_action>
+    <access_denied>Access denied</access_denied>
+</translations>

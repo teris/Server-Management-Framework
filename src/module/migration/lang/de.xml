@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<language>
+    <name>Deutsch</name>
+    <code>de</code>
+    
+    <!-- Allgemein -->
+    <access_denied>Zugriff verweigert</access_denied>
+    <unknown_action>Unbekannte Aktion</unknown_action>
+    <confirmation>Bestätigung</confirmation>
+    <confirm_message>Sind Sie sicher?</confirm_message>
+    <cancel>Abbrechen</cancel>
+    <confirm>Bestätigen</confirm>
+    <loading>Lädt...</loading>
+    <ready>Bereit</ready>
+    
+    <!-- Migration-Titel -->
+    <migration_title>System-Migration</migration_title>
+    <migration_description>Migrieren Sie Benutzer und Daten aus verschiedenen Systemen in das Server Management System.</migration_description>
+    
+    <!-- System-Status -->
+    <system_status>System-Status</system_status>
+    <connection_successful>Verbindung erfolgreich</connection_successful>
+    <connection_failed>Verbindung fehlgeschlagen</connection_failed>
+    <no_system_specified>Kein System angegeben</no_system_specified>
+    
+    <!-- Migration-Interface -->
+    <migration_interface>Migration-Interface</migration_interface>
+    <select_systems>Systeme auswählen</select_systems>
+    <test_connections>Verbindungen testen</test_connections>
+    <start_migration>Migration starten</start_migration>
+    <stop_migration>Migration stoppen</stop_migration>
+    <rollback_migration>Migration rückgängig machen</rollback_migration>
+    <no_systems_selected>Keine Systeme ausgewählt</no_systems_selected>
+    
+    <!-- Migration-Progress -->
+    <migration_progress>Migrations-Fortschritt</migration_progress>
+    <migration_started>Migration gestartet</migration_started>
+    <migration_stopped>Migration gestoppt</migration_stopped>
+    
+    <!-- Migration-Statistiken -->
+    <migration_statistics>Migrations-Statistiken</migration_statistics>
+    <total_customers>Gesamt Kunden</total_customers>
+    <ispconfig_users>ISPConfig-Benutzer</ispconfig_users>
+    <proxmox_users>Proxmox-Benutzer</proxmox_users>
+    <ogp_users>OGP-Benutzer</ogp_users>
+    <errors>Fehler</errors>
+    
+    <!-- Migration-Log -->
+    <migration_log>Migrations-Log</migration_log>
+    <refresh_log>Log aktualisieren</refresh_log>
+    <clear_log>Log löschen</clear_log>
+    
+    <!-- Rollback -->
+    <rollback_title>Migration rückgängig machen</rollback_title>
+    <rollback_warning>WARNUNG: Diese Aktion wird alle migrierten Daten löschen! Diese Aktion kann nicht rückgängig gemacht werden.</rollback_warning>
+    <rollback_customers>Kunden löschen</rollback_customers>
+    <rollback_websites>Websites löschen</rollback_websites>
+    <rollback_vms>VMs löschen</rollback_vms>
+    <rollback_emails>E-Mail-Konten löschen</rollback_emails>
+    <execute_rollback>Rollback ausführen</execute_rollback>
+    <rollback_started>Rollback gestartet</rollback_started>
+    
+    <!-- System-Namen -->
+    <system_ispconfig>ISPConfig 3</system_ispconfig>
+    <system_proxmox>Proxmox VE</system_proxmox>
+    <system_ogp>OpenGamePanel</system_ogp>
+    
+    <!-- Status-Nachrichten -->
+    <status_idle>Bereit</status_idle>
+    <status_running>Läuft</status_running>
+    <status_completed>Abgeschlossen</status_completed>
+    <status_stopped>Gestoppt</status_stopped>
+    <status_error>Fehler</status_error>
+    
+    <!-- Fehler-Nachrichten -->
+    <error_connection_failed>Verbindung zu {system} fehlgeschlagen</error_connection_failed>
+    <error_migration_failed>Migration fehlgeschlagen: {error}</error_migration_failed>
+    <error_rollback_failed>Rollback fehlgeschlagen: {error}</error_rollback_failed>
+    
+    <!-- Erfolgs-Nachrichten -->
+    <success_migration_completed>Migration erfolgreich abgeschlossen</success_migration_completed>
+    <success_rollback_completed>Rollback erfolgreich abgeschlossen</success_rollback_completed>
+    <success_connection_test>Verbindungstest erfolgreich</success_connection_test>
+    
+    <!-- Log-Nachrichten -->
+    <log_migration_started>Migration gestartet für Systeme: {systems}</log_migration_started>
+    <log_migration_stopped>Migration gestoppt durch Benutzer</log_migration_stopped>
+    <log_migration_completed>Migration abgeschlossen - {count} Kunden erstellt</log_migration_completed>
+    <log_rollback_started>Migration-Rollback gestartet</log_rollback_started>
+    <log_rollback_completed>Rollback abgeschlossen - {count} Kunden gelöscht</log_rollback_completed>
+    
+    <!-- Tooltips -->
+    <tooltip_test_connections>Testet die Verbindung zu allen konfigurierten Systemen</tooltip_test_connections>
+    <tooltip_start_migration>Startet die Migration für die ausgewählten Systeme</tooltip_start_migration>
+    <tooltip_stop_migration>Stoppt die laufende Migration</tooltip_stop_migration>
+    <tooltip_rollback>Macht die Migration rückgängig und löscht migrierte Daten</tooltip_rollback>
+    
+    <!-- Validierung -->
+    <validation_no_systems>Bitte wählen Sie mindestens ein System aus</validation_no_systems>
+    <validation_connection_required>Verbindung zu {system} erforderlich</validation_connection_required>
+    
+    <!-- Hilfe -->
+    <help_title>Migration-Hilfe</help_title>
+    <help_step1>1. Überprüfen Sie den System-Status</help_step1>
+    <help_step2>2. Testen Sie die Verbindungen</help_step2>
+    <help_step3>3. Wählen Sie die zu migrierenden Systeme aus</help_step3>
+    <help_step4>4. Starten Sie die Migration</help_step4>
+    <help_step5>5. Überwachen Sie den Fortschritt</help_step5>
+</language>

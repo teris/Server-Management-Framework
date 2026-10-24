@@ -1,3 +1,5 @@
+> Historisches Dokument: MongoDB wird seit AP12 ausdrücklich nicht unterstützt. Diese Dateien gehören nicht zum Anwendungspaket. Maßgeblich ist die SQL-Anleitung in `database/MIGRATION_GUIDE.md`.
+
 # MongoDB-Datenbankstruktur für Server Management System
 
 ## Übersicht

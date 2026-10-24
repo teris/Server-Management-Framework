@@ -1,4 +1,5 @@
 <?php
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 /**
  * Server Management Framework
  * 
@@ -10,7 +11,11 @@
  * Speichert auch die API-Credentials aus config.inc.php in der Datenbank
  */
 
-require_once '../framework.php';
+require_once __DIR__ . '/sys.conf.php';
+require_once __DIR__ . '/../framework.php';
+HttpSecurity::cliBoundary();
+$syncLock = fopen(HttpSecurity::privateDirectory('locks').'/provider-sync.lock','c');
+if (!$syncLock || !flock($syncLock,LOCK_EX|LOCK_NB)) throw new RuntimeException('Another provider synchronization is active');
 require_once 'auth_handler.php';
 require_once 'sys.conf.php';
 
@@ -45,7 +50,7 @@ class DatabaseUpdater {
         'domains' => ['added' => 0, 'updated' => 0, 'errors' => 0],
         'credentials' => ['updated' => 0, 'errors' => 0]
     ];
-    private $debugSql = true; // NEU: Debug-Flag für SQL-Ausgabe
+    private $debugSql = false; // NEU: Debug-Flag für SQL-Ausgabe
 
     public function setDebugSql($debug) {
         $this->debugSql = (bool)$debug;
@@ -56,7 +61,7 @@ class DatabaseUpdater {
         if ($this->debugSql) {
             $this->output("\n--- SQL-DEBUG ---\n");
             $this->output("SQL: " . $sql . "\n");
-            $this->output("Parameter: " . var_export($params, true) . "\n");
+            $this->output("Parameter: " . var_export(array_fill(0,count($params),'[redacted]'), true) . "\n");
             $this->output("--- ENDE SQL-DEBUG ---\n\n");
         }
     }
@@ -112,7 +117,7 @@ class DatabaseUpdater {
                 'endpoint' => Config::PROXMOX_HOST,
                 'username' => Config::PROXMOX_USER,
                 'password' => Config::PROXMOX_PASSWORD,
-                'additional_config' => json_encode(['verify_ssl' => false])
+                'additional_config' => json_encode(['verify_ssl' => true])
             ]);
             
             // ISPConfig Credentials
@@ -152,34 +157,18 @@ class DatabaseUpdater {
         // Verschlüsselung der sensiblen Daten
         $encryptionKey = $this->getEncryptionKey();
         
-        $sql = "
-            INSERT INTO api_credentials 
-            (service_name, endpoint, username, password_encrypted, api_key_encrypted, additional_config, active, updated_at) 
-            VALUES (?, ?, ?, ?, ?, ?, 'y', NOW())
-            ON DUPLICATE KEY UPDATE 
-            endpoint = VALUES(endpoint),
-            username = VALUES(username),
-            password_encrypted = VALUES(password_encrypted),
-            api_key_encrypted = VALUES(api_key_encrypted),
-            additional_config = VALUES(additional_config),
-            updated_at = NOW()
-        ";
         
         $passwordEncrypted = !empty($data['password']) ? $this->encrypt($data['password'], $encryptionKey) : null;
         $apiKeyEncrypted = !empty($data['api_key']) ? $this->encrypt($data['api_key'], $encryptionKey) : null;
-        
-        $params = [
-            $serviceName,
-            $data['endpoint'],
-            $data['username'],
-            $passwordEncrypted,
-            $apiKeyEncrypted,
-            $data['additional_config']
-        ];
-        $this->debugSql($sql, $params);
-        $stmt = $conn->prepare($sql);
-        $stmt->execute($params);
-        
+        $stmt = $conn->prepare('SELECT id FROM api_credentials WHERE service_name=? AND endpoint=? AND username=? ORDER BY id LIMIT 1');
+        $stmt->execute([$serviceName,$data['endpoint'],$data['username']]); $id=$stmt->fetchColumn(); $stmt->closeCursor();
+        if ($id) {
+            $stmt=$conn->prepare("UPDATE api_credentials SET password_encrypted=?,api_key_encrypted=?,additional_config=?,active='y',updated_at=CURRENT_TIMESTAMP WHERE id=?");
+            $stmt->execute([$passwordEncrypted,$apiKeyEncrypted,$data['additional_config'],$id]);
+        } else {
+            $stmt=$conn->prepare("INSERT INTO api_credentials (service_name,endpoint,username,password_encrypted,api_key_encrypted,additional_config,active) VALUES (?,?,?,?,?,?,'y')");
+            $stmt->execute([$serviceName,$data['endpoint'],$data['username'],$passwordEncrypted,$apiKeyEncrypted,$data['additional_config']]);
+        }
         $this->stats['credentials']['updated']++;
     }
     
@@ -228,7 +217,7 @@ class DatabaseUpdater {
                             UPDATE vms SET 
                                 name = ?, node = ?, status = ?, cores = ?, 
                                 memory = ?, disk_size = ?, ip_address = ?, 
-                                mac_address = ?, updated_at = NOW()
+                                mac_address = ?, updated_at = CURRENT_TIMESTAMP
                             WHERE vm_id = ?
                         ";
                         $params = [
@@ -252,7 +241,7 @@ class DatabaseUpdater {
                         $sql = "
                             INSERT INTO vms 
                             (vm_id, name, node, status, cores, memory, disk_size, ip_address, mac_address, created_at) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                         ";
                         $params = [
                             $vm->vmid,
@@ -317,7 +306,7 @@ class DatabaseUpdater {
                             UPDATE websites SET 
                                 ip_address = ?, system_user = ?, system_group = ?, 
                                 document_root = ?, hd_quota = ?, traffic_quota = ?, 
-                                active = ?, ssl_enabled = ?, updated_at = NOW()
+                                active = ?, ssl_enabled = ?, updated_at = CURRENT_TIMESTAMP
                             WHERE domain = ?
                         ";
                         $params = [
@@ -342,7 +331,7 @@ class DatabaseUpdater {
                             INSERT INTO websites 
                             (domain, ip_address, system_user, system_group, document_root, 
                              hd_quota, traffic_quota, active, ssl_enabled, created_at) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                         ";
                         $params = [
                             $website->domain,
@@ -403,7 +392,7 @@ class DatabaseUpdater {
                         $sql = "
                             UPDATE sm_databases SET 
                                 database_user = ?, database_type = ?, server_id = ?, 
-                                charset = ?, remote_access = ?, active = ?, updated_at = NOW()
+                                charset = ?, remote_access = ?, active = ?, updated_at = CURRENT_TIMESTAMP
                             WHERE database_name = ?
                         ";
                         $params = [
@@ -426,7 +415,7 @@ class DatabaseUpdater {
                             INSERT INTO sm_databases 
                             (database_name, database_user, database_type, server_id, 
                              charset, remote_access, active, created_at) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+                            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                         ";
                         $params = [
                             $database->database_name,
@@ -503,7 +492,7 @@ class DatabaseUpdater {
 							UPDATE email_accounts SET 
 								login_name = ?, full_name = ?, domain = ?, 
 								quota_mb = ?, active = ?, autoresponder = ?, 
-								forward_to = ?, updated_at = NOW()
+								forward_to = ?, updated_at = CURRENT_TIMESTAMP
 							WHERE email_address = ?
 						";
 						$params = [
@@ -527,7 +516,7 @@ class DatabaseUpdater {
 							INSERT INTO email_accounts 
 							(email_address, login_name, full_name, domain, quota_mb, 
 							 active, autoresponder, forward_to, created_at) 
-							VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+							VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 						";
 						$params = [
 							$email->email,
@@ -851,7 +840,7 @@ class DatabaseUpdater {
                         $sql = "
                             UPDATE domains SET 
                                 registrar = ?, expiration_date = ?, auto_renew = ?, 
-                                nameservers = ?, status = ?, updated_at = NOW()
+                                nameservers = ?, status = ?, updated_at = CURRENT_TIMESTAMP
                             WHERE domain_name = ?
                         ";
                         $params = [
@@ -873,7 +862,7 @@ class DatabaseUpdater {
                             INSERT INTO domains 
                             (domain_name, registrar, expiration_date, auto_renew, 
                              nameservers, status, created_at) 
-                            VALUES (?, ?, ?, ?, ?, ?, NOW())
+                            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                         ";
                         $params = [
                             $domain->domain,
@@ -927,7 +916,7 @@ class DatabaseUpdater {
             $stmt->execute([$vm['vmid'] ?? $vm['id'] ?? null]);
             $exists = $stmt->fetch();
             if ($exists) {
-                $sql = "UPDATE vms SET name=?, node=?, status=?, cores=?, memory=?, disk_size=?, ip_address=?, mac_address=?, updated_at=NOW() WHERE vm_id=?";
+                $sql = "UPDATE vms SET name=?, node=?, status=?, cores=?, memory=?, disk_size=?, ip_address=?, mac_address=?, updated_at=CURRENT_TIMESTAMP WHERE vm_id=?";
                 $params = [
                     $vm['name'] ?? null,
                     $vm['node'] ?? null,
@@ -943,7 +932,7 @@ class DatabaseUpdater {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($params);
             } else {
-                $sql = "INSERT INTO vms (vm_id, name, node, status, cores, memory, disk_size, ip_address, mac_address, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                $sql = "INSERT INTO vms (vm_id, name, node, status, cores, memory, disk_size, ip_address, mac_address, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
                 $params = [
                     $vm['vmid'] ?? $vm['id'] ?? null,
                     $vm['name'] ?? null,
@@ -978,7 +967,7 @@ class DatabaseUpdater {
             $stmt->execute([$domain]);
             $exists = $stmt->fetch();
             if ($exists) {
-                $sql = "UPDATE websites SET ip_address=?, system_user=?, system_group=?, document_root=?, hd_quota=?, traffic_quota=?, active=?, ssl_enabled=?, updated_at=NOW() WHERE domain=?";
+                $sql = "UPDATE websites SET ip_address=?, system_user=?, system_group=?, document_root=?, hd_quota=?, traffic_quota=?, active=?, ssl_enabled=?, updated_at=CURRENT_TIMESTAMP WHERE domain=?";
                 $params = [
                     $ip_address,
                     $system_user,
@@ -994,7 +983,7 @@ class DatabaseUpdater {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($params);
             } else {
-                $sql = "INSERT INTO websites (domain, ip_address, system_user, system_group, document_root, hd_quota, traffic_quota, active, ssl_enabled, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                $sql = "INSERT INTO websites (domain, ip_address, system_user, system_group, document_root, hd_quota, traffic_quota, active, ssl_enabled, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
                 $params = [
                     $domain,
                     $ip_address,
@@ -1029,7 +1018,7 @@ class DatabaseUpdater {
             $stmt->execute([$database_name]);
             $exists = $stmt->fetch();
             if ($exists) {
-                $sql = "UPDATE sm_databases SET database_user=?, database_type=?, server_id=?, charset=?, remote_access=?, active=?, updated_at=NOW() WHERE database_name=?";
+                $sql = "UPDATE sm_databases SET database_user=?, database_type=?, server_id=?, charset=?, remote_access=?, active=?, updated_at=CURRENT_TIMESTAMP WHERE database_name=?";
                 $params = [
                     $database_user,
                     $database_type,
@@ -1043,7 +1032,7 @@ class DatabaseUpdater {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($params);
             } else {
-                $sql = "INSERT INTO sm_databases (database_name, database_user, database_type, server_id, charset, remote_access, active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+                $sql = "INSERT INTO sm_databases (database_name, database_user, database_type, server_id, charset, remote_access, active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
                 $params = [
                     $database_name,
                     $database_user,
@@ -1082,7 +1071,7 @@ class DatabaseUpdater {
             $stmt->execute([$email_address]);
             $exists = $stmt->fetch();
             if ($exists) {
-                $sql = "UPDATE email_accounts SET login_name=?, full_name=?, domain=?, quota_mb=?, active=?, autoresponder=?, forward_to=?, updated_at=NOW() WHERE email_address=?";
+                $sql = "UPDATE email_accounts SET login_name=?, full_name=?, domain=?, quota_mb=?, active=?, autoresponder=?, forward_to=?, updated_at=CURRENT_TIMESTAMP WHERE email_address=?";
                 $params = [
                     $login_name,
                     $full_name,
@@ -1097,7 +1086,7 @@ class DatabaseUpdater {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($params);
             } else {
-                $sql = "INSERT INTO email_accounts (email_address, login_name, full_name, domain, quota_mb, active, autoresponder, forward_to, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                $sql = "INSERT INTO email_accounts (email_address, login_name, full_name, domain, quota_mb, active, autoresponder, forward_to, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
                 $params = [
                     $email_address,
                     $login_name,
@@ -1161,7 +1150,7 @@ class DatabaseUpdater {
             $stmt->execute([$domain_name]);
             $exists = $stmt->fetch();
             if ($exists) {
-                $sql = "UPDATE domains SET registrar=?, expiration_date=?, auto_renew=?, nameservers=?, status=?, updated_at=NOW() WHERE domain_name=?";
+                $sql = "UPDATE domains SET registrar=?, expiration_date=?, auto_renew=?, nameservers=?, status=?, updated_at=CURRENT_TIMESTAMP WHERE domain_name=?";
                 $params = [
                     $domain['registrar'] ?? null,
                     $domain['expiration'] ?? null,
@@ -1174,7 +1163,7 @@ class DatabaseUpdater {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($params);
             } else {
-                $sql = "INSERT INTO domains (domain_name, registrar, expiration_date, auto_renew, nameservers, status, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())";
+                $sql = "INSERT INTO domains (domain_name, registrar, expiration_date, auto_renew, nameservers, status, created_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
                 $params = [
                     $domain_name,
                     $domain['registrar'] ?? null,
@@ -1202,13 +1191,13 @@ class DatabaseUpdater {
                 $stmt->execute($params);
                 $exists = $stmt->fetch();
                 if ($exists) {
-                    $sql = "UPDATE ips SET reverse = ?, ttl = ?, updated_at = NOW() WHERE subnet = ? AND ip_reverse = ?";
+                    $sql = "UPDATE ips SET reverse = ?, ttl = ?, updated_at = CURRENT_TIMESTAMP WHERE subnet = ? AND ip_reverse = ?";
                     $params = [$reverse, $ttl, $subnet, $ipReverse];
                     $this->debugSql($sql, $params);
                     $stmt = $conn->prepare($sql);
                     $stmt->execute($params);
                 } else {
-                    $sql = "INSERT INTO ips (subnet, ip_reverse, reverse, ttl, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())";
+                    $sql = "INSERT INTO ips (subnet, ip_reverse, reverse, ttl, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
                     $params = [$subnet, $ipReverse, $reverse, $ttl];
                     $this->debugSql($sql, $params);
                     $stmt = $conn->prepare($sql);
@@ -1304,7 +1293,9 @@ class DatabaseUpdater {
     private function getEncryptionKey() {
         // In Produktion sollte dieser Schlüssel sicher gespeichert werden
         // z.B. in einer Umgebungsvariable oder separaten Konfigurationsdatei
-        $keyFile = __DIR__ . '/.encryption_key';
+        $legacyKey = __DIR__ . '/.encryption_key';
+        if (is_file($legacyKey)) return file_get_contents($legacyKey);
+        $keyFile = HttpSecurity::privateDirectory('keys') . '/provider-encryption.key';
         
         if (file_exists($keyFile)) {
             return file_get_contents($keyFile);

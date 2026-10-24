@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
+
 /**
  * E-Mail-Template-Verwaltung
  * 
@@ -27,33 +29,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
         
         $db = DatabaseManager::getInstance();
         
-        // Prüfen und erstellen der Tabelle falls nötig
-        $stmt = $db->prepare("SHOW TABLES LIKE 'email_templates'");
-        $db->execute($stmt);
-        $tableExists = $db->fetch($stmt);
-        
-        if (!$tableExists) {
-            // Tabelle erstellen
-            $createTableSQL = "
-            CREATE TABLE IF NOT EXISTS `email_templates` (
-              `id` int(11) NOT NULL AUTO_INCREMENT,
-              `template_name` varchar(255) NOT NULL COMMENT 'Name des Templates',
-              `subject` text NOT NULL COMMENT 'E-Mail-Betreff mit Variablen',
-              `html_content` longtext COMMENT 'HTML-Inhalt des Templates',
-              `raw_content` longtext COMMENT 'Raw-Text-Inhalt des Templates',
-              `variables` text COMMENT 'Verfügbare Variablen (kommagetrennt)',
-              `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-              PRIMARY KEY (`id`),
-              UNIQUE KEY `template_name` (`template_name`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='E-Mail-Templates für das System'
-            ";
-            $db->execute($createTableSQL);
-        }
+        require_once __DIR__ . '/../core/SchemaManager.php';
+        if (!SchemaManager::hasTable($db->getConnection(), 'email_templates')) throw new RuntimeException('Bitte CLI-Migration ausführen.');
         
         switch ($_POST['subaction'] ?? '') {
             case 'test':
-                echo json_encode(['success' => true, 'message' => 'AJAX-Verbindung funktioniert', 'timestamp' => date('Y-m-d H:i:s')]);
+                echo HttpSecurity::encode(['success' => true, 'message' => 'AJAX-Verbindung funktioniert', 'timestamp' => date('Y-m-d H:i:s')]);
                 break;
                 
             case 'load_editor':
@@ -61,7 +42,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                 $contentType = $_POST['content_type'] ?? 'html';
                 
                 if (empty($templateId)) {
-                    echo json_encode(['success' => false, 'message' => 'Template-ID erforderlich']);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Template-ID erforderlich']);
                     break;
                 }
                 
@@ -69,9 +50,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                     require_once __DIR__ . '/../core/EmailTemplateEditor.php';
                     $editor = new EmailTemplateEditor();
                     $editorHtml = $editor->loadTemplateEditor($templateId, $contentType);
-                    echo json_encode(['success' => true, 'editor' => $editorHtml]);
+                    echo HttpSecurity::encode(['success' => true, 'editor' => $editorHtml]);
                 } catch (Exception $e) {
-                    echo json_encode(['success' => false, 'message' => 'Fehler beim Laden des Editors: ' . $e->getMessage()]);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Laden des Editors: ' . $e->getMessage()]);
                 }
                 break;
                 
@@ -81,7 +62,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                 $contentType = $_POST['content_type'] ?? 'html';
                 
                 if (empty($templateId) || empty($content)) {
-                    echo json_encode(['success' => false, 'message' => 'Template-ID und Inhalt erforderlich']);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Template-ID und Inhalt erforderlich']);
                     break;
                 }
                 
@@ -91,12 +72,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                     $result = $editor->saveTemplate($templateId, $content, $contentType);
                     
                     if ($result) {
-                        echo json_encode(['success' => true, 'message' => 'Template erfolgreich gespeichert']);
+                        echo HttpSecurity::encode(['success' => true, 'message' => 'Template erfolgreich gespeichert']);
                     } else {
-                        echo json_encode(['success' => false, 'message' => 'Fehler beim Speichern']);
+                        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Speichern']);
                     }
                 } catch (Exception $e) {
-                    echo json_encode(['success' => false, 'message' => 'Fehler beim Speichern: ' . $e->getMessage()]);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Speichern: ' . $e->getMessage()]);
                 }
                 break;
                 
@@ -108,9 +89,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                     require_once __DIR__ . '/../core/EmailTemplateEditor.php';
                     $editor = new EmailTemplateEditor();
                     $preview = $editor->generatePreview($templateId, $variables);
-                    echo json_encode(['success' => true, 'preview' => $preview]);
+                    echo HttpSecurity::encode(['success' => true, 'preview' => $preview]);
                 } catch (Exception $e) {
-                    echo json_encode(['success' => false, 'message' => 'Fehler bei der Vorschau: ' . $e->getMessage()]);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler bei der Vorschau: ' . $e->getMessage()]);
                 }
                 break;
                 
@@ -123,12 +104,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                     $db->execute($stmt, [$templateId]);
                     $template = $db->fetch($stmt);
                     if (!$template) {
-                        echo json_encode(['success' => false, 'message' => 'Template nicht gefunden']);
+                        echo HttpSecurity::encode(['success' => false, 'message' => 'Template nicht gefunden']);
                         break;
                     }
                     
                     // E-Mail-Adresse aus der Konfiguration holen
-                    require_once __DIR__ . '/../../config/config.inc.php';
+                    require_once __DIR__ . '/../../config/load.php';
                     $userEmail = Config::FRONTPANEL_ADMIN_EMAIL;
                     
                     // Test-Variablen für das Template
@@ -160,12 +141,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                     $headers .= "Reply-To: noreply@" . $_SERVER['HTTP_HOST'] . "\r\n";
                     
                     if (mail($userEmail, $subject, $content, $headers)) {
-                        echo json_encode(['success' => true, 'message' => 'Test-E-Mail erfolgreich an ' . $userEmail . ' gesendet']);
+                        echo HttpSecurity::encode(['success' => true, 'message' => 'Test-E-Mail erfolgreich an ' . $userEmail . ' gesendet']);
                     } else {
-                        echo json_encode(['success' => false, 'message' => 'Fehler beim Senden der Test-E-Mail']);
+                        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Senden der Test-E-Mail']);
                     }
                 } catch (Exception $e) {
-                    echo json_encode(['success' => false, 'message' => 'Fehler beim Senden der Test-E-Mail: ' . $e->getMessage()]);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Senden der Test-E-Mail: ' . $e->getMessage()]);
                 }
                 break;
                 
@@ -188,9 +169,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                         }
                     }
                     
-                    echo json_encode(['success' => true, 'templates' => $templates, 'count' => count($templates)]);
+                    echo HttpSecurity::encode(['success' => true, 'templates' => $templates, 'count' => count($templates)]);
                 } catch (Exception $e) {
-                    echo json_encode(['success' => false, 'message' => 'Datenbankfehler: ' . $e->getMessage()]);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Datenbankfehler: ' . $e->getMessage()]);
                 }
                 break;
                 
@@ -199,7 +180,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                 $stmt = $db->prepare("SELECT * FROM email_templates WHERE id = ?");
                 $db->execute($stmt, [$templateId]);
                 $template = $db->fetch($stmt);
-                echo json_encode(['success' => true, 'template' => $template]);
+                echo HttpSecurity::encode(['success' => true, 'template' => $template]);
                 break;
                 
             case 'save_template':
@@ -211,7 +192,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                 $variables = $_POST['variables'] ?? '';
                 
                 if (empty($templateName) || empty($subject)) {
-                    echo json_encode(['success' => false, 'message' => 'Template-Name und Betreff sind erforderlich']);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Template-Name und Betreff sind erforderlich']);
                     break;
                 }
                 
@@ -219,7 +200,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                     // Update existing template
                     $stmt = $db->prepare("
                         UPDATE email_templates 
-                        SET template_name = ?, subject = ?, html_content = ?, raw_content = ?, variables = ?, updated_at = NOW() 
+                        SET template_name = ?, subject = ?, html_content = ?, raw_content = ?, variables = ?, updated_at = CURRENT_TIMESTAMP
                         WHERE id = ?
                     ");
                     $result = $db->execute($stmt, [$templateName, $subject, $htmlContent, $rawContent, $variables, $templateId]);
@@ -227,7 +208,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                     // Create new template
                     $stmt = $db->prepare("
                         INSERT INTO email_templates (template_name, subject, html_content, raw_content, variables, created_at, updated_at) 
-                        VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+                        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                     ");
                     $result = $db->execute($stmt, [$templateName, $subject, $htmlContent, $rawContent, $variables]);
                     $templateId = $db->lastInsertId();
@@ -239,9 +220,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                         ($templateId ? 'Template aktualisiert' : 'Template erstellt') . ": $templateName",
                         'success'
                     );
-                    echo json_encode(['success' => true, 'message' => 'Template erfolgreich gespeichert', 'template_id' => $templateId]);
+                    echo HttpSecurity::encode(['success' => true, 'message' => 'Template erfolgreich gespeichert', 'template_id' => $templateId]);
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'Fehler beim Speichern des Templates']);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Speichern des Templates']);
                 }
                 break;
                 
@@ -252,20 +233,20 @@ if (isset($_POST['action']) && $_POST['action'] === 'email_templates') {
                 
                 if ($result) {
                     $db->logAction('Email Template', "Template gelöscht: ID $templateId", 'success');
-                    echo json_encode(['success' => true, 'message' => 'Template erfolgreich gelöscht']);
+                    echo HttpSecurity::encode(['success' => true, 'message' => 'Template erfolgreich gelöscht']);
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'Fehler beim Löschen des Templates']);
+                    echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler beim Löschen des Templates']);
                 }
                 break;
                 
                 
             default:
-                echo json_encode(['success' => false, 'message' => 'Unbekannte Aktion']);
+                echo HttpSecurity::encode(['success' => false, 'message' => 'Unbekannte Aktion']);
         }
         
     } catch (Exception $e) {
         error_log("Email Templates Error: " . $e->getMessage());
-        echo json_encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage(), 'debug' => $e->getTraceAsString()]);
+        echo HttpSecurity::encode(['success' => false, 'message' => 'Fehler: ' . $e->getMessage(), 'debug' => $e->getTraceAsString()]);
     }
     exit;
 }

@@ -1,12 +1,15 @@
-﻿<?php
+<?php
 /**
  * Server Management Framework
  * 
  * @author Teris
  * @version 3.1.2
  */
-require_once 'config/config.inc.php';
-require_once 'src/core/DatabaseManager.php';
+require_once __DIR__ . '/config/load.php';
+require_once __DIR__ . '/src/core/Security.php';
+require_once __DIR__ . '/src/core/ProviderTransport.php';
+require_once __DIR__ . '/src/core/DatabaseManager.php';
+require_once __DIR__ . '/src/core/ProviderResult.php';
 
 // DATABASE CLASS - KompatibilitÃ¤tsklasse fÃ¼r bestehenden Code
 class Database {
@@ -482,7 +485,7 @@ abstract class BaseAPI {
             );
         } catch (Exception $e) {
             // If database connection fails, skip logging but continue
-            error_log("Database connection failed in logRequest: " . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
         }
     }
 }
@@ -510,7 +513,7 @@ class ProxmoxGet extends BaseAPI {
         
         // Prüfe auf Fehler in der Antwort
         if (isset($response['success']) && $response['success'] === false) {
-            error_log("ProxmoxGet::authenticate: Authentication failed: " . json_encode($response));
+            error_log('Provider request failed; response details withheld');
             return false;
         }
         
@@ -520,7 +523,7 @@ class ProxmoxGet extends BaseAPI {
             error_log("ProxmoxGet::authenticate: Authentication successful");
             return true;
         } else {
-            error_log("ProxmoxGet::authenticate: No authentication data received: " . json_encode($response));
+            error_log('Provider request failed; response details withheld');
             return false;
         }
     }
@@ -532,14 +535,14 @@ class ProxmoxGet extends BaseAPI {
         
         // Prüfe auf Fehler in der Antwort
         if (isset($response['success']) && $response['success'] === false) {
-            error_log("ProxmoxGet::getNodes: API error: " . json_encode($response));
+            error_log('Provider request failed; response details withheld');
             return []; // Gib leeres Array zurück bei Fehlern
         }
         
         if ($response && isset($response['data'])) {
             return $response['data']; // Gib nur das data Array zurück
         } else {
-            error_log("ProxmoxGet::getNodes: No data in response: " . json_encode($response));
+            error_log('Provider request failed; response details withheld');
             return []; // Gib leeres Array zurück wenn keine Daten
         }
     }
@@ -649,12 +652,12 @@ class ProxmoxGet extends BaseAPI {
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_MAXREDIRS => 3
         ]);
 
@@ -662,6 +665,7 @@ class ProxmoxGet extends BaseAPI {
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         }
 
+        ProviderTransport::apply($ch, $url, 'proxmox');
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
@@ -687,22 +691,22 @@ class ProxmoxGet extends BaseAPI {
             if ($decoded !== null) {
                 return $decoded;
             } else {
-                error_log("ProxmoxGet::makeRequest: JSON decode failed for response: " . substr($response, 0, 500));
+                error_log('Provider request failed; response details withheld');
                 return [
                     'success' => false,
                     'error' => 'JSON_DECODE_ERROR',
                     'message' => 'JSON Dekodierung fehlgeschlagen',
-                    'raw_response' => substr($response, 0, 500)
+                    'response_details' => '[withheld]'
                 ];
             }
         } else {
-            error_log("ProxmoxGet::makeRequest: HTTP error " . $httpCode . " for URL: " . $url . " Response: " . substr($response, 0, 500));
+            error_log('Provider request failed; response details withheld');
             return [
                 'success' => false,
                 'error' => 'HTTP_ERROR',
                 'message' => 'HTTP Fehler: ' . $httpCode,
                 'http_code' => $httpCode,
-                'raw_response' => substr($response, 0, 500)
+                'response_details' => '[withheld]'
             ];
         }
     }
@@ -876,17 +880,17 @@ class ProxmoxPost extends ProxmoxGet {
     }
 
     public function deleteProxmoxUser($userid) {
-        $url = $this->host . "/api2/json/access/users/$userid";
+        $url = $this->host . "/api2/json/access/users/" . rawurlencode($userid);
         $response = $this->makeRequest('DELETE', $url);
         //$this->logRequest("/access/users/$userid", 'DELETE', $response !== false);
         return $response;
     }
 
     public function updateProxmoxUser($userid, $userData) {
-        $url = $this->host . "/api2/json/access/users/$userid";
+        $url = $this->host . "/api2/json/access/users/" . rawurlencode($userid);
         
         $data = [];
-        if (isset($userData['password'])) $data['password'] = $userData['password'];
+        if (isset($userData['password'])) throw new InvalidArgumentException('Use the dedicated password endpoint');
         if (isset($userData['comment'])) $data['comment'] = $userData['comment'];
         if (isset($userData['email'])) $data['email'] = $userData['email'];
         if (isset($userData['firstname'])) $data['firstname'] = $userData['firstname'];
@@ -905,7 +909,7 @@ class ProxmoxPost extends ProxmoxGet {
     }
 
     public function getProxmoxUser($userid) {
-        $url = $this->host . "/api2/json/access/users/$userid";
+        $url = $this->host . "/api2/json/access/users/" . rawurlencode($userid);
         $response = $this->makeRequest('GET', $url);
         //$this->logRequest("/access/users/$userid", 'GET', $response !== false);
         return $response;
@@ -932,22 +936,12 @@ class ISPConfigGet extends BaseAPI {
             }
 
             // SOAP Client mit erweiterten Optionen
-            $context = stream_context_create([
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true
-                ],
-                'http' => [
-                    'timeout' => 60,
-                    'user_agent' => 'ISPConfig-API-Client/1.0'
-                ]
-            ]);
+            $context = ProviderTransport::soapContext($this->host, 'ispconfig');
 
             $this->client = new SoapClient(null, [
                 'location' => $this->host . '/remote/index.php',
                 'uri' => $this->host . '/remote/',
-                'trace' => 1,
+                'trace' => 0,
                 'exceptions' => 1,
                 'connection_timeout' => 60,
                 'cache_wsdl' => WSDL_CACHE_NONE,
@@ -963,7 +957,7 @@ class ISPConfigGet extends BaseAPI {
             $this->session_id = $this->client->login($this->user, $this->password);
             
             if ($this->debug_mode) {
-                error_log("ISPConfig: Login-Ergebnis: " . ($this->session_id ? "Erfolgreich (Session: {$this->session_id})" : "Fehlgeschlagen"));
+                error_log('Provider request failed; response details withheld');
             }
 
             ////$this->logRequest('/remote/login', 'POST', $this->session_id !== false);
@@ -973,11 +967,11 @@ class ISPConfigGet extends BaseAPI {
             }
 
         } catch (SoapFault $e) {
-            error_log("ISPConfig SOAP Fehler: " . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             error_log("ISPConfig SOAP Details: " . $e->getTraceAsString());
             throw new Exception("SOAP Verbindung fehlgeschlagen: " . $e->getMessage());
         } catch (Exception $e) {
-            error_log('ISPConfig Login fehlgeschlagen: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             throw $e;
         }
     }
@@ -995,7 +989,7 @@ class ISPConfigGet extends BaseAPI {
 
             return [];
         } catch (Exception $e) {
-            error_log('Error getting websites: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1011,7 +1005,7 @@ class ISPConfigGet extends BaseAPI {
 
             return null;
         } catch (Exception $e) {
-            error_log('Error getting website: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1029,7 +1023,7 @@ class ISPConfigGet extends BaseAPI {
 
             return [];
         } catch (Exception $e) {
-            error_log('Error getting databases: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1045,7 +1039,7 @@ class ISPConfigGet extends BaseAPI {
 
             return null;
         } catch (Exception $e) {
-            error_log('Error getting database: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1080,7 +1074,7 @@ class ISPConfigGet extends BaseAPI {
 
             } catch (SoapFault $e) {
                 if ($this->debug_mode) {
-                    error_log("ISPConfig: mail_user_get Fehler: " . $e->getMessage());
+                    error_log(__METHOD__ . ': ' . get_class($e));
                 }
             }
 
@@ -1101,7 +1095,7 @@ class ISPConfigGet extends BaseAPI {
                         }
                     } catch (Exception $e) {
                         if ($this->debug_mode) {
-                            error_log("ISPConfig: Fehler beim Abrufen von E-Mail ID {$mailuser_id}: " . $e->getMessage());
+                            error_log(__METHOD__ . ': ' . get_class($e));
                         }
                         continue;
                     }
@@ -1135,7 +1129,7 @@ class ISPConfigGet extends BaseAPI {
             return [];
 
         } catch (Exception $e) {
-            error_log('ISPConfig E-Mail Fehler: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             throw $e;
         }
     }
@@ -1155,7 +1149,7 @@ class ISPConfigGet extends BaseAPI {
             }
         } catch (Exception $e) {
             if ($this->debug_mode) {
-                error_log("ISPConfig: sites_web_domain_get Fehler: " . $e->getMessage());
+                error_log(__METHOD__ . ': ' . get_class($e));
             }
         }
 
@@ -1170,7 +1164,7 @@ class ISPConfigGet extends BaseAPI {
             }
         } catch (Exception $e) {
             if ($this->debug_mode) {
-                error_log("ISPConfig: client_get Fehler: " . $e->getMessage());
+                error_log(__METHOD__ . ': ' . get_class($e));
             }
         }
 
@@ -1218,7 +1212,7 @@ class ISPConfigGet extends BaseAPI {
 
         } catch (Exception $e) {
             if ($this->debug_mode) {
-                error_log("ISPConfig: Client-E-Mail-Extraktion Fehler: " . $e->getMessage());
+                error_log(__METHOD__ . ': ' . get_class($e));
             }
             return [];
         }
@@ -1246,7 +1240,7 @@ class ISPConfigGet extends BaseAPI {
                 $params = array_merge([$this->session_id], $method['params']);
 
                 if ($this->debug_mode) {
-                    error_log("ISPConfig: Teste alternative Funktion {$function} mit Parametern: " . json_encode($params));
+                    error_log('Provider request failed; response details withheld');
                 }
 
                 $result = call_user_func_array([$this->client, $function], $params);
@@ -1262,7 +1256,7 @@ class ISPConfigGet extends BaseAPI {
 
             } catch (Exception $e) {
                 if ($this->debug_mode) {
-                    error_log("ISPConfig: Alternative Funktion {$method['function']} Fehler: " . $e->getMessage());
+                    error_log(__METHOD__ . ': ' . get_class($e));
                 }
                 continue;
             }
@@ -1383,7 +1377,7 @@ class ISPConfigGet extends BaseAPI {
                 ];
 
                 if ($this->debug_mode) {
-                    error_log("ISPConfig: Test Fall " . ($index + 1) . " Fehler: " . $e->getMessage());
+                    error_log(__METHOD__ . ': ' . get_class($e));
                 }
             }
         }
@@ -1404,7 +1398,7 @@ class ISPConfigGet extends BaseAPI {
             }
         } catch (Exception $e) {
             if ($this->debug_mode) {
-                error_log("ISPConfig: __getFunctions() fehlgeschlagen: " . $e->getMessage());
+                error_log(__METHOD__ . ': ' . get_class($e));
             }
         }
 
@@ -1519,7 +1513,7 @@ class ISPConfigGet extends BaseAPI {
         foreach ($paramCombinations as $params) {
             try {
                 if ($this->debug_mode) {
-                    error_log("ISPConfig: Teste {$function} mit Parametern: " . json_encode($params));
+                    error_log('Provider request failed; response details withheld');
                 }
 
                 $result = call_user_func_array([$this->client, $function], $params);
@@ -1530,7 +1524,7 @@ class ISPConfigGet extends BaseAPI {
 
             } catch (Exception $e) {
                 if ($this->debug_mode) {
-                    error_log("ISPConfig: {$function} Parameter-Kombination fehlgeschlagen: " . $e->getMessage());
+                    error_log(__METHOD__ . ': ' . get_class($e));
                 }
                 continue;
             }
@@ -1547,7 +1541,7 @@ class ISPConfigGet extends BaseAPI {
             return $this->client->$function($this->session_id);
         } catch (Exception $e) {
             if ($this->debug_mode) {
-                error_log("ISPConfig: Client-Funktion {$function} fehlgeschlagen: " . $e->getMessage());
+                error_log(__METHOD__ . ': ' . get_class($e));
             }
             return null;
         }
@@ -1617,7 +1611,7 @@ class ISPConfigGet extends BaseAPI {
             //$this->logRequest('/client/get', 'GET', $clients !== false);
             return $clients ?: [];
         } catch (Exception $e) {
-            error_log('Error getting clients: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1628,7 +1622,7 @@ class ISPConfigGet extends BaseAPI {
             //$this->logRequest('/server/get', 'GET', $config !== false);
             return $config ?: [];
         } catch (Exception $e) {
-            error_log('Error getting server config: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1640,7 +1634,7 @@ class ISPConfigGet extends BaseAPI {
             $domains = $this->client->mail_domain_get($this->session_id, -1);
             return $domains ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail domains: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1650,7 +1644,7 @@ class ISPConfigGet extends BaseAPI {
             $domain = $this->client->mail_domain_get($this->session_id, $domainId);
             return $domain ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail domain: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1660,7 +1654,7 @@ class ISPConfigGet extends BaseAPI {
             $domainData = $this->client->mail_domain_get_by_domain($this->session_id, $domain);
             return $domainData ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail domain by domain: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1671,7 +1665,7 @@ class ISPConfigGet extends BaseAPI {
             $aliases = $this->client->mail_alias_get($this->session_id, -1);
             return $aliases ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail aliases: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1681,7 +1675,7 @@ class ISPConfigGet extends BaseAPI {
             $alias = $this->client->mail_alias_get($this->session_id, $aliasId);
             return $alias ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail alias: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1692,7 +1686,7 @@ class ISPConfigGet extends BaseAPI {
             $forwards = $this->client->mail_forward_get($this->session_id, -1);
             return $forwards ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail forwards: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1702,7 +1696,7 @@ class ISPConfigGet extends BaseAPI {
             $forward = $this->client->mail_forward_get($this->session_id, $forwardId);
             return $forward ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail forward: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1713,7 +1707,7 @@ class ISPConfigGet extends BaseAPI {
             $catchalls = $this->client->mail_catchall_get($this->session_id, -1);
             return $catchalls ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail catchalls: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1723,7 +1717,7 @@ class ISPConfigGet extends BaseAPI {
             $catchall = $this->client->mail_catchall_get($this->session_id, $catchallId);
             return $catchall ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail catchall: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1734,7 +1728,7 @@ class ISPConfigGet extends BaseAPI {
             $mailinglists = $this->client->mail_mailinglist_get($this->session_id, -1);
             return $mailinglists ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail mailinglists: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1744,7 +1738,7 @@ class ISPConfigGet extends BaseAPI {
             $mailinglist = $this->client->mail_mailinglist_get($this->session_id, $mailinglistId);
             return $mailinglist ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail mailinglist: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1755,7 +1749,7 @@ class ISPConfigGet extends BaseAPI {
             $policies = $this->client->mail_policy_get($this->session_id, -1);
             return $policies ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail policies: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1765,7 +1759,7 @@ class ISPConfigGet extends BaseAPI {
             $policy = $this->client->mail_policy_get($this->session_id, $policyId);
             return $policy ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail policy: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1776,7 +1770,7 @@ class ISPConfigGet extends BaseAPI {
             $transports = $this->client->mail_transport_get($this->session_id, -1);
             return $transports ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail transports: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1786,7 +1780,7 @@ class ISPConfigGet extends BaseAPI {
             $transport = $this->client->mail_transport_get($this->session_id, $transportId);
             return $transport ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail transport: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1797,7 +1791,7 @@ class ISPConfigGet extends BaseAPI {
             $relayDomains = $this->client->mail_relay_domain_get($this->session_id, -1);
             return $relayDomains ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail relay domains: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1807,7 +1801,7 @@ class ISPConfigGet extends BaseAPI {
             $relayDomain = $this->client->mail_relay_domain_get($this->session_id, $relayDomainId);
             return $relayDomain ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail relay domain: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1818,7 +1812,7 @@ class ISPConfigGet extends BaseAPI {
             $relayRecipients = $this->client->mail_relay_recipient_get($this->session_id, -1);
             return $relayRecipients ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail relay recipients: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1828,7 +1822,7 @@ class ISPConfigGet extends BaseAPI {
             $relayRecipient = $this->client->mail_relay_recipient_get($this->session_id, $relayRecipientId);
             return $relayRecipient ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail relay recipient: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1839,7 +1833,7 @@ class ISPConfigGet extends BaseAPI {
             $fetchmails = $this->client->mail_fetchmail_get($this->session_id, -1);
             return $fetchmails ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail fetchmails: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1849,7 +1843,7 @@ class ISPConfigGet extends BaseAPI {
             $fetchmail = $this->client->mail_fetchmail_get($this->session_id, $fetchmailId);
             return $fetchmail ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail fetchmail: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1860,7 +1854,7 @@ class ISPConfigGet extends BaseAPI {
             $filters = $this->client->mail_user_filter_get($this->session_id, -1);
             return $filters ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail user filters: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1870,7 +1864,7 @@ class ISPConfigGet extends BaseAPI {
             $filter = $this->client->mail_user_filter_get($this->session_id, $filterId);
             return $filter ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail user filter: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1881,7 +1875,7 @@ class ISPConfigGet extends BaseAPI {
             $blacklists = $this->client->mail_blacklist_get($this->session_id, -1);
             return $blacklists ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail blacklists: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1891,7 +1885,7 @@ class ISPConfigGet extends BaseAPI {
             $blacklist = $this->client->mail_blacklist_get($this->session_id, $blacklistId);
             return $blacklist ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail blacklist: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1902,7 +1896,7 @@ class ISPConfigGet extends BaseAPI {
             $whitelists = $this->client->mail_whitelist_get($this->session_id, -1);
             return $whitelists ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail whitelists: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1912,7 +1906,7 @@ class ISPConfigGet extends BaseAPI {
             $whitelist = $this->client->mail_whitelist_get($this->session_id, $whitelistId);
             return $whitelist ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail whitelist: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1923,7 +1917,7 @@ class ISPConfigGet extends BaseAPI {
             $spamfilterBlacklists = $this->client->mail_spamfilter_blacklist_get($this->session_id, -1);
             return $spamfilterBlacklists ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail spamfilter blacklists: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1933,7 +1927,7 @@ class ISPConfigGet extends BaseAPI {
             $spamfilterBlacklist = $this->client->mail_spamfilter_blacklist_get($this->session_id, $spamfilterBlacklistId);
             return $spamfilterBlacklist ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail spamfilter blacklist: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1944,7 +1938,7 @@ class ISPConfigGet extends BaseAPI {
             $spamfilterWhitelists = $this->client->mail_spamfilter_whitelist_get($this->session_id, -1);
             return $spamfilterWhitelists ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail spamfilter whitelists: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1954,7 +1948,7 @@ class ISPConfigGet extends BaseAPI {
             $spamfilterWhitelist = $this->client->mail_spamfilter_whitelist_get($this->session_id, $spamfilterWhitelistId);
             return $spamfilterWhitelist ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail spamfilter whitelist: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1965,7 +1959,7 @@ class ISPConfigGet extends BaseAPI {
             $spamfilterUsers = $this->client->mail_spamfilter_user_get($this->session_id, -1);
             return $spamfilterUsers ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail spamfilter users: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1975,7 +1969,7 @@ class ISPConfigGet extends BaseAPI {
             $spamfilterUser = $this->client->mail_spamfilter_user_get($this->session_id, $spamfilterUserId);
             return $spamfilterUser ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail spamfilter user: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -1986,7 +1980,7 @@ class ISPConfigGet extends BaseAPI {
             $backupList = $this->client->mail_user_backup_list($this->session_id, $userId);
             return $backupList ?: [];
         } catch (Exception $e) {
-            error_log('Error getting mail user backup list: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -1996,7 +1990,7 @@ class ISPConfigGet extends BaseAPI {
             $backup = $this->client->mail_user_backup($this->session_id, $userId, $backupId);
             return $backup ?: null;
         } catch (Exception $e) {
-            error_log('Error getting mail user backup: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2008,7 +2002,7 @@ class ISPConfigGet extends BaseAPI {
             $users = $this->client->sites_ftp_user_get($this->session_id, -1);
             return $users ?: [];
         } catch (Exception $e) {
-            error_log('Error getting FTP users: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2018,7 +2012,7 @@ class ISPConfigGet extends BaseAPI {
             $user = $this->client->sites_ftp_user_get($this->session_id, $userId);
             return $user ?: null;
         } catch (Exception $e) {
-            error_log('Error getting FTP user: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2029,7 +2023,7 @@ class ISPConfigGet extends BaseAPI {
             $users = $this->client->sites_shell_user_get($this->session_id, -1);
             return $users ?: [];
         } catch (Exception $e) {
-            error_log('Error getting shell users: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2039,7 +2033,7 @@ class ISPConfigGet extends BaseAPI {
             $user = $this->client->sites_shell_user_get($this->session_id, $userId);
             return $user ?: null;
         } catch (Exception $e) {
-            error_log('Error getting shell user: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2050,7 +2044,7 @@ class ISPConfigGet extends BaseAPI {
             $jobs = $this->client->sites_cron_get($this->session_id, -1);
             return $jobs ?: [];
         } catch (Exception $e) {
-            error_log('Error getting cron jobs: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2060,7 +2054,7 @@ class ISPConfigGet extends BaseAPI {
             $job = $this->client->sites_cron_get($this->session_id, $jobId);
             return $job ?: null;
         } catch (Exception $e) {
-            error_log('Error getting cron job: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2071,7 +2065,7 @@ class ISPConfigGet extends BaseAPI {
             $users = $this->client->sites_database_user_get($this->session_id, -1);
             return $users ?: [];
         } catch (Exception $e) {
-            error_log('Error getting database users: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2081,7 +2075,7 @@ class ISPConfigGet extends BaseAPI {
             $user = $this->client->sites_database_user_get($this->session_id, $userId);
             return $user ?: null;
         } catch (Exception $e) {
-            error_log('Error getting database user: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2092,7 +2086,7 @@ class ISPConfigGet extends BaseAPI {
             $subdomains = $this->client->sites_web_subdomain_get($this->session_id, -1);
             return $subdomains ?: [];
         } catch (Exception $e) {
-            error_log('Error getting web subdomains: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2102,7 +2096,7 @@ class ISPConfigGet extends BaseAPI {
             $subdomain = $this->client->sites_web_subdomain_get($this->session_id, $subdomainId);
             return $subdomain ?: null;
         } catch (Exception $e) {
-            error_log('Error getting web subdomain: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2113,7 +2107,7 @@ class ISPConfigGet extends BaseAPI {
             $aliasdomains = $this->client->sites_web_aliasdomain_get($this->session_id, -1);
             return $aliasdomains ?: [];
         } catch (Exception $e) {
-            error_log('Error getting web aliasdomains: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2123,7 +2117,7 @@ class ISPConfigGet extends BaseAPI {
             $aliasdomain = $this->client->sites_web_aliasdomain_get($this->session_id, $aliasdomainId);
             return $aliasdomain ?: null;
         } catch (Exception $e) {
-            error_log('Error getting web aliasdomain: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2134,7 +2128,7 @@ class ISPConfigGet extends BaseAPI {
             $result = $this->client->sites_web_domain_set_status($this->session_id, $domainId, $status);
             return $result;
         } catch (Exception $e) {
-            error_log('Error setting web domain status: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2144,7 +2138,7 @@ class ISPConfigGet extends BaseAPI {
             $backups = $this->client->sites_web_domain_backup_list($this->session_id, $domainId);
             return $backups ?: [];
         } catch (Exception $e) {
-            error_log('Error getting web domain backup list: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2154,7 +2148,7 @@ class ISPConfigGet extends BaseAPI {
             $backup = $this->client->sites_web_domain_backup($this->session_id, $domainId, $backupId);
             return $backup ?: null;
         } catch (Exception $e) {
-            error_log('Error getting web domain backup: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2165,7 +2159,7 @@ class ISPConfigGet extends BaseAPI {
             $zones = $this->client->dns_zone_get($this->session_id, -1);
             return $zones ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS zones: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2175,7 +2169,7 @@ class ISPConfigGet extends BaseAPI {
             $zone = $this->client->dns_zone_get($this->session_id, $zoneId);
             return $zone ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS zone: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2185,7 +2179,7 @@ class ISPConfigGet extends BaseAPI {
             $zones = $this->client->dns_zone_get_by_user($this->session_id, $userId);
             return $zones ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS zones by user: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2196,7 +2190,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_a_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS A records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2206,7 +2200,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_a_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS A record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2217,7 +2211,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_aaaa_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS AAAA records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2227,7 +2221,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_aaaa_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS AAAA record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2238,7 +2232,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_cname_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS CNAME records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2248,7 +2242,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_cname_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS CNAME record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2259,7 +2253,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_mx_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS MX records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2269,7 +2263,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_mx_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS MX record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2280,7 +2274,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_ns_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS NS records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2290,7 +2284,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_ns_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS NS record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2301,7 +2295,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_ptr_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS PTR records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2311,7 +2305,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_ptr_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS PTR record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2322,7 +2316,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_srv_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS SRV records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2332,7 +2326,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_srv_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS SRV record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2343,7 +2337,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_txt_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS TXT records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2353,7 +2347,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_txt_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS TXT record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2364,7 +2358,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_alias_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS Alias records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2374,7 +2368,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_alias_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS Alias record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2385,7 +2379,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_hinfo_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS HINFO records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2395,7 +2389,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_hinfo_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS HINFO record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2406,7 +2400,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_naptr_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS NAPTR records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2416,7 +2410,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_naptr_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS NAPTR record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2427,7 +2421,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_rp_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS RP records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2437,7 +2431,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_rp_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS RP record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2448,7 +2442,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_ds_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS DS records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2458,7 +2452,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_ds_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS DS record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2469,7 +2463,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_rr_get_all_by_zone($this->session_id, $zoneId);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS records by zone: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2480,7 +2474,7 @@ class ISPConfigGet extends BaseAPI {
             $records = $this->client->dns_slave_get($this->session_id, -1);
             return $records ?: [];
         } catch (Exception $e) {
-            error_log('Error getting DNS slave records: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [];
         }
     }
@@ -2490,7 +2484,7 @@ class ISPConfigGet extends BaseAPI {
             $record = $this->client->dns_slave_get($this->session_id, $recordId);
             return $record ?: null;
         } catch (Exception $e) {
-            error_log('Error getting DNS slave record: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return null;
         }
     }
@@ -2533,7 +2527,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest('/sites/web_domain/add', 'POST', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Website creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2544,7 +2538,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest("/sites/web_domain/$domainId", 'PUT', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Website edit failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2555,7 +2549,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest("/sites/web_domain/$domainId", 'DELETE', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Website deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2578,7 +2572,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest('/sites/database/add', 'POST', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Database creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2589,7 +2583,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest("/sites/database/$databaseId", 'PUT', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Database edit failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2600,7 +2594,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest("/sites/database/$databaseId", 'DELETE', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Database deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2632,7 +2626,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest('/mail/user/add', 'POST', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Email creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2643,7 +2637,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest("/mail/user/$mailuserId", 'PUT', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Email edit failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2654,7 +2648,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest("/mail/user/$mailuserId", 'DELETE', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Email deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2672,13 +2666,13 @@ class ISPConfigPost extends ISPConfigGet {
             unset($clientData['reseller_id']); // Entferne reseller_id aus den Parametern
             
             // Debug: Parameter ausgeben
-            error_log('ISPConfig createClient - session_id: ' . $this->session_id . ', reseller_id: ' . $reseller_id . ', params: ' . print_r($clientData, true));
+            error_log('Provider request failed; response details withheld');
             
             $result = $this->client->client_add($this->session_id, $reseller_id, $clientData);
             //$this->logRequest('/client/add', 'POST', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Client creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2689,7 +2683,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest("/client/$clientId", 'PUT', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Client update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2700,7 +2694,7 @@ class ISPConfigPost extends ISPConfigGet {
             //$this->logRequest("/client/$clientId", 'DELETE', $result !== false);
             return $result;
         } catch (Exception $e) {
-            error_log('Client deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2712,7 +2706,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_zone_add($this->session_id, 1, $zoneData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS zone creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2722,7 +2716,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_zone_update($this->session_id, 1, $zoneId, $zoneData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS zone update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2732,7 +2726,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_zone_delete($this->session_id, $zoneId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS zone deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2742,7 +2736,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_zone_set_status($this->session_id, $zoneId, $status);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS zone status update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2752,7 +2746,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_zone_set_dnssec($this->session_id, $zoneId, $dnssecData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS zone DNSSEC update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2763,7 +2757,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_a_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS A record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2773,7 +2767,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_a_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS A record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2783,7 +2777,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_a_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS A record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2794,7 +2788,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_aaaa_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS AAAA record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2804,7 +2798,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_aaaa_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS AAAA record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2814,7 +2808,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_aaaa_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS AAAA record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2825,7 +2819,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_cname_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS CNAME record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2835,7 +2829,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_cname_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS CNAME record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2845,7 +2839,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_cname_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS CNAME record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2856,7 +2850,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_mx_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS MX record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2866,7 +2860,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_mx_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS MX record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2876,7 +2870,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_mx_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS MX record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2887,7 +2881,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_ns_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS NS record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2897,7 +2891,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_ns_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS NS record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2907,7 +2901,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_ns_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS NS record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2918,7 +2912,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_ptr_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS PTR record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2928,7 +2922,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_ptr_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS PTR record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2938,7 +2932,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_ptr_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS PTR record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2949,7 +2943,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_srv_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS SRV record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2959,7 +2953,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_srv_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS SRV record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2969,7 +2963,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_srv_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS SRV record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2980,7 +2974,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_txt_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS TXT record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -2990,7 +2984,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_txt_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS TXT record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3000,7 +2994,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_txt_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS TXT record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3011,7 +3005,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_alias_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS Alias record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3021,7 +3015,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_alias_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS Alias record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3031,7 +3025,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_alias_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS Alias record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3042,7 +3036,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_hinfo_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS HINFO record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3052,7 +3046,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_hinfo_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS HINFO record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3062,7 +3056,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_hinfo_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS HINFO record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3073,7 +3067,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_naptr_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS NAPTR record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3083,7 +3077,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_naptr_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS NAPTR record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3093,7 +3087,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_naptr_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS NAPTR record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3104,7 +3098,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_rp_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS RP record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3114,7 +3108,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_rp_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS RP record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3124,7 +3118,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_rp_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS RP record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3135,7 +3129,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_ds_add($this->session_id, 1, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS DS record creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3145,7 +3139,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_ds_update($this->session_id, 1, $recordId, $recordData);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS DS record update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3155,7 +3149,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_ds_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS DS record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3166,7 +3160,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->dns_slave_delete($this->session_id, $recordId);
             return $result;
         } catch (Exception $e) {
-            error_log('DNS slave record deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3178,7 +3172,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_domain_add($this->session_id, 1, $domainData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail domain creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3188,7 +3182,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_domain_update($this->session_id, 1, $domainId, $domainData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail domain update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3198,7 +3192,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_domain_delete($this->session_id, $domainId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail domain deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3208,7 +3202,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_domain_set_status($this->session_id, $domainId, $status);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail domain status update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3219,7 +3213,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_alias_add($this->session_id, 1, $aliasData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail alias creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3229,7 +3223,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_alias_update($this->session_id, 1, $aliasId, $aliasData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail alias update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3239,7 +3233,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_alias_delete($this->session_id, $aliasId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail alias deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3250,7 +3244,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_forward_add($this->session_id, 1, $forwardData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail forward creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3260,7 +3254,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_forward_update($this->session_id, 1, $forwardId, $forwardData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail forward update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3270,7 +3264,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_forward_delete($this->session_id, $forwardId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail forward deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3281,7 +3275,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_catchall_add($this->session_id, 1, $catchallData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail catchall creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3291,7 +3285,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_catchall_update($this->session_id, 1, $catchallId, $catchallData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail catchall update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3301,7 +3295,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_catchall_delete($this->session_id, $catchallId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail catchall deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3312,7 +3306,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_mailinglist_add($this->session_id, 1, $mailinglistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail mailinglist creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3322,7 +3316,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_mailinglist_update($this->session_id, 1, $mailinglistId, $mailinglistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail mailinglist update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3332,7 +3326,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_mailinglist_delete($this->session_id, $mailinglistId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail mailinglist deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3343,7 +3337,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_policy_add($this->session_id, 1, $policyData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail policy creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3353,7 +3347,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_policy_update($this->session_id, 1, $policyId, $policyData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail policy update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3363,7 +3357,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_policy_delete($this->session_id, $policyId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail policy deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3374,7 +3368,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_transport_add($this->session_id, 1, $transportData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail transport creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3384,7 +3378,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_transport_update($this->session_id, 1, $transportId, $transportData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail transport update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3394,7 +3388,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_transport_delete($this->session_id, $transportId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail transport deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3405,7 +3399,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_relay_domain_add($this->session_id, 1, $relayDomainData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail relay domain creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3415,7 +3409,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_relay_domain_update($this->session_id, 1, $relayDomainId, $relayDomainData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail relay domain update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3425,7 +3419,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_relay_domain_delete($this->session_id, $relayDomainId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail relay domain deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3436,7 +3430,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_relay_recipient_add($this->session_id, 1, $relayRecipientData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail relay recipient creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3446,7 +3440,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_relay_recipient_update($this->session_id, 1, $relayRecipientId, $relayRecipientData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail relay recipient update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3456,7 +3450,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_relay_recipient_delete($this->session_id, $relayRecipientId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail relay recipient deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3467,7 +3461,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_fetchmail_add($this->session_id, 1, $fetchmailData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail fetchmail creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3477,7 +3471,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_fetchmail_update($this->session_id, 1, $fetchmailId, $fetchmailData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail fetchmail update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3487,7 +3481,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_fetchmail_delete($this->session_id, $fetchmailId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail fetchmail deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3498,7 +3492,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_user_filter_add($this->session_id, 1, $filterData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail user filter creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3508,7 +3502,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_user_filter_update($this->session_id, 1, $filterId, $filterData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail user filter update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3518,7 +3512,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_user_filter_delete($this->session_id, $filterId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail user filter deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3529,7 +3523,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_blacklist_add($this->session_id, 1, $blacklistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail blacklist creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3539,7 +3533,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_blacklist_update($this->session_id, 1, $blacklistId, $blacklistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail blacklist update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3549,7 +3543,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_blacklist_delete($this->session_id, $blacklistId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail blacklist deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3560,7 +3554,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_whitelist_add($this->session_id, 1, $whitelistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail whitelist creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3570,7 +3564,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_whitelist_update($this->session_id, 1, $whitelistId, $whitelistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail whitelist update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3580,7 +3574,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_whitelist_delete($this->session_id, $whitelistId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail whitelist deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3591,7 +3585,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_spamfilter_blacklist_add($this->session_id, 1, $spamfilterBlacklistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail spamfilter blacklist creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3601,7 +3595,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_spamfilter_blacklist_update($this->session_id, 1, $spamfilterBlacklistId, $spamfilterBlacklistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail spamfilter blacklist update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3611,7 +3605,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_spamfilter_blacklist_delete($this->session_id, $spamfilterBlacklistId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail spamfilter blacklist deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3622,7 +3616,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_spamfilter_whitelist_add($this->session_id, 1, $spamfilterWhitelistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail spamfilter whitelist creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3632,7 +3626,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_spamfilter_whitelist_update($this->session_id, 1, $spamfilterWhitelistId, $spamfilterWhitelistData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail spamfilter whitelist update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3642,7 +3636,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_spamfilter_whitelist_delete($this->session_id, $spamfilterWhitelistId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail spamfilter whitelist deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3653,7 +3647,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_spamfilter_user_add($this->session_id, 1, $spamfilterUserData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail spamfilter user creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3663,7 +3657,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_spamfilter_user_update($this->session_id, 1, $spamfilterUserId, $spamfilterUserData);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail spamfilter user update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3673,7 +3667,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->mail_spamfilter_user_delete($this->session_id, $spamfilterUserId);
             return $result;
         } catch (Exception $e) {
-            error_log('Mail spamfilter user deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3685,7 +3679,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_ftp_user_add($this->session_id, 1, $userData);
             return $result;
         } catch (Exception $e) {
-            error_log('FTP user creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3695,7 +3689,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_ftp_user_update($this->session_id, 1, $userId, $userData);
             return $result;
         } catch (Exception $e) {
-            error_log('FTP user update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3705,7 +3699,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_ftp_user_delete($this->session_id, $userId);
             return $result;
         } catch (Exception $e) {
-            error_log('FTP user deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3716,7 +3710,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_shell_user_add($this->session_id, 1, $userData);
             return $result;
         } catch (Exception $e) {
-            error_log('Shell user creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3726,7 +3720,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_shell_user_update($this->session_id, 1, $userId, $userData);
             return $result;
         } catch (Exception $e) {
-            error_log('Shell user update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3736,7 +3730,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_shell_user_delete($this->session_id, $userId);
             return $result;
         } catch (Exception $e) {
-            error_log('Shell user deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3747,7 +3741,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_cron_add($this->session_id, 1, $jobData);
             return $result;
         } catch (Exception $e) {
-            error_log('Cron job creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3757,7 +3751,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_cron_update($this->session_id, 1, $jobId, $jobData);
             return $result;
         } catch (Exception $e) {
-            error_log('Cron job update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3767,7 +3761,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_cron_delete($this->session_id, $jobId);
             return $result;
         } catch (Exception $e) {
-            error_log('Cron job deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3778,7 +3772,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_database_user_add($this->session_id, 1, $userData);
             return $result;
         } catch (Exception $e) {
-            error_log('Database user creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3788,7 +3782,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_database_user_update($this->session_id, 1, $userId, $userData);
             return $result;
         } catch (Exception $e) {
-            error_log('Database user update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3798,7 +3792,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_database_user_delete($this->session_id, $userId);
             return $result;
         } catch (Exception $e) {
-            error_log('Database user deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3809,7 +3803,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_web_subdomain_add($this->session_id, 1, $subdomainData);
             return $result;
         } catch (Exception $e) {
-            error_log('Web subdomain creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3819,7 +3813,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_web_subdomain_update($this->session_id, 1, $subdomainId, $subdomainData);
             return $result;
         } catch (Exception $e) {
-            error_log('Web subdomain update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3829,7 +3823,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_web_subdomain_delete($this->session_id, $subdomainId);
             return $result;
         } catch (Exception $e) {
-            error_log('Web subdomain deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3840,7 +3834,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_web_aliasdomain_add($this->session_id, 1, $aliasdomainData);
             return $result;
         } catch (Exception $e) {
-            error_log('Web aliasdomain creation failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3850,7 +3844,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_web_aliasdomain_update($this->session_id, 1, $aliasdomainId, $aliasdomainData);
             return $result;
         } catch (Exception $e) {
-            error_log('Web aliasdomain update failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -3860,7 +3854,7 @@ class ISPConfigPost extends ISPConfigGet {
             $result = $this->client->sites_web_aliasdomain_delete($this->session_id, $aliasdomainId);
             return $result;
         } catch (Exception $e) {
-            error_log('Web aliasdomain deletion failed: ' . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return false;
         }
     }
@@ -4193,6 +4187,7 @@ class OVHGet extends BaseAPI {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
         }
 
+        ProviderTransport::apply($ch, $url, 'ovh');
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -4550,16 +4545,17 @@ class OGPGet extends BaseAPI {
         
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
         
         if ($method === 'POST' && $data) {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         }
         
+        ProviderTransport::apply($ch, $url, 'ogp');
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
@@ -4574,7 +4570,7 @@ class OGPGet extends BaseAPI {
             $decoded = json_decode($response, true);
             return $decoded !== null ? $decoded : $response;
         } else {
-            error_log("OGP API HTTP Error: $httpCode - $response");
+            error_log('Provider request failed; response details withheld');
             return false;
         }
     }
@@ -4951,6 +4947,27 @@ class OGPPost extends OGPGet {
 
 // SERVICE MANAGER CLASS - ERWEITERT
 class ServiceManager {
+
+    public function getISPConfigUsers($filter = []) { return $this->getISPConfigClients($filter); }
+    public function deleteOGPUser($email) { return $this->removeOGPUser($email); }
+    public function deleteISPConfigUser($id) { return $this->deleteISPConfigClient($id); }
+    public function editProxmoxUser($id, $email, $name) { return $this->updateProxmoxUser($id, ['email' => $email, 'firstname' => $name]); }
+    public function editISPConfigUser($id, $email, $name) { return $this->updateISPConfigClient($id, ['email' => $email, 'contact_name' => $name]); }
+    public function createISPConfigUser($username, $password, $firstName = '', $lastName = '', $options = []) {
+        if (strlen((string) $password) < 12) return ['success' => false, 'error' => 'INVALID_USER_DATA'];
+        return $this->createISPConfigClient(array_merge((array) $options, ['username' => $username, 'password' => $password, 'contact_firstname' => $firstName, 'contact_name' => $lastName]));
+    }
+    public function editOGPUser($id, $email, $name, $expires = null) { return ['success' => false, 'error' => 'UNSUPPORTED_OPERATION', 'message' => 'Die OGP-Anbindung unterstützt keine Änderung von Benutzername/E-Mail.']; }
+    public function updateOGPUserPassword($id, $password) { return ['success' => false, 'error' => 'UNSUPPORTED_OPERATION', 'message' => 'OGP-Passwörter müssen im OGP-Portal geändert werden.']; }
+    public function updateISPConfigUserPassword($id, $password) {
+        if (strlen((string) $password) < 12) return ['success' => false, 'error' => 'INVALID_PASSWORD'];
+        return $this->updateISPConfigClient($id, ['password' => $password]);
+    }
+    public function updateProxmoxUserPassword($id, $password) {
+        if (!preg_match('/^[a-zA-Z0-9_.-]+@pve$/D', (string) $id) || strlen((string) $password) < 12) return ['success' => false, 'error' => 'INVALID_USER_OR_REALM'];
+        return $this->ProxmoxAPI('put', '/access/password', ['userid' => $id, 'password' => $password]);
+    }
+
     private $proxmoxGet;
     private $proxmoxPost;
     private $ispconfigGet;
@@ -4960,14 +4977,22 @@ class ServiceManager {
     private $ogpGet;
     private $ogpPost;
 
-    public function __construct() {
+    private array $injectedProviders = [];
+    public function __construct(?array $adapters = null) {
+        if ($adapters !== null) {
+            foreach ($adapters as $provider => $objects) {
+                if (!in_array($provider, ['proxmox', 'ispconfig', 'ovh', 'ogp'], true) || count($objects) !== 2) throw new InvalidArgumentException('Invalid provider adapter');
+                $this->{$provider . 'Get'} = $objects[0]; $this->{$provider . 'Post'} = $objects[1]; $this->injectedProviders[$provider] = true;
+            }
+            return;
+        }
         // Proxmox API initialisieren nur wenn aktiviert
         if (Config::PROXMOX_USEING) {
             try {
                 $this->proxmoxGet = new ProxmoxGet();
                 $this->proxmoxPost = new ProxmoxPost();
             } catch (Exception $e) {
-                error_log("Proxmox API Initialisierung fehlgeschlagen: " . $e->getMessage());
+                error_log(__METHOD__ . ': ' . get_class($e));
                 // Setze die Objekte auf null, damit checkAPIEnabled() sie als nicht initialisiert erkennt
                 $this->proxmoxGet = null;
                 $this->proxmoxPost = null;
@@ -4981,7 +5006,7 @@ class ServiceManager {
                 $this->ispconfigGet = new ISPConfigGet();
                 $this->ispconfigPost = new ISPConfigPost();
             } catch (Exception $e) {
-                error_log("ISPConfig API Initialisierung fehlgeschlagen: " . $e->getMessage());
+                error_log(__METHOD__ . ': ' . get_class($e));
                 $this->ispconfigGet = null;
                 $this->ispconfigPost = null;
             }
@@ -4995,7 +5020,7 @@ class ServiceManager {
                 $this->ovhGet = new OVHGet();
                 $this->ovhPost = new OVHPost();
             } catch (Exception $e) {
-                error_log("OVH API Initialisierung fehlgeschlagen: " . $e->getMessage());
+                error_log(__METHOD__ . ': ' . get_class($e));
                 $this->ovhGet = null;
                 $this->ovhPost = null;
             }
@@ -5007,7 +5032,7 @@ class ServiceManager {
                 $this->ogpGet = new OGPGet();
                 $this->ogpPost = new OGPPost();
             } catch (Exception $e) {
-                error_log("OGP API Initialisierung fehlgeschlagen: " . $e->getMessage());
+                error_log(__METHOD__ . ': ' . get_class($e));
                 $this->ogpGet = null;
                 $this->ogpPost = null;
             }
@@ -5039,11 +5064,12 @@ class ServiceManager {
      * @return array|true Gibt true zurÃ¼ck wenn API aktiviert ist, sonst strukturierte Fehlermeldung
      */
     private function checkAPIEnabled($apiName) {
+        if (isset($this->injectedProviders[$apiName])) return true;
         try {
             $db = Database::getInstance();
         } catch (Exception $e) {
             // If database connection fails, skip logging but continue with API check
-            error_log("Database connection failed in checkAPIEnabled: " . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             $db = null;
         }
         $apiNameLower = strtolower($apiName);
@@ -5275,11 +5301,11 @@ class ServiceManager {
         
         try {
             return call_user_func_array([$apiObject, $methodName], $params);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return [
                 'success' => false,
                 'error' => 'API_CALL_FAILED',
-                'message' => "$apiName API Aufruf fehlgeschlagen: " . $e->getMessage(),
+                'message' => "$apiName API Aufruf fehlgeschlagen",
                 'api' => $apiName,
                 'method' => $methodName
             ];
@@ -5329,7 +5355,7 @@ class ServiceManager {
             
             // Prüfe auf Fehler in der Antwort
             if (isset($response['success']) && $response['success'] === false) {
-                error_log("ProxmoxAPI: API returned error: " . json_encode($response));
+                error_log('Provider request failed; response details withheld');
                 return $response;
             }
             
@@ -5340,7 +5366,7 @@ class ServiceManager {
             
             return $response;
         } catch (Exception $e) {
-            error_log("ProxmoxAPI Error: " . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [
                 'success' => false,
                 'error' => 'API_REQUEST_FAILED',
@@ -5387,7 +5413,7 @@ class ServiceManager {
             
             return $response;
         } catch (Exception $e) {
-            error_log("OvhAPI Error: " . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [
                 'success' => false,
                 'error' => 'API_REQUEST_FAILED',
@@ -5486,7 +5512,7 @@ class ServiceManager {
             return $result;
             
         } catch (Exception $e) {
-            error_log("IspconfigAPI Error: " . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [
                 'success' => false,
                 'error' => 'ISPCONFIG_API_ERROR',
@@ -5527,7 +5553,7 @@ class ServiceManager {
             
             return $result;
         } catch (Exception $e) {
-            error_log("IspconfigSOAP Error: " . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [
                 'success' => false,
                 'error' => 'SOAP_REQUEST_FAILED',
@@ -5575,7 +5601,7 @@ class ServiceManager {
             
             return $response;
         } catch (Exception $e) {
-            error_log("OGPAPI Error: " . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [
                 'success' => false,
                 'error' => 'API_REQUEST_FAILED',
@@ -5678,7 +5704,7 @@ class ServiceManager {
             
             return $systemInfo;
         } catch (Exception $e) {
-            error_log("SystemInfo Error: " . $e->getMessage());
+            error_log(__METHOD__ . ': ' . get_class($e));
             return [
                 'uptime' => 'N/A',
                 'memory' => 'N/A',
@@ -6885,7 +6911,11 @@ class ServiceManager {
     /**
      * Erstellt OGP Benutzer (erweiterte Methode)
      */
-    public function createOGPUser($userData) {
+    public function createOGPUser($userData, $password = null, $firstName = '', $lastName = '', $options = []) {
+        if (is_string($userData)) $userData = array_merge((array) $options, ['username' => $userData, 'password' => $password, 'firstname' => $firstName, 'lastname' => $lastName]);
+        if (!is_array($userData) || !isset($userData['password']) || strlen((string) $userData['password']) < 12) return ['success' => false, 'error' => 'INVALID_USER_DATA'];
+        if (!isset($userData['name'])) $userData['name'] = trim(($userData['firstname'] ?? '') . ' ' . ($userData['lastname'] ?? ''));
+        $userData = array_intersect_key($userData, array_flip(['email','name','password']));
         $apiCheck = $this->checkAPIEnabled('ogp');
         if ($apiCheck !== true) {
             return $apiCheck;
@@ -6897,7 +6927,9 @@ class ServiceManager {
     /**
      * Erstellt Proxmox Benutzer (erweiterte Methode)
      */
-    public function createProxmoxUser($userData) {
+    public function createProxmoxUser($userData, $password = null, $firstName = '', $lastName = '', $options = []) {
+        if (is_string($userData)) $userData = array_merge((array) $options, ['username' => $userData, 'password' => $password, 'firstname' => $firstName, 'lastname' => $lastName]);
+        if (!is_array($userData) || !isset($userData['password']) || strlen((string) $userData['password']) < 12) return ['success' => false, 'error' => 'INVALID_USER_DATA'];
         $apiCheck = $this->checkAPIEnabled('proxmox');
         if ($apiCheck !== true) {
             return $apiCheck;
@@ -7654,33 +7686,8 @@ function getModuleConfig($module_key) {
 }
 
 function canAccessModule($module_key, $user_role) {
-    $config = getModuleConfig($module_key);
-    
-    if (!$config) {
-        return false;
-    }
-    
-    // StandardmÃ¤ÃŸig haben alle Benutzer Zugriff
-    if (!isset($config['permissions'])) {
-        return true;
-    }
-    
-    // PrÃ¼fe spezifische Berechtigungen
-    $permissions = $config['permissions'];
-    
-    // Admin hat immer Zugriff
-    if ($user_role === 'admin') {
-        return true;
-    }
-    
-    // PrÃ¼fe Benutzerrolle
-    if (isset($permissions['roles'])) {
-        if (!in_array($user_role, $permissions['roles'])) {
-            return false;
-        }
-    }
-    
-    return true;
+    require_once __DIR__ . '/src/core/ResourceAccess.php';
+    return ResourceAccess::legacyAllowed($module_key);
 }
 
 ?>

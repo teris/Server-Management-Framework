@@ -601,20 +601,7 @@ db.system_settings.createIndex({ "setting_key": 1 }, { unique: true });
 // =============================================================================
 
 // Standard-Admin-Benutzer
-db.users.insertOne({
-    username: "admin",
-    email: "admin@mongodb-server.com",
-    password_hash: "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
-    full_name: "System Administrator",
-    role: "admin",
-    active: "y",
-    last_login: null,
-    failed_login_attempts: 0,
-    locked_until: null,
-    password_changed_at: new Date(),
-    created_at: new Date(),
-    updated_at: new Date()
-});
+// Administrator creation requires an explicit secure bootstrap.
 
 // Standard-Module
 db.modules.insertMany([

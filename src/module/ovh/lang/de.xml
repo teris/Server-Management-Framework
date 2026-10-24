@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translations>
+    <module_title>OVH Services</module_title>
+    <domains>Domains</domains>
+    <vps>VPS</vps>
+    <failover_ips>Failover-IPs</failover_ips>
+    <add_domain>Domain hinzufügen</add_domain>
+    <delete_domain>Domain löschen</delete_domain>
+    <add_vps>VPS hinzufügen</add_vps>
+    <delete_vps>VPS löschen</delete_vps>
+    <add_failover_ip>Failover-IP hinzufügen</add_failover_ip>
+    <delete_failover_ip>Failover-IP löschen</delete_failover_ip>
+    <status>Status</status>
+    <actions>Aktionen</actions>
+    <save>Speichern</save>
+    <cancel>Abbrechen</cancel>
+    <edit>Bearbeiten</edit>
+    <delete>Löschen</delete>
+    <create>Erstellen</create>
+    <refresh>Aktualisieren</refresh>
+    <operation_successful>Operation erfolgreich</operation_successful>
+    <operation_failed>Operation fehlgeschlagen</operation_failed>
+    <validation_failed>Validierung fehlgeschlagen</validation_failed>
+    <confirm_delete>Möchten Sie wirklich löschen?</confirm_delete>
+    <loading>Laden...</loading>
+    <unknown_action>Unbekannte Aktion</unknown_action>
+    <order_domain_ovh>Domain bei OVH bestellen</order_domain_ovh>
+    <domain_name>Domain Name</domain_name>
+    <duration>Laufzeit (Jahre)</duration>
+    <order_domain>Domain bestellen</order_domain>
+    <domain_ordered_successfully>Domain erfolgreich bestellt</domain_ordered_successfully>
+    <error_ordering_domain>Fehler beim Bestellen der Domain</error_ordering_domain>
+    <domain_not_available>Domain ist nicht verfügbar</domain_not_available>
+    <get_vps_info>VPS Informationen abrufen</get_vps_info>
+    <vps_name>VPS Name</vps_name>
+    <get_vps_info_button>VPS Info abrufen</get_vps_info_button>
+    <vps_information>VPS Informationen</vps_information>
+    <ip_address>IP Adresse</ip_address>
+    <mac_address>MAC Adresse</mac_address>
+    <dns_management>DNS Management</dns_management>
+    <create_dns_record>DNS Record erstellen</create_dns_record>
+    <domain>Domain</domain>
+    <record_type>Record Type</record_type>
+    <subdomain>Subdomain</subdomain>
+    <target>Target</target>
+    <ttl_seconds>TTL (Sekunden)</ttl_seconds>
+    <dns_record_created_successfully>DNS-Eintrag erfolgreich erstellt</dns_record_created_successfully>
+    <error_creating_dns_record>Fehler beim Erstellen des DNS-Eintrags</error_creating_dns_record>
+    <vps_control>VPS Control</vps_control>
+    <action>Aktion</action>
+    <reboot>Reboot</reboot>
+    <start>Start</start>
+    <stop>Stop</stop>
+    <reset>Reset</reset>
+    <execute_vps_action>VPS Aktion ausführen</execute_vps_action>
+    <failover_ips>Failover IPs</failover_ips>
+    <load_failover_ips>Failover IPs laden</load_failover_ips>
+    <failover_ips_loaded>Failover IPs geladen</failover_ips_loaded>
+    <no_failover_ips_found>Keine Failover IPs gefunden</no_failover_ips_found>
+    <block>Block</block>
+    <routed_to>Geroutet zu</routed_to>
+    <type>Typ</type>
+    <country>Land</country>
+    <virtual_mac>Virtual MAC</virtual_mac>
+    <not_available>Nicht vorhanden</not_available>
+    <actions>Aktionen</actions>
+    <generate_mac>MAC erzeugen</generate_mac>
+    <quick_actions>Schnellaktionen</quick_actions>
+    <check_domain_availability>Domain Verfügbarkeit</check_domain_availability>
+    <show_dns_records>DNS Records anzeigen</show_dns_records>
+    <refresh_dns_zone>DNS Zone refresh</refresh_dns_zone>
+    <enter_domain>Domain eingeben</enter_domain>
+    <checking_availability>Prüfe Verfügbarkeit...</checking_availability>
+    <domain_availability_not_implemented>Domain-Verfügbarkeitsprüfung noch nicht implementiert</domain_availability_not_implemented>
+    <dns_records_loaded>DNS Records geladen - siehe Konsole</dns_records_loaded>
+    <dns_zone_updated_successfully>DNS Zone erfolgreich aktualisiert</dns_zone_updated_successfully>
+    <network_error>Netzwerkfehler</network_error>
+    <unknown_error>Unbekannter Fehler</unknown_error>
+    <error_getting_domain_zone>Fehler beim Abrufen der Domain-Zone</error_getting_domain_zone>
+    <error_getting_dns_records>Fehler beim Abrufen der DNS-Records</error_getting_dns_records>
+    <error_refreshing_dns_zone>Fehler beim Aktualisieren der DNS-Zone</error_refreshing_dns_zone>
+    <error_getting_vps_info>Fehler beim Abrufen der VPS-Informationen</error_getting_vps_info>
+    <error_getting_vps_ips>Fehler beim Abrufen der VPS-IPs</error_getting_vps_ips>
+    <error_getting_vps_ip_details>Fehler beim Abrufen der VPS-IP-Details</error_getting_vps_ip_details>
+    <error_controlling_vps>Fehler beim Steuern des VPS</error_controlling_vps>
+    <error_getting_failover_ips>Fehler beim Abrufen der Failover-IPs</error_getting_failover_ips>
+    <error_creating_virtual_mac>Fehler beim Erstellen der Virtual MAC</error_creating_virtual_mac>
+    <vps_action_executed_successfully>VPS-Aktion erfolgreich ausgeführt</vps_action_executed_successfully>
+    <virtual_mac_created_successfully>Virtual MAC erfolgreich erstellt</virtual_mac_created_successfully>
+    <click_load_failover_ips>Klicken Sie auf "Failover IPs laden"</click_load_failover_ips>
+</translations> 
