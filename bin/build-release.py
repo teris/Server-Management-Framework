@@ -26,7 +26,7 @@ def build(ref,output,key_file):
             if not entry.isfile() or entry.name not in inventory:raise ValueError('Unexpected archive entry')
             payload[entry.name]=archive.extractfile(entry).read()
     if set(payload)!=set(inventory):raise ValueError('Incomplete archive')
-    match=re.search(rb'\$system_config\s*=\s*\[([\s\S]*?)\];',payload['src/sys.conf.php'])
+    match=re.search(rb'\$system_config\s*=\s*(?:array\s*\(|\[)([\s\S]*?)(?:\)|\])\s*;',payload['src/sys.conf.php'])
     version=re.search(rb"['\"]version['\"]\s*=>\s*['\"]([0-9]+\.[0-9]+\.[0-9]+)['\"]",match[1] if match else b'')
     if not version:raise ValueError('Framework version missing')
     version=version[1].decode();schema=json.loads(payload['database/schema.json'])['version']
