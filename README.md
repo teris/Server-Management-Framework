@@ -1,6 +1,6 @@
 # Server Management Framework
 
-PHP-Anwendung für Proxmox, ISPConfig, OVH und OGP mit Verwaltung und Kundenportal. Der aktuelle Entwicklungsstand **3.3.0** ergänzt den modularen Kern und elf optionale Shop-Erweiterungen aus AP18–AP27. Das veröffentlichte Vorgängerrelease ist [3.2.8](docs/releases/3.2.8.md). PHP mindestens 8.3 und eine explizite Datenbankmigration sind erforderlich.
+PHP-Anwendung für Proxmox, ISPConfig, OVH und OGP mit Verwaltung und Kundenportal. Release **[3.9.9](docs/releases/3.9.9.md)** enthält den modularen Kern, elf optionale Shop-Erweiterungen und einen geschützten Installationsassistenten. Das veröffentlichte Vorgängerrelease ist [3.2.8](docs/releases/3.2.8.md). PHP mindestens 8.3 und eine explizite Datenbankmigration sind erforderlich.
 
 [Modularer Betrieb und Migration](docs/pruefung-2026-10-24/BETRIEB-AP18-AP27.md) · [Umsetzung und Testbereitstellung](docs/pruefung-2026-10-24/UMSETZUNG-AP18-AP27.md) · [Changelog](CHANGELOG.md)
 
