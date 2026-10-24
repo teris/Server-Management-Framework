@@ -5,7 +5,7 @@ if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FIL
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.2.0
+ * @version 3.2.8
  */
 
 // LanguageManager einbinden (falls verfügbar)
@@ -162,7 +162,7 @@ $plugins = array (
 
 // --- SYSTEM_CONFIG START ---
 $system_config = array (
-  'version' => '3.2.7',
+  'version' => '3.2.8',
   'theme' => 'default',
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',

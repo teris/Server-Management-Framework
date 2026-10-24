@@ -4,6 +4,33 @@ Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei
 
 
 
+## [3.2.8] - 2026-10-24
+
+Sicherheits- und Stabilitätsrelease des geprüften 3.2-Zweigs (AP01–AP17).
+
+### Upgradevoraussetzungen
+
+- **PHP >= 8.3 ist erforderlich**; die bisherige Angabe PHP >= 7.4 ist aufgehoben.
+- Anwendung, Datenbank und private Konfiguration einschließlich Schlüssel gemeinsam sichern; Migration ausdrücklich mit `php bin/migrate.php` ausführen. Webinstaller und bisheriger unsignierter Web-Updater sind gesperrt.
+- MongoDB ist nicht unterstützt; alte Bestätigungs-/Remember-Links werden widerrufen. Providerzugänge werden privat serverseitig gepflegt.
+
+### Sicherheit
+
+- Gemeinsame Identität, Rollen-/Ressourcenprüfung, CSRF, Zugriffslimits, sichere Sitzungen und rotierende gehashte Remember-Tokens.
+- Diagnose-/Includezugriffe geschlossen, Dateien und Exporte an Eigentümer gebunden; private Konfiguration und Schlüssel geschützt.
+- TLS-/Hostnameprüfung für Provider und SMTPS; keine Benutzerpasswörter per Mail.
+
+### Behoben und ergänzt
+
+- Registrierung, E-Mail-Bestätigung, erneuter Versand, Ablauf/Wiederverwendung und Passwort-Rücksetzlinks.
+- Verbindliches Schema mit 41 Kerntabellen, Prüfsummenmigration und CLI-Neuinstallation ohne Beispielkonten. SQL-Adapter für SQLite, MySQL/MariaDB und PostgreSQL korrigiert.
+- Fehlende Nutzer-/Providermethoden, Ergebnisverträge, Teilfehler und Schutz des letzten aktiven Administrators.
+- Numerische/Textvalidierung, Sprachen, UTF-8, Proxmox-Rendering, statisches JavaScript und geschützte JSON-Konfiguration.
+- Signierte Updateaufträge mit CLI-Worker, obligatorischer Sicherung, Kandidatenmigration, atomarem Wechsel und kontrolliertem Rückrollen.
+- Lokale Browserbibliotheken, private Einstellungsdatei, korrekte Apache-2.0-Lizenz, Plattform-/Upgrade-Dokumentation und Regressionen.
+
+Releasepaket, Upgradegrenzen und Prüfungen: [Release Notes 3.2.8](docs/releases/3.2.8.md). Der separate 3.3.0-Modulmanager und das spätere Shopsystem sind nicht enthalten.
+
 ## [3.2.7]
 
 ### Hinzugefügt

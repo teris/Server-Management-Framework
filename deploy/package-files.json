@@ -48,6 +48,8 @@
   "docs/pruefung-2026-10-24/pruefergebnisse.json",
   "docs/pruefung-2026-10-24/testergebnisse-ap01-ap09.json",
   "docs/pruefung-2026-10-24/testergebnisse-ap10-ap17.json",
+  "docs/releases/3.2.8.md",
+  "docs/releases/BUILD.md",
   "favicon.ico",
   "framework.php",
   "install/.htaccess",

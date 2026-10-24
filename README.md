@@ -1,6 +1,6 @@
 # Server Management Framework
 
-PHP-Anwendung für die Verwaltung von Proxmox, ISPConfig, OVH und OGP mit Administrationsoberfläche und Kundenportal. Der Quellstand trägt weiterhin **3.2.7**; AP01–AP17 sind lokal überarbeitet. Eine neue Versionsnummer, GitHub-Veröffentlichung und der Upload auf den eigenen Server gehören zu AP28–AP30.
+PHP-Anwendung für die Verwaltung von Proxmox, ISPConfig, OVH und OGP mit Administrationsoberfläche und Kundenportal. **Release 3.2.8** enthält die Sicherheits- und Stabilitätsarbeiten AP01–AP17 des 3.2-Zweigs. [Changelog](CHANGELOG.md) und [Release-/Upgradehinweise](docs/releases/3.2.8.md) beschreiben die Änderungen. PHP mindestens 8.3 und eine explizite Datenbankmigration sind erforderlich. Der Upload auf den eigenen Server bleibt ein eigener Betriebsschritt.
 
 Lizenz: **Apache License 2.0**, siehe [LICENSE](LICENSE). Es gibt keine vorgegebenen Zugangsdaten und keinen Webinstaller.
 

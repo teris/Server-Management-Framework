@@ -1,6 +1,6 @@
 # Installation, Upgrade und Betrieb nach AP10–AP17
 
-Stand: 24.10.2026. Lokaler Quellstand 3.2.7, noch kein veröffentlichtes Update. Diese Anleitung ersetzt die Installations-/Migrationshinweise aus dem ursprünglichen 3.2.7-Paket und ergänzt den Sicherheitsbetrieb aus AP01–AP09.
+Stand: 24.10.2026. Releaseziel 3.2.8 auf der geprüften 3.2.7-Basis. Die [Releasehinweise](../releases/3.2.8.md) ergänzen diese Anleitung. Diese Anleitung ersetzt die Installations-/Migrationshinweise aus dem ursprünglichen 3.2.7-Paket und ergänzt den Sicherheitsbetrieb aus AP01–AP09.
 
 ## Plattform und Pfade
 
@@ -68,7 +68,7 @@ MongoDB-Konfigurationen brechen ausdrücklich ab. Alte Browserinstaller und das 
 
 ## Signierte Updates und Wiederherstellung
 
-Der neue Ablauf ist mit isolierten signierten Paketen abgenommen. Er installiert keine beliebigen GitHub-ZIPs. Produktionspakete, Signierung und der Server-Worker werden erst mit AP28–AP30 eingerichtet. Bis dahin ist der kontrollierte Upload mit expliziter Migration der Betriebsweg.
+Der neue Ablauf ist mit isolierten signierten Paketen abgenommen. Er installiert keine beliebigen GitHub-ZIPs. 3.2.8 erhält ein signiertes Vollpaket; der Server-Worker und die Vertrauenseinrichtung bleiben Teil der Serverbereitstellung in AP30. Der erstmalige Wechsel vom ursprünglichen 3.2.7 erfolgt durch kontrollierten Upload mit expliziter Migration.
 
 Für die spätere Aktivierung benötigt der Worker feste externe Privat-/Konfigurationspfade, einen austauschbaren Symlink `SMF_CURRENT_LINK=/srv/smf/current` auf das aktive Release und `SMF_UPDATE_PUBLIC_KEY` auf einen **separat vertrauenswürdig eingerichteten RSA-Public-Key (mindestens 3072 Bit)** außerhalb von Anwendung und Releases. Der private Signierschlüssel gehört nicht auf den Webserver. CLI und Webprozess verwenden denselben privaten Auftragsstand. Releasecode und Symlink dürfen nur vom zuständigen Worker geändert werden.
 
