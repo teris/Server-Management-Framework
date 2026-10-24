@@ -66,7 +66,7 @@ Der Browserablauf umfasst sechs Schritte: Installationsfreigabe, System/Datenban
 
 ## Arbeitspakete
 
-`[x]` = im hier dokumentierten Umfang lokal umgesetzt und geprüft; `[ ]` = offen. **AP31–AP44 sind umgesetzt und in den jeweils dokumentierten Grenzen geprüft. AP45 wurde am tatsächlichen signierten Paket geprüft; AP46 wird mit dem Servernachweis abgeschlossen.** Das Bestands-Testsystem erhält dadurch keine neue Installation. Statusänderungen erfolgen anhand der jeweils genannten Abnahme. Die lokale Erstinstaller-Umsetzung und ihre tatsächlich ausgeführten Prüfungen werden gesondert im [Installer-Nachweis](INSTALLATION-SHOP.md) festgehalten.
+`[x]` = im hier dokumentierten Umfang lokal umgesetzt und geprüft; `[ ]` = offen. **AP31–AP46 sind in den dokumentierten Grenzen umgesetzt und geprüft. AP45 ist am tatsächlichen signierten Paket, AP46 zusätzlich am eigenen Testsystem belegt.** Das Bestands-Testsystem erhält dadurch keine neue Installation. Statusänderungen erfolgen anhand der jeweils genannten Abnahme. Die lokale Erstinstaller-Umsetzung und ihre tatsächlich ausgeführten Prüfungen werden gesondert im [Installer-Nachweis](INSTALLATION-SHOP.md) festgehalten.
 
 | Status / ID | Ergebnis und Umfang | Abhängigkeit | Abnahme |
 | --- | --- | --- | --- |
@@ -85,7 +85,7 @@ Der Browserablauf umfasst sechs Schritte: Installationsfreigabe, System/Datenban
 | [x] **AP43** | **Einrichtungsstatus, Nachkonfiguration und Upgradeassistent ergänzen.** SMTP-Test an eigene Adresse, Scheduler-/Workerheartbeat, Providerfähigkeiten, Vertrags-/Betreiberangaben und Produktbereitschaft sichtbar machen. Für vorhandene Installationen getrennten angemeldeten Upgrade-/Recoveryweg liefern. | AP32–AP42 | Betreiber sieht konkrete offene Einrichtungsschritte. Der Erstinstaller setzt keine vorhandenen Konten zurück. Nachinstallierte Provider/Module benötigen keinen kompletten Neuaufbau. |
 | [x] **AP44** | **Vollständige Integrationsabnahme auf Staging durchführen.** Installer-/Provider-Matrix, zwei Kunden, Fehler-/Wiederholungsfälle, Originaldatenvergleich sowie Rückweg auf Datenkopien; anschließend eine ausdrücklich freigegebene Test-Gameserverleistung gegen ein echtes OGP. | AP37–AP43 | Vollständiger Weg von Anfrage bzw. Sandboxzahlung bis gebundener Testleistung und kontrollierter Beendigung ist belegt. Mocktests werden von echter Agent-/Spielinstallation getrennt ausgewiesen. |
 | [x] **AP45** | **Modulpakete, Dokumentation und Release vorbereiten.** Getrennte Kern-/Shop-/Providerpakete, Vertrauens-/Versionsprüfung, Upgradehinweise, Changelog und Lizenzbestand. Gemeinsam verwendete Datenschemata in Migrationsreihenfolge halten. | AP42, AP44 | Installationspakete enthalten den Assistenten, alle benötigten Abhängigkeiten und keine Freigabeschlüssel/privaten Dateien. Eine Installation aus dem tatsächlichen Paket besteht erneut. |
-| [ ] **AP46** | **Geprüften Stand auf dem eigenen Testsystem übernehmen und veröffentlichen.** Eigene Domain/DB/Schlüssel sichern, Upgrade statt Erstinstallation, gezielte Modulaktivierung, Worker und Erreichbarkeit prüfen; GitHub-Release nach eigener Beauftragung. | AP44, AP45 | Die bestehende 3.3.0-Testinstallation und ihre Konten bleiben erhalten. Release, Dateistand, Datenbank, Modulzustand und Prüfprotokoll stimmen überein. |
+| [x] **AP46** | **Geprüften Stand auf dem eigenen Testsystem übernehmen und veröffentlichen.** Eigene Domain/DB/Schlüssel sichern, Upgrade statt Erstinstallation, gezielte Modulaktivierung, Worker und Erreichbarkeit prüfen; GitHub-Release nach eigener Beauftragung. | AP44, AP45 | Die bestehende 3.3.0-Testinstallation und ihre Konten bleiben erhalten. Release, Dateistand, Datenbank, Modulzustand und Prüfprotokoll stimmen überein. |
 
 ## Reihenfolge für die stückweise Umsetzung
 
@@ -115,4 +115,4 @@ Für ISPConfig werden die im vorhandenen Adapter genutzten JSON-Remote-Verträge
 
 ## Umsetzung AP31 / AP35–AP46
 
-Die Modulverträge, Provider-/Produkttrennung, reale OGP-Abnahme und die Grenzen der Anbieterprüfung sind im [Umsetzungsnachweis](MODULE-AP31-AP46.md) beschrieben. Der aktuelle Auftrag schließt Paket- und Serverübernahme mit separaten Prüfergebnissen ab.
+Die Modulverträge, Provider-/Produkttrennung, reale OGP-Abnahme und die Grenzen der Anbieterprüfung sind im [Umsetzungsnachweis](MODULE-AP31-AP46.md) beschrieben. Die Paket- und Serverübernahme ist mit separaten Prüfergebnissen abgeschlossen. Das GitHub-Release führt diesen geprüften Stand zusammen.

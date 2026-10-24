@@ -80,12 +80,24 @@ Neue Provider-/Produktmodule lassen sich mit denselben `--key`, `--fingerprint` 
 
 Die Tests unterscheiden simulierte Providerprotokolle, echte lokale TLS-/SMTP-/SQL-/Browserprüfungen und tatsächliche OGP-Schreibzugriffe. Ein Mock ist kein Nachweis einer Spielinstallation.
 
-- 26 lokale Suiten: Modulverträge, Rechte, Zahlungen, Installation, Jobs, Lebenszyklus, signierte Pakete, Upgrade/Recovery und SMTP.
+- 26 lokale Suiten plus negativer Baselinekontrolle: Modulverträge, Rechte, Zahlungen, Installation, Jobs, Lebenszyklus, signierte Pakete, Upgrade/Recovery und SMTP.
 - Tatsächliches signiertes Release: 584 Datei-/Paketprüfungen, 27 HTTP-/SMTPS-Prüfungen und zehn Update-/Rollbackprüfungen; reduzierte Hosting- und Gameserverpakete erfolgreich installiert. Zwei Builds desselben Commits sind identisch.
-- Native MariaDB- und MySQL-8-Tests: 59 Gameserver-/20 Provider-Matrixprüfungen sowie je 84 Installertests. Chrome prüft 36 neue Modul-/Rechte-/Layoutfälle auf Desktop und Mobilgerät.
+- Native MariaDB- und MySQL-8-Tests: 59 Gameserverprüfungen sowie eine Provider-Matrix sowie je 84 Installertests. Chrome prüft 36 neue Modul-/Rechte-/Layoutfälle auf Desktop und Mobilgerät.
 - Reduzierte signierte Neuinstallationen: Gameserver ohne ISPConfig-/VPS-Dateien und Hosting ohne OGP-Dateien. Nachinstallation eines Moduls mit erhaltener Identität und Schlüssel sowie native SQLite-Rücknahme einer fehlschlagenden Migration. Ein zusätzlich erzwungener Prozessabbruch wurde über das private Komponentenjournal aus einem frischen CLI-Prozess zurückgenommen.
 - OGP-Brücke: HTTPS/Auth/IP, Eigentümer, ID-Wiederverwendung, Verzeichnisgrenzen, Installations-/Löschstatus und Geheimnisfilter mit isolierten nativen Schnittstellenfixtures.
 - Upgrade auf einer Kopie der echten Bestandsdatenbank: 117 Tabellen und drei Views, 19 Module, erhaltene Geschäftszeilen und anschließend exakt übereinstimmender nativer Restore; keine Provideraufrufe.
 - Reale OGP-Abnahme: eine eigene Half-Life-/SteamCMD-Leistung, vier Slots und zehn reservierte Ports; Testzahlungsfreigabe durch Administration, kein echter Geldfluss. Anfragen-/Bestell-/Rechnungsweg, echter laufender Agentprozess, RCON, Kundenisolierung und kontrollierte Beendigung wurden geprüft. Home und separates Testkonto wurden entfernt, Ports freigegeben. Die fünf ursprünglichen Homes blieben unverändert.
 
 Eine echte ISPConfig-, OVH- oder Proxmox-Neuanlage wird hier nicht als geprüft behauptet. Diese Anbieter wurden durch Verträge und Fehler-/Berechtigungsmatrix getestet; der Betreiber muss passende Produktprofile und reale Rechte vor dem Liveverkauf abnehmen. Windows, Rsync und nicht durchsetzbare Ressourcengarantien bleiben gesperrt bzw. Anfragebetrieb. Das bestehende Testsystem bleibt standardmäßig Sandbox.
+
+## Abnahme des eigenen Testsystems (AP46)
+
+Die bestehende Installation auf dem eigenen Testsystem wurde mit PHP 8.4.27 und MariaDB 11.8.6 auf 3.10.0 übernommen. Vorher wurden Dateien, die vollständige Datenbank, private Betreiberdateien und Schlüssel gesichert; unmittelbar in Wartung entstand zusätzlich ein nativer Datenbanksnapshot. Die vorhandenen Konten wurden nicht neu installiert.
+
+Nach dem Upgrade sind 19 Module und 64 Routen aktiv. Der Dateivergleich prüft das tatsächliche signierte Vollpaket einschließlich Webserverregeln. Der Vergleich der 116 ursprünglichen Datentabellen erhält sämtliche ursprünglichen Zeilen; ausgenommen sind der ausdrücklich aktualisierte Modulzustand und der laufend erneuerte Workerzeitstempel. Bestehende Ressourcen, Berechtigungen, Supportdaten und Zugangsdaten bleiben erhalten. Betreiberwerte aus der bisherigen Systemdatei werden privat vor den vorhandenen lokalen Anpassungen geladen; Konfigurationsverknüpfung, Laufzeitkonfiguration, Shop-Schlüssel und bisherige Shop-Einstellungen bleiben erhalten.
+
+Der bisherige Cronjob wurde nicht geändert. Sein Fingerprint ist identisch; ein späterer Heartbeat und erfolgreich abgeschlossene Aufträge belegen den tatsächlichen automatischen Lauf. Die OGP-Leseprüfung bestätigt den gemeinsamen verschlüsselten Zugang und die Erweiterung. Dadurch werden keine neuen Gameserver auf der Bestandsinstallation erzeugt.
+
+Zusätzlich bestanden 36 Browserprüfungen am tatsächlichen Testserver: Administrator- und Kundenanmeldung, Einrichtung, Gameserver-/VPS-Seiten, Rechte sowie Desktop-/Mobilansichten. Die eigens erzeugten Testkonten und ihre Sitzungen wurden anschließend entfernt. Öffentliche Seiten sind erreichbar, der Erstinstaller verweigert die Wiedereinrichtung, interne Konfiguration und Integrationsquellen bleiben über HTTP gesperrt.
+
+Sandbox und gesperrte Liveoperationen bleiben aktiv. SMTP, Rechnungssteller, Vertragsunterlagen und konkrete Verkaufsangebote sind vom Betreiber nachzukonfigurieren; der Einrichtungsstatus nennt diese offenen Betriebsschritte. Private Backups, ausführliche Serverprotokolle, Testzugänge und Installationsschlüssel gehören nicht zu Git oder Releaseanlagen.

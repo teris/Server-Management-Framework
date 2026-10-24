@@ -37,7 +37,8 @@ function shop_provider_guard(string $provider,string $method,string $url,?string
         Kernel::boot()->modules()->assertEnabled('provider.'.$provider);
         if(!SMF\Core\ProviderAccounts::enabled($provider))throw new SecurityViolation('Provideranschluss ist deaktiviert.',403);
     }
-    if(!in_array($provider,['ovh','proxmox','ispconfig','ogp'],true))return;
+    if($provider==='paypal')return; // PayPal uses its explicitly selected sandbox/live endpoint.
+    // New provider modules inherit the default read/write sandbox policy.
     $read=strtoupper($method)==='GET';
     if($provider==='proxmox' && strtoupper($method)==='POST' && (parse_url($url,PHP_URL_PATH)?:'')==='/api2/json/access/ticket')$read=true;
     // ISPConfig JSON authenticates and reads over POST; allow only named read methods.
