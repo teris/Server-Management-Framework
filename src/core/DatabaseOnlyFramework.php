@@ -13,6 +13,7 @@ if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FIL
  * Erweitert um Virtual MAC Support
  */
 require_once __DIR__ . '/../../config/load.php';
+require_once dirname(__DIR__) . '/kernel/autoload.php';
 require_once __DIR__ . '/DatabaseManager.php';
 require_once __DIR__ . '/SchemaManager.php';
 

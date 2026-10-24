@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="620" viewBox="0 0 660 620" fill="none">
+<defs><linearGradient id="bg" x1="40" y1="30" x2="600" y2="600" gradientUnits="userSpaceOnUse"><stop stop-color="#143b59"/><stop offset="1" stop-color="#0e272f"/></linearGradient><linearGradient id="front" x1="170" y1="230" x2="400" y2="360" gradientUnits="userSpaceOnUse"><stop stop-color="#386f9a"/><stop offset="1" stop-color="#1c4e6d"/></linearGradient><linearGradient id="top" x1="200" y1="160" x2="450" y2="260" gradientUnits="userSpaceOnUse"><stop stop-color="#73aef1"/><stop offset="1" stop-color="#4377a5"/></linearGradient><linearGradient id="floor" x1="330" y1="300" x2="330" y2="540" gradientUnits="userSpaceOnUse"><stop stop-color="#60a5fa" stop-opacity=".15"/><stop offset="1" stop-color="#60a5fa" stop-opacity="0"/></linearGradient><pattern id="dots" width="25" height="25" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#6085b8" opacity=".14"/></pattern><filter id="shadow" x="80" y="90" width="500" height="460"><feGaussianBlur stdDeviation="13"/></filter></defs>
+<rect x="12" y="12" width="636" height="596" rx="28" fill="url(#bg)"/><rect x="12" y="12" width="636" height="596" rx="28" fill="url(#dots)"/>
+<path d="m60 440 270-154 270 154-270 154Z" fill="url(#floor)"/><path d="m78 440 252-145 252 145M150 480l252-145M225 523l252-145M78 440l252 145M152 396l252 145M226 353l252 145" stroke="#607eaf" stroke-opacity=".1"/>
+<ellipse cx="330" cy="432" rx="159" ry="44" fill="#09090b" opacity=".7" filter="url(#shadow)"/>
+<path d="m330 250 120 68v76l-120 70-120-70v-76Z" fill="#172d50"/><path d="m210 318 120 69 120-69-120-69Z" fill="url(#top)"/><path d="m210 318 120 69v77l-120-70Z" fill="url(#front)"/><path d="m330 387 120-69v76l-120 70Z" fill="#203c68"/>
+<path d="m330 164 120 69v76l-120 70-120-70v-76Z" fill="#172d50"/><path d="m210 233 120 69 120-69-120-69Z" fill="url(#top)"/><path d="m210 233 120 69v77l-120-70Z" fill="url(#front)"/><path d="m330 302 120-69v76l-120 70Z" fill="#203c68"/>
+<path d="m330 79 120 69v76l-120 70-120-70v-76Z" fill="#172d50"/><path d="m210 148 120 69 120-69-120-69Z" fill="url(#top)"/><path d="m210 148 120 69v77l-120-70Z" fill="url(#front)"/><path d="m330 217 120-69v76l-120 70Z" fill="#203c68"/>
+<path d="m258 148 72 41 72-41-72-41Z" stroke="#d6eae0" stroke-opacity=".5"/><path d="m280 148 50 29 50-29-50-29Z" stroke="#d6eae0" stroke-opacity=".35"/>
+<g stroke="#7dbaff" stroke-width="3" stroke-linecap="round"><path d="m231 185 48 28m-48-15 48 28m-48 44 48 28m-48-15 48 28m-48 44 48 28m-48-15 48 28"/></g>
+<g fill="#94dfff"><ellipse cx="305" cy="235" rx="3" ry="5" transform="rotate(-29 305 235)"/><ellipse cx="305" cy="320" rx="3" ry="5" transform="rotate(-29 305 320)"/><ellipse cx="305" cy="405" rx="3" ry="5" transform="rotate(-29 305 405)"/></g>
+<g stroke="#5896d0" stroke-width="2"><path d="m355 236 68-39m-68 51 68-39m-68 112 68-39m-68 51 68-39m-68 112 68-39m-68 51 68-39"/></g>
+<path d="M210 267h-63v-68h-33M450 352h60v-75h36M330 465v47h105" stroke="#61bbff" stroke-opacity=".5" stroke-dasharray="4 5"/>
+<rect x="65" y="154" width="100" height="70" rx="13" fill="#1d4665" stroke="#36648b"/><path d="M96 177h36v22H96Z" stroke="#a0d8ff" stroke-width="1.5"/><path d="M97 183h34m-25-6v22" stroke="#a0d8ff" stroke-width="1.5"/>
+<rect x="504" y="213" width="94" height="73" rx="13" fill="#1d4665" stroke="#36648b"/><circle cx="551" cy="248" r="17" stroke="#94ceff" stroke-width="1.5"/><path d="M534 248h34m-17-17c9 9 9 25 0 34-9-9-9-25 0-34Z" stroke="#94ceff" stroke-width="1.5"/>
+<circle cx="435" cy="512" r="5" fill="#94dfff"/><circle cx="435" cy="512" r="11" stroke="#94dfff" stroke-opacity=".2"/>
+<text x="48" y="59" fill="#78adf0" font-family="Arial,sans-serif" font-size="10" letter-spacing="2">DEINE IDEE. UNSERE INFRASTRUKTUR.</text>
+<text x="48" y="552" fill="#e0eee7" font-family="Arial,sans-serif" font-size="24" font-weight="500" letter-spacing="-.5">Platz für das, was du vorhast.</text>
+<text x="48" y="578" fill="#74a6e6" font-family="Arial,sans-serif" font-size="12">Webhosting · Cloud-Server · Domains</text>
+<path d="M580 48h20v20" stroke="#78aced" stroke-opacity=".5"/>
+</svg>

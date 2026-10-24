@@ -1,0 +1,28 @@
+{
+  "id": "shop.billing",
+  "version": "1.0.0",
+  "name": "Rechnungen und PDF",
+  "core": ">=3.3.0 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.orders": "^1.0.0"
+  },
+  "routes": {
+    "/admin/shop": "admin_shop",
+    "/admin/rechnungen": "admin_invoices",
+    "/konto/rechnungen": "invoices",
+    "/admin/dokumente": "admin_documents",
+    "/dokumente": "documents"
+  },
+  "jobs": {
+    "shop.billing": {
+      "handler": "shop.billing",
+      "safe_replay": false
+    }
+  },
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": []
+}

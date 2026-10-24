@@ -1,0 +1,22 @@
+{
+  "id": "shop.subscriptions",
+  "version": "1.0.0",
+  "name": "Erweiterungen und Modulabos",
+  "core": ">=3.3.0 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.orders": "^1.0.0"
+  },
+  "routes": {
+    "/module": "modules",
+    "/konto/module": "customer_modules",
+    "/admin/module": "admin_module_catalog",
+    "/konto/zusatzmodul": "module_checkout"
+  },
+  "jobs": {},
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": []
+}

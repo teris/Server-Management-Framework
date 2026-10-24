@@ -6,6 +6,7 @@
  * @version 3.1.2
  */
 require_once __DIR__ . '/config/load.php';
+require_once __DIR__ . '/src/kernel/autoload.php';
 require_once __DIR__ . '/src/core/Security.php';
 require_once __DIR__ . '/src/core/ProviderTransport.php';
 require_once __DIR__ . '/src/core/DatabaseManager.php';
@@ -492,10 +493,14 @@ abstract class BaseAPI {
 
 // PROXMOX GET CLASS
 class ProxmoxGet extends BaseAPI {
+    private ?object $sharedClient=null;
     private $ticket;
     private $csrf_token;
 
     public function __construct() {
+        if(\SMF\Core\ProviderAccounts::shopActive()){
+            \SMF\Core\ProviderAccounts::bootstrapShop();$config=integration_config('proxmox');$this->host=$config['url'];$this->user=$config['username']??'';$this->sharedClient=new ProxmoxProvider($config);return;
+        }
         $this->host = Config::PROXMOX_HOST;
         $this->user = Config::PROXMOX_USER;
         $this->password = Config::PROXMOX_PASSWORD;
@@ -634,6 +639,7 @@ class ProxmoxGet extends BaseAPI {
     }
 
     public function makeRequest($method, $url, $data = null) {
+        if($this->sharedClient){$path=parse_url($url,PHP_URL_PATH)?:'';$path=preg_replace('~^/api2/json~','',$path);if($query=parse_url($url,PHP_URL_QUERY))$path.='?'.$query;return ['data'=>$this->sharedClient->call(strtoupper($method),$path,$data)];}
         $ch = curl_init();
         
         if ($ch === false) {
@@ -923,6 +929,9 @@ class ISPConfigGet extends BaseAPI {
     private $debug_mode = false; // FÃ¼r Debugging aktivieren
 
     public function __construct() {
+        if(\SMF\Core\ProviderAccounts::shopActive()){
+            \SMF\Core\ProviderAccounts::bootstrapShop();$this->client=new \SMF\Core\IspconfigSoapBridge();$this->session_id='core-shared-session';return;
+        }
         $this->host = Config::ISPCONFIG_HOST;
         $this->user = Config::ISPCONFIG_USER;
         $this->password = Config::ISPCONFIG_PASSWORD;
@@ -3862,12 +3871,14 @@ class ISPConfigPost extends ISPConfigGet {
 
 // OVH GET CLASS
 class OVHGet extends BaseAPI {
+    private ?object $sharedClient=null;
     private $application_key;
     private $application_secret;
     private $consumer_key;
     private $endpoint;
 
     public function __construct() {
+        if(\SMF\Core\ProviderAccounts::shopActive()){\SMF\Core\ProviderAccounts::bootstrapShop();$this->sharedClient=new OvhProvider();return;}
         $this->application_key = Config::OVH_APPLICATION_KEY;
         $this->application_secret = Config::OVH_APPLICATION_SECRET;
         $this->consumer_key = Config::OVH_CONSUMER_KEY;
@@ -4154,6 +4165,7 @@ class OVHGet extends BaseAPI {
     }
 
     public function makeRequest($method, $url, $data = null) {
+        if($this->sharedClient){$path=preg_replace('~^/1\.0~','',parse_url($url,PHP_URL_PATH)?:'');if($query=parse_url($url,PHP_URL_QUERY))$path.='?'.$query;return $this->sharedClient->call(strtoupper($method),$path,$data);}
         $timestamp = time();
         $body = $data ? json_encode($data) : '';
 
@@ -4987,7 +4999,7 @@ class ServiceManager {
             return;
         }
         // Proxmox API initialisieren nur wenn aktiviert
-        if (Config::PROXMOX_USEING) {
+        if (\SMF\Core\ProviderAccounts::enabled('proxmox')) {
             try {
                 $this->proxmoxGet = new ProxmoxGet();
                 $this->proxmoxPost = new ProxmoxPost();
@@ -5001,7 +5013,7 @@ class ServiceManager {
         
 
         // ISPConfig nur initialisieren wenn SOAP verfÃ¼gbar ist und aktiviert
-        if (Config::ISPCONFIG_USEING && class_exists('SoapClient')) {
+        if (\SMF\Core\ProviderAccounts::enabled('ispconfig') && class_exists('SoapClient')) {
             try {
                 $this->ispconfigGet = new ISPConfigGet();
                 $this->ispconfigPost = new ISPConfigPost();
@@ -5010,12 +5022,12 @@ class ServiceManager {
                 $this->ispconfigGet = null;
                 $this->ispconfigPost = null;
             }
-        } else if (Config::ISPCONFIG_USEING && !class_exists('SoapClient')) {
+        } else if (\SMF\Core\ProviderAccounts::enabled('ispconfig') && !class_exists('SoapClient')) {
             error_log("SOAP nicht verfÃ¼gbar - ISPConfig wird nicht initialisiert");
         }
         
         // OVH API initialisieren nur wenn aktiviert
-        if (Config::OVH_USEING) {
+        if (\SMF\Core\ProviderAccounts::enabled('ovh')) {
             try {
                 $this->ovhGet = new OVHGet();
                 $this->ovhPost = new OVHPost();
@@ -5027,7 +5039,7 @@ class ServiceManager {
         }
         
         // OGP API initialisieren nur wenn aktiviert
-        if (Config::OGP_USEING) {
+        if (\SMF\Core\ProviderAccounts::enabled('ogp')) {
             try {
                 $this->ogpGet = new OGPGet();
                 $this->ogpPost = new OGPPost();
@@ -5076,7 +5088,7 @@ class ServiceManager {
         
         switch ($apiNameLower) {
             case 'proxmox':
-                if (!Config::PROXMOX_USEING) {
+                if (!\SMF\Core\ProviderAccounts::enabled('proxmox')) {
                     $errorResponse = [
                         'success' => false,
                         'error' => 'API_NOT_ENABLED',
@@ -5104,7 +5116,7 @@ class ServiceManager {
                 break;
                 
             case 'ispconfig':
-                if (!Config::ISPCONFIG_USEING) {
+                if (!\SMF\Core\ProviderAccounts::enabled('ispconfig')) {
                     $errorResponse = [
                         'success' => false,
                         'error' => 'API_NOT_ENABLED',
@@ -5151,7 +5163,7 @@ class ServiceManager {
                 break;
                 
             case 'ovh':
-                if (!Config::OVH_USEING) {
+                if (!\SMF\Core\ProviderAccounts::enabled('ovh')) {
                     $errorResponse = [
                         'success' => false,
                         'error' => 'API_NOT_ENABLED',
@@ -5198,7 +5210,7 @@ class ServiceManager {
                 break;
                 
             case 'ogp':
-                if (!Config::OGP_USEING) {
+                if (!\SMF\Core\ProviderAccounts::enabled('ogp')) {
                     $errorResponse = [
                         'success' => false,
                         'error' => 'API_NOT_ENABLED',
@@ -5331,6 +5343,10 @@ class ServiceManager {
      * $serviceManager->ProxmoxAPI('delete', '/nodes/pve/qemu/100');
      */
     public function ProxmoxAPI($type, $url, $code = null) {
+        if(empty($this->injectedProviders['proxmox']) && \SMF\Core\ProviderAccounts::shopActive()) {
+            $result=\SMF\Core\Kernel::boot()->providers()->get('proxmox')->call($type,$url,$code);
+            return ['success'=>true,'data'=>$result];
+        }
         $apiCheck = $this->checkAPIEnabled('proxmox');
         if ($apiCheck !== true) {
             return $apiCheck;
@@ -5389,6 +5405,10 @@ class ServiceManager {
      * $serviceManager->OvhAPI('delete', '/domain/zone/example.com/record/12345');
      */
     public function OvhAPI($type, $url, $code = null) {
+        if(empty($this->injectedProviders['ovh']) && \SMF\Core\ProviderAccounts::shopActive()) {
+            $result=\SMF\Core\Kernel::boot()->providers()->get('ovh')->call($type,$url,$code);
+            return $result;
+        }
         $apiCheck = $this->checkAPIEnabled('ovh');
         if ($apiCheck !== true) {
             return $apiCheck;
@@ -5437,6 +5457,10 @@ class ServiceManager {
      * $serviceManager->IspconfigAPI('delete', 'sites_web_domain', 123);
      */
     public function IspconfigAPI($type, $url, $code = null) {
+        if(empty($this->injectedProviders['ispconfig']) && \SMF\Core\ProviderAccounts::shopActive()) {
+            $result=\SMF\Core\Kernel::boot()->providers()->get('ispconfig')->call($type,$url,$code);
+            return $result;
+        }
         $apiCheck = $this->checkAPIEnabled('ispconfig');
         if ($apiCheck !== true) {
             return $apiCheck;
@@ -6785,7 +6809,7 @@ class ServiceManager {
         
         try {
             // ISPConfig Benutzer erstellen
-            if (Config::ISPCONFIG_USEING && isset($systemPasswords['ispconfig'])) {
+            if (\SMF\Core\ProviderAccounts::enabled('ispconfig') && isset($systemPasswords['ispconfig'])) {
                 try {
                     $clientData = [
                         'company_name' => $additionalData['company'] ?? '',
@@ -6823,7 +6847,7 @@ class ServiceManager {
             }
             
             // OGP Benutzer erstellen
-            if (Config::OGP_USEING && isset($systemPasswords['ogp'])) {
+            if (\SMF\Core\ProviderAccounts::enabled('ogp') && isset($systemPasswords['ogp'])) {
                 try {
                     $userData = [
                         'firstname' => $firstName,
@@ -6856,7 +6880,7 @@ class ServiceManager {
             }
             
             // Proxmox Benutzer erstellen
-            if (Config::PROXMOX_USEING && isset($systemPasswords['proxmox'])) {
+            if (\SMF\Core\ProviderAccounts::enabled('proxmox') && isset($systemPasswords['proxmox'])) {
                 try {
                     $userData = [
                         'username' => $username,

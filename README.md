@@ -1,6 +1,8 @@
 # Server Management Framework
 
-PHP-Anwendung für die Verwaltung von Proxmox, ISPConfig, OVH und OGP mit Administrationsoberfläche und Kundenportal. **Release 3.2.8** enthält die Sicherheits- und Stabilitätsarbeiten AP01–AP17 des 3.2-Zweigs. [Changelog](CHANGELOG.md) und [Release-/Upgradehinweise](docs/releases/3.2.8.md) beschreiben die Änderungen. PHP mindestens 8.3 und eine explizite Datenbankmigration sind erforderlich. Der Upload auf den eigenen Server bleibt ein eigener Betriebsschritt.
+PHP-Anwendung für Proxmox, ISPConfig, OVH und OGP mit Verwaltung und Kundenportal. Der aktuelle Entwicklungsstand **3.3.0** ergänzt den modularen Kern und elf optionale Shop-Erweiterungen aus AP18–AP27. Das veröffentlichte Vorgängerrelease ist [3.2.8](docs/releases/3.2.8.md). PHP mindestens 8.3 und eine explizite Datenbankmigration sind erforderlich.
+
+[Modularer Betrieb und Migration](docs/pruefung-2026-10-24/BETRIEB-AP18-AP27.md) · [Umsetzung und Testbereitstellung](docs/pruefung-2026-10-24/UMSETZUNG-AP18-AP27.md) · [Changelog](CHANGELOG.md)
 
 Lizenz: **Apache License 2.0**, siehe [LICENSE](LICENSE). Es gibt keine vorgegebenen Zugangsdaten und keinen Webinstaller.
 
@@ -10,7 +12,7 @@ Die verbindliche [Installations- und Betriebsanleitung](docs/pruefung-2026-10-24
 
 Voraussetzung ist **PHP 8.3 oder neuer** mit PDO und dem passenden SQL-Treiber, mbstring, SimpleXML, DOM, ctype, tokenizer, OpenSSL, Session und JSON. Aktivierte HTTP-Provider benötigen cURL, ISPConfig SOAP. Der Updater benötigt ZIP und native Datenbankwerkzeuge; SQLite-Rückrollen zusätzlich sqlite3. Composer und Node sind für den Anwendungsbetrieb nicht erforderlich.
 
-Lokal geprüft wurden PHP **8.3.6** und SQLite, MySQL **8.0.46**, MariaDB **10.11.14** sowie PostgreSQL **16.15** mit Neuinstallation und zwei alten Schemaausprägungen, einschließlich nativer Sicherung/Wiederherstellung. PHP 8.4/8.5 stehen in der CI-Matrix, wurden hier noch nicht ausgeführt. **MongoDB wird ausdrücklich abgewiesen**; alte MongoDB-Dateien sind historische Quellen und nicht im Anwendungspaket.
+Lokal geprüft wurden PHP **8.3.6** und SQLite, MySQL **8.0.46**, MariaDB **10.11.14** sowie PostgreSQL **16.15** mit Neuinstallation und zwei alten Schemaausprägungen, einschließlich nativer Sicherung/Wiederherstellung. Die Testbereitstellung von 3.3.0 ist zusätzlich auf PHP **8.4.27**, Apache und MariaDB **11.8.6** abgenommen. PHP 8.5 steht in der CI-Matrix; ein vollständiger lokaler Lauf unter 8.5 ist nicht belegt. **MongoDB wird ausdrücklich abgewiesen**; alte MongoDB-Dateien sind historische Quellen und nicht im Anwendungspaket.
 
 ## Geprüfter Funktionsumfang
 
@@ -21,7 +23,7 @@ Lokal geprüft wurden PHP **8.3.6** und SQLite, MySQL **8.0.46**, MariaDB **10.1
 - Signierte Kern-/Vollupdates mit serverseitigen Aufträgen, CLI-Worker, obligatorischen Sicherungen und kontrolliertem Rückrollen. GitHub-Quell-ZIPs ohne Signatur werden nicht angenommen. Die Produktionsintegration bleibt Bestandteil von AP28–AP30.
 - Lokal ausgelieferte Browserbibliotheken mit Lizenz- und Prüfsummenverzeichnis in `deploy/vendor-assets.json`. Desktop, Mobilansicht und Tastaturbedienung der Kernabläufe sind geprüft.
 
-API-Zugangsdaten werden in privater Serverkonfiguration gepflegt; die Oberfläche zeigt deren Metadaten. Ein modularer Shop und neue Modulverträge folgen in AP18–AP27; siehe [Arbeitsplan](docs/pruefung-2026-10-24/ARBEITSPLAN.md) und [Shop-Konzept](docs/pruefung-2026-10-24/MODULARES-SHOPSYSTEM.md).
+API-Zugangsdaten werden in privater Serverkonfiguration gepflegt; die Oberfläche zeigt deren Metadaten. Die modularen Verträge und der optionale Shop sind in AP18–AP27 implementiert; siehe [Arbeitsplan](docs/pruefung-2026-10-24/ARBEITSPLAN.md) und [Shop-Konzept](docs/pruefung-2026-10-24/MODULARES-SHOPSYSTEM.md).
 
 ## Entwicklung und Nachweise
 

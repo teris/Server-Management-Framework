@@ -1,0 +1,2378 @@
+{
+  "source_project": "Online Shop",
+  "source_directory": ".",
+  "excluded": [
+    "private/**",
+    "runtime-config.php",
+    "DEPLOYMENT-ACCESS.txt",
+    "config.json",
+    "assets/*logo*.png"
+  ],
+  "files": [
+    {
+      "source": "shop-app/account-deletion.php",
+      "target": "extensions/shop.storage/legacy/account-deletion.php",
+      "source_sha256": "3fff0a4a2e70b64baa9d53fbbbffbca40e5f8250b0d0798b422cc770030d55c0",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/actions.php",
+      "target": "extensions/shop.storage/legacy/actions.php",
+      "source_sha256": "1ab1af0131a7db205ebe40030d749466d983d43aa562175d28fe618e5637c80e",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/admin-manual-termination.php",
+      "target": "extensions/shop.storage/legacy/admin-manual-termination.php",
+      "source_sha256": "6f34f23432acd7ebd81da020938d7a3a870d2e86c9f5fb53288719bc9ef07f12",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/admin-payments.php",
+      "target": "extensions/shop.storage/legacy/admin-payments.php",
+      "source_sha256": "77bab868f1582ef8652ff21bd37f417fd97c49b2b57b8e5c9766fbdd8d2d8afd",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/appearance.php",
+      "target": "extensions/shop.storage/legacy/appearance.php",
+      "source_sha256": "5ed4689d174d23cece5c01054986bbdb19ef319f7bf39d2686b6a877c24e50b1",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/billing.php",
+      "target": "extensions/shop.storage/legacy/billing.php",
+      "source_sha256": "d649b5f5ddb1f151edd042b0b5e9c13cbd525f7c5630c2f6a38b6a3856e5bb6e",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/bootstrap.php",
+      "target": "extensions/shop.storage/legacy/bootstrap.php",
+      "source_sha256": "5dd06d2502c3ea9d50493a6ae09e581a675999a2085b91483d1f482b84160037",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/catalog.php",
+      "target": "extensions/shop.storage/legacy/catalog.php",
+      "source_sha256": "ca2d0f5554c17774afd5d8191f2cc3d904e0120ac975c97deb0055b391b90e56",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/commerce-actions.php",
+      "target": "extensions/shop.storage/legacy/commerce-actions.php",
+      "source_sha256": "d738626bbbee169689bc04ef95375c886891a40f796a2b40828aadc2d3027228",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/commerce.php",
+      "target": "extensions/shop.storage/legacy/commerce.php",
+      "source_sha256": "462b8e4e865e2e823dc549085e62bffc181a825e7ba71ab70e3fc7a446c747a4",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/contract-actions.php",
+      "target": "extensions/shop.storage/legacy/contract-actions.php",
+      "source_sha256": "73a403f0f30b4f4af2f3ebc6c969b66ba2866183f1833ad42a7e124adc078ef3",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/contract-admin.php",
+      "target": "extensions/shop.storage/legacy/contract-admin.php",
+      "source_sha256": "9a5cab9aecf5532ca1001f3a8bdca5891afb8393791b1324a1741004029b9642",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/contract-termination.php",
+      "target": "extensions/shop.storage/legacy/contract-termination.php",
+      "source_sha256": "39e327d64df0fce06b04f053b6d8162fc3a95f53dd250ecc0049139fe4811d9c",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/contracts.php",
+      "target": "extensions/shop.storage/legacy/contracts.php",
+      "source_sha256": "1d3e5cf793e3b83b93139ac65c59a992a8bc79a6e3f53509b0b410fe4f87b188",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/countries.php",
+      "target": "extensions/shop.storage/legacy/countries.php",
+      "source_sha256": "cfcf9135e1e8b5806767a07bd4bf38d57d56882c75d7240c53311a86aa58f854",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/customer-visibility.php",
+      "target": "extensions/shop.storage/legacy/customer-visibility.php",
+      "source_sha256": "1e72e350c5f7badc966843f96b5f27e7e26179d95652fcb3e567128d70f284d6",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/dns-templates.php",
+      "target": "extensions/shop.storage/legacy/dns-templates.php",
+      "source_sha256": "604e086088649ae1be6dde760cdee2c6764edb3f043c8b47ecbee761183c22f9",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/documents.php",
+      "target": "extensions/shop.storage/legacy/documents.php",
+      "source_sha256": "de6441a7063b3fe1c1130cae4603caee69b08729609aa5ea349b05d87995dc2f",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/domain-ordering.php",
+      "target": "extensions/shop.storage/legacy/domain-ordering.php",
+      "source_sha256": "262f3fb7d8f3378a409b15c3130a4686e76f0431bfc2f08198b0a143795e4e2b",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/domains.php",
+      "target": "extensions/shop.storage/legacy/domains.php",
+      "source_sha256": "53b5d157496e6cc171386b78285bcee14d267362adf49d8386a1c7e3b4075207",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/faq.php",
+      "target": "extensions/shop.storage/legacy/faq.php",
+      "source_sha256": "3e926393609b41fb10459a1181b56ae454648cfd599c66788214f84b901a7581",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/hosting-domains.php",
+      "target": "extensions/shop.storage/legacy/hosting-domains.php",
+      "source_sha256": "47f7f913e1a60a3e4604ded59d67cb4f362f765250a092e82e146cdcf6560a19",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/hosting-features.php",
+      "target": "extensions/shop.storage/legacy/hosting-features.php",
+      "source_sha256": "e532da5f460f64a590de2d2ab73838b4faf1035427f5af738646628f475aae4b",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/hosting-mail-dns.php",
+      "target": "extensions/shop.storage/legacy/hosting-mail-dns.php",
+      "source_sha256": "1748fda81c2d3fba4e9b9d20e3ff882722385f7063147411176ca31e27532272",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/hosting-options.php",
+      "target": "extensions/shop.storage/legacy/hosting-options.php",
+      "source_sha256": "3ef376b1cb7a696f8d48fc50157917799d2f673cccca107f5359312219cce7e6",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/hosting-panel.php",
+      "target": "extensions/shop.storage/legacy/hosting-panel.php",
+      "source_sha256": "c3249a81a07f5ea09c620c628629da2da16f832031eb427efab9974ccb5b78a8",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/infrastructure-actions.php",
+      "target": "extensions/shop.storage/legacy/infrastructure-actions.php",
+      "source_sha256": "28ab913007b073c88094c3e5f174932c8e368cb3a4e74b9c36908e33aabd3fbb",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/infrastructure-automation.php",
+      "target": "extensions/shop.storage/legacy/infrastructure-automation.php",
+      "source_sha256": "315fa32fd12437b20ab3e90f0eab222b6acab5330ef32a0844f4523d32785060",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/infrastructure.php",
+      "target": "extensions/shop.storage/legacy/infrastructure.php",
+      "source_sha256": "0a138fdc3f0a2e6b8fb1976be4b21bbf3d98e058ccc685e74b1a334426086d80",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/integration-actions.php",
+      "target": "extensions/shop.storage/legacy/integration-actions.php",
+      "source_sha256": "20d8fa27eb354f5b4e89eef8453a909d6d23398260c1fcf7854a28f770cdc065",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/integrations.php",
+      "target": "extensions/shop.storage/legacy/integrations.php",
+      "source_sha256": "cf2ecdf4ef5625920e87f98bf2fa34a02a6553ff045695cc1739960d311d1d29",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/invoices.php",
+      "target": "extensions/shop.storage/legacy/invoices.php",
+      "source_sha256": "b71e21e43223e769a7e32f98005ba7687b324893e11181aa5a195092782f8538",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/phpmailer/LICENSE",
+      "target": "extensions/shop.storage/legacy/lib/phpmailer/LICENSE",
+      "source_sha256": "a1a33180d02960ab1c5de36cf20b1a2f0fe9888d83826ad263da5db52f1b183b",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/phpmailer/src/Exception.php",
+      "target": "extensions/shop.storage/legacy/lib/phpmailer/src/Exception.php",
+      "source_sha256": "22ab858ae438d98f58f41f38ad2191d1b0d59570aebea0463a7948cfae1021b7",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/phpmailer/src/PHPMailer.php",
+      "target": "extensions/shop.storage/legacy/lib/phpmailer/src/PHPMailer.php",
+      "source_sha256": "45599a196ae7944ee2dcd4f3d3da0ac4243513d346b2d77bbd15dbd0c37f7064",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/phpmailer/src/SMTP.php",
+      "target": "extensions/shop.storage/legacy/lib/phpmailer/src/SMTP.php",
+      "source_sha256": "522bcf0d07be7e7e00114711db5c9ce2b4d59ac041c5ec36eaadd979d5fa7046",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/publicsuffix/README.txt",
+      "target": "extensions/shop.storage/legacy/lib/publicsuffix/README.txt",
+      "source_sha256": "e0d5528d2d855dd2917053392c8a54daccb67f90b740a93528654d295af1a5f5",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/tfpdf/LICENSE-LGPL-2.1.txt",
+      "target": "extensions/shop.storage/legacy/lib/tfpdf/LICENSE-LGPL-2.1.txt",
+      "source_sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/tfpdf/font/unifont/DejaVuSansCondensed-Bold.ttf",
+      "target": "extensions/shop.storage/legacy/lib/tfpdf/font/unifont/DejaVuSansCondensed-Bold.ttf",
+      "source_sha256": "38098d0b8edd8430a0f53fb2831b5d36037563a998a620d3c87a4d7591766d20",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/tfpdf/font/unifont/DejaVuSansCondensed.ttf",
+      "target": "extensions/shop.storage/legacy/lib/tfpdf/font/unifont/DejaVuSansCondensed.ttf",
+      "source_sha256": "8550cd5ca1acb65a8fc7877c46939cd0b4d909f8e7bc1e24716873d918c5e549",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/tfpdf/font/unifont/DejaVu_LICENSE.txt",
+      "target": "extensions/shop.storage/legacy/lib/tfpdf/font/unifont/DejaVu_LICENSE.txt",
+      "source_sha256": "d75938dec098f06f0ac3c00853065d94f020be1c3c62ef1dc2975ba15b4d9b0e",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/tfpdf/font/unifont/ttfonts.php",
+      "target": "extensions/shop.storage/legacy/lib/tfpdf/font/unifont/ttfonts.php",
+      "source_sha256": "113790ec67ad76f084fdb6dc244d420c6fc1e0769139d70396977278d1d6ef36",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lib/tfpdf/tfpdf.php",
+      "target": "extensions/shop.storage/legacy/lib/tfpdf/tfpdf.php",
+      "source_sha256": "beced50c8a34354436c48e53f11b27001245776a314efdcca34e283d8d3d96ad",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/lxc-provisioning.php",
+      "target": "extensions/shop.storage/legacy/lxc-provisioning.php",
+      "source_sha256": "c0a31ab38592839d8a1c7910b3be2879c8a779c48ea26dc9f92d84002dae60f5",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/mail.php",
+      "target": "extensions/shop.storage/legacy/mail.php",
+      "source_sha256": "0f0ff362de56746f7ae28da443b7ba204ad496bec59e1ec17741d8180338838b",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/module-catalog.php",
+      "target": "extensions/shop.storage/legacy/module-catalog.php",
+      "source_sha256": "405748dcc1129c62d1f0ae6451100505d052c11b4e2096c043913649892356a8",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/module-subscriptions.php",
+      "target": "extensions/shop.storage/legacy/module-subscriptions.php",
+      "source_sha256": "f86a0e457014c10295f2ef1716d35595d35061428fb184b9ba1b8f8b4ffb3989",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/modules.php",
+      "target": "extensions/shop.storage/legacy/modules.php",
+      "source_sha256": "88a1e9a31b87642587e8004e0784038c92b5568e903e6fcc704bcbc353d00e44",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/notifications.php",
+      "target": "extensions/shop.storage/legacy/notifications.php",
+      "source_sha256": "8f531709e265539b489f144bfd8fa2b17bae55f8090a0b84b67cca82a644e1f6",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/offers.php",
+      "target": "extensions/shop.storage/legacy/offers.php",
+      "source_sha256": "8d332820ef125763e470367ed759989548c02c65dee85d4a4a059a0e9df99464",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/order-admin.php",
+      "target": "extensions/shop.storage/legacy/order-admin.php",
+      "source_sha256": "2cccf72034834e6b9de8e1683bf5ef2664d50000259391793d89510b7e12b7a5",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/ovh-authorization.php",
+      "target": "extensions/shop.storage/legacy/ovh-authorization.php",
+      "source_sha256": "cfc8285efff14511eb409fe04d88da7cd6bc20372eb218d29980b1c278c7c964",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/packages.php",
+      "target": "extensions/shop.storage/legacy/packages.php",
+      "source_sha256": "4a139461b9cddb902bb17c779623bdbc4a63740789272540d69fe185dc01e0e3",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/payment-reconciliation.php",
+      "target": "extensions/shop.storage/legacy/payment-reconciliation.php",
+      "source_sha256": "986af67c9f400fb6d176bf2385588fc98a3850219d0a04058c511b1938b03b93",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/payments.php",
+      "target": "extensions/shop.storage/legacy/payments.php",
+      "source_sha256": "c89f49d4cb6c84e928a95957e16f852a49582dfd55232b98f5d72c4e5b0ad059",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/product-modules.php",
+      "target": "extensions/shop.storage/legacy/product-modules.php",
+      "source_sha256": "584020a9b6c63e14674978c1d8c9c200a4eeaf2c48c3996caeacc1136efb99f6",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/promotion-payments.php",
+      "target": "extensions/shop.storage/legacy/promotion-payments.php",
+      "source_sha256": "3772da8aacf2bac5c27b1ffc2c567b4f54fc8b30eb051172bc24558a36349fa3",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/promotions.php",
+      "target": "extensions/shop.storage/legacy/promotions.php",
+      "source_sha256": "9cd58de6ad3d23d3de868ed040cf894a32ab4b722231ceb8bed315efb4275877",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/providers.php",
+      "target": "extensions/shop.storage/legacy/providers.php",
+      "source_sha256": "22ac45d16ce41d62b0796dec5311d59e59f9e3d350a04a46731bc89d87efddc5",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/provisioning.php",
+      "target": "extensions/shop.storage/legacy/provisioning.php",
+      "source_sha256": "07cd9c16f50ce61e4a58a7de5411b3d8adb513dde561d1074813ac920e6ca144",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/proxmox-options.php",
+      "target": "extensions/shop.storage/legacy/proxmox-options.php",
+      "source_sha256": "484bc7a40ef1eef1cb973fee9e80cab3320a95fe79837682580c87616d21a4d2",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/receivables.php",
+      "target": "extensions/shop.storage/legacy/receivables.php",
+      "source_sha256": "901c3bc0fda994b927064e687defd87e46e1e83729488c760ae191b1e7661c88",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/resources.php",
+      "target": "extensions/shop.storage/legacy/resources.php",
+      "source_sha256": "9e3409ec8ff125e40b1350d125577b535ed429703f37620e30d99b359ff0ca29",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/schema-commerce.php",
+      "target": "extensions/shop.storage/legacy/schema-commerce.php",
+      "source_sha256": "816e61c532513489872920dc5a5df7ddabcda2a3bd8a83b3b81a46b0a50addbc",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/schema-contracts.php",
+      "target": "extensions/shop.storage/legacy/schema-contracts.php",
+      "source_sha256": "c7cb2a3d3488d4ffd9cd098b12fe3445286679e357ed62ba9c46d024cb7ce57c",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/schema-domains.php",
+      "target": "extensions/shop.storage/legacy/schema-domains.php",
+      "source_sha256": "3f3691f9cd50fe22a47559a05c274370433c0e545dab112ea4bb83f57a168caa",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/schema-integrations.php",
+      "target": "extensions/shop.storage/legacy/schema-integrations.php",
+      "source_sha256": "360bb76939c5483f41b84c0bed871216ce8107a3c30b28cdc15363179a2d53d8",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/schema-mysql.sql",
+      "target": "extensions/shop.storage/legacy/schema-mysql.sql",
+      "source_sha256": "919d935ad44612e8c9c307549f92576d38e4d6cd2874bbb5a5e13b82fe8ddec3",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/schema-promotions.php",
+      "target": "extensions/shop.storage/legacy/schema-promotions.php",
+      "source_sha256": "2071f92dc460e7c68179f60c33b2dd9f40c74f598c5d9b358fc48e89a15a9ca6",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/schema-shop-options.php",
+      "target": "extensions/shop.storage/legacy/schema-shop-options.php",
+      "source_sha256": "049b92a1a08520f91fb89da09dc07356090fa67f33e1dccdaa81a4f512f5a767",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/schema-sqlite.sql",
+      "target": "extensions/shop.storage/legacy/schema-sqlite.sql",
+      "source_sha256": "41dc63fe2c69f05700d97fbadefceb8cd3b58dfb2fdd2ba1f6abe88b3e92eb1a",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/schema.php",
+      "target": "extensions/shop.storage/legacy/schema.php",
+      "source_sha256": "8aa10816ced8e45f0aacd06bac3d019933c8f72753dbe3b2f0792feced8f33d9",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/shop-option-actions.php",
+      "target": "extensions/shop.storage/legacy/shop-option-actions.php",
+      "source_sha256": "d49b1174e0c5fd0498484f94840ddb59ce6298f22df2663498c6713ce67bbfaf",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/account-deletion.php",
+      "target": "extensions/shop.storage/legacy/views/account-deletion.php",
+      "source_sha256": "f1c0673c740dc957f70980647bb87911ff66def85704ee3bf3e68c1cc3cbc4e9",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/account.php",
+      "target": "extensions/shop.storage/legacy/views/account.php",
+      "source_sha256": "201de2663337716641712de053cc6108aafa634586bf066d80ae48f95bd31551",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/admin-navigation.php",
+      "target": "extensions/shop.storage/legacy/views/admin-navigation.php",
+      "source_sha256": "a51e978faf5f890e14f360a73ba3fbf9cbd4100ab1f24453d1c8dabc28d9fe15",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/admin.php",
+      "target": "extensions/shop.storage/legacy/views/admin.php",
+      "source_sha256": "4b20d9b0eb4ca9e2675769adfa160be385a21fb2973413bfb64a8ebf0d4645c0",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/commerce-admin.php",
+      "target": "extensions/shop.storage/legacy/views/commerce-admin.php",
+      "source_sha256": "ea1b8a235ad056294bb352dccc3d038785edc875b99f11b9542986aa23b5dd59",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/commerce-customer.php",
+      "target": "extensions/shop.storage/legacy/views/commerce-customer.php",
+      "source_sha256": "2bfc709da33ba7be51c1f815bf99555ce726dd2e3862bcadb9c494ba50070343",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/components.php",
+      "target": "extensions/shop.storage/legacy/views/components.php",
+      "source_sha256": "ffcd56619a420fb768a6d3a2d4496fef7393160c2de43c75fa7a3302a1148385",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/configurator.php",
+      "target": "extensions/shop.storage/legacy/views/configurator.php",
+      "source_sha256": "5b68628dfdbe56e2e01fdf48b31c03b5f2e58592bf0e681826e379f5eb121537",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/contracts-admin-detail.php",
+      "target": "extensions/shop.storage/legacy/views/contracts-admin-detail.php",
+      "source_sha256": "324374349d18d1ca66d630bf06769bd9c0b9d4176cfc2c14f162221f8dd75ada",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/contracts-admin-review.php",
+      "target": "extensions/shop.storage/legacy/views/contracts-admin-review.php",
+      "source_sha256": "55d8186e579269d7cc44f743b1bf2809e04a0a7e067fc3809ea0d1b5f3b8d8d9",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/contracts-admin-table.php",
+      "target": "extensions/shop.storage/legacy/views/contracts-admin-table.php",
+      "source_sha256": "e8e29c6869f294ba92a6a5af0502156dfb47a501a2569b57f4d49545efa4dbd8",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/contracts-admin.php",
+      "target": "extensions/shop.storage/legacy/views/contracts-admin.php",
+      "source_sha256": "c05e843e99722e54e3cf0c9c42b6fa2a9a447953ebdf975b7351daea676e6dbd",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/contracts-customer-summary.php",
+      "target": "extensions/shop.storage/legacy/views/contracts-customer-summary.php",
+      "source_sha256": "4618c58133ea98f4678ed0c4934a6ab0374dcb1bf0b28ee2850e59f03ea52737",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/contracts-dashboard-summary.php",
+      "target": "extensions/shop.storage/legacy/views/contracts-dashboard-summary.php",
+      "source_sha256": "ca51b321427c941f3aa32d1ce6f2198fee537235e6ae2098ece6d8dfbbfca9eb",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/contracts.php",
+      "target": "extensions/shop.storage/legacy/views/contracts.php",
+      "source_sha256": "521602114926577ecfa06f48aabfe0356b0ddd4573156d27f47fda3ed0a94e13",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/customer-navigation.php",
+      "target": "extensions/shop.storage/legacy/views/customer-navigation.php",
+      "source_sha256": "a9ea647be8a46d3cfec8f6ae4e50a03fcaed28c8bff58eedf4d6f4d1ebafecb5",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/documents.php",
+      "target": "extensions/shop.storage/legacy/views/documents.php",
+      "source_sha256": "e17c4c2fe34d9ec8cd50713d44e8b384b3fb7697df055019e2b329ecdc0a5a1b",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/domain-search.php",
+      "target": "extensions/shop.storage/legacy/views/domain-search.php",
+      "source_sha256": "c61e4d09b2f86c5f0682418613735e04f38ff7d485254b7df512111aa1a7db7e",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/domains-admin.php",
+      "target": "extensions/shop.storage/legacy/views/domains-admin.php",
+      "source_sha256": "f7e34c870d69ee5493a419f2152cbbd259e762c640b072d0ec47a7b832646553",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/faq.php",
+      "target": "extensions/shop.storage/legacy/views/faq.php",
+      "source_sha256": "a3faf27de3a0645f1cc2dd46ac05034d26e6f606fcc5cc662000a88313df5121",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/hosting-domain-components.php",
+      "target": "extensions/shop.storage/legacy/views/hosting-domain-components.php",
+      "source_sha256": "e488a0ab5d9b3d81f0e9e2af6cde1aedfa48821af810d5fcefae3fa99b7f2ee3",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/hosting-feature-fields.php",
+      "target": "extensions/shop.storage/legacy/views/hosting-feature-fields.php",
+      "source_sha256": "69ec4f3d2a39b32fc6cd6054b848def912451c64911cb3b1ea2f1daaae91dd8d",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/hosting-management.php",
+      "target": "extensions/shop.storage/legacy/views/hosting-management.php",
+      "source_sha256": "e332a9a80b2e6776a4e5becea3d3c48ce26aa2212af833f339e2218e4905d454",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/infrastructure-admin.php",
+      "target": "extensions/shop.storage/legacy/views/infrastructure-admin.php",
+      "source_sha256": "599c3e9d501c78ea7fe418234ea125441902b54c84ee9f07c79452751131582d",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/infrastructure-automation-admin.php",
+      "target": "extensions/shop.storage/legacy/views/infrastructure-automation-admin.php",
+      "source_sha256": "ae20ef88aa7d3fcad7bc2d01655f57380a5f95a07e0626fed84b6298c3c413d6",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/integrations-admin.php",
+      "target": "extensions/shop.storage/legacy/views/integrations-admin.php",
+      "source_sha256": "29eaa4c964db156d6041de9333548beff7ac793cba2c85ab75129912b635d3cb",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/integrations-customer.php",
+      "target": "extensions/shop.storage/legacy/views/integrations-customer.php",
+      "source_sha256": "dd1442a3c9435f5aee87271d94622300140c4dbcdb6effcebc49bcce0915e275",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/invoices-list.php",
+      "target": "extensions/shop.storage/legacy/views/invoices-list.php",
+      "source_sha256": "ae06375077e9491074de8bc7b0dbe1ef5976db935c4a14368f18d708cc3a8902",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/layout-end.php",
+      "target": "extensions/shop.storage/legacy/views/layout-end.php",
+      "source_sha256": "cc51c61a82c02e97a2d8a1b71b363f71923b1f609a585903b8da9ebc45ae8a5b",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/layout-start.php",
+      "target": "extensions/shop.storage/legacy/views/layout-start.php",
+      "source_sha256": "2e3b41092ad3ab0bf6648166b3bf81ba9517b20ad15e7267e1d00c6182fb270a",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/module-catalog-admin.php",
+      "target": "extensions/shop.storage/legacy/views/module-catalog-admin.php",
+      "source_sha256": "ce9b679f857a37fef8c32c36fbf38cb623014e1ede181210960f126e057dee41",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/module-checkout.php",
+      "target": "extensions/shop.storage/legacy/views/module-checkout.php",
+      "source_sha256": "7fc7360c44792253b60f86124935dc8ec6916dacd7addbe27ea9f02d2237e3ce",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/module-components.php",
+      "target": "extensions/shop.storage/legacy/views/module-components.php",
+      "source_sha256": "fce66f018ebfc8295c2f523f89316315a0bb6283f70336eacf2da406392214c6",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/module-contract-components.php",
+      "target": "extensions/shop.storage/legacy/views/module-contract-components.php",
+      "source_sha256": "9d268cdffef82accc418c0e24117329b8771bbbc4e958dc5c20cd5424d0f8169",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/modules.php",
+      "target": "extensions/shop.storage/legacy/views/modules.php",
+      "source_sha256": "9657a55e86042ba67a9e58c2b077d7ea69e816935f33dadd8c951c44ff51146a",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/notifications.php",
+      "target": "extensions/shop.storage/legacy/views/notifications.php",
+      "source_sha256": "7f3349b0d56e75355b7975b94bc67b2e20dff4b6f92830c4f12564c5a6d9d484",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/order-admin-actions.php",
+      "target": "extensions/shop.storage/legacy/views/order-admin-actions.php",
+      "source_sha256": "7edf24d1fa3dd60c7aaa363a9873fefa858c923e8d9b9cb5b56f475aab0e3903",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/order-network-admin.php",
+      "target": "extensions/shop.storage/legacy/views/order-network-admin.php",
+      "source_sha256": "062711ca9f48b68f29daee1f4408b1495b9b90d413e3ea4b61594a0be9fb4a08",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/package-module-bindings.php",
+      "target": "extensions/shop.storage/legacy/views/package-module-bindings.php",
+      "source_sha256": "22159b865db4d1de78c9ed75284b02f153660f451b2c8c380d6a8fbcd52d35f9",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/packages-admin.php",
+      "target": "extensions/shop.storage/legacy/views/packages-admin.php",
+      "source_sha256": "5a0088fc46b6dab7f8f6cd84bbcc38cad7e909ece9f4433e7f8f3eacaae07a3a",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/prepayment-admin.php",
+      "target": "extensions/shop.storage/legacy/views/prepayment-admin.php",
+      "source_sha256": "06d709e6a26dc645c5fda5ece17a800fbaa81a5dc7fa026c0a961d47bb421f52",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/product-modules-admin.php",
+      "target": "extensions/shop.storage/legacy/views/product-modules-admin.php",
+      "source_sha256": "41acaf1cb1435918cb7c71711719c9a00237e1def75ce4f635789d3835b2fa08",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/promotion-rewards.php",
+      "target": "extensions/shop.storage/legacy/views/promotion-rewards.php",
+      "source_sha256": "287b59698cfebd52c0fbd4d2bf7f458426bcee8c9e12a7d5361ae36d02d8474d",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/promotions-admin.php",
+      "target": "extensions/shop.storage/legacy/views/promotions-admin.php",
+      "source_sha256": "484b05cc517e74a5bdb497f9b4aa5d7f00336a04fcb4eeddb3b0427d7a65f48e",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/purchase-pricing.php",
+      "target": "extensions/shop.storage/legacy/views/purchase-pricing.php",
+      "source_sha256": "2b2a35965c82bb86a7a51a1e41ac5f44553f1b2c22dbcf72ba929ab0906941ad",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/quotes-admin.php",
+      "target": "extensions/shop.storage/legacy/views/quotes-admin.php",
+      "source_sha256": "336377092bc5e5d842272a53ebac9a3d706b81caebfd4d8d9fc1a6a1eeac3b40",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/store.php",
+      "target": "extensions/shop.storage/legacy/views/store.php",
+      "source_sha256": "b72fb4df4b88b0765466d06630e1336c5197145cdad822669c398825b05cd810",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/template-builds-admin.php",
+      "target": "extensions/shop.storage/legacy/views/template-builds-admin.php",
+      "source_sha256": "4c1c4aef8eddd4886f0fa71c981a8cf7e2e75100e3c2bf5ea98ddc520b1b0d67",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/ticket-thread.php",
+      "target": "extensions/shop.storage/legacy/views/ticket-thread.php",
+      "source_sha256": "bb21680c622cf44c906ef2983f63d20905e9a5af5f97923b1c70700fb5678746",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/unavailable.php",
+      "target": "extensions/shop.storage/legacy/views/unavailable.php",
+      "source_sha256": "d2e8331007315cf817835356a4dd07e09cad3dc74e5b048a714bc722ff43328e",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/views/vps-exports.php",
+      "target": "extensions/shop.storage/legacy/views/vps-exports.php",
+      "source_sha256": "0ef5e5004a579664083220afd0c89b18c9785a83d1b662568253beef24462077",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/vps-exports.php",
+      "target": "extensions/shop.storage/legacy/vps-exports.php",
+      "source_sha256": "184ce480e1a325984200bb42cbe6c8eba3475f31c029a227857e38cf038ddc12",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/vps-storage.php",
+      "target": "extensions/shop.storage/legacy/vps-storage.php",
+      "source_sha256": "26dceb65ae6bc6f0733b8fe3f9d1b8f6736f4925737e21c2deb01bfc0db917b4",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/worker.php",
+      "target": "extensions/shop.storage/legacy/worker.php",
+      "source_sha256": "0d16b0997af200bf5aad93f4303d9bbdd97e194399803735cc4ab90f6e9aa9de",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/zero-base-packages.php",
+      "target": "extensions/shop.storage/legacy/zero-base-packages.php",
+      "source_sha256": "00eab3412a9562407bb3dbbcf67c4d3801f0338887cae3a65d4e97b32eff7166",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "index.php",
+      "target": "extensions/shop.storage/legacy/controller.php",
+      "source_sha256": "086e89dd90cdcd2ca0ec1f7902c7517ed601f64dfabb4060728322380a980164",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php",
+        "tests/test_shop_http.py",
+        "tests/shop_migration.php"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "assets/geist-LICENSE.txt",
+      "target": "public/assets/shop/geist-LICENSE.txt",
+      "source_sha256": "1781d2806a07d91c4edf4740b88449fab7d0eadad53f7c351b94cd4d4eb8c00f",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "assets/geist.woff2",
+      "target": "public/assets/shop/geist.woff2",
+      "source_sha256": "0409c60e703a83c8cf348a00762b3e19433c6151b6d90182276c9a9fd977616c",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "assets/infrastructure.svg",
+      "target": "public/assets/shop/infrastructure.svg",
+      "source_sha256": "0b4a72b79bed952409e2ee9269d26d6ad0a4cf055322c277c8c8a49dd5bb412d",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "assets/iso-codes-LICENSE.txt",
+      "target": "public/assets/shop/iso-codes-LICENSE.txt",
+      "source_sha256": "bf1e76fdcf8ebc7cc680a68143512deeda49672f1bdfcd7bd966315cfc19b67c",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "assets/mark.svg",
+      "target": "public/assets/shop/mark.svg",
+      "source_sha256": "6e4ca1b2cd478eb2bb6969e37b2f0282e13170a6fb4164218124687665f6585f",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "assets/playfair-display-LICENSE.txt",
+      "target": "public/assets/shop/playfair-display-LICENSE.txt",
+      "source_sha256": "566be814f8e96e93dfa16101331557eb6b5467e9e03f627c0910fe93ca12300e",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "assets/playfair-display.woff2",
+      "target": "public/assets/shop/playfair-display.woff2",
+      "source_sha256": "cb8cac32d5cef83e7674916378c2f47bdbba7e6e6bd936f8026a58ac4e71fa53",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "assets/shop.css",
+      "target": "public/assets/shop/shop.css",
+      "source_sha256": "d740052047c2e8e0587a96e4e141314f73a172d103f3e1705d3bf6fd613c92af",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "assets/shop.js",
+      "target": "public/assets/shop/shop.js",
+      "source_sha256": "6fc8862d9f6044ac1c644f0f033f3925024fa00e90744ffe3a7b685583b3e6ab",
+      "storage_owner": "shop.storage",
+      "regressions": [
+        "tests/modules.php (PDF generation)",
+        "tests/test_shop_http.py (asset delivery)",
+        "tests/test_packaging.py"
+      ],
+      "original_regression_references": [
+        ".codex/commerce-tests.php",
+        ".codex/contracts-tests.php",
+        ".codex/proxmox-auth-tests.php",
+        ".codex/hosting-access-tests.php"
+      ]
+    },
+    {
+      "source": "shop-app/template-runner.py",
+      "target": "extensions/shop.storage/legacy/template-runner.py",
+      "source_sha256": "34b02de632041c0dcc5e8155b9097183c36410e25b80325b282a599c72734132",
+      "storage_owner": "shop.provisioning",
+      "regressions": [
+        "tests/test_shop_runners.py"
+      ]
+    },
+    {
+      "source": "shop-app/vps-export-runner.py",
+      "target": "extensions/shop.storage/legacy/vps-export-runner.py",
+      "source_sha256": "a7e36229ce879f65830a49b8b5176346e078fd3f6b853c80988a74c36f2b4f82",
+      "storage_owner": "shop.provisioning",
+      "regressions": [
+        "tests/test_shop_runners.py"
+      ]
+    }
+  ],
+  "coverage_note": "Integration regressions test module contracts, selected workflows and data integrity; original domain test files are recorded as references and were not run unchanged against the new core."
+}

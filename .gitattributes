@@ -2,3 +2,5 @@
 # Keep upstream assets and historical DDL byte-for-byte, including their whitespace.
 public/assets/vendor/** -text -whitespace
 tests/fixtures/** -text -whitespace
+extensions/shop.storage/legacy/lib/** -text -whitespace
+public/assets/shop/*LICENSE.txt -text -whitespace

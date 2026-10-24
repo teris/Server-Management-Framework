@@ -1,0 +1,40 @@
+{
+  "id": "shop.portal",
+  "version": "1.0.0",
+  "name": "Kundenportal und Shopverwaltung",
+  "core": ">=3.3.0 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.storage": "^1.0.0"
+  },
+  "routes": {
+    "/login": "login",
+    "/registrieren": "register",
+    "/hilfe": "help",
+    "/konto": "dashboard",
+    "/konto/produkte": "services",
+    "/konto/anfragen": "requests",
+    "/konto/support": "support",
+    "/konto/ticket": "ticket",
+    "/konto/einstellungen": "settings",
+    "/admin": "admin_dashboard",
+    "/admin/login": "admin_login",
+    "/admin/produkte": "admin_products",
+    "/admin/anfragen": "admin_requests",
+    "/admin/kunden": "admin_customers",
+    "/admin/support": "admin_support",
+    "/admin/ticket": "admin_ticket",
+    "/admin/einstellungen": "admin_settings"
+  },
+  "jobs": {
+    "shop.portal": {
+      "handler": "shop.portal",
+      "replay": "reconcile"
+    }
+  },
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": []
+}

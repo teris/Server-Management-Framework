@@ -49,6 +49,12 @@ const { chromium } = require(options.module || process.env.SMF_PLAYWRIGHT_MODULE
     await register.goto(base + '/public/resend-verification.php', { waitUntil: 'networkidle' });
     await register.locator('#email').focus(); await register.keyboard.press('Tab'); check(await register.evaluate(() => document.activeElement.tagName === 'BUTTON'), 'resend form is keyboard-operable');
     await register.goto(base + '/public/reset-password.php', { waitUntil: 'networkidle' }); await register.locator('#email').focus(); await register.keyboard.press('Tab'); check(await register.evaluate(() => document.activeElement.id === 'realm'), 'password reset keyboard order is usable');
+    await register.goto(base + '/public/login.php', { waitUntil: 'networkidle' });
+    await register.locator('[name=email]').fill('browser-portal@example.invalid');
+    await register.locator('[name=password]').fill('Browser customer password 123');
+    await Promise.all([register.waitForURL('**/public/dashboard.php'), register.locator('#login-btn').click()]);
+    check(await register.locator('h2.card-title').isVisible(), 'customer dashboard renders after login');
+    check(await register.evaluate(() => typeof clearAllActivities === 'function'), 'customer dashboard activity script parses');
     check(external.length === 0, 'tested core pages load no external scripts or styles');
     check(errors.length === 0, 'no browser runtime errors: ' + errors.join('; '));
     console.log(JSON.stringify({ checks, failed: 0, browser: browser.version(), viewports: ['1440x1000', '390x844'], external_requests: external.length }));

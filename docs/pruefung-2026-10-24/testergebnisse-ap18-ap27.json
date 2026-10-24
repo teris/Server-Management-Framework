@@ -1,0 +1,464 @@
+{
+  "date": "2026-10-24",
+  "php_version": "8.3.6",
+  "node_version": "v24.22.1",
+  "suites": {
+    "php_syntax": {
+      "php_files": 318,
+      "short_open_tag": [
+        "Off",
+        "On"
+      ],
+      "errors": []
+    },
+    "authorization_sessions_files": {
+      "checks": 119,
+      "failed": 0,
+      "failures": []
+    },
+    "modular_shop": {
+      "checks": 86,
+      "failed": 0,
+      "failures": []
+    },
+    "shop_migration": {
+      "checks": 12,
+      "failed": 0,
+      "restore_verified": true,
+      "key_rotation_verified": true
+    },
+    "shop_node_runners": {
+      "checks": 13,
+      "failed": 0,
+      "provider_writes": 0
+    },
+    "database_sqlite": {
+      "checks": 235,
+      "failed": 0,
+      "engines": [
+        {
+          "driver": "sqlite",
+          "server_version": "3.45.1",
+          "legacy": false,
+          "fixture": "fresh",
+          "static_queries_checked": 230,
+          "legacy_ddl_adjustments": [],
+          "checks": 75,
+          "failed": 0
+        },
+        {
+          "driver": "sqlite",
+          "server_version": "3.45.1",
+          "legacy": true,
+          "fixture": "legacy",
+          "static_queries_checked": 230,
+          "legacy_ddl_adjustments": [],
+          "checks": 80,
+          "failed": 0
+        },
+        {
+          "driver": "sqlite",
+          "server_version": "3.45.1",
+          "legacy": true,
+          "fixture": "legacy_full",
+          "static_queries_checked": 230,
+          "legacy_ddl_adjustments": [],
+          "checks": 80,
+          "failed": 0
+        }
+      ]
+    },
+    "changed_browser_syntax": {
+      "files": 54,
+      "failed": 0,
+      "errors": []
+    },
+    "core_invariants": {
+      "checks": 327,
+      "failed": 0,
+      "schema_snapshots": 9,
+      "cache_provider_writes": "rejected",
+      "utf8": "valid"
+    },
+    "user_provider_contracts": {
+      "checks": 39,
+      "failed": 0,
+      "live_provider_mutations": 0
+    },
+    "signed_updates": {
+      "checks": 41,
+      "failed": 0,
+      "engine": "SQLite 3",
+      "signed_packages": true,
+      "real_cli_migration": true
+    },
+    "registration_install_smtps": {
+      "checks": 27,
+      "failed": 0,
+      "mail_transport": "real local SMTPS",
+      "live_provider_mutations": 0
+    },
+    "http": {
+      "checks": 47,
+      "failed": 0,
+      "provider_calls": 8
+    },
+    "shop_http": {
+      "checks": 54,
+      "failed": 0
+    },
+    "tls": {
+      "checks": 5,
+      "failed": []
+    },
+    "concurrency": {
+      "checks": 2,
+      "failed": 0,
+      "parallel_requests": 30
+    },
+    "package_selection": {
+      "checks": 19,
+      "files_selected": 500,
+      "failed": 0
+    },
+    "private_config_migration": {
+      "checks": 6,
+      "failed": 0
+    },
+    "session_browser": {
+      "checks": 2,
+      "failed": 0
+    },
+    "csrf_browser": {
+      "checks": 4,
+      "failed": 0
+    }
+  },
+  "limitations": [
+    "Original production shop not switched",
+    "No real payments or live provider mutations",
+    "Remote GitHub Actions not run for this unpublished branch",
+    "Optional shop supports SQLite and MySQL/MariaDB; PostgreSQL supports the core only"
+  ],
+  "native_database_checks": {
+    "mariadb_10_11_14": {
+      "core_checks": 235,
+      "module_checks": 86,
+      "failed": 0
+    },
+    "mysql8": {
+      "checks": 235,
+      "failed": 0,
+      "engines": [
+        {
+          "driver": "mysql",
+          "server_version": "8.0.46-0ubuntu0.24.04.4",
+          "legacy": false,
+          "fixture": "fresh",
+          "static_queries_checked": 230,
+          "legacy_ddl_adjustments": [],
+          "checks": 75,
+          "failed": 0
+        },
+        {
+          "driver": "mysql",
+          "server_version": "8.0.46-0ubuntu0.24.04.4",
+          "legacy": true,
+          "fixture": "legacy",
+          "static_queries_checked": 230,
+          "legacy_ddl_adjustments": [],
+          "checks": 80,
+          "failed": 0
+        },
+        {
+          "driver": "mysql",
+          "server_version": "8.0.46-0ubuntu0.24.04.4",
+          "legacy": true,
+          "fixture": "legacy_full",
+          "static_queries_checked": 230,
+          "legacy_ddl_adjustments": [],
+          "checks": 80,
+          "failed": 0
+        }
+      ]
+    },
+    "modules-mysql8": {
+      "checks": 86,
+      "failed": 0,
+      "failures": [],
+      "engine": "mysql/mariadb"
+    },
+    "pg": {
+      "checks": 235,
+      "failed": 0,
+      "engines": [
+        {
+          "driver": "pgsql",
+          "server_version": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+          "legacy": false,
+          "fixture": "fresh",
+          "static_queries_checked": 230,
+          "legacy_ddl_adjustments": [],
+          "checks": 75,
+          "failed": 0
+        },
+        {
+          "driver": "pgsql",
+          "server_version": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+          "legacy": true,
+          "fixture": "legacy",
+          "static_queries_checked": 230,
+          "legacy_ddl_adjustments": [],
+          "checks": 80,
+          "failed": 0
+        },
+        {
+          "driver": "pgsql",
+          "server_version": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+          "legacy": true,
+          "fixture": "legacy_full",
+          "static_queries_checked": 230,
+          "legacy_ddl_adjustments": [
+            "psql routing removed",
+            "reserved identifier quoted by adapter",
+            "two invalid aggregate views excluded from fixture import"
+          ],
+          "checks": 80,
+          "failed": 0
+        }
+      ]
+    }
+  },
+  "local_browser": {
+    "checks": 23,
+    "failed": 0,
+    "browser": "Chrome 135.0.7049.115",
+    "viewports": [
+      "1440x1000",
+      "390x844"
+    ],
+    "external_requests": 0
+  },
+  "server": {
+    "health": {
+      "version": "3.3.0",
+      "modules": [
+        "shop.billing",
+        "shop.catalog",
+        "shop.communications",
+        "shop.contracts",
+        "shop.orders",
+        "shop.payments",
+        "shop.portal",
+        "shop.promotions",
+        "shop.provisioning",
+        "shop.storage",
+        "shop.subscriptions"
+      ],
+      "route_count": 60,
+      "environment": "sandbox",
+      "live_operations": false,
+      "php": "8.4.27",
+      "database": "11.8.6-MariaDB-0+deb13u1 from Debian",
+      "heartbeat": {
+        "at": 1792855382,
+        "processed": 6
+      }
+    },
+    "http": {
+      "url": "https://remote.orga-consult.eu",
+      "checks": 87,
+      "failed": 0,
+      "passed": [
+        "public page /",
+        "clean HTML /",
+        "public page /produkte",
+        "clean HTML /produkte",
+        "public page /konfigurator",
+        "clean HTML /konfigurator",
+        "public page /login",
+        "clean HTML /login",
+        "public page /registrieren",
+        "clean HTML /registrieren",
+        "public page /hilfe",
+        "clean HTML /hilfe",
+        "public page /faq",
+        "clean HTML /faq",
+        "public page /module",
+        "clean HTML /module",
+        "public page /kuendigen",
+        "clean HTML /kuendigen",
+        "public page /public/login.php",
+        "clean HTML /public/login.php",
+        "public page /src/login.php",
+        "clean HTML /src/login.php",
+        "private path denied /config/config.inc.php",
+        "private path denied /src/kernel/ShopMigration.php",
+        "private path denied /extensions/shop.storage/legacy/bootstrap.php",
+        "private path denied /database/schema.json",
+        "private path denied /logs/error.log",
+        "private path denied /framework-standalone.zip",
+        "private path denied /src/ajax_ip_mac_reverse.php",
+        "private path denied /src/debug.php",
+        "private path denied /install/",
+        "bounded public status",
+        "guest cannot manage modules",
+        "unsigned PayPal event rejected",
+        "unsigned/sandbox runner cannot claim work",
+        "anonymous unprotected POST rejected",
+        "admin page /admin",
+        "clean admin /admin",
+        "admin page /src/modules.php",
+        "clean admin /src/modules.php",
+        "admin page /admin/produkte",
+        "clean admin /admin/produkte",
+        "admin page /admin/anfragen",
+        "clean admin /admin/anfragen",
+        "admin page /admin/kunden",
+        "clean admin /admin/kunden",
+        "admin page /admin/support",
+        "clean admin /admin/support",
+        "admin page /admin/schnittstellen",
+        "clean admin /admin/schnittstellen",
+        "admin page /admin/automatisierung",
+        "clean admin /admin/automatisierung",
+        "admin page /admin/rechnungen",
+        "clean admin /admin/rechnungen",
+        "admin page /admin/vertraege",
+        "clean admin /admin/vertraege",
+        "admin page /admin/gutscheine",
+        "clean admin /admin/gutscheine",
+        "admin page /admin/module",
+        "clean admin /admin/module",
+        "admin page /admin/nachrichten",
+        "clean admin /admin/nachrichten",
+        "admin page /admin/dokumente",
+        "clean admin /admin/dokumente",
+        "token page /src/modules.php",
+        "CSRF on /src/modules.php",
+        "disable promotions",
+        "disabled module route unavailable",
+        "token page /src/modules.php",
+        "CSRF on /src/modules.php",
+        "reenable promotions",
+        "shop customer session also opens core portal",
+        "token page /konto",
+        "CSRF on /konto",
+        "request without PayPal uses catalog and persists",
+        "token page /konto/support",
+        "CSRF on /konto/support",
+        "customer can create ticket",
+        "token page /login",
+        "CSRF on /login",
+        "login customer-b",
+        "other customer cannot read ticket",
+        "token page /admin/ticket?id=12",
+        "CSRF on /admin/ticket?id=12",
+        "administrator sees own internal note",
+        "owner cannot see internal note",
+        "foreign customer cannot see internal note"
+      ],
+      "provider_writes": 0,
+      "real_payments": 0
+    },
+    "browser": {
+      "checks": 13,
+      "failed": 0,
+      "passed": [
+        "homepage 1440",
+        "heading visible 1440",
+        "no horizontal overflow 1440",
+        "homepage 390",
+        "heading visible 390",
+        "no horizontal overflow 390",
+        "mobile navigation opens",
+        "core administrator session opens shop administration",
+        "module management opens with shared session",
+        "customer signs in on mobile",
+        "same customer session opens core dashboard",
+        "no uncaught browser errors",
+        "all styles/scripts/fonts/images load"
+      ],
+      "page_errors": [],
+      "asset_errors": []
+    },
+    "file_integrity": {
+      "verified_live_files": 501,
+      "configuration_private": true,
+      "post_cleanup_document_hashes_verified": 2
+    },
+    "original_data": {
+      "original_business_rows_preserved": {
+        "users": 2,
+        "customers": 3,
+        "support_tickets": 2,
+        "ticket_replies": 6,
+        "vms": 12,
+        "ips": 17,
+        "websites": 46,
+        "domains": 23,
+        "email_accounts": 43,
+        "sm_databases": 6,
+        "api_credentials": 3,
+        "domain_registrations": 6,
+        "groups": 3,
+        "contact_messages": 1,
+        "domain_extensions": 12,
+        "system_settings": 8,
+        "module_configs": 6,
+        "module_dependencies": 4,
+        "module_permissions": 11
+      },
+      "request_uses_server_price": true,
+      "customers_now": 3,
+      "users_now": 2,
+      "tickets_now": 2
+    },
+    "scheduler": {
+      "configured": true,
+      "exit": 0
+    },
+    "worker": {
+      "process_available": true,
+      "exit": 0,
+      "result": {
+        "processed": 6,
+        "environment": "sandbox"
+      }
+    },
+    "test_accounts": {
+      "temporary_accounts_removed": true
+    },
+    "backup_restore": {
+      "original_files": 615,
+      "baseline_tables": 37,
+      "baseline_views": 3,
+      "restored_in_separate_mariadb": true,
+      "private_zip_verified": true
+    },
+    "protocol": "FTP port 21, explicitly selected by operator",
+    "cleanup": {
+      "removed_staging": true,
+      "removed_temporary_helper": true,
+      "removed_counts": {
+        "files": 3,
+        "directories": 110
+      },
+      "tests": {
+        "home": 200,
+        "status": 200,
+        "removed_helper": 404,
+        "removed_staging": 403,
+        "private_config": 403,
+        "private_code": 403,
+        "admin_test_session_revoked": true,
+        "customer_test_session_revoked": true
+      }
+    }
+  },
+  "security_review": {
+    "actual_secrets_in_repository": 0,
+    "provider_writes": 0,
+    "real_payments": 0
+  }
+}

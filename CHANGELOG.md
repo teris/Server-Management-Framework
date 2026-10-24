@@ -4,6 +4,22 @@ Alle wichtigen Änderungen am Server Management Framework werden in dieser Datei
 
 
 
+## [3.3.0] - in Vorbereitung
+
+AP18–AP27: modularer Kern und Übernahme des vorhandenen Online Shops. Auf dem eigenen Testsystem am 24.10.2026 aktiviert und abgenommen; die öffentliche GitHub-Veröffentlichung ist ein eigener Schritt.
+
+- Namensraum-Autoloading, Servicecontainer, geprüfte Modulmanifeste und explizite, mit Prüfsummen gesicherte Migrationen. Elf Shop-Erweiterungen lassen sich unabhängig innerhalb ihrer Abhängigkeiten schalten.
+- Gemeinsame Kunden-/Adminidentität, CSRF und Providerkonten für Framework und Shop. Öffentlicher Zustand ohne Infrastrukturdetails, zugeordnete Exporte und korrelierte Betriebsereignisse.
+- Netzwerkänderung mit wirklichem Proxmox-Node, erhaltenen NIC-Optionen und überprüfter Cloud-Init-IP-Konfiguration statt festem `pve`.
+- Bestehender Katalog, Konfigurator, Anfragen, Angebote, PayPal, Worker, Rechnungen/PDF, Verträge, Benachrichtigungen und Erweiterungsabos hinter Modulgrenzen übernommen. Betreiberwerte und private Dateien bleiben getrennt.
+- PayPal prüft Betrag, Währung, Empfänger und Signatur; Zahlungs- und Ereignisreferenzen verhindern doppelte Buchungen. Sandbox und Livezugriffe sind getrennt.
+- Dauerhafte Jobs mit Sperren, Phasen und Klärungszustand für unsichere Providerresultate. Abgelaufene Worker dürfen keinen Abschluss buchen; Sandbox-Aufträge können keine Live-Ressourcen anlegen.
+- Prüffähiger Shopimport mit ID-Abgleich, Betragsvergleich, Schlüsselwechsel, PDF-Prüfsummen, Wiederholschutz und Wiederherstellung. Name-basierte Modulbestände des Testservers werden verlustfrei ergänzt.
+- Direkte Kernanmeldungen laden die private Konfiguration vor der Sicherheitsinitialisierung; leere Verwaltungsseiten und das bisherige Kunden-Dashboard funktionieren auch beim gemeinsamen Shopzugang.
+- Keine Providerzugangsdaten per Mail. Schrift-/PDF-/Mailbibliotheken und ihre Lizenzen liegen im optionalen Shop-Paket.
+
+Installation und Grenzen: [Modularer Betrieb](docs/pruefung-2026-10-24/BETRIEB-AP18-AP27.md). Prüf- und Servernachweis: [AP18–AP27](docs/pruefung-2026-10-24/UMSETZUNG-AP18-AP27.md).
+
 ## [3.2.8] - 2026-10-24
 
 Sicherheits- und Stabilitätsrelease des geprüften 3.2-Zweigs (AP01–AP17).

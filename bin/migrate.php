@@ -9,7 +9,7 @@ $lock = fopen(HttpSecurity::privateDirectory('locks') . '/schema-migration.lock'
 if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) throw new RuntimeException('Another migration is active');
 try {
     $result = HttpSecurity::schemaMaintenance(function() use ($db) {
-        $result = SchemaManager::migrate($db); SecuritySchema::migrate($db);
+        $result = SchemaManager::migrate($db); SecuritySchema::migrate($db); \SMF\Core\CoreMigrations::migrate($db);
         require_once dirname(__DIR__) . '/src/core/EmailTemplateManager.php';
         (new EmailTemplateManager($db))->createDefaultTemplates(); return $result;
     }, isset($options['resume']));

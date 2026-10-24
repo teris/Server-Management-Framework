@@ -1,0 +1,26 @@
+{
+  "id": "shop.payments",
+  "version": "1.0.0",
+  "name": "PayPal und Zahlungsabgleich",
+  "core": ">=3.3.0 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.orders": "^1.0.0"
+  },
+  "routes": {
+    "/api/paypal/webhook": "webhook",
+    "/paypal/rueckkehr": "payment_return",
+    "/paypal/rechnung": "invoice_return"
+  },
+  "jobs": {
+    "shop.payments": {
+      "handler": "shop.payments",
+      "safe_replay": false
+    }
+  },
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": []
+}

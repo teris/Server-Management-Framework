@@ -1,0 +1,24 @@
+{
+  "id": "shop.orders",
+  "version": "1.0.0",
+  "name": "Bestellungen und Angebote",
+  "core": ">=3.3.0 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.catalog": "^1.0.0",
+    "shop.portal": "^1.0.0"
+  },
+  "routes": {
+    "/bestellen": "checkout",
+    "/konto/bestellungen": "orders",
+    "/admin/bestellungen": "admin_orders",
+    "/konto/angebote": "quotes",
+    "/admin/angebote": "admin_quotes"
+  },
+  "jobs": {},
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": []
+}

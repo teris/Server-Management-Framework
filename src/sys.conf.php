@@ -1,11 +1,13 @@
 <?php
 if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
 
+require_once dirname(__DIR__).'/config/load.php';
+
 /**
  * Server Management Framework
  * 
  * @author Teris
- * @version 3.2.8
+ * @version 3.3.0
  */
 
 // LanguageManager einbinden (falls verfügbar)
@@ -162,7 +164,7 @@ $plugins = array (
 
 // --- SYSTEM_CONFIG START ---
 $system_config = array (
-  'version' => '3.2.8',
+  'version' => '3.3.0',
   'theme' => 'default',
   'language' => 'de',
   'available_languages' => 'de,en,fr,es,it',

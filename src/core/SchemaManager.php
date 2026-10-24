@@ -56,6 +56,8 @@ final class SchemaManager {
         $db->exec(self::createTable('schema_migrations', $schema['tables']['schema_migrations'], $driver));
         $stmt = $db->prepare('SELECT checksum FROM schema_migrations WHERE version=?'); $stmt->execute([$version]); $stored = $stmt->fetchColumn(); $stmt->closeCursor();
         if ($stored) { if (!hash_equals($stored, $checksum)) throw new RuntimeException('Applied migration checksum changed'); return ['version' => $version, 'changed' => false]; }
+        require_once __DIR__.'/LegacyModuleSchema.php';
+        LegacyModuleSchema::prepare($db);
         $tables = self::tables($db);
         $legacyAlter = null;
         if ($driver === 'sqlite') {

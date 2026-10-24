@@ -26,6 +26,7 @@ final class ResourceAccess {
     }
 
     public static function connectionId($provider) {
+        if(class_exists('SMF\\Core\\ProviderAccounts')){ $shared=\SMF\Core\ProviderAccounts::connectionId($provider);if($shared!==null)return $shared; }
         $fields = [
             'proxmox' => ['PROXMOX_HOST', 'PROXMOX_USER'], 'ispconfig' => ['ISPCONFIG_HOST', 'ISPCONFIG_USER'],
             'ovh' => ['OVH_ENDPOINT', 'OVH_APPLICATION_KEY', 'OVH_CONSUMER_KEY'], 'ogp' => ['OGP_HOST', 'OGP_USER']
@@ -37,9 +38,11 @@ final class ResourceAccess {
     }
 
     public static function assignments(array $identity) {
-        $stmt = HttpSecurity::connection()->prepare('SELECT id, provider, resource_type, external_id, can_write FROM security_resource_assignments WHERE subject_realm = ? AND subject_id = ? AND (expires_at IS NULL OR expires_at > ?)');
+        $stmt = HttpSecurity::connection()->prepare('SELECT * FROM security_resource_assignments WHERE subject_realm = ? AND subject_id = ? AND (expires_at IS NULL OR expires_at > ?)');
         $stmt->execute([$identity['realm'], $identity['id'], time()]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows=$stmt->fetchAll(PDO::FETCH_ASSOC);$result=[];
+        foreach($rows as$row)if(\SMF\Core\ShopResourceBindings::canonicalValid($row))$result[]=array_intersect_key($row,array_flip(['id','provider','resource_type','external_id','can_write']));
+        return $result;
     }
 
     /** All identifiers used remotely come from this verified row, never from extra request fields. */
@@ -58,6 +61,7 @@ final class ResourceAccess {
         $write = in_array($action, ['start', 'stop', 'reboot'], true);
         if (!in_array($action, ['view', 'start', 'stop', 'reboot'], true) || ($write && ($module !== 'proxmox' || $identity['role'] === 'readonly' || (!$administrator && !$row['can_write']))))
             throw new SecurityViolation('Aktion nicht freigegeben.', 403);
+        if(!\SMF\Core\ShopResourceBindings::canonicalValid($row,$write))throw new SecurityViolation('Ressourcenzuordnung muss geprüft werden.',403);
         $metadata = json_decode($row['metadata'], true);
         if (!is_array($metadata)) throw new SecurityViolation('Ungültige Ressourcenzuordnung.', 403);
         $id = $row['external_id']; $type = $row['resource_type']; $method = 'GET'; $data = null;
@@ -69,7 +73,7 @@ final class ResourceAccess {
             if ($configuration === false || (is_array($configuration) && isset($configuration['success']) && !$configuration['success'])) throw new RuntimeException('Provider identity check unavailable');
             $configuration = is_array($configuration) ? ($configuration['data'] ?? $configuration) : [];
             if ($type === 'qemu') $actual = $configuration['vmgenid'] ?? '';
-            else { preg_match('/(?:^|\n)SMF-RESOURCE:([a-f0-9]{32})(?:\n|$)/D', $configuration['description'] ?? '', $marker); $actual = $marker[1] ?? ''; }
+            else { if(isset($metadata['ownership_marker'])){$description=rtrim((string)($configuration['description']??''),"\r\n");$actual=hash_equals($metadata['ownership_marker'],$description)?substr(hash('sha256',$description),0,32):'';}else{preg_match('/(?:^|\n)SMF-RESOURCE:([a-f0-9]{32})(?:\n|$)/D', $configuration['description'] ?? '', $marker); $actual = $marker[1] ?? '';} }
             if (!is_string($actual) || !hash_equals(strtolower($instance), strtolower($actual))) throw new SecurityViolation('Die VM-Identität hat sich geändert. Bitte die Zuordnung prüfen.', 403);
             $path = '/nodes/' . rawurlencode($metadata['node']) . '/' . $type . '/' . (int) $id . '/status/' . ($write ? $action : 'current');
             if ($write) $method = 'POST';

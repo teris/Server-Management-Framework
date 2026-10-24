@@ -2,9 +2,9 @@ import json, subprocess
 from pathlib import Path
 from php_runtime import php_command
 root=Path(__file__).resolve().parents[1];errors=[];files=[]
-for directory in ['src','public','config','bin','tests']:
+for directory in ['src','public','config','bin','tests','extensions']:
     files.extend((root/directory).rglob('*.php'))
-files.extend([root/'framework.php',root/'test.php'])
+files.extend([root/'framework.php',root/'test.php',root/'index.php',root/'shop.php'])
 files=[source for source in files if source.name!='config.inc.php']
 for short_tags in ['0','1']:
     for source in files:

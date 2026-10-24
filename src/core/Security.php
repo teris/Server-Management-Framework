@@ -2,6 +2,7 @@
 if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
 
 /** Shared HTTP boundary. Never trusts request data as an identity or a path. */
+require_once dirname(__DIR__).'/kernel/autoload.php';
 class SecurityViolation extends RuntimeException {}
 
 final class HttpSecurity {
@@ -50,7 +51,7 @@ final class HttpSecurity {
 
     public static function privateDirectory($area = '') {
         $root = realpath(dirname(__DIR__, 2));
-        $base = getenv('SMF_PRIVATE_DIR') ?: dirname($root) . '/.smf-private/' . substr(hash('sha256', $root), 0, 16);
+        $base = getenv('SMF_PRIVATE_DIR') ?: ((defined('Config::PRIVATE_STORAGE_DIR') && Config::PRIVATE_STORAGE_DIR!=='') ? Config::PRIVATE_STORAGE_DIR : dirname($root) . '/.smf-private/' . substr(hash('sha256', $root), 0, 16));
         if (is_link($base)) throw new RuntimeException('Private storage symlinks are forbidden');
         if (!is_dir($base) && !@mkdir($base, 0700, true) && !is_dir($base)) throw new RuntimeException('Private storage unavailable');
         $base = realpath($base);
@@ -144,7 +145,10 @@ final class HttpSecurity {
         header('Cache-Control: private, no-store');
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         if (!in_array($method, ['GET', 'HEAD', 'POST', 'OPTIONS'], true)) throw new SecurityViolation('Methode nicht erlaubt.', 405);
-        if ($method === 'POST') self::requireCsrf();
+        $signedWebhook=realpath(self::requestScript())===realpath(dirname(__DIR__,2).'/shop.php') && in_array(parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH),['/api/paypal/webhook','/api/infrastructure/runner'],true);
+        if ($method === 'POST' && !$signedWebhook) self::requireCsrf();
+        if($signedWebhook)self::rateLimit('machine-'.(parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH)==='/api/paypal/webhook'?'paypal':'provider-runner'),$ip??($_SERVER['REMOTE_ADDR']??'unknown'),120,60);
+        header('X-Request-ID: '.\SMF\Core\AuditLog::requestId());
         if (isset($_GET['logout'])) throw new SecurityViolation('Abmelden erfordert eine geschützte POST-Anfrage.', 405);
         $script = self::requestScript();
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
@@ -181,7 +185,7 @@ final class HttpSecurity {
     }
     public static function encode($value, $flags = 0, $depth = 512) { return json_encode(self::redact($value), $flags, $depth); }
     public static function audit($event, $realm, $id = null) {
-        $record = ['time' => gmdate('c'), 'event' => $event, 'realm' => $realm, 'subject_id' => $id, 'ip' => $_SERVER['REMOTE_ADDR'] ?? 'cli'];
+        $record = ['time' => gmdate('c'), 'event' => $event, 'realm' => $realm, 'subject_id' => $id, 'ip' => $_SERVER['REMOTE_ADDR'] ?? 'cli','request_id'=>\SMF\Core\AuditLog::requestId(),'job_id'=>$GLOBALS['smf_job_id']??null];
         $file = self::privateDirectory('logs') . '/authentication-' . gmdate('Y-m-d') . '.jsonl';
         if (file_put_contents($file, json_encode($record) . "\n", FILE_APPEND | LOCK_EX) === false) throw new RuntimeException('Audit unavailable');
         @chmod($file, 0600);

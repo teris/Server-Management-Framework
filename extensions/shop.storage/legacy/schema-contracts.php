@@ -1,0 +1,12 @@
+<?php
+function shop_migrate_contracts(PDO $db,string $id,bool $sqlite): void {
+    $suffix=$sqlite?'':' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';
+    $tables=[
+        "shop_product_contracts (product_id INT PRIMARY KEY,min_months INT NOT NULL DEFAULT 1,notice_days INT NOT NULL DEFAULT 0,FOREIGN KEY(product_id) REFERENCES shop_products(id))",
+        "shop_contracts (order_id INT PRIMARY KEY,policy TEXT NOT NULL,state VARCHAR(30) NOT NULL DEFAULT 'pending',started_at INT NOT NULL DEFAULT 0,paid_until INT NOT NULL DEFAULT 0,next_due_at INT NOT NULL DEFAULT 0,cancel_requested_at INT NOT NULL DEFAULT 0,cancel_at INT NOT NULL DEFAULT 0,paypal_cancel_state VARCHAR(30) NOT NULL DEFAULT '',end_state VARCHAR(30) NOT NULL DEFAULT '',end_payload TEXT NOT NULL,last_check_at INT NOT NULL DEFAULT 0,next_check_at INT NOT NULL DEFAULT 0,checked_at INT NOT NULL DEFAULT 0,last_error VARCHAR(500),lock_token VARCHAR(64),locked_until INT NOT NULL DEFAULT 0,FOREIGN KEY(order_id) REFERENCES shop_orders(id))",
+        "shop_receivables (invoice_id INT PRIMARY KEY,order_id INT NOT NULL,cycle_key VARCHAR(80) NOT NULL,kind VARCHAR(20) NOT NULL,state VARCHAR(30) NOT NULL DEFAULT 'open',amount_cents INT NOT NULL,currency VARCHAR(3) NOT NULL DEFAULT 'EUR',issued_ts INT NOT NULL,due_ts INT NOT NULL,period_end INT NOT NULL DEFAULT 0,settled_ts INT NOT NULL DEFAULT 0,payment_id INT UNIQUE,cancellation_invoice_id INT,UNIQUE(order_id,cycle_key),FOREIGN KEY(invoice_id) REFERENCES shop_invoices(id),FOREIGN KEY(order_id) REFERENCES shop_orders(id))",
+        "shop_invoice_paypal (invoice_id INT PRIMARY KEY,paypal_mode VARCHAR(10) NOT NULL,payment_id VARCHAR(100) UNIQUE,approval_url TEXT,state VARCHAR(30) NOT NULL DEFAULT 'creating',balance_before INT,balance_after INT,FOREIGN KEY(invoice_id) REFERENCES shop_invoices(id))",
+        "shop_cancellations (id $id,reference VARCHAR(40) NOT NULL UNIQUE,submission_key VARCHAR(64) NOT NULL UNIQUE,order_id INT,customer_id INT,name VARCHAR(200) NOT NULL,email VARCHAR(255) NOT NULL,contract_reference VARCHAR(100) NOT NULL,kind VARCHAR(20) NOT NULL,reason TEXT NOT NULL,requested_date VARCHAR(20) NOT NULL,received_ts INT NOT NULL,effective_ts INT NOT NULL DEFAULT 0,state VARCHAR(30) NOT NULL DEFAULT 'review',receipt_token_hash VARCHAR(64) NOT NULL,FOREIGN KEY(order_id) REFERENCES shop_orders(id))",
+    ];
+    foreach($tables as $table)$db->exec('CREATE TABLE IF NOT EXISTS '.$table.$suffix);
+}

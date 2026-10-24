@@ -505,7 +505,7 @@ function getActivityColor($activityType) {
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showAlert('<?= t('an_error_occurred') ?> ' . '<?= t('please_try_later') ?>', 'danger');
+                    showAlert(<?= json_encode(t('an_error_occurred') . ' ' . t('please_try_later'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>, 'danger');
                 });
             }
         }

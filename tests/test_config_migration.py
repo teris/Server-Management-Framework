@@ -4,8 +4,8 @@ from php_runtime import php_command, fixture_environment
 ROOT=Path(__file__).resolve().parents[1]
 with tempfile.TemporaryDirectory(prefix='smf-config-') as directory:
     tmp=Path(directory);app=tmp/'app'
-    for part in ['bin','config','src/core']:(app/part).mkdir(parents=True,exist_ok=True)
-    for file in ['bin/private-config.php','config/load.php','src/core/Security.php']:shutil.copyfile(ROOT/file,app/file)
+    for part in ['bin','config','src/core','src/kernel']:(app/part).mkdir(parents=True,exist_ok=True)
+    for file in ['bin/private-config.php','config/load.php','src/core/Security.php','src/core/SchemaManager.php','src/core/VersionFile.php','src/kernel/autoload.php']:shutil.copyfile(ROOT/file,app/file)
     content="<?php\nclass Config { const DB_PASS = 'fixture-secret'; }\n";key='fixture-key-'+'a'*64
     source=app/'config/config.inc.php';source.write_text(content);legacy=app/'src/.encryption_key';legacy.write_text(key)
     override=app/'src/sys.conf.local.php';override.write_text("<?php\n$system_config['site_title']='Custom operator';\n")

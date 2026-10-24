@@ -11,6 +11,7 @@ if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FIL
 // CONFIG CLASS
 // =============================================================================
 class Config {
+    const PRIVATE_STORAGE_DIR = ''; // Optional absolute persistent directory outside the application root
     // =============================================================================
     // DATABASE CONFIGURATION
     // =============================================================================

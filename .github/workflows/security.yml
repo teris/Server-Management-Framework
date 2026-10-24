@@ -58,7 +58,9 @@ jobs:
           SMF_TEST_MYSQL_USER: root
           SMF_TEST_MYSQL_PASSWORD: isolated-test-only
           SMF_TEST_NATIVE_BACKUP: '1'
-        run: python3 tests/test_database_engines.py --engines mysql
+        run: |
+          python3 tests/test_database_engines.py --engines mysql
+          python3 tests/test_modular_database.py
   postgresql:
     runs-on: ubuntu-24.04
     services:

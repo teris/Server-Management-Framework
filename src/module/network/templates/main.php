@@ -12,7 +12,7 @@ if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FIL
                     <div class="col-md-6">
                         <div class="form-group mb-3">
                             <label for="net_vmid"><?= t('vm_id') ?></label>
-                            <input type="number" class="form-control" id="net_vmid" name="vmid" required placeholder="100" min="100">
+                            <label for="net_node">Proxmox-Node</label><input type="text" class="form-control" id="net_node" name="node" required pattern="[a-zA-Z0-9_.-]+"><input type="hidden" name="type" value="qemu"><input type="hidden" name="operation_key" value="<?= bin2hex(random_bytes(16)) ?>"><input type="number" class="form-control" id="net_vmid" name="vmid" required placeholder="100" min="100">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -25,7 +25,7 @@ if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FIL
                 
                 <div class="form-group mb-3">
                     <label for="net_ip"><?= t('ip_address') ?></label>
-                    <input type="text" class="form-control" id="net_ip" name="ip" required placeholder="192.168.1.100">
+                    <input type="text" class="form-control" id="net_ip" name="ip" required placeholder="192.168.1.100/24"><small>QEMU mit Cloud-Init-Laufwerk; vorhandene Bridge und VLAN bleiben erhalten.</small><label for="net_gateway">Gateway (optional)</label><input type="text" class="form-control" id="net_gateway" name="gateway">
                 </div>
                 
                 <button type="submit" class="btn btn-primary">

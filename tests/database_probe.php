@@ -31,7 +31,7 @@ if ($legacy) {
     $stmt = $db->prepare("INSERT INTO users (username,email,password_hash,role,active,operator_note) VALUES ('original','original@example.invalid',?,'user','y','keep-extra-column')"); $originalHash = password_hash('Original test password', PASSWORD_DEFAULT); $stmt->execute([$originalHash]);
     $db->exec('CREATE VIEW operator_names AS SELECT username,operator_note FROM users');
 }
-$first = SchemaManager::migrate($db); SecuritySchema::migrate($db);
+$first = SchemaManager::migrate($db); SecuritySchema::migrate($db); \SMF\Core\CoreMigrations::migrate($db);
 require_once __DIR__ . '/sql_queries.php'; $staticQueries = checkApplicationQueries($db);
 verifyCase($first['changed'], 'first explicit migration applies');
 verifyCase(!SchemaManager::migrate($db)['changed'], 'second migration is idempotent');

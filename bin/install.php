@@ -14,7 +14,7 @@ try{$password=rtrim(fgets(STDIN)?:'',"\r\n");}finally{if($terminal&&PHP_OS_FAMIL
 if(strlen($password)<12||strlen($password)>4096){fwrite(STDERR,"\nInvalid password length. Database not changed.\n");exit(1);}
 $lock=fopen(HttpSecurity::privateDirectory('locks').'/schema-migration.lock','c');if(!$lock||!flock($lock,LOCK_EX|LOCK_NB))throw new RuntimeException('Another migration is active');
 try{
-    SchemaManager::migrate($db);SecuritySchema::migrate($db);(new EmailTemplateManager($db))->createDefaultTemplates();
+    SchemaManager::migrate($db);SecuritySchema::migrate($db); \SMF\Core\CoreMigrations::migrate($db);(new EmailTemplateManager($db))->createDefaultTemplates();
     $stmt=$db->prepare("INSERT INTO users (username,email,password_hash,full_name,role,active) VALUES (?,?,?,?,'admin','y')");$stmt->execute([$options['username'],mb_strtolower($options['email']),password_hash($password,PASSWORD_DEFAULT),$options['username']]);
     echo "\nInstallation complete. One explicit administrator created; no provider resources provisioned.\n";
 }finally{flock($lock,LOCK_UN);fclose($lock);}

@@ -199,6 +199,7 @@ $browserConfig = ['sessionInfo'=>$session_info, 'enabledPlugins'=>array_keys($pl
                                 </a>
                             </li>
                             <li >
+                                <a href="modules.php">Module und Shop</a>
                                 <a href="?option=settings">
                                     <i class="bi bi-gear"></i> <?= t('settings') ?>
                                 </a>

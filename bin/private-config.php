@@ -1,5 +1,6 @@
 <?php
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+require_once dirname(__DIR__).'/config/load.php';
 require_once dirname(__DIR__).'/src/core/Security.php';
 HttpSecurity::cliBoundary();
 $root=dirname(__DIR__);$source=$root.'/config/config.inc.php';$destination=HttpSecurity::privateDirectory('config').'/runtime.php';

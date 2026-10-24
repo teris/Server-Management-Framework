@@ -39,41 +39,22 @@ class NetworkModule extends ModuleBase {
     }
     
     private function updateVMNetwork($data) {
-        $errors = $this->validate($data, [
-            'vmid' => 'required|numeric',
-            'mac' => 'required',
-            'ip' => 'required'
-        ]);
-        
-        if (!empty($errors)) {
-            return $this->error($this->t('validation_failed'), $errors);
-        }
-        
         try {
-            $serviceManager = new ServiceManager();
-            
-            // VM Config abrufen
-            $vm_config = $serviceManager->ProxmoxAPI('get', "/nodes/pve/qemu/{$data['vmid']}/config");
-            
-            // Netzwerk-Config aktualisieren
-            $network_config = [
-                'net0' => "virtio={$data['mac']},bridge=vmbr0"
-            ];
-            
-            $result = $serviceManager->ProxmoxAPI('put', "/nodes/pve/qemu/{$data['vmid']}/config", $network_config);
-            
-            // Optional: IP in VM konfigurieren (über cloud-init oder custom script)
-            
-            $this->log("VM {$data['vmid']} network updated: MAC={$data['mac']}, IP={$data['ip']}");
-            
-            return $this->success($result, $this->t('network_updated_successfully'));
-            
-        } catch (Exception $e) {
-            $this->log('Error updating VM network: ' . $e->getMessage(), 'ERROR');
-            return $this->error($this->t('error_updating_network') . ': ' . $e->getMessage());
+            $result=\SMF\Core\NetworkConfiguration::update($data, function($method,$path,$payload)use($data){
+                $kernel=\SMF\Core\Kernel::boot();
+                if($method==='GET')return $kernel->providers()->execute('proxmox',$method,$path,$payload);
+                $key=$data['operation_key']??'';if(!is_string($key)||!preg_match('/^[a-f0-9]{32}$/D',$key))throw new InvalidArgumentException('Formular neu öffnen.');
+                $operations=new \SMF\Core\ProviderOperations($kernel->database(),$kernel->audit());
+                return $operations->perform('proxmox',ResourceAccess::connectionId('proxmox'),'network:'.$key.':'.hash('sha256',json_encode([$path,$data['ip'],$data['mac'],$data['gateway']??''])),fn()=>$kernel->providers()->execute('proxmox',$method,$path,$payload));
+            });
+            $this->log('VM network configuration updated through Cloud-Init');
+            return $this->success($result,'Netzwerk- und Cloud-Init-Konfiguration gespeichert; im Gast nach dem nächsten Cloud-Init-Lauf wirksam.');
+        } catch (Throwable $error) {
+            $this->log('Network configuration not confirmed: '.get_class($error),'ERROR');
+            return $this->error($error instanceof InvalidArgumentException?$error->getMessage():'Netzwerkänderung nicht bestätigt. Cloud-Init, Node und Anbieterzustand prüfen.');
         }
     }
-    
+
     private function getTranslations() {
         $translations = $this->tMultiple([
             'vm_network_updated_message', 'network_error', 'unknown_error'

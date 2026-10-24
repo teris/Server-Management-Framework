@@ -1,0 +1,26 @@
+{
+  "id": "shop.contracts",
+  "version": "1.0.0",
+  "name": "Verträge und Kündigungen",
+  "core": ">=3.3.0 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.orders": "^1.0.0"
+  },
+  "routes": {
+    "/kuendigen": "cancellation",
+    "/konto/vertraege": "contracts",
+    "/admin/vertraege": "admin_contracts"
+  },
+  "jobs": {
+    "shop.contracts": {
+      "handler": "shop.contracts",
+      "safe_replay": false
+    }
+  },
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": []
+}

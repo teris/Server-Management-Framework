@@ -1,6 +1,7 @@
 <?php
 if (PHP_SAPI !== 'cli' && (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__ || (get_included_files()[0] ?? null) === __FILE__)) { http_response_code(404); exit; }
 
+ini_set('zend.exception_ignore_args','1');
 // Runtime credentials are never taken from a request parameter or cookie.
 if (!class_exists('Config', false)) {
     $configuration = getenv('SMF_CONFIG_FILE') ?: __DIR__ . '/config.inc.php';

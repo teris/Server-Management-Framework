@@ -1,0 +1,28 @@
+{
+  "id": "shop.communications",
+  "version": "1.0.0",
+  "name": "Mail und Benachrichtigungen",
+  "core": ">=3.3.0 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.portal": "^1.0.0"
+  },
+  "routes": {
+    "/admin/email": "admin_email",
+    "/admin/nachrichten": "admin_notifications",
+    "/konto/nachrichten": "notifications",
+    "/faq": "faq",
+    "/admin/faq": "admin_faq"
+  },
+  "jobs": {
+    "shop.communications": {
+      "handler": "shop.communications",
+      "safe_replay": false
+    }
+  },
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": []
+}

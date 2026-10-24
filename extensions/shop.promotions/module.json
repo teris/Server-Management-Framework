@@ -1,0 +1,20 @@
+{
+  "id": "shop.promotions",
+  "version": "1.0.0",
+  "name": "Gutscheine und Rabatte",
+  "core": ">=3.3.0 <4.0.0",
+  "php": ">=8.3.0",
+  "requires": {
+    "shop.orders": "^1.0.0"
+  },
+  "routes": {
+    "/admin/gutscheine": "admin_coupons",
+    "/konto/gutscheine": "coupon_rewards"
+  },
+  "jobs": {},
+  "permissions": [
+    "backend:admin",
+    "customer:owner"
+  ],
+  "migrations": []
+}
