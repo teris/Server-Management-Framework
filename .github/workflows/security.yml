@@ -103,3 +103,25 @@ jobs:
           "$RUNNER_TEMP/smf-browser/node_modules/.bin/playwright" install --with-deps chromium
       - name: Desktop, mobile, keyboard and operator settings
         run: SMF_PLAYWRIGHT_MODULE="$RUNNER_TEMP/smf-browser/node_modules/playwright" python3 tests/test_browser_stability.py
+  release_package:
+    runs-on: ubuntu-24.04
+    needs: [regressions, mysql, postgresql, browser]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3, mbstring, simplexml, dom, curl, soap, ctype, tokenizer, zip
+          coverage: none
+      - name: Native test dependencies and ephemeral test signing key
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y python3-cryptography
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out "$RUNNER_TEMP/test-release-private.pem" 2>/dev/null
+          chmod 600 "$RUNNER_TEMP/test-release-private.pem"
+      - name: Build the same committed package twice
+        run: |
+          python3 bin/build-release.py --ref "$GITHUB_SHA" --key "$RUNNER_TEMP/test-release-private.pem" --output "$RUNNER_TEMP/release-a"
+          python3 bin/build-release.py --ref "$GITHUB_SHA" --key "$RUNNER_TEMP/test-release-private.pem" --output "$RUNNER_TEMP/release-b"
+          diff -qr "$RUNNER_TEMP/release-a" "$RUNNER_TEMP/release-b"
+      - name: Actual package installation, SMTP, migration and rollback
+        run: python3 tests/test_release_package.py "$RUNNER_TEMP/release-a"
