@@ -17,6 +17,7 @@ with HTTPFixture(shop_routes=True) as f:
  cli('bin/modules.php','--shop')
  private=f.tmp/'private';(private/'config'/'fixture-operator.txt').write_text('Preserve operator private data')
  sql=sqlite3.connect(f.tmp/'application.sqlite');before=sql.execute('SELECT id,username,email,password_hash FROM users ORDER BY id').fetchall();key=(private/'config/shop.key').read_bytes()
+ (private/'keys').mkdir(exist_ok=True);(private/'keys/provider-encryption.key').write_bytes(b'fixture-provider-master-key-preserve')
  state=cli('bin/upgrade.php','--modules=product.gameserver')
  check(state['state']=='queued','authenticated change is queued before any migration')
  check(sql.execute("SELECT COUNT(*) FROM sqlite_master WHERE name='smf_game_leases'").fetchone()[0]==0,'queued request performs no browser migration')
@@ -26,6 +27,7 @@ with HTTPFixture(shop_routes=True) as f:
  check(sql.execute('SELECT id,username,email,password_hash FROM users ORDER BY id').fetchall()==before,'upgrade preserves administrator identities and hashes')
  check((private/'config/shop.key').read_bytes()==key,'upgrade preserves original shop encryption key')
  journal=json.loads((private/'upgrades/current.json').read_text());backup=Path(journal['backup']['file']);check(backup.exists() and hashlib.sha256(backup.read_bytes()).hexdigest()==journal['backup']['sha256'],'actual SQLite backup has verified checksum')
+ check((private/'upgrades'/journal['id']/'keys/provider-encryption.key').read_bytes()==b'fixture-provider-master-key-preserve','separate private provider master key is included in upgrade backup')
  check((private/'upgrades'/journal['id']/'config/fixture-operator.txt').read_text()=='Preserve operator private data','private operator configuration backed up outside webroot')
  # Request authentication and CSRF, then keep a real backend session for recovery.
  jar=http.cookiejar.CookieJar();opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))

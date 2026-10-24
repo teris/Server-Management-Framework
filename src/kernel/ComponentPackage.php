@@ -114,6 +114,7 @@ final class ComponentPackage {
             $journal['database']=\DatabaseBackup::capture(Kernel::boot()->database(),$backup);
             foreach($journal['modules']as$name)if(is_dir($root.'/extensions/'.$name)){self::copyTree($root.'/extensions/'.$name,$backup.'/previous-modules/'.$name);$journal['previous_modules'][]=$name;}
             self::copyTree(\HttpSecurity::privateDirectory('config'),$backup.'/private-config');
+            self::copyTree(\HttpSecurity::privateDirectory('keys'),$backup.'/private-keys');
             $journal['maintenance_id']=json_decode(file_get_contents(\HttpSecurity::privateDirectory('updates').'/maintenance.json'),true)['id'];$journal['state']='applying';$save();
             try{
                 foreach($plan['components']as$m){$name=$m['id'];$target=$root.'/extensions/'.$name;if(is_link($target))throw new RuntimeException('Installed module symlink rejected');

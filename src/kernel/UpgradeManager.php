@@ -46,10 +46,12 @@ final class UpgradeManager {
         }finally{flock($lock,LOCK_UN);fclose($lock);}
     }
     private static function backupFiles(string $directory): void {
-        $config=\HttpSecurity::privateDirectory('config');$target=$directory.'/config';if(!is_dir($target) && !mkdir($target,0700))throw new RuntimeException('Private config backup unavailable');
+        foreach(['config','keys']as$area){
+        $config=\HttpSecurity::privateDirectory($area);$target=$directory.'/'.$area;if(!is_dir($target) && !mkdir($target,0700))throw new RuntimeException('Private config backup unavailable');
         foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($config,\FilesystemIterator::SKIP_DOTS)) as $file){if($file->isLink())throw new RuntimeException('Private config symlink rejected');if(!$file->isFile())continue;$relative=substr($file->getPathname(),strlen($config)+1);$out=$target.'/'.$relative;if(!is_dir(dirname($out)))mkdir(dirname($out),0700,true);if(is_file($out) && !hash_equals(hash_file('sha256',$file->getPathname()),hash_file('sha256',$out)))throw new RuntimeException('Private config changed during recovery');if(!is_file($out) && !copy($file->getPathname(),$out))throw new RuntimeException('Private config backup failed');chmod($out,0600);}
+        }
         $root=dirname(__DIR__,2);$files=[$root.'/config/config.inc.php',$root.'/src/.encryption_key'];if(getenv('SMF_CONFIG_FILE'))$files[]=getenv('SMF_CONFIG_FILE');
-        foreach($files as $i=>$file)if(is_file($file)){if(is_link($file))throw new RuntimeException('Operator config symlink rejected');$out=$directory.'/operator-'.$i.'.backup';if(!copy($file,$out))throw new RuntimeException('Operator config backup failed');chmod($out,0600);}
+        foreach($files as $i=>$file)if(is_file($file)){if(is_link($file))throw new RuntimeException('Operator config symlink rejected');$out=$directory.'/operator-'.$i.'.backup';if(is_file($out)&&!hash_equals(hash_file('sha256',$file),hash_file('sha256',$out)))throw new RuntimeException('Operator config changed during recovery');if(!is_file($out)&&!copy($file,$out))throw new RuntimeException('Operator config backup failed');chmod($out,0600);}
     }
     public static function runPending(): bool {
         if(PHP_SAPI!=='cli')throw new RuntimeException('Upgrade worker is CLI only');
