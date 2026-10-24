@@ -81,7 +81,9 @@ Neue Provider-/Produktmodule lassen sich mit denselben `--key`, `--fingerprint` 
 Die Tests unterscheiden simulierte Providerprotokolle, echte lokale TLS-/SMTP-/SQL-/Browserprüfungen und tatsächliche OGP-Schreibzugriffe. Ein Mock ist kein Nachweis einer Spielinstallation.
 
 - 26 lokale Suiten: Modulverträge, Rechte, Zahlungen, Installation, Jobs, Lebenszyklus, signierte Pakete, Upgrade/Recovery und SMTP.
-- Reduzierte signierte Neuinstallationen: Gameserver ohne ISPConfig-/VPS-Dateien und Hosting ohne OGP-Dateien. Nachinstallation eines Moduls mit erhaltener Identität und Schlüssel sowie native SQLite-Rücknahme einer fehlschlagenden Migration.
+- Tatsächliches signiertes Release: 584 Datei-/Paketprüfungen, 27 HTTP-/SMTPS-Prüfungen und zehn Update-/Rollbackprüfungen; reduzierte Hosting- und Gameserverpakete erfolgreich installiert. Zwei Builds desselben Commits sind identisch.
+- Native MariaDB- und MySQL-8-Tests: 59 Gameserver-/20 Provider-Matrixprüfungen sowie je 84 Installertests. Chrome prüft 36 neue Modul-/Rechte-/Layoutfälle auf Desktop und Mobilgerät.
+- Reduzierte signierte Neuinstallationen: Gameserver ohne ISPConfig-/VPS-Dateien und Hosting ohne OGP-Dateien. Nachinstallation eines Moduls mit erhaltener Identität und Schlüssel sowie native SQLite-Rücknahme einer fehlschlagenden Migration. Ein zusätzlich erzwungener Prozessabbruch wurde über das private Komponentenjournal aus einem frischen CLI-Prozess zurückgenommen.
 - OGP-Brücke: HTTPS/Auth/IP, Eigentümer, ID-Wiederverwendung, Verzeichnisgrenzen, Installations-/Löschstatus und Geheimnisfilter mit isolierten nativen Schnittstellenfixtures.
 - Reale OGP-Abnahme: eine eigene Half-Life-/SteamCMD-Leistung, vier Slots und zehn reservierte Ports; Testzahlungsfreigabe durch Administration, kein echter Geldfluss. Anfragen-/Bestell-/Rechnungsweg, echter laufender Agentprozess, RCON, Kundenisolierung und kontrollierte Beendigung wurden geprüft. Home und separates Testkonto wurden entfernt, Ports freigegeben. Die fünf ursprünglichen Homes blieben unverändert.
 

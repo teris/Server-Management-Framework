@@ -4,7 +4,7 @@ const { chromium } = require(options.module);
 let browser;const passed=[],errors=[],assets=[];
 function check(ok,name){if(!ok)throw new Error(name);passed.push(name);}
 (async()=>{
- browser=await chromium.launch({headless:true,executablePath:options.browser});
+ browser=await chromium.launch({headless:true,...(options.browser?{executablePath:options.browser}:{})});
  const context=await browser.newContext({viewport:{width:390,height:844}});const page=await context.newPage();
  page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400&&['stylesheet','script','font','image'].includes(r.request().resourceType()))assets.push(r.status());});
  await page.goto(options.url+'/setup.php',{waitUntil:'networkidle'});check(await page.locator('h1').isVisible(),'installer opens without configuration');
