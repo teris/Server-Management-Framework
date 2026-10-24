@@ -6,6 +6,12 @@ from tls_helpers import certificate_files
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200);self.end_headers();self.wfile.write(b'isolated TLS fixture')
+    def do_POST(self):
+        body=self.rfile.read(int(self.headers.get('Content-Length',0)));self.send_response(200)
+        if self.path.endswith('?setting/get'):
+            # Select the error case from the form body without exposing credentials.
+            bad=b'invalid_html'in body;self.send_header('Content-Type','text/html'if bad else'text/plain');self.end_headers();self.wfile.write(b'<html>Error</html>'if bad else b'Fixture Panel')
+        else:self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(b'{"status":"200","message":[]}')
     def log_message(self,*args):pass
 
 root=Path(__file__).resolve().parent
@@ -30,6 +36,9 @@ with tempfile.TemporaryDirectory(prefix='smf-tls-') as tmp:
             'expired certificate rejected':not probe(f'https://localhost:{expired.server_port}/',True)['ok'],
             'plaintext HTTP rejected':not probe(f'http://localhost:{valid.server_port}/',True)['ok'],
         }
+        legacy=subprocess.run(php_command()+[str(root/'ogp_legacy_tls_probe.php'),f'https://localhost:{valid.server_port}',str(certs/'ca.pem')],env=fixture_environment(),capture_output=True,text=True)
+        if legacy.returncode:raise RuntimeError(legacy.stdout+legacy.stderr)
+        tests.update(json.loads(legacy.stdout))
         print(json.dumps({'checks':len(tests),'failed':[name for name,ok in tests.items() if not ok]}));assert all(tests.values()),tests
     finally:
         for server in servers:server.shutdown();server.server_close()

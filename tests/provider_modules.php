@@ -16,7 +16,7 @@ $id=ResourceAccess::connectionId('ogp');check($id===integration_identity('ogp'),
 $calls=[];$GLOBALS['shop_test_transport']=function($provider,$method,$url,$body)use(&$calls,$token){
     $p=[];parse_str($body,$p);$action=parse_url($url,PHP_URL_QUERY);$calls[]=[$method,$url,$p];
     check(!str_contains($url,$token),'token never enters URL');check(($p['token']??'')===$token,'authentication is in request body');
-    $data=match($action){'token/test'=>'admin','server/list'=>[['remote_server_id'=>1]],default=>[]};
+    $data=match($action){'token/test'=>'admin','server/list'=>[['remote_server_id'=>1]],'setting/get'=>'fixture-setting-value',default=>[]};
     return ['data'=>['status'=>'200','message'=>$data]];
 };
 $c=SMF\Core\Kernel::boot()->providers()->get('ogp');check($c instanceof SMF\Core\ProviderClient,'OGP adapter implements shared interface');
@@ -27,6 +27,11 @@ $legacy=new OGPGet();check($legacy->getServerList()['status']==='200','legacy fr
 $before=count($calls);denied(fn()=>$c->call('POST','user_games/create',[]),'sandbox blocks OGP write');check(count($calls)===$before,'sandbox rejection happens before provider IO');
 denied(fn()=>$c->call('POST','server/create',[]),'commerce adapter cannot register remote agents');
 check(count($calls)===$before,'unsupported agent operations never reach provider');
+check((new OGPGet())->getSetting('panel_name')==='fixture-setting-value','legacy settings preserve the native scalar response');
+$before=count($calls);denied(fn()=>(new OGPPost())->restartServer(1),'legacy agent changes still obey sandbox');check(count($calls)===$before,'sandbox stops legacy agent changes before IO');
+$settings=SMF\Core\ShopSettings::all();file_put_contents(HttpSecurity::privateDirectory('config').'/shop-settings.json',json_encode(array_replace($settings,['environment'=>'live','allow_live_operations'=>true])));
+check((new OGPPost())->restartServer(1)['status']==='200','explicit legacy administration retains its separate agent path');
+denied(fn()=>$c->call('POST','server/restart',[]),'commerce interface never obtains the legacy agent administration path');file_put_contents(HttpSecurity::privateDirectory('config').'/shop-settings.json',json_encode($settings));
 integration_save('ogp',['url'=>'https://ogp.example.invalid','token'=>$token,'bridge_key'=>str_repeat('e',64)],true);
 $before=count($calls);denied(fn()=>$c->call('GET','server/list'),'cached OGP adapter rejects changed bridge credentials');check(count($calls)===$before,'changed bridge credentials are rejected before IO');
 integration_save('ogp',['url'=>'https://ogp.example.invalid','token'=>str_repeat('b',64)],true);

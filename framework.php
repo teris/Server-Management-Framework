@@ -4556,7 +4556,8 @@ class OGPGet extends BaseAPI {
         if($modules->installed('provider.ogp')) {
             $modules->assertEnabled('provider.ogp');
             $client=\SMF\Core\Kernel::boot()->providers()->get('ogp');
-            $reply=$client->response((string)(parse_url($url,PHP_URL_QUERY)??''),is_array($data)?$data:[]);
+            $action=(string)(parse_url($url,PHP_URL_QUERY)??'');$reply=$client->legacyResponse($action,is_array($data)?$data:[]);
+            if($action==='setting/get' && $reply->status===200)return $reply->data;
             return ['status'=>(string)$reply->status,'message'=>$reply->data];
         }
 

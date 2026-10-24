@@ -45,6 +45,6 @@ function shop_provider_guard(string $provider,string $method,string $url,?string
         $path=rawurldecode(parse_url($url,PHP_URL_QUERY)?:'');
         $read=$path==='get_function_list' || (bool)preg_match('~^(?:login|logout|[a-z0-9_]+_get(?:_[a-z0-9_]+)?)$~D',$path);
     }
-    if($provider==='ogp')$read=in_array(parse_url($url,PHP_URL_QUERY)?:'',['token/test','server/list','server/status','server/list_ips','user_games/list_games','user_games/list_servers','user_admin/list','user_admin/get','user_admin/list_assigned','litefm/list','litefm/get','setting/get','bridge/capabilities','bridge/status','bridge/ports','bridge/log','bridge/definition'],true);
+    if($provider==='ogp')$read=in_array(parse_url($url,PHP_URL_QUERY)?:'',['token/test','server/list','server/status','server/list_ips','user_games/list_games','user_games/list_servers','user_admin/list','user_admin/get','user_admin/list_assigned','addonsmanager/list','litefm/list','litefm/get','setting/get','bridge/capabilities','bridge/status','bridge/ports','bridge/log','bridge/definition'],true);
     if(!$read && !ShopSettings::allowLive())throw new SecurityViolation('Provider-Schreibzugriff ist im Testbetrieb gesperrt.',403);
 }

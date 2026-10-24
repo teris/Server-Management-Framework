@@ -192,7 +192,10 @@ class ProviderHttp {
         if($status<200 || $status>=300)throw ProviderFailure::fromResponse($provider,$status,$response);
         if($response==='')return [];
         $value=json_decode($response,true);
-        if(json_last_error()!==JSON_ERROR_NONE)throw new ProviderFailure($provider,$status);
+        if(json_last_error()!==JSON_ERROR_NONE){
+            $plain=(bool)array_filter($meta['wrapper_data']??[],fn($line)=>(bool)preg_match('~^Content-Type:\s*text/plain(?:;|$)~i',$line));
+            if($provider==='ogp' && (parse_url($url,PHP_URL_QUERY)??'')==='setting/get' && !empty($config['legacy_plain_setting']) && $plain && strlen($response)<=65536)$value=$response;else throw new ProviderFailure($provider,$status);
+        }
         return ['status'=>$status,'data'=>$value];
     }
 }

@@ -16,7 +16,7 @@ final class Client implements ProviderClient {
     private array $config;
     private string $binding;
     private string $revision;
-    private const READS=['token/test','server/list','server/status','server/list_ips','user_games/list_games','user_games/list_servers','user_admin/list','user_admin/get','user_admin/list_assigned','litefm/list','litefm/get','setting/get','bridge/capabilities','bridge/status','bridge/ports','bridge/log','bridge/definition'];
+    private const READS=['token/test','server/list','server/status','server/list_ips','user_games/list_games','user_games/list_servers','user_admin/list','user_admin/get','user_admin/list_assigned','addonsmanager/list','litefm/list','litefm/get','setting/get','bridge/capabilities','bridge/status','bridge/ports','bridge/log','bridge/definition'];
     private const WRITES=['user_admin/create','user_admin/assign','user_admin/remove_assign','user_games/create','user_games/set_expiration','gamemanager/start','gamemanager/stop','gamemanager/restart','gamemanager/update','gamemanager/rcon','litefm/save','bridge/delete','bridge/configure'];
     public function __construct(?array $config=null) {
         $this->config=$config??\integration_config('ogp');
@@ -27,7 +27,18 @@ final class Client implements ProviderClient {
     }
     public function connectionId(): string {return $this->binding;}
     public function response(string $action,array $parameters=[]): Response {
+        if($action==='setting/get' && PHP_SAPI!=='cli')\Identity::requireIdentity('backend',true);
         if(!in_array($action,[...self::READS,...self::WRITES],true))throw new Failure('UNSUPPORTED_OPERATION');
+        return $this->request($action,$parameters);
+    }
+    /** Existing framework administration is separate from commerce home provisioning. */
+    public function legacyResponse(string $action,array $parameters=[]):Response {
+        $admin=['server/restart','server/create','server/remove','server/add_ip','server/remove_ip','server/edit_ip','server/delete','server/update','user_admin/remove','user_admin/set_expiration','user_games/clone','litefm/remove','addonsmanager/install','steam_workshop/install','setting/get'];
+        if(!in_array($action,$admin,true))return $this->response($action,$parameters);
+        if(PHP_SAPI!=='cli')\Identity::requireIdentity('backend',true);
+        return $this->request($action,$parameters);
+    }
+    private function request(string $action,array $parameters):Response {
         if(!ProviderAccounts::enabled('ogp') || !hash_equals($this->binding,\integration_identity('ogp')) || !hash_equals($this->revision,hash('sha256',json_encode(\integration_config('ogp'),JSON_THROW_ON_ERROR))))throw new Failure('CONNECTION_CHANGED_OR_DISABLED');
         Kernel::boot()->modules()->assertEnabled('provider.ogp');
         unset($parameters['token'],$parameters['bridge_key']);
@@ -36,9 +47,10 @@ final class Client implements ProviderClient {
         if($bridge)$parameters['bridge_key']=$this->config['bridge_key'];
         $url=$this->config['url'].($bridge?'/smf_ogp_bridge.php?':'/ogp_api.php?').$action;
         $body=http_build_query(['token'=>$this->config['token']]+$parameters,'','&',PHP_QUERY_RFC3986);
-        try{$reply=\ProviderHttp::request('ogp','POST',$url,$body,['Content-Type: application/x-www-form-urlencoded'],$this->config);}
+        try{$config=$this->config;if($action==='setting/get')$config['legacy_plain_setting']=true;$reply=\ProviderHttp::request('ogp','POST',$url,$body,['Content-Type: application/x-www-form-urlencoded'],$config);}
         catch(\Throwable $error){throw new Failure('TRANSPORT_UNCONFIRMED');}
         $data=$reply['data']??null;
+        if($action==='setting/get' && is_scalar($data))return new Response((string)$data==='-1'?319:200,$data);
         if(!is_array($data) || !isset($data['status']) || !ctype_digit((string)$data['status']) || !array_key_exists('message',$data))throw new Failure('INVALID_RESPONSE');
         return new Response((int)$data['status'],$data['message']);
     }
