@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "core": ">=3.9.9 <4.0.0",
+  "core": ">=3.10.0 <4.0.0",
   "php": ">=8.3.0",
   "requires": {
     "shop.connections": "^1.0.0"

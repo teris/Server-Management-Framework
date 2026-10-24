@@ -6,6 +6,7 @@ function check($value,$name){global $checks,$failures;$checks++;if(!$value)$fail
 function denied(callable $f,$name){try{$f();check(false,$name);}catch(Throwable $e){check(true,$name);}}
 $m=SMF\Core\Kernel::boot()->modules();
 foreach(['shop.storage','shop.catalog','shop.portal','shop.orders','shop.payments','shop.provisioning','shop.billing','shop.contracts','shop.connections','provider.ogp','provider.ispconfig','provider.proxmox','provider.ovh'] as $id){$m->install($id);$m->enable($id);}
+denied(fn()=>(new SMF\Core\ModuleRegistry($db,dirname(__DIR__).'/extensions','3.9.9'))->assertCompatible('provider.ogp'),'new provider contracts require the 3.10 core');
 check(count($m->providers())===4,'all four provider contributions registered');
 check(isset(integration_definitions()['ogp']['fields']['token']),'shared OGP configuration is contributed');
 $token=str_repeat('a',64);integration_save('ogp',['url'=>'https://ogp.example.invalid','token'=>$token],true);

@@ -2,7 +2,7 @@
   "id": "product.webhosting",
   "name": "Webhosting",
   "version": "1.0.0",
-  "core": ">=3.9.9 <4.0.0",
+  "core": ">=3.10.0 <4.0.0",
   "php": ">=8.3.0",
   "requires": {
     "shop.orders": "^1.0.0",
