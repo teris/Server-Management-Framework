@@ -36,6 +36,7 @@ function package_requirements(array $p): array {
         if($productModule==='webhosting')foreach(['mail_limit'=>['mail.read','mail.create'],'database_limit'=>['database.read','database.create']]as$field=>$caps)if((int)($settings[$field]??0)>0)$items['capability_'.$field]=['Providerkontingent für '.$field.' geprüft',!array_diff($caps,$required['ispconfig']??[]),'/admin/einrichtung'];
         if($productModule==='gameserver')$items['game_capabilities']=['Gameserverfähigkeiten und Anschluss geprüft',class_exists('SMF\\Modules\\Gameserver\\Catalog') && !SMF\Modules\Gameserver\Catalog::blockers($p),'/admin/gameserver'];
     }
+    $items['payment_module']=['Zahlungsmodul für den Direktkauf aktiviert',SMF\Core\Kernel::boot()->modules()->enabled('shop.payments'),'/admin/einrichtung'];
     if(isset($p['_domain_tld_id']))$items['domain_extension']=['Domainendung freigegeben',(bool)$p['_tld_enabled'],'/admin/domains?id='.$p['_domain_tld_id']];
     if($provider==='ovh')$items['domain_cost']=['OVH-Einkaufsgrenze hinterlegt',(int)($settings['max_purchase_cents']??0)>0,isset($p['_domain_tld_id'])?'/admin/domains?id='.$p['_domain_tld_id']:'/admin/produkte?id='.$p['id']];
     if($provider==='ovh')$items['domain_billing']=['Domainpreis für ein Registrierungsjahr',in_array($p['billing'],['year','once'],true),'/admin/produkte?id='.$p['id']];

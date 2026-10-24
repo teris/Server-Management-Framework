@@ -6,7 +6,10 @@
   "php": ">=8.3.0",
   "requires": {
     "shop.orders": "^1.0.0",
-    "provider.ispconfig": "^1.0.0"
+    "provider.ispconfig": "^1.0.0",
+    "shop.provisioning": "^1.1.0",
+    "shop.billing": "^1.0.0",
+    "shop.contracts": "^1.0.0"
   },
   "routes": {},
   "jobs": {

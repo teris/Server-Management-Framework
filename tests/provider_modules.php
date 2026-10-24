@@ -26,6 +26,8 @@ $legacy=new OGPGet();check($legacy->getServerList()['status']==='200','legacy fr
 $before=count($calls);denied(fn()=>$c->call('POST','user_games/create',[]),'sandbox blocks OGP write');check(count($calls)===$before,'sandbox rejection happens before provider IO');
 denied(fn()=>$c->call('POST','server/create',[]),'commerce adapter cannot register remote agents');
 check(count($calls)===$before,'unsupported agent operations never reach provider');
+integration_save('ogp',['url'=>'https://ogp.example.invalid','token'=>$token,'bridge_key'=>str_repeat('e',64)],true);
+$before=count($calls);denied(fn()=>$c->call('GET','server/list'),'cached OGP adapter rejects changed bridge credentials');check(count($calls)===$before,'changed bridge credentials are rejected before IO');
 integration_save('ogp',['url'=>'https://ogp.example.invalid','token'=>str_repeat('b',64)],true);
 check(ResourceAccess::connectionId('ogp')!==$id,'token rotation changes binding');
 check(SMF\Core\ProviderDiagnostics::capabilities('ogp')===[],'token rotation invalidates diagnostics');

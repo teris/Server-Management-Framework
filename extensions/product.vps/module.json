@@ -7,7 +7,9 @@
   "requires": {
     "shop.orders": "^1.0.0",
     "provider.proxmox": "^1.0.0",
-    "shop.provisioning": "^1.1.0"
+    "shop.provisioning": "^1.1.0",
+    "shop.billing": "^1.0.0",
+    "shop.contracts": "^1.0.0"
   },
   "routes": {
     "/konto/server": "servers",

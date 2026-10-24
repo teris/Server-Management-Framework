@@ -15,18 +15,20 @@ final readonly class Response {
 final class Client implements ProviderClient {
     private array $config;
     private string $binding;
+    private string $revision;
     private const READS=['token/test','server/list','server/status','server/list_ips','user_games/list_games','user_games/list_servers','user_admin/list','user_admin/get','user_admin/list_assigned','litefm/list','litefm/get','setting/get','bridge/capabilities','bridge/status','bridge/ports','bridge/log','bridge/definition'];
     private const WRITES=['user_admin/create','user_admin/assign','user_admin/remove_assign','user_games/create','user_games/set_expiration','gamemanager/start','gamemanager/stop','gamemanager/restart','gamemanager/update','gamemanager/rcon','litefm/save','bridge/delete','bridge/configure'];
     public function __construct(?array $config=null) {
         $this->config=$config??\integration_config('ogp');
         $this->config['url']=\checked_api_url($this->config['url']??'');
         if(!preg_match('/^[a-f0-9]{64}$/Di',$this->config['token']??''))throw new Failure('INVALID_TOKEN');
+        $this->revision=hash('sha256',json_encode($this->config,JSON_THROW_ON_ERROR));
         $this->binding=$config===null?\integration_identity('ogp'):\integration_identity('ogp',$this->config);
     }
     public function connectionId(): string {return $this->binding;}
     public function response(string $action,array $parameters=[]): Response {
         if(!in_array($action,[...self::READS,...self::WRITES],true))throw new Failure('UNSUPPORTED_OPERATION');
-        if(!ProviderAccounts::enabled('ogp') || !hash_equals($this->binding,\integration_identity('ogp')))throw new Failure('CONNECTION_CHANGED_OR_DISABLED');
+        if(!ProviderAccounts::enabled('ogp') || !hash_equals($this->binding,\integration_identity('ogp')) || !hash_equals($this->revision,hash('sha256',json_encode(\integration_config('ogp'),JSON_THROW_ON_ERROR))))throw new Failure('CONNECTION_CHANGED_OR_DISABLED');
         Kernel::boot()->modules()->assertEnabled('provider.ogp');
         unset($parameters['token'],$parameters['bridge_key']);
         $bridge=str_starts_with($action,'bridge/');
